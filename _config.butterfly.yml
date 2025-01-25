@@ -88,7 +88,7 @@ category_img: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/183094c3dd
 category_per_img:
 
 # The background image of footer
-footer_img: false
+footer_img: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/ae4fdc39fff6e9b5a25055ccd0914a3.jpg
 
 # Website Background
 # Can set it to color or image url
@@ -432,13 +432,11 @@ copy:
 
 # Need to install the hexo-wordcount plugin
 wordcount:
-  enable: false
-  # Display the word count of the article in post meta
+  enable: true
   post_wordcount: true
-  # Display the time to read the article in post meta
   min2read: true
-  # Display the total word count of the website in aside's webinfo
   total_wordcount: true
+
 
 # Busuanzi count for PV / UV in site
 busuanzi:
