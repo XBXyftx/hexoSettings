@@ -1,7 +1,9 @@
 ---
 title: 多电脑同步更新hexo
 date: 2025-01-25 01:27:06
-tags: hexo博客搭建
+tags: 
+  - hexo博客搭建
+  - 技术向
 cover: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/183094c3dd5a8020e0b74ed7e6e90b6.png
 post_copyright:
 copyright_author: XBXyftx
@@ -22,16 +24,17 @@ hexo框架整体可以理解为一个自动帮你生成静态网页的软件，�
 
 hexo框架下的各个文件夹作用以及是否需要上传至GitHub如下表所示。
 
-| 文件夹        | 说明                                                                                                | 是否需要上传github |
-| ------------- | --------------------------------------------------------------------------------------------------- | ------------------ |
-| node\_modules | hexo需要的模块，就是一些基础的npm安装模块，比如一些美化插件，在执行 `npm install`的时候会重新生成 | 不需要             |
-| themes        | 主题文件                                                                                            | 需要               |
-| public        | hexo g命令执行后生成的静态页面文件                                                                  | 不需要             |
-| packages.json | 记录了hexo需要的包的信息，之后换电脑了npm根据这个信息来安装hexo环境                                 | 需要               |
-| \_config.yml  | 全局配置文件，这个不用多说了吧                                                                      | 需要               |
-| .gitignore    | hexo生成的默认的.gitignore模块                                                                      | 需要               |
-| scaffolds     | 文章的模板                                                                                          | 需要               |
-| .deploy\_git  | hexo g自动生成的                                                                                    | 不需要             |
+
+| 文件夹        | 说明                                                                                             | 是否需要上传github |
+| ------------- | ------------------------------------------------------------------------------------------------ | ------------------ |
+| node\_modules | hexo需要的模块，就是一些基础的npm安装模块，比如一些美化插件，在执行`npm install`的时候会重新生成 | 不需要             |
+| themes        | 主题文件                                                                                         | 需要               |
+| public        | hexo g命令执行后生成的静态页面文件                                                               | 不需要             |
+| packages.json | 记录了hexo需要的包的信息，之后换电脑了npm根据这个信息来安装hexo环境                              | 需要               |
+| \_config.yml  | 全局配置文件，这个不用多说了吧                                                                   | 需要               |
+| .gitignore    | hexo生成的默认的.gitignore模块                                                                   | 需要               |
+| scaffolds     | 文章的模板                                                                                       | 需要               |
+| .deploy\_git  | hexo g自动生成的                                                                                 | 不需要             |
 
 随后将该仓库上传至GitHub即可
 
