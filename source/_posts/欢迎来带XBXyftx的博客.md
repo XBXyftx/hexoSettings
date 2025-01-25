@@ -1,7 +1,9 @@
 ---
 title: 欢迎来到XBXyftx的博客!
 date: 2025-01-24 02:07:03
-tags: 独白
+tags: 
+  - 独白
+  - hexo博客搭建
 cover: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/c328dc6de32882b3f04a65e5441a458.jpg
 post_copyright:
 copyright_author: XBXyftx

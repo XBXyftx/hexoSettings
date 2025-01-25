@@ -1,0 +1,26 @@
+- class_name: 友情链接
+  class_desc: 那些人，那些事
+  link_list:
+    - name: XBXyftx
+      link: https://XBXyftx.github.io
+      avatar: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/48431edade01f1fbd58a48265a0df32.jpg
+      descr: 爱鸿蒙，爱编程，更爱生活
+- class_name: 网站
+  class_desc: 值得推荐的网站
+  link_list:
+    - name: Twitter
+      link: https://twitter.com/
+      avatar: https://i.loli.net/2020/05/14/5VyHPQqR6LWF39a.png
+      descr: 社交分享平台
+    - name: CSDN
+      link: https://www.csdn.net/
+      avatar: https://th.bing.com/th?id=ODLS.75fbaa62-ad18-4e8b-9ca8-67706ec82c93&w=32&h=32&qlt=90&pcl=fffffa&o=6&pid=1.2
+      descr: 程序员开发技术社区
+    - name: 华为开发者联盟
+      link: https://developer.huawei.com/consumer/cn/
+      avatar: https://logos-world.net/wp-content/uploads/2020/04/Huawei-Logo.png
+      descr: 华为开发者联盟
+    - name: 开源鸿蒙
+      link: https://www.openharmony.cn/mainPlay
+      avatar: https://www.scensmart.com/wp-content/uploads/2023/03/OpenHarmony-banner.jpg
+      descr: 开源鸿蒙
