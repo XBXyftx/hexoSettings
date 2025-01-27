@@ -75,7 +75,7 @@ hexo -v
 hexo g && hexo s
 ```
 
-在页面启动后按住ctrl左键点击http://localhost:4000/字段即可自动跳转至浏览器进行本地预览。
+在页面启动后按住ctrl左键点击`http://localhost:4000/` 字段即可自动跳转至浏览器进行本地预览。
 ![cmd](butterfly主题美化/6.png)
 当你看到hexo从地平线升起时你就成功创建了一个本地静态博客网页。
 

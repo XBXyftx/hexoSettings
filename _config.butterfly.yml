@@ -11,7 +11,7 @@
 
 nav:
   # Navigation bar logo image
-  logo: https://github.com/XBXyftx/HexoImg/blob/main/Settings/d047f41ddf5418832b8c9faf958a12b.jpg?raw=true
+  logo: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/48431edade01f1fbd58a48265a0df32.jpg
   display_title: true
   # Whether to fix navigation bar
   fixed: false
@@ -30,11 +30,11 @@ menu:
 
 # Code Blocks (代码块相关)
 # --------------------------------------
-highlight_theme: darker # darker / pale night / light / ocean / false
+highlight_theme: pale night # darker / pale night / light / ocean / false
 highlight_height_limit: false # 单位：像素
 code_word_wrap: true
 # 高亮工具栏
-highlight_theme_macStyle: true # 使用 Mac 风格
+highlight_theme_macStyle: false # 使用 Mac 风格
 highlight_copy: true # 复制按钮
 highlight_lang: true # 显示代码语言
 highlight_shrink: false # true: 收缩代码块 / false: 展开代码块 | none: 展开代码块并隐藏按钮
@@ -55,7 +55,7 @@ social:
 favicon: https://github.com/XBXyftx/HexoImg/blob/main/Settings/48431edade01f1fbd58a48265a0df32.jpg?raw=true
 
 avatar:
-  img: https://github.com/XBXyftx/HexoImg/blob/main/Settings/48431edade01f1fbd58a48265a0df32.jpg?raw=true
+  img: img/avatar.jpg
   effect: false
 
 # Disable all banner images
@@ -63,16 +63,16 @@ disable_top_img: false
 
 # If the banner of page not setting, it will show the default_top_img
 # default_top_img: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/3ab3f845b7cb3ba0d297ff616ca8df6.jpg
-default_top_img: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/3ab3f845b7cb3ba0d297ff616ca8df6.jpg
+default_top_img: img/topImg86.jpg
 
 # The banner image of index page
-index_img: 
+index_img: img/topImg86.jpg
 
 # The banner image of archive page
-archive_img: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/713ebd4adfcb42ea0bac6e226564ea5.jpg
+archive_img: img/topImgSX.jpg
 
 # Note: tag page, not tags page
-tag_img: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/713ebd4adfcb42ea0bac6e226564ea5.jpg
+tag_img: img/topImgSX.jpg
 
 # The banner image of tag page, you can set the banner image for each tag
 # Format:
@@ -92,7 +92,8 @@ footer_img: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/202501252323
 
 # Website Background
 # Can set it to color or image url
-background: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/bgImg.png
+# background: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/bgImg.png
+background: img/bg.png
 cover:
   # Disable the cover or not
   index_enable: true
