@@ -30,15 +30,13 @@ menu:
 
 # Code Blocks (代码块相关)
 # --------------------------------------
-highlight_theme: pale night # darker / pale night / light / ocean / false
-highlight_height_limit: false # 单位：像素
+highlight_theme: darker # darker / pale night / light / ocean / false
+highlight_height_limit: false
 code_word_wrap: true
-# 高亮工具栏
-highlight_theme_macStyle: false # 使用 Mac 风格
-highlight_copy: true # 复制按钮
-highlight_lang: true # 显示代码语言
-highlight_shrink: false # true: 收缩代码块 / false: 展开代码块 | none: 展开代码块并隐藏按钮
-highlight_fullpage: true # true: 添加切换全屏的按钮
+highlight_copy: true
+highlight_lang: true
+highlight_shrink: false
+highlight_fullpage: true
 
 
 # Social media links
