@@ -21,12 +21,12 @@ menu:
   首页: / || fas fa-home
   归档: /archives/ || fas fa-archive
   标签: /tags/ || fas fa-tags
-  目录: /categories/ || fas fa-folder-open
-  列表||fas fa-list:
-    音乐: /music/ || fas fa-music
-    电影: /movies/ || fas fa-video
+  # 目录: /categories/ || fas fa-folder-open
+  # 列表||fas fa-list:
+  #   音乐: /music/ || fas fa-music
+  #   电影: /movies/ || fas fa-video
   友情链接: /link/ || fas fa-link
-  关于我们: /about/ || fas fa-heart
+  # 关于我们: /about/ || fas fa-heart
 
 # Code Blocks (代码块相关)
 # --------------------------------------
@@ -851,28 +851,28 @@ canvas_ribbon:
 
 # Fluttering Ribbon
 canvas_fluttering_ribbon:
-  enable: false
-  mobile: false
+  enable: true
+  mobile: true
 
 # canvas_nest
 # https://github.com/hustcc/canvas-nest.js
 canvas_nest:
-  enable: false
+  enable: true
   # Color of lines, default: '0,0,0'; RGB values: (R,G,B).(note: use ',' to separate.)
   color: '0,0,255'
   # The opacity of line (0~1)
   opacity: 0.7
   # The z-index property of the background
-  zIndex: -1
+  zIndex: 99
   # The number of lines
   count: 99
-  mobile: false
+  mobile: true
 
 # 鼠标点击效果：烟花特效
 fireworks:
-  enable: false
+  enable: true
   zIndex: 9999 # -1 或 9999
-  mobile: false
+  mobile: true
 
 # 鼠标点击效果：爱心
 click_heart:

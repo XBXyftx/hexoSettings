@@ -1,5 +1,5 @@
 ---
-title: butterfly主题美化
+title: Hexo+butterfly个人博客搭建与美化
 date: 2025-01-26 17:07:22
 tags:
   - hexo博客搭建
@@ -11,7 +11,7 @@ copyright_author_href: https://github.com/XBXyftx
 copyright_url: https://XBXyftx.github.io
 copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自原作者
 ---
-# Hexo+butterfly个人博客搭建与美化
+# Hexo+butterfly个人博客搭建
 
 在用了一周左右的时间搭建博客，沉浸于试效果，改bug，试效果，改bug……的先循环后我还是决定写一篇文章来记录一下，省的未来的自己再走一遍这痛苦的过程。
 
@@ -169,3 +169,32 @@ theme: butterfly
 ```
 
 然后再次hexo三联！就完成了主题的替换。
+
+# butterfly主题美化
+
+## 网站资料
+
+修改网站各种资料，例如标题、副标题和邮箱等个人资料，请修改站点配置文件_config.yml。部分参数如下，详细参数可参考官方的配置描述。
+
+
+| 参数        | 描述                                                                                                                                                 |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| title       | 网站标题                                                                                                                                             |
+| subtitle    | 描述                                                                                                                                                 |
+| description | 网站描述                                                                                                                                             |
+| keywords    | 网站的关键词。支持多个关键词。                                                                                                                       |
+| author      | 您的名字                                                                                                                                             |
+| language    | 网站使用的语言。对于简体中文用户来说，使用不同的主题可能需要设置成不同的值，请参考你的主题的文档自行设置，常见的有 zh-Hans和 zh-CN。                 |
+| timezone    | 网站时区。Hexo 默认使用您电脑的时区。请参考 时区列表 进行设置，如 America/New_York, Japan, 和 UTC 。一般的，对于中国大陆地区可以使用 Asia/Shanghai。 |
+
+## 背景图片
+
+修改`background`字段的值即可。
+
+## 更多属性
+
+可以参考以下博客：
+
+[【Hexo系列】【7】Butterfly主题使用及美化\_hexo主题butterfly美化教程-CSDN博客](https://blog.csdn.net/middle_age666/article/details/141507929)
+
+[基于 Hexo 从零开始搭建个人博客（五） | 唐志远](https://fe32.top/articles/hexo1605/#%E5%89%8D%E8%A8%80)
