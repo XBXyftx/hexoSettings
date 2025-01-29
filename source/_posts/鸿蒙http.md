@@ -147,6 +147,39 @@ https://xbxyftx.github.io/2025/01/27/%E9%B8%BF%E8%92%99http/
 * 能够直接被JavaScript解释器解析
 * 可以使用数组
 
+#### 如何解析json
+在鸿蒙中，我们可以使用`JSON.parse()`方法来解析json字符串。
+```
+interface IPeople{
+  name:string
+  age:number
+  fruits:string[]
+}
+const json:IPeople = JSON.parse('{"name":"XBXyftx","age":22,"fruits":["apple","pear","grape"]}')
+console.log(json.name)
+console.log(json.age.toString())
+console.log(json.fruits.toString())
+```
+输出结果如下
+```
+XBXyftx
+22
+apple,pear,grape
+```
+而当我们需要将对象转化成json字符串时，可以使用`JSON.stringify()`方法。
+```
+const json2:IPeople = {
+  name:'A',
+  age:18,
+  fruits:['苹果','香蕉']
+}
+console.log(JSON.stringify(json2))
+```
+输出结果如下：
+```
+{"name":"A","age":18,"fruits":["苹果","香蕉"]}
+```
+
 ## http模块的使用
 
 ```
@@ -201,3 +234,4 @@ struct Notebook_use {
 
 这样我们就可以根据返回的json数据来进行UI显示了。
 这就是一个简单的http网络请求，和在本地写好数据集来进行UI显示的效果是一样的，整体思路是不变的。
+
