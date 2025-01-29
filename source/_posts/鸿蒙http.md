@@ -157,10 +157,10 @@ interface IPeople{
   age:number
   fruits:string[]
 }
-const json:IPeople = JSON.parse('{"name":"XBXyftx","age":22,"fruits":["apple","pear","grape"]}')
+const json:IPeople = JSON.parse('{"name":"XBXyftx","age":22,"fruits":["apple","pear","grape"]}') as IPeople
 console.log(json.name)
 console.log(json.age.toString())
-console.log(json.fruits.toString())
+console.log(json.fruits.join())
 ```
 
 输出结果如下
@@ -188,9 +188,25 @@ console.log(JSON.stringify(json2))
 {"name":"A","age":18,"fruits":["苹果","香蕉"]}
 ```
 
+#### json和字符串数组的互相转化
+
+也可以用来解析字符串数组
+
+```ArkTS
+const jsonArr = '["hello","西兰花"]'
+const obj:string[] = JSON.parse(jsonArr) as string[]
+console.log(obj.join())
+```
+
+输出结果如下：
+
+```ArkTS
+hello,西兰花
+```
+
 ## http模块的使用
 
-```
+```ArkTS
 //导入http模块
 import { http } from '@kit.NetworkKit';
 //创建http请求模块
@@ -212,7 +228,7 @@ then事件用于处理http请求接收到的响应数据，当成功获取到响
 
 分析获取到的数据可知我们所需要的笑话的键值为 `"result"`，由此我们就可以使用`res.result.toString()`
 
-```
+```ArkTS
 import http from '@ohos.net.http';
 @Entry
 @Component
@@ -243,3 +259,107 @@ struct Notebook_use {
 这样我们就可以根据返回的json数据来进行UI显示了。
 这就是一个简单的http网络请求，和在本地写好数据集来进行UI显示的效果是一样的，整体思路是不变的。
 
+## 异步编程
+
+### 什么是异步编程
+
+在鸿蒙中，由于网络请求是一个耗时操作，所以我们不能直接在主线程中进行网络请求，否则会导致主线程卡死，所以我们需要使用异步编程来进行网络请求。
+异步编程的核心思想就是将耗时操作放在子线程中执行，当子线程执行完毕后再将结果返回给主线程。
+在鸿蒙中，我们可以使用`async`和`await`关键字来进行异步编程。
+`async`关键字用于声明一个异步函数，`await`关键字用于等待异步操作的完成。
+
+**同步代码**：逐行执行，需原地等待结果后，才继续向下执行
+**异步代码**：调用后耗时，不阻塞代码继续执行，将来完成后，触发回调函数传递结果
+**划重点**：异步代码的结果，通过 `回调函数` 获取
+
+```ArkTS
+ /**
+   * 1. 同步代码
+   * */
+  console.log(1)
+  const num = 1 + 1
+  console.log(num)    // 12
+
+  /**
+   * 2. 同步+异步（定时器）
+   * */
+  console.log(1+'')
+  setTimeout(() => {
+    console.log(2+'')
+  }, 1000)
+  console.log(3+'')   // 132
+
+  /**
+   * 3. 同步+异步（网络请求）
+   * */
+  console.log('1')
+
+  const req = http.createHttp()
+  req.request('https://api-vue-base.itheima.net/api/joke')
+    .then((res: http.HttpResponse) => {
+      console.log('3')
+    })
+
+  console.log('2')    // 123
+```
+这就是一个同步异步代码的简单示例，我们可以看到同步代码是逐行执行的，而异步代码则是在主线程中执行完毕后再将结果返回给主线程。
+
+### Promise
+
+Promise是一种用于处理异步操作的对象，可以将异步操作转换为类似于同步操作的风格，以方便代码编写和维护
+**简而言之**：Promise 用来管理异步，方便编码。
+
+实际开发中如果异步操作用到了 Promise 来进行管理那么：
+
+1. 那么获取异步操作结果（成功 or 失败）的方式都是一样的
+2. 能够解决回调函数地狱（多层回调函数嵌套）的问题
+
+```ArkTS
+  const p = new Promise<string>((resolve,reject) => {
+      // 执行任意代码，主要是异步
+      setTimeout(() => {
+        // 比如：获取随机数
+        const randomNum = Math.floor(Math.random() * 100)
+        resolve(randomNum.toString())
+        reject(randomNum.toString())
+      })
+    })
+
+    p.then(res => {
+      console.log('res:', res)
+    },(err:string)=>{
+      console.log('err:',err)
+    })
+```
+这段代码中包含了一个Promise对象，Promise对象的构造函数中包含了一个回调函数，这个回调函数中包含了两个参数，`resolve`和`reject`，`resolve`用于将异步操作的结果返回给主线程，`reject`用于将异步操作的错误返回给主线程。
+异步函数的状态有三种：
+
+* `pending`：初始状态，不是成功或失败状态
+* `fulfilled`：意味着操作成功完成
+* `rejected`：意味着操作失败
+
+当异步操作成功时，会调用`resolve`函数，将异步操作的结果返回给主线程，当异步操作失败时，会调用`reject`函数，将异步操作的错误返回给主线程。
+**划重点**：异步函数状态不可逆，只能由`pending`变为`fulfilled`或`rejected`。
+成功和失败之间不可互转。
+上面这段代码的最终输出结果为`res: 40`40是一个随机数，而res则说明进入的是res成功的代码块中。
+如果将`resolve(randomNum.toString())`注释掉改为以下样式
+
+```ArkTS
+const p = new Promise<string>((resolve,reject) => {
+  // 执行任意代码，主要是异步
+  setTimeout(() => {
+    // 比如：获取随机数
+    const randomNum = Math.floor(Math.random() * 100)
+    // resolve(randomNum.toString())
+    reject(randomNum.toString())
+  })
+})
+
+p.then(res => {
+  console.log('res:', res)
+},(err:string)=>{
+  console.log('err:',err)
+})
+```
+
+则最终输出结果为`err: 40`，说明进入的是err失败的代码块中，这就是Promise的基本用法。
