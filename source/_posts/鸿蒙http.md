@@ -146,3 +146,58 @@ https://xbxyftx.github.io/2025/01/27/%E9%B8%BF%E8%92%99http/
 * 没有结束标签,长度更短,读写更快
 * 能够直接被JavaScript解释器解析
 * 可以使用数组
+
+## http模块的使用
+
+```
+//导入http模块
+import { http } from '@kit.NetworkKit';
+//创建http请求模块
+const req = http.createHttp()
+//发送请求到指定URL
+req.request('https://api-vue-base.itheima.net/api/joke')
+  .then((res:http.HttpResponse)=>{
+    AlertDialog.show({
+      message:JSON.stringify(res)
+    })
+  })
+```
+
+then事件用于处理http请求接收到的响应数据，当成功获取到响应后就会进入到then代码块中。
+
+获取到的数据如下图所示。
+
+![](https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/20250127223839.png)
+
+分析获取到的数据可知我们所需要的笑话的键值为 `"result"`，由此我们就可以使用`res.result.toString()`
+
+```
+import http from '@ohos.net.http';
+@Entry
+@Component
+struct Notebook_use {
+  @State message: string = 'Hello World';
+  build() {
+    Row() {
+      Column() {
+        Text(this.message)
+          .fontSize(20)
+        Button('看笑话')
+          .onClick(() => {
+            const req = http.createHttp()
+            req.request('https://api-vue-base.itheima.net/api/joke')
+              .then((res: http.HttpResponse) => {
+                // AlertDialog.show({ message: JSON.stringify(res) })
+                this.message = res.result.toString()
+              })
+          })
+      }
+      .width('100%')
+    }
+    .height('100%')
+  }
+}
+```
+
+这样我们就可以根据返回的json数据来进行UI显示了。
+这就是一个简单的http网络请求，和在本地写好数据集来进行UI显示的效果是一样的，整体思路是不变的。
