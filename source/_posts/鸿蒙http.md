@@ -28,7 +28,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 由于需要进行网络请求，所以我们还需要在配置文件 `module.json5`下添加如下代码
 
-```
+```ArkTS
 "requestPermissions": [
    {
       "name": "ohos.permission.INTERNET"
@@ -38,7 +38,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 完整代码如下
 
-```
+```ArkTS
 {
   "module": {
     "name": "entry",
@@ -121,7 +121,7 @@ https://xbxyftx.github.io/2025/01/27/%E9%B8%BF%E8%92%99http/
 
 就像是以下格式就是一个标准的json字符串
 
-```
+```ArkTS
 {
 	"name":"XBXyftx",
 	"age":22,
@@ -131,7 +131,7 @@ https://xbxyftx.github.io/2025/01/27/%E9%B8%BF%E8%92%99http/
 
 当然json经常被拿来和xml进行比较，就比如上面的json字符串，转化为xml就是这样：
 
-```
+```xml
 <root>
 	<name>XBXyftx</name>
 	<age>22</age>
@@ -147,9 +147,11 @@ https://xbxyftx.github.io/2025/01/27/%E9%B8%BF%E8%92%99http/
 * 能够直接被JavaScript解释器解析
 * 可以使用数组
 
-#### 如何解析json
+#### json与对象的互相转化
+
 在鸿蒙中，我们可以使用`JSON.parse()`方法来解析json字符串。
-```
+
+```ArkTS
 interface IPeople{
   name:string
   age:number
@@ -160,14 +162,18 @@ console.log(json.name)
 console.log(json.age.toString())
 console.log(json.fruits.toString())
 ```
+
 输出结果如下
-```
+
+```ArkTS
 XBXyftx
 22
 apple,pear,grape
 ```
+
 而当我们需要将对象转化成json字符串时，可以使用`JSON.stringify()`方法。
-```
+
+```ArkTS
 const json2:IPeople = {
   name:'A',
   age:18,
@@ -175,8 +181,10 @@ const json2:IPeople = {
 }
 console.log(JSON.stringify(json2))
 ```
+
 输出结果如下：
-```
+
+```ArkTS
 {"name":"A","age":18,"fruits":["苹果","香蕉"]}
 ```
 
