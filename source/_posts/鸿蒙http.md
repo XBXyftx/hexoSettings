@@ -108,6 +108,240 @@ https://xbxyftx.github.io/2025/01/27/%E9%B8%BF%E8%92%99http/
 在URL的末尾我们可以再后缀上二外参数，比如`?name=XBXyftx&age=22`，这样就可以在URL的末尾添加参数。
 参数的格式为`key=value`，多个参数之间用`&`连接。
 
+#### URL参数案例
+
+##### 项目基础结构
+
+```ArkTS
+
+import http from '@ohos.net.http';
+
+
+const req = http.createHttp()
+
+@Entry
+@Component
+struct Day01_03_QueryParams {
+  @State pname: string = '';
+  @State jokeNum: string = ''
+  @State jokes: string[] = []
+  @State cities: string[] = []
+
+  build() {
+    Column() {
+      Column({ space: 10 }) {
+        Text('开心一笑')
+          .fontSize(30)
+        TextInput({ placeholder: '输入笑话条数', text: $$this.jokeNum })
+          .type(InputType.Number)
+          .onSubmit(() => {
+            // url：https://api-vue-base.itheima.net/api/joke/list
+            // 参数: num 笑话数量
+            AlertDialog.show({
+              message: '输入的数值是:' + this.jokeNum
+            })
+          })
+        ForEach(this.jokes, (joke: string) => {
+          Text(joke)
+        })
+      }
+      .layoutWeight(1)
+      .width('100%')
+      .padding(10)
+
+      Divider()
+        .color(Color.Pink)
+        .strokeWidth(3)
+      Column({ space: 10 }) {
+        Text('省份城市查询')
+          .fontSize(30)
+        TextInput({ placeholder: '请输入查询的省份名', text: $$this.pname })// 键盘事件
+          .onSubmit(e => {
+            // url：https://hmajax.itheima.net/api/city
+            // 参数: pname 省份名
+            AlertDialog.show({
+              message: '输入的省份名是:' + this.pname
+            })
+          })
+        Grid() {
+          ForEach(this.cities, (city: string) => {
+            GridItem() {
+              Text(city)
+            }
+            .border({ width: 1 })
+          })
+        }
+        .columnsTemplate('1fr '.repeat(4))
+        .columnsGap(10)
+        .rowsGap(10)
+      }
+      .layoutWeight(1)
+      .width('100%')
+      .padding(10)
+    }
+    .height('100%')
+  }
+}
+```
+
+上半部分是输入笑话条数，下半部分是输入省份名，点击查询后会返回对应的城市。而根据这两个URL的文档可知
+
+```
+地址: https://api-vue-base.itheima.net/api/joke/list
+根据查询参数获取若干条随机笑话
+参数名: num
+说明: 传递数量即可，比如 5
+
+地址:http://hmajax.itheima.net/api/city
+说明获取某个省所有的城市查询
+参数名:pname
+说明: 传递省份或直辖市名，比如 北京、广东省…
+```
+
+##### 笑话查询
+
+由于我们并不清楚其返回值是什么所以我们先将获取的结果打印出来，并根据打印出json字符串来定义接口。
+
+```ArkTS
+req.request(`https://api-vue-base.itheima.net/api/joke/list?num=${this.jokeNum}`)
+  .then((res)=>{
+    AlertDialog.show({
+      message:res.result.toString()
+    })
+  })
+```
+
+打印出的结果如下
+![1](https://raw.githubusercontent.com/XBXyftx/hexoImgs3/main/20250131000223.png)
+
+由此可知，我们可以定义一个接口来接收返回值。
+
+```ArkTS
+interface JokeResponse {
+  msg: string
+  code: number
+  data: string[]
+}
+```
+
+然后我们就可以将请求到的结果转化为接口类型。
+
+```ArkTS
+req.request(`https://api-vue-base.itheima.net/api/joke/list?num=${this.jokeNum}`)
+  .then((res)=>{
+      this.jokes = (JSON.parse(res.result.toString()) as JokeResponse).data
+  })
+```
+
+##### 省份城市查询
+同样的，我们先将获取的结果打印出来，并根据打印出json字符串来定义接口。
+
+```ArkTS
+interface CityResponse {
+  message: string
+  list: string[]
+}
+```
+然后我们就可以将请求到的结果转化为接口类型。
+
+```ArkTS
+req.request(`http://hmajax.itheima.net/api/city?pname=${encodeURIComponent(this.pname)}`)
+  .then(res => {
+    const cityRes = JSON.parse(res.result.toString()) as CityResponse
+    this.cities = cityRes.list
+  })
+```
+
+由于用到了中文参数，所以需要进行编码，在ArkTS中可以使用`encodeURIComponent()`方法来进行编码。
+
+##### 完整代码和最终效果
+
+![1](https://raw.githubusercontent.com/XBXyftx/hexoImgs3/main/Screenshot_2025-01-31T001706.png)
+
+```ArkTS
+import http from '@ohos.net.http';
+
+interface JokeResponse {
+  msg: string
+  code: number
+  data: string[]
+}
+
+interface CityResponse {
+  message: string
+  list: string[]
+}
+
+const req = http.createHttp()
+
+@Entry
+@Component
+struct Day01_03_QueryParams {
+  @State pname: string = '';
+  @State jokeNum: string = ''
+  @State jokes: string[] = []
+  @State cities: string[] = []
+
+  build() {
+    Column() {
+      Column({ space: 10 }) {
+        Text('开心一笑')
+          .fontSize(30)
+        TextInput({ placeholder: '输入笑话条数', text: $$this.jokeNum })
+          .type(InputType.Number)
+          .onSubmit(() => {
+            // url：https://api-vue-base.itheima.net/api/joke/list
+            // 参数: num 笑话数量
+            req.request(`https://api-vue-base.itheima.net/api/joke/list?num=${this.jokeNum}`)
+              .then(res => {
+                this.jokes = (JSON.parse(res.result.toString()) as JokeResponse).data
+              })
+          })
+        ForEach(this.jokes, (joke: string) => {
+          Text(joke)
+        })
+      }
+      .layoutWeight(1)
+      .width('100%')
+      .padding(10)
+
+      Divider()
+        .color(Color.Pink)
+        .strokeWidth(3)
+      Column({ space: 10 }) {
+        Text('省份城市查询')
+          .fontSize(30)
+        TextInput({ placeholder: '请输入查询的省份名', text: $$this.pname })// 键盘事件
+          .onSubmit(e => {
+            // url：https://hmajax.itheima.net/api/city
+            // 参数: pname 省份名
+            req.request(`http://hmajax.itheima.net/api/city?pname=${encodeURIComponent(this.pname)}`)
+              .then(res => {
+                const cityRes = JSON.parse(res.result.toString()) as CityResponse
+                this.cities = cityRes.list
+              })
+          })
+        Grid() {
+          ForEach(this.cities, (city: string) => {
+            GridItem() {
+              Text(city)
+            }
+            .border({ width: 1 })
+          })
+        }
+        .columnsTemplate('1fr '.repeat(4))
+        .columnsGap(10)
+        .rowsGap(10)
+      }
+      .layoutWeight(1)
+      .width('100%')
+      .padding(10)
+    }
+    .height('100%')
+  }
+}
+```
+
 #### 中文参数
 
 由于URL中不能包含中文，所以需要进行编码，在ArkTS中可以使用`encodeURIComponent()`方法来进行编码。
