@@ -204,6 +204,9 @@ console.log(obj.join())
 hello,西兰花
 ```
 
+**注意：**`JSON.parse(jsonArr) as string[]`中最后的`as string[]`是用来指定返回值的类型的，因为`JSON.parse()`方法的返回值是`any`类型，所以我们需要手动指定返回值的类型。
+如果将`as string[]`改为`as []`，则会对类型推断造成干扰。所以最好写全。
+
 ## http模块的使用
 
 ```ArkTS
