@@ -67,15 +67,15 @@ default_top_img: img/topImg86.jpg
 index_img: img/topImg86.jpg
 
 # The banner image of archive page
-archive_img: img/topImgSX.jpg
+archive_img: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/713ebd4adfcb42ea0bac6e226564ea5.jpg
 
 # Note: tag page, not tags page
-tag_img: img/topImgSX.jpg
+tag_img: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/6d2d1b9a167ab2da5cdd18f78ee1f01.png
 
 # The banner image of tag page, you can set the banner image for each tag
 # Format:
 #  - tag name: xxxxx
-tag_per_img: 
+tag_per_img: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/6d2d1b9a167ab2da5cdd18f78ee1f01.png
 
 # Note: category page, not categories page
 category_img: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/183094c3dd5a8020e0b74ed7e6e90b6.png
