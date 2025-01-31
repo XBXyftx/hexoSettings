@@ -5,6 +5,25 @@
       link: https://XBXyftx.github.io
       avatar: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/48431edade01f1fbd58a48265a0df32.jpg
       descr: 爱鸿蒙，爱编程，更爱生活
+- class_name: hexo搭建教程推荐
+  class_desc: 搭建博客的教程
+  link_list:
+    - name: 我自己的搭建教程博客
+      link: https://xbxyftx.github.io/2025/01/26/butterfly%E4%B8%BB%E9%A2%98%E7%BE%8E%E5%8C%96/
+      avatar: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/48431edade01f1fbd58a48265a0df32.jpg
+      descr: 去看看吧
+    - name: 大佬的教程博客
+      link: https://blog.csdn.net/weixin_44414930/article/details/137079132
+      avatar: https://th.bing.com/th?id=ODLS.75fbaa62-ad18-4e8b-9ca8-67706ec82c93&w=32&h=32&qlt=90&pcl=fffffa&o=6&pid=1.2
+      descr: 对我的帮助很大
+    - name: hexo官方文档
+      link: https://hexo.io/zh-cn/docs/
+      avatar: https://th.bing.com/th?id=ODLS.495239ee-17a6-4763-a6f8-aa6e6df9283c&w=32&h=32&qlt=90&pcl=fffffa&o=6&pid=1.2
+      descr: 官方文档
+    - name: butterfly主题官方文档
+      link: https://butterfly.js.org/
+      avatar: https://butterfly.js.org/img/butterfly-icon.png
+      descr: butterfly官方文档
 - class_name: 网站
   class_desc: 值得推荐的网站
   link_list:

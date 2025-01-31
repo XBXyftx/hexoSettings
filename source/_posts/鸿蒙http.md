@@ -110,6 +110,8 @@ https://xbxyftx.github.io/2025/01/27/%E9%B8%BF%E8%92%99http/
 
 #### URL参数案例
 
+接口文档：[开心一笑接口文档](https://apifox.com/apidoc/shared-e3812a75-2d81-4388-abf4-af83a2758a9a/api-153085966)
+
 ##### 项目基础结构
 
 ```ArkTS
