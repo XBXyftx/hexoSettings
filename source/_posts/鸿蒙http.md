@@ -236,6 +236,7 @@ req.request(`https://api-vue-base.itheima.net/api/joke/list?num=${this.jokeNum}`
 ```
 
 ##### 省份城市查询
+
 同样的，我们先将获取的结果打印出来，并根据打印出json字符串来定义接口。
 
 ```ArkTS
@@ -244,6 +245,7 @@ interface CityResponse {
   list: string[]
 }
 ```
+
 然后我们就可以将请求到的结果转化为接口类型。
 
 ```ArkTS
@@ -283,6 +285,92 @@ struct Day01_03_QueryParams {
   @State jokeNum: string = ''
   @State jokes: string[] = []
   @State cities: string[] = []
+
+  build() {
+    Column() {
+      Column({ space: 10 }) {
+        Text('开心一笑')
+          .fontSize(30)
+        TextInput({ placeholder: '输入笑话条数', text: $$this.jokeNum })
+          .type(InputType.Number)
+          .onSubmit(() => {
+            // url：https://api-vue-base.itheima.net/api/joke/list
+            // 参数: num 笑话数量
+            req.request(`https://api-vue-base.itheima.net/api/joke/list?num=${this.jokeNum}`)
+              .then(res => {
+                this.jokes = (JSON.parse(res.result.toString()) as JokeResponse).data
+              })
+          })
+        ForEach(this.jokes, (joke: string) => {
+          Text(joke)
+        })
+      }
+      .layoutWeight(1)
+      .width('100%')
+      .padding(10)
+
+      Divider()
+        .color(Color.Pink)
+        .strokeWidth(3)
+      Column({ space: 10 }) {
+        Text('省份城市查询')
+          .fontSize(30)
+        TextInput({ placeholder: '请输入查询的省份名', text: $$this.pname })// 键盘事件
+          .onSubmit(e => {
+            // url：https://hmajax.itheima.net/api/city
+            // 参数: pname 省份名
+            req.request(`http://hmajax.itheima.net/api/city?pname=${encodeURIComponent(this.pname)}`)
+              .then(res => {
+                const cityRes = JSON.parse(res.result.toString()) as CityResponse
+                this.cities = cityRes.list
+              })
+          })
+        Grid() {
+          ForEach(this.cities, (city: string) => {
+            GridItem() {
+              Text(city)
+            }
+            .border({ width: 1 })
+          })
+        }
+        .columnsTemplate('1fr '.repeat(4))
+        .columnsGap(10)
+        .rowsGap(10)
+      }
+      .layoutWeight(1)
+      .width('100%')
+      .padding(10)
+    }
+    .height('100%')
+  }
+}
+```
+
+##### 升级V2
+
+```ArkTS
+import http from '@ohos.net.http';
+
+interface JokeResponse {
+  msg: string
+  code: number
+  data: string[]
+}
+
+interface CityResponse {
+  message: string
+  list: string[]
+}
+
+const req = http.createHttp()
+
+@Entry
+@ComponentV2
+struct Day01_03_QueryParams {
+  @Local pname: string = '';
+  @Local jokeNum: string = ''
+  @Local jokes: string[] = []
+  @Local cities: string[] = []
 
   build() {
     Column() {
