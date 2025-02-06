@@ -92,6 +92,12 @@ footer_img: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/202501252323
 # Can set it to color or image url
 # background: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/bgImg.png
 background: img/bg.png
+background_image:
+  enable: true
+  url:
+    default: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/bgImg.png  # 默认背景图片
+    post: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/c328dc6de32882b3f04a65e5441a458.jpg       # 文章页背景图片
+  opacity: 0.5  # 背景图片透明度
 cover:
   # Disable the cover or not
   index_enable: true
@@ -126,7 +132,7 @@ post_meta:
     # Choose: date / relative
     date_format: date
     categories: true
-    tags: false
+    tags: true
     label: true
   post:
     # Choose: left / center
