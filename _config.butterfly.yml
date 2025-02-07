@@ -90,7 +90,8 @@ footer_img: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/202501252323
 
 # Website Background
 # Can set it to color or image url
-background: img/bg.png
+# background: img/bg.png
+background: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/bgImg.png
 cover:
   # Disable the cover or not
   index_enable: true
