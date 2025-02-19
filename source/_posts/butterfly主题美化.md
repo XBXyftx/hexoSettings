@@ -11,13 +11,13 @@ copyright_author_href: https://github.com/XBXyftx
 copyright_url: https://XBXyftx.github.io
 copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自原作者
 ---
-# Hexo+butterfly个人博客搭建
+## Hexo+butterfly个人博客搭建
 
 在用了一周左右的时间搭建博客，沉浸于试效果，改bug，试效果，改bug……的先循环后我还是决定写一篇文章来记录一下，省的未来的自己再走一遍这痛苦的过程。
 
 ![哭哭](butterfly主题美化/1.png)
 
-## Hexo静态网页生成
+### Hexo静态网页生成
 
 ### nodejs安装
 
@@ -32,7 +32,7 @@ npm -v
 
 ![cmd](butterfly主题美化/2.png)
 
-### git安装
+#### git安装
 
 git可是个好东西，程序员必备，官网在这里：[Git - Downloading Package](https://git-scm.com/downloads/win)
 
@@ -43,7 +43,7 @@ git --version
 正常显示版本即可
 ![cmd](butterfly主题美化/3.png)
 
-### Hexo安装
+#### Hexo安装
 
 在自己心仪的文件夹下，如E:/hexo，鼠标右击选择 `Git bash here`，依次执行以下命令：
 
@@ -62,7 +62,7 @@ hexo -v
 ![cmd](butterfly主题美化/4.png)
 我这里是因为已经安装了butterfly主题所以会有上面的一行，只要有下面的一大坨版本号即可。
 
-### hexo初始化
+#### hexo初始化
 
 首先确保自己将要存放hexo博客的文件夹下是空的，不能有任何其他文件。
 随后在该文件夹右键选择 `Git bash here`，执行`hexo init`
@@ -79,9 +79,9 @@ hexo g && hexo s
 ![cmd](butterfly主题美化/6.png)
 当你看到hexo从地平线升起时你就成功创建了一个本地静态博客网页。
 
-## 部署到GitHub
+### 部署到GitHub
 
-### 创建仓库
+#### 创建仓库
 
 首先在GitHub创建一个公共仓库，仓库名为`username.github.io`
 随后在git bush中输入以下指令，绑定账户并生成密钥
@@ -117,7 +117,7 @@ ssh -T git@github.com
 git config --global core.sshCommand "ssh -i ~/.ssh/id_rsa"
 ```
 
-### 修改hexo配置文件
+#### 修改hexo配置文件
 
 打开 hexo 的配置文件 `_config.yml` 修改 `deploy` 位置的配置
 
@@ -136,9 +136,9 @@ $ hexo cl && hexo g && hexo d
 
 此时就可以通过`https://username.github.io` 进行访问你的博客了！
 
-## 安装butterfly主题
+### 安装butterfly主题
 
-### 下载主题文件
+#### 下载主题文件
 
 在git中执行以下指令安装butterfly主题。
 
@@ -152,7 +152,7 @@ git clone https://github.com/jerryc127/hexo-theme-butterfly.git themes/butterfly
 npm i hexo-theme-butterfly
 ```
 
-### 安装渲染器
+#### 安装渲染器
 
 安装`pug` 和 `stylus` 渲染器，否则启动之后访问页面会报错。
 
@@ -160,7 +160,7 @@ npm i hexo-theme-butterfly
 npm install hexo-renderer-pug hexo-renderer-stylus --save
 ```
 
-### 切换主题
+#### 切换主题
 
 与所有hexo主题启用的模式一样。当 克隆/下载 完成后，打开 **`站点配置文件`**， 找到 `theme` 字段，并将其值更改为 `butterfly`。
 
@@ -170,9 +170,9 @@ theme: butterfly
 
 然后再次hexo三联！就完成了主题的替换。
 
-# butterfly主题美化
+## butterfly主题美化
 
-## 网站资料
+### 网站资料
 
 修改网站各种资料，例如标题、副标题和邮箱等个人资料，请修改站点配置文件_config.yml。部分参数如下，详细参数可参考官方的配置描述。
 
@@ -187,11 +187,11 @@ theme: butterfly
 | language    | 网站使用的语言。对于简体中文用户来说，使用不同的主题可能需要设置成不同的值，请参考你的主题的文档自行设置，常见的有 zh-Hans和 zh-CN。                 |
 | timezone    | 网站时区。Hexo 默认使用您电脑的时区。请参考 时区列表 进行设置，如 America/New_York, Japan, 和 UTC 。一般的，对于中国大陆地区可以使用 Asia/Shanghai。 |
 
-## 背景图片
+### 背景图片
 
 修改`background`字段的值即可。
 
-## 更多属性
+### 更多属性
 
 可以参考以下博客：
 
