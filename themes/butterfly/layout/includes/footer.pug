@@ -16,6 +16,13 @@
       a(href='https://github.com/jerryc127/hexo-theme-butterfly')= 'Butterfly'
   if theme.footer.custom_text
     .footer_custom_text!= theme.footer.custom_text
+  if theme.mermaid.enable == true
+    script(type='text/javascript', src='https://unpkg.com/mermaid@' + theme.mermaid.version + '/dist/mermaid.min.js', id='maid-script', 'mermaid-options'=theme.mermaid.options)
+    script.
+      if (window.mermaid) {
+        var options = JSON.parse(document.getElementById('maid-script').getAttribute('mermaid-options'));
+        mermaid.initialize(options);
+      }
   div
   span#timeDate 载入天数...
   span#times 载入时分秒...

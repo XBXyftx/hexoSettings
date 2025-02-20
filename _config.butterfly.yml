@@ -1134,7 +1134,11 @@ CDN:
     # main_css:
     # mathjax:
     # medium_zoom:
-    # mermaid:
+    # Mermaid (markdwon to flow chart, seq chart, class chart ...)
+    # mermaid chart  
+    mermaid: ## mermaid url https://github.com/knsv/mermaid  
+      enable: true  # default true  
+    #startOnload: true  // default true
     # meting_js:
     # prismjs_autoloader:
     # prismjs_js:
@@ -1151,3 +1155,4 @@ CDN:
     # valine:
     # waline_css:
     # waline_js:
+

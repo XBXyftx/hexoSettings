@@ -109,3 +109,5 @@ deploy:
   repo: git@github.com:XBXyftx/XBXyftx.github.io.git
   branch: main
   
+mermaid:
+  enable: true
