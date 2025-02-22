@@ -168,6 +168,7 @@ subtitle:
   source: false
   # 如果关闭打字效果，subtitle 只会显示 sub 的第一行文字
   sub:
+    - 开学了，开学了，干活干活~
     - 蛇年快乐
     - 敲代码敲代码~
     - C,Java,Python,JavaScript,ArkTS,CJ...
