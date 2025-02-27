@@ -25,7 +25,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 安装好之后我们可以输入以下指令如果都能正常输出版本号则安装成功。
 
-```**node**
+```bash
 node -v
 npm -v
 ```
@@ -36,7 +36,7 @@ npm -v
 
 git可是个好东西，程序员必备，官网在这里：[Git - Downloading Package](https://git-scm.com/downloads/win)
 
-```
+```bash
 git --version
 ```
 
@@ -47,14 +47,14 @@ git --version
 
 在自己心仪的文件夹下，如E:/hexo，鼠标右击选择 `Git bash here`，依次执行以下命令：
 
-```
+```bash
 npm install hexo-cli -g
 npm install hexo --save
 ```
 
 如果已经安装过hexo，或者不确定装没装过也没关系，装过的执行完显示的是update。
 
-```
+```bash
 hexo -v
 ```
 
@@ -71,7 +71,7 @@ hexo -v
 ![cmd](butterfly主题美化/5.png)
 紧接着我们就让他生成一个初始页面来进行测试。
 
-```
+```bash
 hexo g && hexo s
 ```
 
@@ -86,7 +86,7 @@ hexo g && hexo s
 首先在GitHub创建一个公共仓库，仓库名为`username.github.io`
 随后在git bush中输入以下指令，绑定账户并生成密钥
 
-```
+```bash
 git config --global user.name "XXXX"                       # 配置个人信息-username
 git config --global user.email "XXXXXXXXX@XXX.com"         # 配置个人信息-useremail
 ssh-keygen -t rsa -C "XXXXXXXXX@XXX.com"	           # 生成密钥
@@ -96,14 +96,14 @@ ssh-keygen -t rsa -C "XXXXXXXXX@XXX.com"	           # 生成密钥
 ![cmd](butterfly主题美化/7.png)
 添加好后我们需要将刚生成的密钥同步添加到本地的git中，执行以下命令
 
-```
+```bash
 eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_rsa
 ```
 
 随后执行以下命令测试与GitHub的连接是否成功。
 
-```
+```bash
 ssh -T git@github.com
 ```
 
@@ -113,9 +113,30 @@ ssh -T git@github.com
 
 运行以下命令，确保 Git 使用了正确的 SSH 密钥：
 
-```
+```bash
 git config --global core.sshCommand "ssh -i ~/.ssh/id_rsa"
 ```
+
+到这一步的话还有可能出现以下问题
+
+```bash
+$ ssh -T git@github.com
+The authenticity of host 'github.com (20.205.243.166)' can't be established.
+ED25519 key fingerprint is SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])?
+Host key verification failed.
+```
+
+这个有可能是因为SSH 客户端未信任 GitHub 的主机密钥
+
+```bash
+touch ~/.ssh/known_hosts
+chmod 644 ~/.ssh/known_hosts
+ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+```
+
+执行以上命令将GitHub的密钥添加到known_hosts文件中，再次执行`ssh -T git@github.com` 应该就不会出现上面的问题了。
 
 #### 修改hexo配置文件
 
