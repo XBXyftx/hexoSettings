@@ -281,3 +281,99 @@ struct Index {
 这样我们就可以看到我们可以用更加简便的方式做到与hilog一致的效果了。
 
 ![11](MianShiTong/11.png)
+
+### 封装沉浸式工具
+
+接下来我们将封装一个工具类来控制是否开启沉浸式模式。
+
+#### 前置知识
+
+[window.getLastWindow 获取当前窗口对象](https://developer.huawei.com/consumer/cn/doc/harmonyos-references-V14/js-apis-window-V14?catalogVersion=V14)
+![12](MianShiTong/12.png)
+
+[getWindowAvoidArea 使用窗口对象获取某一个区域的尺寸](https://developer.huawei.com/consumer/cn/doc/harmonyos-references-V14/js-apis-window-V14#getwindowavoidarea9)
+![13](MianShiTong/13.png)
+
+#### 开启沉浸模式
+
+##### 应用上下文对象
+
+[上下文对象文档](https://developer.huawei.com/consumer/cn/doc/harmonyos-references-V14/js-apis-inner-application-context-V14?catalogVersion=V14)
+
+上下文对象是一个包含了应用信息，以及一些应用功能的对象，获取它有两种方式：
+
+1. 在组价中调用`getContext(this)`方法获取
+2. 在UIAbility中调用`this.context`获取
+
+对于工具类来说我们只能通过第二种方式获取，我们可以在`onCreate`生命周期中获取上下文对象，并将其保存到`AppStorage`中。
+
+```ts
+  onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
+    this.context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
+    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onCreate');
+    AppStorage.setOrCreate('context',this.context)
+  }
+```
+
+对于`AppStorageV2`如何存储上下文对象我暂时还没有解决第一个类型参数的问题。
+
+(1h后……)
+
+我想到了当初在学习如何从V1向V2转换时，我直接持久化一个对象数组并不成功的原因是其类型只能是一个对象，而不是一个数组或是联合类型。
+当时我将对象数组包装在一个对象中，作为对象的一个属性连同那个对象一起持久化就成功了，所以我单独设计了一个对象来包裹上下文对象就成功了。
+
+```ts
+import { Context } from '@kit.AbilityKit'
+
+
+export class GetContext{
+  context:Context
+
+  constructor(context: Context) {
+    this.context = context
+  }
+
+}
+```
+
+---
+
+```ts
+  //开启全屏
+  async enable(){
+    logger.debug('进入enable')
+    try {
+      const context = AppStorageV2.connect<GetContext>(GetContext,'context')
+      if (context) {
+        logger.debug('找到Context')
+        const win = await window.getLastWindow(context.context)
+        win.setWindowLayoutFullScreen(true)
+          .then(()=>{
+            logger.debug('进入setWindowLayoutFullScreen的then')
+          })
+      }else {
+        logger.warn('未找到Context')
+      }
+
+    }catch (err){
+      logger.error(err)
+      promptAction.showToast({message:err})
+    }
+  }
+```
+
+---
+
+```ts
+  onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
+    this.context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
+    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onCreate');
+    AppStorageV2.connect<GetContext>(GetContext,'context',()=>new GetContext(this.context))
+  }
+```
+
+最后在`onWindowStageCreate`生命周期函数中调用`enable()`方法开启全屏。
+
+![14](MianShiTong/14.png)
+
+也是顺利的实现了沉浸式效果。
