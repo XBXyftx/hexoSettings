@@ -388,3 +388,163 @@ export class GetContext{
 ![15](MianShiTong/15.png)
 
 ![16](MianShiTong/16.png)
+
+根据文档我们就可以获取我们所需的规避区域的尺寸，并将其应用到我们的布局中。
+
+```ts
+  async enable(){
+    logger.debug('FullScreen: 进入enable')
+    try {
+      const context = AppStorageV2.connect<GetContext>(GetContext,'context')
+      if (context) {
+        logger.info('FullScreen: 找到Context')
+        //获取当前窗口
+        const win = await window.getLastWindow(context.context)
+        //设置当前窗口为沉浸式模式
+        await win.setWindowLayoutFullScreen(true)
+        //获取顶部区域
+        const topArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM).topRect
+        //将顶部高度存储到AppStorage
+        logger.info('FullScreen: topAreaHeight: '+px2vp(topArea.height))
+        AppStorageV2.connect(Number,topAreaHeight,()=>px2vp(topArea.height))
+
+        //获取底部区域和底部区域高度
+        const bottomArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR).bottomRect
+        logger.info('FullScreen: bottomAreaHeight: '+px2vp(bottomArea.height))
+        AppStorageV2.connect(Number,bottomAreaHeight,()=>px2vp(bottomArea.height))
+
+      }else {
+        logger.warn('FullScreen: 未找到Context')
+      }
+
+    }catch (err){
+      logger.error(err)
+      promptAction.showToast({message:err})
+    }
+  }
+```
+
+由于`bottomArea.height`和`topArea.height`都是`px`单位，而我们的布局中使用的是`vp`单位，所以我们需要将`px`单位转换为`vp`单位。
+
+---
+
+```ts
+import { hilog } from '@kit.PerformanceAnalysisKit'
+import { bottomAreaHeight, logger, topAreaHeight } from '../commons/CommonsExportCentre'
+import { AppStorageV2 } from '@kit.ArkUI'
+
+const logTag = 'indexPage: '
+@Entry
+@ComponentV2
+struct Index {
+  @Local topAvoidSize: number = 0
+  @Local bottomAvoidSize: number = 0
+  aboutToAppear(): void {
+    try {
+      if (AppStorageV2.connect(Number,topAreaHeight)) {
+        this.topAvoidSize = parseInt(AppStorageV2.connect(Number,topAreaHeight)!.toString())
+        logger.info(logTag+'topAvoidSize: '+this.topAvoidSize)
+      }else {
+        logger.error(logTag+'未找到topAreaHeight')
+      }
+      if (AppStorageV2.connect(Number,bottomAreaHeight)) {
+        this.bottomAvoidSize = parseInt(AppStorageV2.connect(Number,bottomAreaHeight)!.toString())
+        logger.info(logTag+'bottomAvoidSize: '+this.bottomAvoidSize)
+      }else {
+        logger.error(logTag+'未找到bottomAreaHeight')
+      }
+    }catch (err){
+      logger.error(logTag+err)
+    }
+
+  }
+
+  build() {
+    Column() {
+      Text('top')
+      Blank()
+      Text('bottom')
+    }
+    .padding({
+      top:this.topAvoidSize,
+      bottom:this.bottomAvoidSize
+    })
+    .height('100%')
+    .width('100%')
+    .backgroundColor(Color.Blue)
+  }
+}
+```
+
+在编写完以上代码之后，上下区域的规避并没有实现。
+此时就体现出了打印日志打重要性。
+
+![17](MianShiTong/17.png)
+
+通过日志我们可知问题出现在获取获取规避区域的高度时，AppStorageV2中并没有存储我们所需的数据。
+而FullScreen文件获取避障区域高度的日志是在这之后打印的说明我们获取避障区域的代码执行晚了。
+
+###### AppStorageV2
+
+在寻找了一段时间执行时间的问题之后，暂时还没有解决，但我发现了另外一个问题，AppStorageV2在存储顶部区域数据时会卡死，后续的代码都不会执行。
+
+![18](MianShiTong/18.png)
+
+我不知道是因为底部区域的高度数值获取错误导致的后续代码没有执行，还是代码就卡死在了存储顶部区域高度的这一步。
+
+所以我新增了两行日志
+
+```ts
+    logger.info('FullScreen: topAreaHeight: '+px2vp(topArea.height))
+    AppStorageV2.connect(Number,topAreaHeight,()=>new Number(px2vp(topArea.height)))
+    // AppStorage.setOrCreate(topAreaHeight,px2vp(topArea.height))
+    logger.debug('FullScreen: topAreaHeight存储完毕')
+    
+    //获取底部区域和底部区域高度
+    const bottomArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR).bottomRect
+    logger.info('FullScreen: bottomAreaHeight: '+px2vp(bottomArea.height))
+    AppStorageV2.connect(Number,bottomAreaHeight,()=>new Number(px2vp(bottomArea.height)))
+    logger.debug('FullScreen: bottomAreaHeight存储完毕')
+```
+
+很显然，结果是一样的。
+至此我们可以分析出问题出现在`AppStorageV2.connect()`方法上。
+我尝试了`AppStorage.setOrCreate()`方法，结果代码就可以执行过去。
+
+这也说明就是我初始化数据时有问题。
+
+在求助了子安学长后我意识到了问题所在：
+`AppStorageV2.connect()`函数的第三个函数需要的是一个构造器，也就是需要有`new`关键字，并不一定要在第三个参数中，但一定要包含有new。
+而我当前的写法`AppStorageV2.connect(Number,topAreaHeight,()=>px2vp(topArea.height))`对于`Number`来说是错误的，因为我没有使用new关键字。
+
+将原本的数据利用`new Number()`包裹之后再传入即可。
+
+```ts
+AppStorageV2.connect(Number,topAreaHeight,()=>new Number(px2vp(topArea.height)))
+AppStorageV2.connect(Number,bottomAreaHeight,()=>new Number(px2vp(bottomArea.height)))
+```
+
+至此初始化问题解决。
+
+###### 初始化时间问题
+
+在解决了初始化问题后，我发现规避区域的高度并没有生效。
+根据日志我们可以看到
+
+![19](MianShiTong/19.png)
+
+Index页面获取数据的时机依旧是在`AppStorageV2.connect()`方法之前，也就是说规避区域的高度并没有在Index页面初始化时获取到。
+这个问题暂时我还没有解决办法，所以我决定先利用V1版本所提供的单项绑定能力来规避时间差问题。
+
+```ts
+  @StorageProp(topAreaHeight) topAvoidSize: number = 0
+  @StorageProp(bottomAreaHeight) bottomAvoidSize: number = 0
+```
+
+![20](MianShiTong/20.png)
+
+---
+
+![21](MianShiTong/21.png)
+
+由此我们可看出，虽然在UI渲染完成时规避区域的高度数据依旧没有完成初始化，数据仍未默认的0，而由于V1的单项绑定能力，规避区域的高度依旧可以通过数据的改变而生效。
