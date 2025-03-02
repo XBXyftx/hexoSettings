@@ -6,7 +6,7 @@ tags:
   - 技术向
   - 项目
 top: 9
-cover: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/20250127014253.png
+cover: https://raw.githubusercontent.com/XBXyftx/hexoImgs4/main/202503020220794.jpg
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
@@ -378,7 +378,7 @@ export class GetContext{
 
 也是顺利的实现了沉浸式效果。
 
-##### 获取屏幕尺寸
+#### 获取屏幕尺寸
 
 在上面的沉浸式页面效果图我们可以看到其实如果上下的内容都顶到头的话会导致内容**被导航栏和状态栏遮挡**。
 所以我们的沉浸式布局仅仅需要将我们的**背景图或背景色延伸**到导航栏和状态栏的下方即可，而真正的**内容不需要向上下延伸**，因此我们还需要获取到导航栏和状态栏的**高度**。
@@ -484,7 +484,7 @@ struct Index {
 通过日志我们可知问题出现在获取获取规避区域的高度时，AppStorageV2中并没有存储我们所需的数据。
 而FullScreen文件获取避障区域高度的日志是在这之后打印的说明我们获取避障区域的代码执行晚了。
 
-###### AppStorageV2
+##### AppStorageV2数据存储问题
 
 在寻找了一段时间执行时间的问题之后，暂时还没有解决，但我发现了另外一个问题，AppStorageV2在存储顶部区域数据时会卡死，后续的代码都不会执行。
 
@@ -526,7 +526,7 @@ AppStorageV2.connect(Number,bottomAreaHeight,()=>new Number(px2vp(bottomArea.hei
 
 至此初始化问题解决。
 
-###### 初始化时间问题
+##### 初始化时间问题
 
 在解决了初始化问题后，我发现规避区域的高度并没有生效。
 根据日志我们可以看到
@@ -548,3 +548,103 @@ Index页面获取数据的时机依旧是在`AppStorageV2.connect()`方法之前
 ![21](MianShiTong/21.png)
 
 由此我们可看出，虽然在UI渲染完成时规避区域的高度数据依旧没有完成初始化，数据仍未默认的0，而由于V1的单项绑定能力，规避区域的高度依旧可以通过数据的改变而生效。
+
+##### 初始化时间问题解决方案
+
+在第二天我再次求助了子安学长后我们找到了解决方案。
+
+**解决过程复现：**
+
+* 确认代码执行顺序:
+  首先我们考虑的是再次用V1和V2两种`AppStorage`分别创建全局变量，并通过打印日志的方式来观察全局变量的初始化时机。
+  解雇与昨天的结果一样，两者的初始化时机都是在**Index页面已经构建完成后**才完成的初始化。
+  
+  ![22](MianShiTong/22.png)
+
+  现在我们可以确定目前代码的执行顺序如上图所示。
+
+* 分析V1版本成功原因:
+  在昨晚最后的尝试中，我回归V1版本，并调用它提供的**单项绑定能力**，**规避了初始化时间差的问题**。
+  哪怕在页面构建时数据并没有成功初始化，也可以通过**后续数据的更新**来在极短的时间内获取到数据修改UI
+
+* V2无法复刻的原因:
+  由于在V2中获取与初始化都是同一个接口`AppStorageV2.connect()`，所以无法通过单项绑定能力来规避初始化时间差的问题。
+  因为在V2中在初始化时**必须要传入一个默认构造器**，而后才能用两个参数来获取数据，这一点在我V2版本的解析博客中也有提到。
+  这就导致我们需要在搞清楚代码执行顺序后，在**最先用到这个数据的地方**进行构造器的传入才能完成初始化。
+  而`enable`函数却不是最先用到这个数据的地方，而是在`Index`页面构建后才用到的。
+
+  ![23](MianShiTong/23.png)
+
+* 查找文档:
+  ![24](MianShiTong/24.png)
+  
+  ---
+
+  ![25](MianShiTong/25.png)
+
+  文档中并没有提供双向绑定或是单项绑定的方法，而我发现V2版本的全局变量思想与V1版本稍有不同。
+  V1版本中在UI组件中要用**专属修饰器**来与全局变量进行单向或双向绑定，在逻辑函数中则要分别用**创建，获取，修改等API接口**来进行读写操作。
+  而对于V2版本则是相当于获取了全局变量的读写权限或者说是说获取了那个全局变量的**引用**。
+  我们只需要像正常变量的读写一样用等号去进行数值的修改即可。
+
+* 修改初始化位置:
+  在更深入的了解了V2版本的全局变量机制之后，我从新梳理了代码的执行顺序，并将初始化移动到了Index页面的构建过程中。
+  经过测试，虽然没有了原本的初始化报错，但数值也仅仅采用了默认的0值。
+  我将原本`enable`函数中的初始化修改为了**修改数值**，试图采用这种方式来复刻V1的规避初始化时间差的方式。
+  但又出现了新的问题就是虽然修改成功了，但是`Index`页面的状态变量依旧没有修改数值。
+
+* 最终解决方案:
+  在我回顾前几次遇到的V2全局变量存储问题都是依靠包装为一个新的对象来解决的。
+  `Number`类型在初始化存储时虽然使用了`new`关键字，但很有可能并没有被系统追踪数值的变化。
+  所以我们需要将数据包装为一个新的对象，并用`@Trace`来追踪数值的变化。
+
+  ```ts
+  @ObservedV2
+  export class AvoidArea {
+    @Trace top: number = 0;
+    @Trace bottom: number = 0;
+  }
+  ```
+  
+  ---
+
+  ```ts
+        //获取顶部区域
+        const topArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM).topRect
+        //将顶部高度存储到AppStorage
+        logger.info('FullScreen:  topAreaHeight: ' + px2vp(topArea.height))
+
+
+        //获取底部区域和底部区域高度
+        const bottomArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR).bottomRect
+        logger.info('FullScreen:  bottomAreaHeight: ' + px2vp(bottomArea.height))
+
+
+        avoid_area.top = px2vp(topArea.height);
+        avoid_area.bottom = px2vp(bottomArea.height)
+        logger.debug('FullScreen:  avoid_area数据更新完成')
+  ```
+  
+  经过测试，功能终于实现。
+
+  ```ts
+  @Local avoidAreaSizes: AvoidAreaSizes = AppStorageV2.connect(AvoidAreaSizes, AVOID_AREA, () => new AvoidAreaSizes())!
+
+  aboutToAppear(): void {
+    logger.info(INDEX_LOG_TAG + 'aboutToAppear函数: top: ' + this.avoidAreaSizes.top + ' bottom: ' +
+    this.avoidAreaSizes.bottom)
+  }
+
+  @Monitor('avoidAreaSizes.top','avoidAreaSizes.bottom')
+  onChange(): void {
+    logger.info(INDEX_LOG_TAG + '监测voidAreaSizes数值改变: ' + 'topAvoidSize: ' + this.avoidAreaSizes.top + ' bottomAvoidSize: ' +
+    this.avoidAreaSizes.bottom)
+  }
+  ```
+
+  ![26](MianShiTong/26.png)
+
+  通过生命周期函数和变量监听器的日志我们可以看到代码的**执行顺序没有变**，与之前的推测一致。
+  通过包装对象的方式我们顺利的让系统**监听到了数值的变化**，实现的UI状态变量的数值更新。
+
+至此问题解决。
