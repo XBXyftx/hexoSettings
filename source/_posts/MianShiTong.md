@@ -901,3 +901,129 @@ export interface TabItem {
   ]
 ```
 
+每个页面由于需要有不同的状态变量以及不同的逻辑函数，且其逻辑与生命周期相绑定，我们就不能采用轻量化的`@Builder`来进行渲染，而要采用`@ComponentV2`来进行渲染。
+每个页面都封装为一个独立的组件，由于其都属于页面，只不过没有`@Entry`所以不算是Page。我们只需要在`Pages`文件夹下去新建四个`ArkTS File`即可。
+
+![32](MianShiTong/32.png)
+
+然后根据不同的下标来渲染不同的页面组件。
+
+```ts
+      Tabs(){
+        ForEach(this.tabList,(item:TabItem,i)=>{
+          TabContent(){
+            if (i === 0) {
+              HomePage()
+            } else if (i === 1) {
+              ProjectPage()
+            } else if (i === 2) {
+              InterviewPage()
+            } else {
+              MinePage()
+            }
+          }
+          .tabBar(this.TabBarBuilder(item,i))
+        })
+      }
+      .onChange((index:number)=>{
+        this.activeIndex = index
+      })
+      .scrollable(false)
+      .barPosition(BarPosition.End)
+```
+
+#### 搜索栏组件封装
+
+首页的搜索栏仅仅作为一个占位作用，实际搜索要跳转到另一个专门的搜索页面。所以我们将搜索框封装为一个通用组件。
+同时我们要考虑到一个问题就是，搜索框作为一个通用自定义组件，在不同的页面中会有不同的布局需求，所以我们需要提前留出各个尺寸数据的接口。
+
+```ts
+@ComponentV2
+export struct HcSearchBox {
+  @Param boxWidth: Length = 100 // 宽高
+  @Param boxHeight: number = 32
+  @Param ph: ResourceStr = '搜索题目' // 搜索的占位文本
+  @Param phColor: ResourceColor = $r('app.color.common_gray_02') // 搜索的字体颜色
+  @Param bgColor: ResourceColor = $r('app.color.common_gray_border') // 搜索框的背景颜色
+  @Param layoutWeightValue: number = 0 // 占位比例
+
+  build() {
+    Row({ space: 4 }){
+      Image($r('app.media.ic_common_search'))
+        .width(14)
+        .aspectRatio(1)
+        .fillColor(this.phColor)
+      Text(this.ph)
+        .fontSize(14)
+        .fontColor(this.phColor)
+    }
+    .width(this.boxWidth)
+    .height(this.boxHeight)
+    .backgroundColor(this.bgColor)
+    .borderRadius(this.boxHeight / 2)
+    .justifyContent(FlexAlign.Center)
+    .layoutWeight(this.layoutWeightValue)
+  }
+}
+```
+
+这是很重要的封装思想，考虑清楚需要暴露的可修改设置以及默认值的设置。
+
+#### 打卡组件封装
+
+打卡组件有两种状态，一种是连续打卡状态，一种是未连续打卡状态。
+而这两种状态通过传入已经打卡的天数来实现，所以我们需要传入一个天数接口。
+
+```ts
+  // 大于表示已打卡
+  @Param clockInCount: number = 0
+```
+
+![33](MianShiTong/33.png)
+
+![34](MianShiTong/34.png)
+
+#### 轮播图组件封装
+
+轮播图组件并无单独额外的逻辑需求，或是重复利用的接口预留等问题，仅仅是在首页的中上部使用一次，所以我们直接使用性能更好，更加轻量化的`@Builder`来进行封装即可。
+所以这里我们直接将需要展示的图片资源列成资源数组，然后进行循环渲染即可。
+
+```ts
+  swiperImgList:Resource[] = [
+    $rawfile('banner_qa.png'),
+    $rawfile('banner_ai.png'),
+    $rawfile('banner_pj.png')
+  ]
+    @Builder
+  SwiperImgBuilder(img: Resource) {
+    Row() {
+      Image(img)
+        .width('100%')
+    }
+    .width('100%')
+    .padding({
+      left: 16,
+      right: 16
+    })
+  }
+```
+
+<video width="100%" controls>
+  <source src="35.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+#### 试题分组组件封装
+
+![36](MianShiTong/36.png)
+
+我们可以看到，在中上部轮播图的下方便是试题分组组件，其大致分为两部分：
+
+1. 试题分组标题
+2. 试题分组列表
+
+这个效果我们可以用两种手段来实现：
+
+* 一种是用一个**横向**的`List`配合**纵向**的`List`，在**点击横向**的`List`时更新纵向`List`的数据。
+* 另一种是通过`Tabs`组件配合多个`List`来实现。
+
