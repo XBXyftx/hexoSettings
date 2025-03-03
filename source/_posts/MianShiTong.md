@@ -648,3 +648,256 @@ Index页面获取数据的时机依旧是在`AppStorageV2.connect()`方法之前
   通过包装对象的方式我们顺利的让系统**监听到了数值的变化**，实现的UI状态变量的数值更新。
 
 至此问题解决。
+
+#### 关闭沉浸式函数
+
+关闭沉浸式函数的逻辑大体与开启沉浸式函数的逻辑一致，只是在获取规避区域的高度时略有不同。
+所以我们先将开启沉浸式函数的代码复制过来，然后进行修改。
+
+```ts
+  //关闭全屏
+  async disable(){
+    logger.debug(FULL_SCREEN_LOG_TAG+'进入FullScreen.disable')
+    try {
+      const context = AppStorageV2.connect<GetContext>(GetContext, 'context')
+      if (context) {
+        logger.info(FULL_SCREEN_LOG_TAG+'找到Context')
+        //获取当前窗口
+        const win = await window.getLastWindow(context.context)
+        //设置当前窗口为沉浸式模式
+        await win.setWindowLayoutFullScreen(false)
+
+
+        //获取顶部区域
+        const topArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM).topRect
+        //将顶部高度存储到AppStorage
+        logger.info(FULL_SCREEN_LOG_TAG+'topAreaHeight: ' + px2vp(topArea.height))
+
+
+        //获取底部区域和底部区域高度
+        const bottomArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR).bottomRect
+        logger.info(FULL_SCREEN_LOG_TAG+'bottomAreaHeight: ' + px2vp(bottomArea.height))
+
+
+        avoid_area.top = px2vp(topArea.height);
+        avoid_area.bottom = px2vp(bottomArea.height)
+        logger.debug(FULL_SCREEN_LOG_TAG+'avoid_area数据更新完成')
+
+      } else {
+        logger.warn(FULL_SCREEN_LOG_TAG+'未找到Context')
+      }
+
+    } catch (err) {
+      logger.error(err)
+      promptAction.showToast({ message: err })
+    }
+  }
+```
+
+我们将代码中的`setWindowLayoutFullScreen(true)`改为`setWindowLayoutFullScreen(false)`。
+接着我们回到`EntryAbility`中，将`onWindowStageCreate`生命周期函数中的`enable()`函数后面加上一个5秒钟的定时器，沉浸式5秒后关闭沉浸式，用以测试功能。
+
+```ts
+  onWindowStageCreate(windowStage: window.WindowStage): void {
+    // Main window is created, set main page for this ability
+    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
+    fullScreen.enable()
+    setTimeout(()=>{
+      fullScreen.disable()
+    },8000)
+    windowStage.loadContent('pages/Index', (err) => {
+      if (err.code) {
+        hilog.error(DOMAIN, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
+        return;
+      }
+      hilog.info(DOMAIN, 'testTag', 'Succeeded in loading the content.');
+    });
+  }
+```
+
+<video width="100%" controls>
+  <source src="27.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+功能实现，但上下区域已经避开了导航栏和状态栏，根组件的上下内边距却依旧在生效这很显然是不合理的，所以我们要继续对代码进行修改。
+
+```ts
+  //关闭全屏
+  async disable(){
+    logger.debug(FULL_SCREEN_LOG_TAG+'进入FullScreen.disable')
+    try {
+      const context = AppStorageV2.connect<GetContext>(GetContext, 'context')
+      if (context) {
+        logger.info(FULL_SCREEN_LOG_TAG+'找到Context')
+        //获取当前窗口
+        const win = await window.getLastWindow(context.context)
+        //设置当前窗口为沉浸式模式
+        await win.setWindowLayoutFullScreen(false)
+
+        avoid_area.top = 0
+        avoid_area.bottom = 0
+        logger.debug(FULL_SCREEN_LOG_TAG+'avoid_area数据更新完成')
+
+      } else {
+        logger.warn(FULL_SCREEN_LOG_TAG+'未找到Context')
+      }
+
+    } catch (err) {
+      logger.error(err)
+      promptAction.showToast({ message: err })
+    }
+  }
+```
+
+![28](MianShiTong/28.png)
+
+---
+
+![29](MianShiTong/29.png)
+
+至此沉浸式功能实现。
+
+### 封装状态栏工具
+
+由于手机有深色和浅色模式，我们需要去进行对不同模式下的状态栏颜色进行适配。
+[功能文档](https://developer.huawei.com/consumer/cn/doc/harmonyos-references-V14/js-apis-window-V14#setwindowsystembarproperties9)
+
+#### 设置状态栏函数
+
+对于`setWindowSystemBarProperties`函数我们通过官方文档可以看到我们需要传入一个`window.SystemBarProperties`类型的对象，其中包裹了全部需要设置的配置项。
+所以我们可以仿照封装沉浸式工具的方式来获取当前应用的**上下文对象**，然后通过上下文对象获取到**当前窗口**。
+
+```ts
+  //设置状态栏
+  async setBar(config:window.SystemBarProperties){
+    try {
+      logger.debug(STATE_BAR_LOG_TAG+'进入StateBar.setBar')
+      //尝试获取上下文对象
+      const context = AppStorageV2.connect(GetContext,CONTEXT)!.context
+      if (context) {
+        logger.debug(STATE_BAR_LOG_TAG+'找到context')
+        //获取当前窗口
+        const win = await window.getLastWindow(context)
+        //设置状态栏状态
+        win.setWindowSystemBarProperties(config)
+        logger.debug(STATE_BAR_LOG_TAG+'设置完成')
+      }
+    }catch (err){
+      logger.error(STATE_BAR_LOG_TAG+'StateBar.setBar:  '+err)
+      promptAction.showToast({message:STATE_BAR_LOG_TAG+'StateBar.setBar:  '+err})
+    }
+  }
+```
+
+依旧是要在各个关键节点进行日志的打印，用以调试。
+
+我们正常使用时只有深色浅色两种模式，如果每次都单独传入一个对象用于配置，是很麻烦的，所以我们需要再封装两个函数，自动传入配置参数。
+
+```ts
+  //设置深色模式配置项
+  setDarkBar(){
+    this.setBar({
+      statusBarContentColor:'#000000'
+    })
+  }
+  setLightBar(){
+    this.setBar({
+      statusBarContentColor:'#FFFFFF'
+    })
+  }
+```
+
+##### 测试功能
+
+而对于这个功能的测试我们可以直接使用两个按钮来进行切换测试
+
+```ts
+  build() {
+    Column() {
+      Text('top')
+      Blank()
+      Button('浅色文字')
+        .onClick(()=>{
+          stateBar.setLightBar()
+        })
+      Button('深色文字')
+        .onClick(()=>{
+          stateBar.setDarkBar()
+        })
+      Text('bottom')
+    }
+    .padding({
+      top: this.avoidAreaSizes.top,
+      bottom: this.avoidAreaSizes.bottom
+    })
+    .height('100%')
+    .width('100%')
+    .backgroundColor(Color.Blue)
+  }
+```
+
+<video width="100%" controls>
+  <source src="30.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+至此状态栏功能实现。
+
+## 正式内容阶段
+
+### 首页模块
+
+对于UI布局我就不再过多赘述，都是比较基础的点，我只会挑重要的去讲，以及逻辑功能函数的实现。
+
+#### 首页布局
+
+![31](MianShiTong/31.png)
+
+首先通过设计图我们可以分析出整体采用tabs来进行布局。
+最上方一个置顶栏位，中上部一个轮播图，中下部用一个List，底部用自定义`Builder`传入`tabBar`。
+
+为了限制`tabBar`的长宽比，我们需要用[aspectRatio](https://developer.huawei.com/consumer/cn/doc/harmonyos-references-V14/ts-universal-attributes-layout-constraints-V14#aspectratio)属性来进行限制。
+
+#### tabs
+
+定义接口用于包装`tabBar`渲染数据
+
+```ts
+export interface TabItem {
+  icon: Resource;
+  activeIcon: Resource;
+  name: string;
+}
+```
+
+---
+
+列出待渲染字典
+
+```ts
+  // struct Index 数据
+  tabList: TabItem[] = [
+    {
+      icon: $r('app.media.tabbar_home'),
+      activeIcon: $r('app.media.tabbar_home_fill'),
+      name: '首页'
+    },
+    {
+      icon: $r('app.media.tabbar_project'),
+      activeIcon: $r('app.media.tabbar_project_fill'),
+      name: '项目'
+    },
+    {
+      icon: $r('app.media.tabbar_interview'),
+      activeIcon: $r('app.media.tabbar_interview_fill'),
+      name: '面经'
+    },
+    {
+      icon: $r('app.media.tabbar_mine'),
+      activeIcon: $r('app.media.tabbar_mine_fill'),
+      name: '我的'
+    }
+  ]
+```
+
