@@ -1026,4 +1026,3 @@ export struct HcSearchBox {
 
 * 一种是用一个**横向**的`List`配合**纵向**的`List`，在**点击横向**的`List`时更新纵向`List`的数据。
 * 另一种是通过`Tabs`组件配合多个`List`来实现。
-
