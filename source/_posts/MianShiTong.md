@@ -1026,3 +1026,174 @@ export struct HcSearchBox {
 
 * 一种是用一个**横向**的`List`配合**纵向**的`List`，在**点击横向**的`List`时更新纵向`List`的数据。
 * 另一种是通过`Tabs`组件配合多个`List`来实现。
+
+为了整个结构更加清晰同时减少反复的数据更新计算导致的性能负担，我们采用第二种方案。
+
+```ts
+import { QuestionType } from "../../ExportCentre"
+
+@ComponentV2
+export struct HomeCategory {
+  @Local mockData: QuestionType[] = [ //测试数据，后期通过网络请求获取后端数据
+    { id: 1, name: 'ArkTS', displayNewestFlag: 0 },
+    { id: 2, name: 'ArkUI', displayNewestFlag: 1 },
+    { id: 3, name: 'Hap', displayNewestFlag: 1 },
+    { id: 4, name: 'Hsp', displayNewestFlag: 0 },
+    { id: 5, name: 'Har', displayNewestFlag: 0 },
+    { id: 6, name: 'Ability', displayNewestFlag: 0 },
+    { id: 7, name: 'Stage', displayNewestFlag: 0 },
+    { id: 8, name: 'Kit', displayNewestFlag: 0 }
+  ]
+  build () {
+    Tabs(){
+      ForEach(this.mockData,(item:QuestionType,i)=>{
+        TabContent()
+          .tabBar(item.name)
+      })
+    }
+    .scrollable(false)
+    .barMode(BarMode.Scrollable)
+    .barHeight(44)
+    .divider({
+      strokeWidth:0.5,
+      color:$r('app.color.common_gray_border')
+    })
+  }
+}
+```
+
+此处由于我们还没有封装网络请求组件，所以暂时采用本地测试数据。
+
+对于`TabBar`中的动画效果的选中提示下划线我们可以利用层叠布局，在最下方覆盖一层组件，设置其宽高，并附以动画效果即可实现。
+
+```ts
+  Stack({ alignContent: Alignment.Bottom }) {
+    Text(item.name)
+      .fontSize(15)
+      .fontColor(this.activeIndex === i ? $r('app.color.black') : $r('app.color.common_gray_01'))
+      .height(45)
+    Text()
+      .width(this.activeIndex === i ? 20 : 0)
+      .height(2)
+      .backgroundColor($r('app.color.black'))
+      .animation({ duration: this.activeIndex === i ? 300 : 0 })
+  }
+```
+
+<video width="100%" controls>
+  <source src="37.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+这样就实现了动画选中提示效果。
+
+#### 试题标签组件封装
+
+在试题列表中不同的试题有着不同的难度，不同的难度对应着不同的标签。
+总共氛围三种标签：难度1、2对应着简单，3-4 是一般，5 是困难。
+
+这个组件的封装难点在于数据接口的定义，而非UI布局。
+
+##### 数据接口定义
+
+所以我们先来看一下我们需求的数据样式：
+
+```ts
+{
+  1:{text:'简单',color:Color.Green},
+  2:{text:'简单',color:Color.Green},
+  3:{text:'一般',color:Color.Yellow},
+  4:{text:'一般',color:Color.Yellow},
+  5:{text:'困难',color:Color.Red}
+}
+```
+
+我们可以看到最外层的键值对的**键**是难度值是`number`类型，而其对应的**值又是一个对象**。
+这个对象这种包含了两个键值对，一个是显示的文本`text`，另一个是对应的颜色值`color`。
+
+我们可以利用`ArkTS`的内置函数`Record`来进行数据的定义。
+
+```ts
+export interface HcTagInfo {
+  text: string;
+  color: ResourceColor;
+}
+export const infoMap: Record<number, HcTagInfo> = {
+  1: { text: "简单", color: $r("app.color.common_green") },
+  2: { text: "简单", color: $r("app.color.common_green") },
+  3: { text: "一般", color: $r("app.color.common_blue") },
+  4: { text: "一般", color: $r("app.color.common_blue") },
+  5: { text: "困难", color: $r("app.color.common_main_color") },
+}
+```
+
+`Record`内置函数可以自动生成一个键值对类型，会将**第一个**泛型参数作为**键**的类型，**第二个**泛型参数作为**值**的类型。
+`Record<number, HcTagInfo>`就表示键是`number`类型，值是`HcTagInfo`类型。
+
+当然我们也有另一种方法就是再定义一个接口来进行数据的定义。
+
+```ts
+export interface info{
+  '1':HcTagInfo
+  '2':HcTagInfo
+  '3':HcTagInfo
+  '4':HcTagInfo
+  '5':HcTagInfo
+}
+```
+
+但很显然这种方法就无法做到使难度类型键为`number`类型了，所以我们采用第一种方法。
+
+**注意：**用这种方法定义的接口，在使用时需要使用`infoMap[1].text`的方式来获取数据，而不能使用`infoMap.1.text`的方式来获取数据。
+
+##### UI封装
+
+```ts
+@ComponentV2
+export struct HcTag {
+  @Param difficulty: number = 1
+  @Param text: string = ''
+  @Param fontcolor: ResourceColor = ''
+
+  build() {
+    Text(this.text || HcTagInfoMap[this.difficulty].text)
+      .fontColor(this.fontcolor || HcTagInfoMap[this.difficulty].color)
+      .fontSize(10)
+      .padding({ left: 6, right: 6 })
+      .height(18)
+      .constraintSize({ minWidth: 34 })
+      .borderRadius(2)
+      .backgroundColor($r('app.color.common_gray_bg'))
+      .textAlign(TextAlign.Center)
+  }
+}
+```
+
+在使用`||`运算符时会从左向右注意判断是否为空，这样就可以做到**优先使用传入的值**，在没有传入值时使用默认值。
+
+###### 测试
+
+```ts
+    Tabs() {
+      ForEach(this.questionList, (item: QuestionType, i) => {
+        TabContent(){
+          Column(){
+            HcTag({difficulty:1})
+            HcTag({difficulty:2})
+            HcTag({difficulty:3})
+            HcTag({difficulty:4})
+            HcTag({difficulty:5})
+          }
+        }
+          .tabBar(this.TabBarBuilder(item, i))
+      })
+    }
+    .onChange((i) => {
+      this.activeIndex = i
+    })
+    .barMode(BarMode.Scrollable)
+    .barHeight(44)
+```
+
+![38](MianShiTong/38.png)
+这样我们就实现了标签组件的封装。
