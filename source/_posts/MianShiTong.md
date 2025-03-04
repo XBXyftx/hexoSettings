@@ -1258,3 +1258,79 @@ function grayText(isStart: boolean = false) {
 ```
 
 ![40](MianShiTong/40.png)
+
+#### 完成试题列表渲染
+
+刚才完成了试题列表的单个Item组件封装，接下来我们就可以在试题列表页面中使用这个组件了。
+在使用之前我们要先进行数据接口的定义与状态变量的接口暴露，然后再进行数据的传入与渲染。
+
+##### 试题列表信息数据接口定义
+
+```ts
+export interface QuestionListItem{
+  id: string;
+  /* 题干 */
+  stem: string;
+  /* 难度 */
+  difficulty: number;
+  /* 点赞数 */
+  likeCount: number;
+  /* 浏览数 */
+  views: number;
+  /* 是否已看 */
+  readFlag: 0 | 1;
+}
+```
+
+##### 适配数据接口
+
+由于这个数据是必须传入的并没有默认值选项，所以我们在使用`@Param`装饰器后还需配合`@Require`装饰器后才能使组件正常工作。
+随后将组件原本写死的测试用例替换为接口数据即可。
+
+```ts
+
+/**
+ * 面试问题列表Item组件
+ * 必须传入一个QuestionListItem对象
+ * 包含问题的id，题目，点赞数，阅读量，是否看过等信息
+ */
+@Preview
+@ComponentV2
+export struct QuestionItemComp {
+  @Param @Require questionItem: QuestionListItem
+
+  build() {
+    Column({ space: 10 }) {
+      Row({ space: 10 }) {
+        HcTag({ difficulty: this.questionItem.difficulty })
+        Text(this.questionItem.stem)
+          .fontSize(15)
+          .layoutWeight(1)
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+      }
+      .width('100%')
+
+      RowSplit() {
+        Text(`点赞 ${this.questionItem.likeCount}`)
+          .grayText(true)
+        Text(`浏览 ${this.questionItem.views}`)
+          .grayText()
+        Text(this.questionItem.readFlag === 1 ? '已看过' : '待阅读')
+          .grayText()
+      }
+    }
+    .alignItems(HorizontalAlign.Start)
+    .padding({ left: 16, right: 16 })
+    .backgroundColor($r('app.color.common_blue_bg'))
+  }
+}
+
+@Extend(Text)
+function grayText(isStart: boolean = false) {
+  .lineHeight(13)
+  .fontSize(13)
+  .fontColor($r('app.color.common_gray_01'))
+  .padding({ left: isStart ? 0 : 12, right: 12 })
+}
+```
