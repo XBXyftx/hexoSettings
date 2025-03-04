@@ -1171,7 +1171,7 @@ export struct HcTag {
 
 在使用`||`运算符时会从左向右注意判断是否为空，这样就可以做到**优先使用传入的值**，在没有传入值时使用默认值。
 
-###### 测试
+##### 测试
 
 ```ts
     Tabs() {
@@ -1197,3 +1197,64 @@ export struct HcTag {
 
 ![38](MianShiTong/38.png)
 这样我们就实现了标签组件的封装。
+
+#### 试题列表Item组件封装
+
+![39](MianShiTong/39.png)
+
+首先我们通过对效果图的布局进行分析，可以看到整体布局还是较为简洁的，大致可以分为上下两个部分：
+
+1. 上半部分由刚才封装的试题难度标签以及试题标题组成
+2. 下半部分由点赞量，浏览量，阅读状态组成
+
+这里重点解系一下下半部分的UI布局，因为要用到一个新的组件`RowSplite`
+
+[RowSplite文档传送门](https://developer.huawei.com/consumer/cn/doc/harmonyos-references-V14/ts-container-rowsplit-V14)
+
+这个组件的特点在于会将每个子组件之间加上一个分割线，这样一来就不需要自己在封装组件来去处理分割线问题了。
+
+这个组件可以配合`@Extends`关键字来使用，这样就可以为组件内的多块信息一次性设定相同的样式了。
+
+```ts
+import { HcTag } from "../../ExportCentre"
+
+@Preview
+@ComponentV2
+export struct QuestionItemComp {
+  // @Param
+  build() {
+    Column({space:10}) {
+      Row() {
+        HcTag({ difficulty: 1 })
+        Text('test')
+          .fontSize(15)
+          .layoutWeight(1)
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+      }
+      .width('100%')
+
+      RowSplit() {
+        Text(`点赞 6`)
+          .grayText(true)
+        Text(`浏览 1000`)
+          .grayText()
+        Text('已看过')
+          .grayText()
+      }
+    }
+    .alignItems(HorizontalAlign.Start)
+    .padding({left:16,right:16})
+    .backgroundColor($r('app.color.common_blue_bg'))
+  }
+}
+@Extend(Text)
+function grayText(isStart: boolean = false) {
+  .lineHeight(13)
+  .fontSize(13)
+  .fontColor($r('app.color.common_gray_01'))
+  .padding({ left: isStart ? 0 : 12, right: 12 })
+}
+```
+
+![40](MianShiTong/40.png)
