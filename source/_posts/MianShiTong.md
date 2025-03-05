@@ -1334,3 +1334,300 @@ function grayText(isStart: boolean = false) {
   .padding({ left: isStart ? 0 : 12, right: 12 })
 }
 ```
+
+##### 测试UI显示
+
+```ts
+    Tabs() {
+      ForEach(this.questionList, (item: QuestionTabBarType, i) => {
+        TabContent() {
+          List({ space: 10 }) {
+            ForEach(new Array(10).fill({
+              id: '1',
+              stem: '测试标题',
+              difficulty: 3,
+              likeCount: 3000,
+              views: 9999,
+              readFlag: 0
+            }), (item: QuestionListItem, i) => {
+              ListItem() {
+                Column({ space: 10 }) {
+                  QuestionItemComp({
+                    questionListItem: item
+                  })
+                  Divider()
+                    .strokeWidth(1)
+                    .color($r('app.color.common_gray_02'))
+                }
+                .margin({ top: i === 0 ? 10 : 0 })
+
+              }
+            })
+          }
+        }
+        .tabBar(this.TabBarBuilder(item, i))
+      })
+    }
+    .divider({ strokeWidth: 1, color: $r('app.color.common_gray_02') })
+    .onChange((i) => {
+      this.activeIndex = i
+    })
+    .barMode(BarMode.Scrollable)
+    .barHeight(44)
+```
+
+在测试中我们发现直接的硬拼接各个组件还是有点难看的，所以就新进行了一些微调，像是增加了分割线与文本的距离，以及增加`tabBar`的下边界分界线与选中高亮提示下划线间的距离等。
+这些东西其实也无伤大雅，但还是在细节上提升了些许美观度。
+
+<video width="100%" controls>
+  <source src="41.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+虽然单个Item已经封装完成，但是整个列表还需要根据不同的问题类型去分类渲染，同时包括触底加载和下拉刷新等操作，所以我们接下来还需要继续去进行问题列表组件的封装。
+
+#### 问题列表组件封装
+
+问题列表组件会包括N个问题列表Item组件，同时还需要封装下拉刷新和触底加载的功能。
+这部分功能我在[开心一笑](https://xbxyftx.github.io/2025/01/30/%E5%BC%80%E5%BF%83%E4%B8%80%E7%AC%91%E9%A1%B9%E7%9B%AE%E7%AC%94%E8%AE%B0/)项目中有较详细的使用教程和思路，这里不再过多赘述。
+
+封装目标：
+
+1. 使用 `Refresh` `List` 和 `QuestionItemComp` 组件搭建基础结构和样式
+2. 完成 **下拉刷新** 效果，不含数据刷新
+3. 完成 **上拉加载** Builder
+4. 完成 **上拉加载** 完整效果
+5. 完成 **下拉刷新** 完整效果
+
+##### 下拉刷新功能测试
+
+```ts
+import { QuestionItemComp, QuestionListItem } from "../../ExportCentre"
+
+@ComponentV2
+export struct QuestionListComp{
+  @Local isLoading:boolean = false
+  onRefresh(){
+    setTimeout(()=>{
+      this.isLoading = false
+    },3000)
+  }
+  build() {
+    Refresh({refreshing:$$this.isLoading}){
+      List({ space: 10 }) {
+        ForEach(new Array(10).fill({
+          id: '1',
+          stem: '测试标题',
+          difficulty: 3,
+          likeCount: 3000,
+          views: 9999,
+          readFlag: 0
+        }), (item: QuestionListItem, i) => {
+          ListItem() {
+            Column({ space: 10 }) {
+              QuestionItemComp({
+                questionListItem: item
+              })
+            }
+            .margin({ top: i === 0 ? 10 : 0 })
+
+          }
+        })
+      }
+      .divider({
+        strokeWidth:1,
+        color:$r('app.color.common_gray_border')
+      })
+      .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.None)
+    }
+    .width('100%')
+    .height('100%')
+    .onRefreshing(()=>{
+      this.onRefresh()
+    })
+  }
+}
+```
+
+由于当前还没有封装网络请求模块所以暂时先试用定时器来默契网络请求成功的情况。
+
+<video width="100%" controls>
+  <source src="42.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+##### 上拉加载`Builder`封装与功能测试
+
+```ts
+import { QuestionItemComp, IQuestionListItem, QuestionListCompTestData } from "../../ExportCentre"
+
+/**
+ * 首页问题分类区域，单个问题分类分页的问题列表组件
+ * 拥有触底加载以及下拉刷新功能
+ * isRefreshing     加载函数触发标识符
+ * isLoading        正是否加载达到上限标识符
+ * isFinish         是否加载完成标识符
+ */
+
+@ComponentV2
+export struct QuestionListComp {
+  @Local isRefreshing: boolean = false
+  @Local isLoading: boolean = false
+  @Local isFinish: boolean = false
+
+  @Builder
+  isLoadingMore() {
+    ListItem() {
+      if (this.isFinish) {
+        Row() {
+          Text('没有更多了')
+            .fontSize(15)
+            .fontColor($r('app.color.common_gray_03'))
+        }
+        .width('100%')
+        .justifyContent(FlexAlign.Center)
+      } else if (this.isLoading) {
+        Row({ space: 5 }) {
+          LoadingProgress()
+            .width(20)
+          Text('正在加载中')
+            .fontSize(15)
+            .fontColor($r('app.color.common_gray_03'))
+        }
+        .width('100%')
+        .justifyContent(FlexAlign.Center)
+      }
+    }
+
+  }
+
+  onRefresh() {
+    setTimeout(() => {
+      this.isRefreshing = false
+    }, 3000)
+  }
+
+  build() {
+    Refresh({ refreshing: $$this.isRefreshing }) {
+      List({ space: 10 }) {
+        ForEach(new Array(10).fill(QuestionListCompTestData), (item: IQuestionListItem, i) => {
+          ListItem() {
+            Column({ space: 10 }) {
+              QuestionItemComp({
+                questionListItem: item
+              })
+            }
+            .margin({ top: i === 0 ? 10 : 0 })
+
+          }
+        })
+        this.isLoadingMore()
+      }
+      .divider({
+        strokeWidth: 1,
+        color: $r('app.color.common_gray_border')
+      })
+      .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.None)
+    }
+    .width('100%')
+    .height('100%')
+    .onRefreshing(() => {
+      this.onRefresh()
+    })
+  }
+}
+```
+
+由于题库的题目数量是有限的不能一直无限制的向下获取新的题目所以需要去在**开心一笑**项目的基础上新增一个是否加载完成的标识符，用来标志是否成功获取新的题目。
+
+然后通过修改状态变量的初始默认值来测试效果
+
+![43](MianShiTong/43.png)
+
+随后我们依旧使用定时器来模拟网络请求的成功情况。
+这里我们将获取的问题条数**上限设为40条**以免过多的加载数据导致页面卡顿。
+
+```ts
+  onLoad() {
+    if (this.isFinish){
+      return
+    }else {
+      setTimeout(() => {
+        for (let i = 0; i < 10; i++) {
+          this.QuestionList.push(QuestionListCompTestData)
+        }
+        this.isLoading = false
+        if (this.QuestionList.length === 40) {
+          this.isFinish = true
+        }
+      }, 2000)
+    }
+  }
+```
+
+enm经过测试发现由于`onReachEnd`事件的机制，**在触底时触发一次，在回弹时再触发一次**，这里忘记做**防过加载**处理了，所以导致一次会加载20条，而且最后会因为多加载一次而**使总数达到50条**。所以我们还需要对代码进行微调。
+
+首先就是修改`onReachEnd`事件中的代码，判断一下是否正在下拉刷新、加载中、加载达到上限等状态，只有在这些状态都不满足时才会去进行数据的加载。
+
+```ts
+  .onReachEnd(() => {
+    if (this.isRefreshing || this.isLoading || this.isFinish) {
+      return
+    } else {
+      this.isLoading = true
+      this.onLoad()
+    }
+  })
+```
+
+随后修改`onLoad`方法，在加载后打印当前问题列表数组长度，用于Debug。
+
+```ts
+  onLoad() {
+    setTimeout(() => {
+      this.isLoading = true
+      for (let i = 0; i < 10; i++) {
+        this.QuestionList.push(QuestionListCompTestData)
+      }
+      this.isLoading = false
+      if (this.QuestionList.length === QUESTION_LIST_MAX_LENGTH) {
+        this.isFinish = true
+      }
+      logger.info(QUESTION_LIST_COMP_TAG + '当前问题列表长度' + this.QuestionList.length)
+    }, 2000)
+  }
+```
+
+<video width="100%" controls>
+  <source src="44.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+![45](MianShiTong/45.png)
+
+至此本功能组件封装测试完毕。
+
+##### 下拉刷新的数组数据重置
+
+刷新的逻辑与加载不同，刷新是先将原有数组清空，然后再重新加载数据。
+
+```ts
+  onRefresh() {
+    logger.debug(QUESTION_LIST_COMP_TAG + '进入onRefresh')
+    this.isRefreshing = true
+    setTimeout(() => {
+      this.QuestionList = []
+      for (let i = 0; i < 10; i++) {
+        this.QuestionList.push(QuestionListCompTestData)
+      }
+      logger.info(QUESTION_LIST_COMP_TAG + 'onRefresh:  当前问题列表长度' + this.QuestionList.length)
+      this.isRefreshing = false
+    }, 2000)
+  }
+```
+
+![46](MianShiTong/46.png)
+
+通过日志我们可以明确的看到，在下拉刷新时，数组数据会被清空，然后再重新加载数据。
