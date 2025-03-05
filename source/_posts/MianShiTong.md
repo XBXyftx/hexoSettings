@@ -1631,3 +1631,82 @@ enm经过测试发现由于`onReachEnd`事件的机制，**在触底时触发一
 ![46](MianShiTong/46.png)
 
 通过日志我们可以明确的看到，在下拉刷新时，数组数据会被清空，然后再重新加载数据。
+
+不过这里我们在测试时又发现了新的问题，在触发一次下拉刷新之后，无法再次触发触底加载。
+
+经过简单的推理，其实这个问题也不难排查。问题就出在下拉刷新后我们没有将加载问题数上限标志符`isFinish`重置为`false`。
+所以我们需要在下拉刷新后将`isFinish`重置为`false`，这样一来就可以再次触发触底加载了。
+
+```ts
+  /**
+   * 下拉刷新函数
+   * 将原数组设为空随后从新获取数据
+   * 并将试题列表获取上限标识刷新
+   */
+  onRefresh() {
+    logger.debug(QUESTION_LIST_COMP_TAG + '进入onRefresh')
+    this.isRefreshing = true
+    setTimeout(() => {
+      this.QuestionList = []
+      for (let i = 0; i < 10; i++) {
+        this.QuestionList.push(QuestionListCompTestData)
+      }
+      logger.info(QUESTION_LIST_COMP_TAG + 'onRefresh:  当前问题列表长度' + this.QuestionList.length)
+      this.isRefreshing = false
+      this.isFinish = false
+    }, 2000)
+  }
+```
+
+![47](MianShiTong/47.png)
+
+至此本功能组件封装测试完毕。
+
+### 首页网络交互
+
+这个项目的网络请求我们统一使用axios第三方库来进行发送和管理，axios相比鸿蒙自带的网络请求模块更加便捷，详情可以参考[鸿蒙网络请求学习笔记](https://xbxyftx.github.io/2025/01/27/%E9%B8%BF%E8%92%99%E7%BD%91%E7%BB%9C%E8%AF%B7%E6%B1%82%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/)这篇博客的内容。
+
+#### 下载axios
+
+```bash
+ohpm i @ohos/axios
+```
+
+随后开启网络权限：
+
+```json
+    "requestPermissions": [
+      {
+        "name": "ohos.permission.INTERNET"
+      }
+    ],
+```
+
+#### 封装Axios请求实例
+
+首先在`utils`文件夹下创建一个`AxiosHttp.ets`文件，用于封装Axios请求实例以及拦截器。
+
+配置基地址是很重要的，一旦公司后端的基地址发生了改变，如果没有统一的配置基地址，那么我们就需要在每个网络请求中都去修改基地址，这样一来就会很麻烦。
+
+```ts
+/**
+ * axios请求实例
+ * 配置基地址和请求超时时间
+ */
+export const axiosInstance = axios.create({
+  baseURL:'https://api-harmony-teach.itheima.net',
+  timeout:10000
+})
+```
+
+#### 封装Axios相应拦截器
+
+`axios`第三方库虽然在鸿蒙原有的网络模块的基础上优化了许多，但也依旧存在以下痛点问题：
+
+1. 泛型参数的填写较为繁琐，在`get`请求时**第一个参数无关紧要可以为`null`**，第二个参数是结果的类型，第三个参数由于没有需要传递的请求体参数，就可以不用填写，或者为`null`。在`post`请求时，**第一个参数依旧无关紧要可以为`null`**，第二个参数是响应结果的类型，第三个参数是请求体类型**不可省略**。
+2. 从数据接口获取所需数据的路径过长，像是想要获取下图所示结构中的`account`字段的值，我们需要写成`res.data.data.account`，这样一来就会很麻烦。
+
+![48](MianShiTong/48.png)
+
+而且在相应信息中并非所有信息都是我们所需要的，所以我们可以针对axios的响应结果进行拦截，将我们不需要的数据剔除掉。
+
