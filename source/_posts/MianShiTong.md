@@ -1709,4 +1709,3 @@ export const axiosInstance = axios.create({
 ![48](MianShiTong/48.png)
 
 而且在相应信息中并非所有信息都是我们所需要的，所以我们可以针对axios的响应结果进行拦截，将我们不需要的数据剔除掉。
-
