@@ -1709,3 +1709,73 @@ export const axiosInstance = axios.create({
 ![48](MianShiTong/48.png)
 
 而且在相应信息中并非所有信息都是我们所需要的，所以我们可以针对axios的响应结果进行拦截，将我们不需要的数据剔除掉。
+
+所谓拦截器是axios库提供的一种机制，它可以在请求发送前或者响应返回后对数据进行处理。
+在axios中，拦截器分为请求拦截器和响应拦截器。
+请求拦截器可以在请求发送前对请求数据进行处理，例如添加请求头、修改请求参数等。
+响应拦截器可以在响应返回后对响应数据进行处理，例如对响应数据进行统一处理、判断响应状态码等。
+
+我们就可以利用这个机制来对现有的**响应数据进行修改**使得我们能够更加方便的获取到所需要的数据。
+
+##### 响应拦截器基础结构
+
+```ts
+/**
+ * 设置响应拦截器拦截器
+ * interceptors:    拦截器
+ * response:        响应
+ * 由这个axiosInstance实例发送到请求的响应都会经过它再返回
+ */
+axiosInstance.interceptors.response.use((res:AxiosResponse)=>{
+  return res
+},(err:AxiosError)=>{
+  return Promise.reject(err)
+})
+```
+
+所有由这个`axiosInstance`实例发送到请求的响应都会经过它再返回，这一点很重要，这意味着我们无需特意调用额外的回调函数即可完成对相应数据的拦截操作。
+
+##### 响应拦截器具体实现
+
+我们直接将成功时的响应结果中的`data`字段返回，这样我们就可以直接通过`res.data`来获取到数据了。
+
+```ts
+  return res.data
+```
+
+第一层`data`字段是axios库自动添加的，**并非**我们在接口文档里所看到的响应体数据，我们不需要关心它。
+本项目的接口响应数据基本都如下图所示：
+
+![49](MianShiTong/49.png)
+
+所以我们其实可以对返回值再加一层`data`字段，这样我们就可以直接通过`res.字段`来获取到数据了。
+
+```ts
+  return res.data.data
+```
+
+#### 封装AxiosHttp类
+
+封装这个类的目的是减少泛型参数的冗余，使得代码更加简洁。
+
+```ts
+class AxiosHttp{
+  /**
+   * Axios包装过的请求函数
+   * @param config 网络请求配置项
+   * res:相应数据类型
+   * req:响应体参数类型 - get不需要传
+   */
+  request<res,req>(config:AxiosRequestConfig<req>){
+    return axiosInstance(config)
+  }
+}
+
+export const axiosHttp = new AxiosHttp()
+```
+
+先填写相应数据类型，再填写请求体参数类型主要是因为`get`请求并不需要传入请求体数据类型，但由于并没有默认值所以不填会报错，这里我们再给第二个参数设置一个默认值`Object`即可。
+
+#### 利用AxiosHttp类获取问题分组标签列表
+
+```ts
