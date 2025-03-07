@@ -1779,3 +1779,248 @@ export const axiosHttp = new AxiosHttp()
 #### 利用AxiosHttp类获取问题分组标签列表
 
 ```ts
+  @Local questionList: IQuestionTabBarType[] = []
+
+  aboutToAppear(): void {
+    this.getQuestionList()
+  }
+
+  async getQuestionList() {
+    this.questionList = await axiosHttp.request<IQuestionTabBarType[]>({
+      url: '/hm/question/type'
+    })
+  }
+```
+
+![50](MianShiTong/50.png)
+
+我们可以看到此处是在报错的，由报错信息可以分析出，当前我们虽然传入了一个泛型参数，第二个泛型参数我们也设置了默认值非必要填写，但这个泛型参数并没有正确的传递给`axiosInstance`实例，导致`axiosInstance`实例无法正确的解析泛型参数。
+
+于是我们回到`AxiosHttp.ets`文件中，检查代码，发现我们只反悔了实例而没有携带泛型参数。
+
+```ts
+  request<res, req = Object>(config: AxiosRequestConfig<req>) {
+    logger.debug(AXIOS_HTTP_LOG_TAG+'进入AxiosHttp.request')
+    return axiosInstance<null,res,req>(config)
+  }
+```
+
+修改后再次测试功能正常。
+
+![51](MianShiTong/51.png)
+
+#### 响应请求码判断
+
+我们当前的拦截器捕获了异常，并返回正常响应结果的数据，但如果响应是正常的，只是因为我们的传参不正确导致返回的结果是错误信息提示，而我们的`try catch`函数就无法捕获异常弹出报错，所以我们还需要去对响应状态码进行判别，一旦出现非正常状态码就需要进行弹窗以及日志提示，避免上述情况出现。
+
+```ts
+/**
+ * 设置响应拦截器拦截器
+ * interceptors:    拦截器
+ * response:        响应
+ * 由这个axiosInstance实例发送到请求的响应都会经过它再返回
+ */
+// 响应拦截器
+axiosInstance.interceptors.response.use((res: AxiosResponse) => {
+  if (res.data.code === 10000) {
+    logger.debug('Req Success' + JSON.stringify(res.data.data))
+    return res.data.data
+  }
+  logger.error('Req Error' + JSON.stringify(res.data))
+  promptAction.showToast({ message: 'Req Error' + JSON.stringify(res.data) })
+  return Promise.reject(res.data)
+}, (err: AxiosError) => {
+  logger.error('Req Error' + JSON.stringify(err))
+  promptAction.showToast({ message: 'Req Error' + JSON.stringify(err) })
+  return Promise.reject(err)
+})
+```
+
+这样一来，只要不是10000状态码，就会弹出提示。
+
+### 首页问题列表的完整功能实现
+
+之前我们仅仅使用静态的测试数据实现了问题列表的渲染，还没有接入网络请求动态获取数据，同时还缺少分类标签的半模态弹窗。
+
+#### 动态获取试题列表
+
+##### 根据后端文档定义数据类型
+
+![52](MianShiTong/52.png)
+
+我们可以看，这个接口的返回数据还是相当多的，所以我们还需要慢慢分析。
+
+```ts
+/**
+ * 试题列表数据外层对象
+ * @param
+ * total:       问题总数
+ * pageTotal:   总页数
+ * rows:        数据集合
+ */
+export interface IPageData<T> {
+  total: number
+  pageTotal: number
+  rows: T[]
+}
+```
+
+随后我们还需要去对`url`所需参数来定义一个对象，以便于包装后传参。
+
+```ts
+/**
+ * 排序模式常量
+ * @enum
+ * Default:           默认量可以不传
+ * DifficultyLow:     从易到难
+ * DifficultyHigh:    从难道易
+ * ViewLow:           浏览量从低到高
+ * ViewHigh:          从高到底
+ * Commend:           推荐数据（按照权重倒序）
+ */
+export enum SortType {
+  Default = 0,
+  DifficultyLow = 10,
+  DifficultyHigh = 11,
+  ViewLow = 20,
+  ViewHigh = 21,
+  Commend = 30
+}
+/**
+ * 查询试题请求Url参数数据类型
+ * @param
+ * type:                0或者不传，查询全部 或者类型id
+ * sort:                排序,用SortType常量
+ * pageSize:            每页大小，为空默认是10
+ * page:                当前页数，为空默认是1
+ * questionBankType:    9面经10小程序面试题
+ */
+export interface IGetQuestionListUrlParams {
+  type: number
+  questionBankType: 9 | 10
+  sort?: SortType
+  page?: number
+  pageSize?: number
+}
+```
+
+详尽的注释还是挺有必要的……前两天写的代码都需要联系着看才能回想起来了……
+(回去补了一大堆注释……)
+
+##### 暴露分类biaoqianID接口
+
+```ts
+  @Param @Require typeId:number = -1
+  @Param sortType:SortType = SortType.Default
+```
+
+我们需要依据分类标签ID和排序模式来获取试题列表，所以我们需要将这两个参数暴露出去。
+
+##### 发送请求
+
+在过去我们利用`axios`发送请求时都是通过在后端文档复制字段名然后填写数据的，但我们定义了参数接口之后，利用`as`关键字就可以将`params`转换为指定类型这样就有字段提示了。
+
+```ts
+  const req = axiosHttp.request<IPageData<IQuestionListItem>>({
+    url:'/hm/question/list',
+    params:{
+        
+    } as IGetQuestionListUrlParams
+  })
+```
+
+![53](MianShiTong/53.png)
+
+```ts
+  /**
+   * 触底加载逻辑函数
+   */
+  async onLoad() {
+    logger.debug(QUESTION_LIST_COMP_TAG + '进入onLoad')
+    if (this.isRefreshing || this.isLoading || this.isFinish) {
+      return
+    } else {
+      this.isLoading = true
+      const res = await axiosHttp.request<IPageData<IQuestionListItem>>({
+        url: '/hm/question/list',
+        params: {
+          type: this.typeId,
+          sort: this.sortType,
+          questionBankType: 9,
+          pageSize: 10,
+          page: this.currentPageTotalNumber
+        } as IGetQuestionListUrlParams
+      })
+      this.QuestionList.push(...res.rows)
+      this.isLoading = false
+      if (this.currentPageTotalNumber >= res.pageTotal) {
+        this.isFinish = true
+      }else {
+        this.currentPageTotalNumber++
+      }
+    }
+  }
+```
+
+但在测试时发现此处代码还有问题。
+
+![54](MianShiTong/54.png)
+
+列表并没有成功的获取，我们来查看一下日志。
+
+![55](MianShiTong/55.png)
+
+我们可以看到请求是成功了的，这里也成功的传回了响应值，但不知道为什么是空的，我们进行进一步排查。
+
+……
+
+在仔细排查了代码的问题后发现好像并没有什么问题(乐了……)，于是我们又去看了看文档，发现好像是我们`questionBankType`字段值填反了。
+
+```ts
+  questionBankType: 10,
+```
+
+![56](MianShiTong/56.png)
+
+我们可以看到修改后数据就正常获取了。
+
+enm……还能怎么说呢，认真读文档吧……
+
+##### 下拉刷新逻辑更新
+
+```ts
+  /**
+   * 下拉刷新函数
+   * 将原数组设为空随后从新获取数据
+   * 并将试题列表获取上限标识刷新
+   */
+  async onRefresh() {
+    logger.debug(QUESTION_LIST_COMP_TAG + '进入onRefresh')
+    this.isRefreshing = true
+    this.currentPageTotalNumber = 1
+    this.QuestionList = []
+    const res = await axiosHttp.request<IPageData<IQuestionListItem>>({
+      url: '/hm/question/list',
+      params: {
+        type: this.typeId,
+        sort: this.sortType,
+        questionBankType: 10,
+        pageSize: 10,
+        page: this.currentPageTotalNumber
+      } as IGetQuestionListUrlParams
+    })
+    this.QuestionList = res.rows
+    this.isRefreshing = false
+    this.isFinish = (this.currentPageTotalNumber >= res.pageTotal)
+  }
+```
+
+经测试功能正常。
+
+#### 分类标签半模态弹窗
+
+在试题标签栏右侧会有一个小按钮用于拉起半模态弹窗来快速筛选标签。
+
+![57](MianShiTong/57.png)
+
+这个图标我们可以通过层叠布局来盖在标签栏上。
