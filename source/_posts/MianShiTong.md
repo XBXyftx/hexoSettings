@@ -2017,10 +2017,48 @@ enm……还能怎么说呢，认真读文档吧……
 
 经测试功能正常。
 
-#### 分类标签半模态弹窗
+#### 分类标签半模态弹窗按钮图标
 
 在试题标签栏右侧会有一个小按钮用于拉起半模态弹窗来快速筛选标签。
 
 ![57](MianShiTong/57.png)
 
 这个图标我们可以通过层叠布局来盖在标签栏上。
+
+```ts
+  Row() {
+    Image($rawfile('ic_home_filter.png'))
+      .width(24)
+      .aspectRatio(1)
+  }
+  .width(56)
+  .height(44)
+  .linearGradient({
+    angle: 90,
+    colors: [['#00ffffff', 0], ['#ffffff', 0.285]]
+  })
+  .justifyContent(FlexAlign.Center)
+```
+
+通过添加白色到透明色的渐变过度就可以做到让整个分类标签列表像是缓慢浮现出来一样的效果。
+
+<video width="100%" controls>
+  <source src="58.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+##### 半模态弹窗主体
+
+半模态的UI布局还是相对来说很简单的这里就不过多讲解了，我们重点来说逻辑部分。
+
+```ts
+      Text('题目排序')
+        .textTitle()
+      // TODO 筛选按钮
+
+      Text('选择分类')
+        .textTitle()
+      // TODO 筛选按钮
+```
+
+现在的核心任务就是完成排序和分类的筛选。
