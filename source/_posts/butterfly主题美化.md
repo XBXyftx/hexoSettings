@@ -142,17 +142,19 @@ ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
 
 打开 hexo 的配置文件 `_config.yml` 修改 `deploy` 位置的配置
 
-```
+```yml
+# Deployment
+## Docs: https://hexo.io/docs/deployment.html
 deploy:
-    type: git
-    repo: github: git@github.com:XXXXXXX/XXXXXXXX.github.io.git    # 仓库地址
-    branch: main    # 分支!!!!!!!!!!是 main
+  type: git
+  repo: git@github.com:XXXXX/XXXXX.github.io.git
+  branch: main
 ```
 
 然后！hexo三连！
 
-```
-$ hexo cl && hexo g && hexo d
+```bash
+hexo cl && hexo g && hexo d
 ```
 
 此时就可以通过`https://username.github.io` 进行访问你的博客了！
@@ -163,13 +165,13 @@ $ hexo cl && hexo g && hexo d
 
 在git中执行以下指令安装butterfly主题。
 
-```
+```bash
 git clone https://github.com/jerryc127/hexo-theme-butterfly.git themes/butterfly
 ```
 
 这里是直接克隆源代码至本地，可以修改源代码进行魔改。如果没有修改代码的需求可以直接通过**npm**来安装。
 
-```
+```bash
 npm i hexo-theme-butterfly
 ```
 
@@ -177,7 +179,7 @@ npm i hexo-theme-butterfly
 
 安装`pug` 和 `stylus` 渲染器，否则启动之后访问页面会报错。
 
-```
+```bash
 npm install hexo-renderer-pug hexo-renderer-stylus --save
 ```
 
@@ -185,7 +187,7 @@ npm install hexo-renderer-pug hexo-renderer-stylus --save
 
 与所有hexo主题启用的模式一样。当 克隆/下载 完成后，打开 **`站点配置文件`**， 找到 `theme` 字段，并将其值更改为 `butterfly`。
 
-```
+```bash
 theme: butterfly
 ```
 
@@ -196,7 +198,6 @@ theme: butterfly
 ### 网站资料
 
 修改网站各种资料，例如标题、副标题和邮箱等个人资料，请修改站点配置文件_config.yml。部分参数如下，详细参数可参考官方的配置描述。
-
 
 | 参数        | 描述                                                                                                                                                 |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |

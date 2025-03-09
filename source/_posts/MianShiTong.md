@@ -2062,3 +2062,256 @@ enm……还能怎么说呢，认真读文档吧……
 ```
 
 现在的核心任务就是完成排序和分类的筛选。
+
+##### 筛选按钮组件封装
+
+在筛选半模态页面中，每个按钮我们都应当封装成一个组件，因为它内部还包括了其他的逻辑，以及依据数据的不同提示出不同的脚标以及UI，不能单纯的使用`Button`组件来进行渲染。
+
+```ts
+/**
+ * 首页标签筛选半模态单个按钮组件
+ * @param:{
+ *   text:标签文字
+ *   isNew:是否显示new脚标
+ *   isSort:是否显示排序上下箭头
+ * }
+ */
+@ComponentV2
+export struct FilterButton {
+  @Param text: string = ''
+  @Param isNew: boolean = false
+  @Param isSort: boolean = false
+
+  build() {
+    Row() {
+      Text(this.text)
+        .fontSize(12)
+        .fontColor($r('app.color.black'))
+      if (this.isNew) {
+        Image($r('app.media.ic_home_new'))
+          .width(32)
+          .height(14)
+          .objectFit(ImageFit.Contain)
+          .position({ right: -26, top: -7 })
+      }
+      if (this.isSort) {
+        Column() {
+          Image($r('sys.media.ohos_ic_public_arrow_up'))
+            .size({ width: 12, height: 6 })
+          Image($r('sys.media.ohos_ic_public_arrow_down'))
+            .size({ width: 12, height: 6 })
+        }
+        .margin({ top: -0.5, left: 2 })
+      }
+    }
+    .height(30)
+    .padding({ left: 10, right: 10 })
+    .backgroundColor($r('app.color.common_gray_bg'))
+    .borderRadius(4)
+    .margin({ top: 12, right: this.isNew ? 26 : 10 })
+  }
+}
+```
+
+这里的上下排序箭头我们直接使用系统自带图标即可。
+此时我们就可以利用封装好的组件来进行渲染了。
+
+#### 半模态筛选按钮渲染
+
+我们回到半模态`Builder`中采用`Flex`弹性布局来实现自动换行效果。
+
+```ts
+      // TODO 筛选按钮
+      Flex({wrap:FlexWrap.Wrap}){
+        FilterButton({
+          text:'默认'
+        })
+        FilterButton({
+          text:'浏览量',
+          isNew:true
+        })
+        FilterButton({
+          text:'排序',
+          isSort:true
+        })
+        FilterButton({
+          text:'默认',
+          isNew:true,
+          isSort:true
+        })
+      }
+```
+
+![59](MianShiTong/59.jpg)
+
+由此我们可以看到我们可以很轻松的控制每个按钮的样式。
+
+然后对于分类选择栏的数据我们就可以直接沿用上面已经通过网络请求获取的问题类型列表来进行渲染和测试。
+
+```ts
+      Flex({ wrap: FlexWrap.Wrap }) {
+        ForEach(this.questionTabBarList, (item: IQuestionTabBarType, i) => {
+          FilterButton({
+            text: item.name,
+            isNew: item.displayNewestFlag == 1
+          })
+        })
+      }
+```
+
+![60](MianShiTong/60.jpg)
+
+#### 半模态筛选按钮点击事件
+
+##### 类型筛选按钮
+
+以上暴露的变量接口仅仅是为了方便UI的渲染还没有实现逻辑上的切换功能，而为了标明选中状态我们还需要再暴露一个变量接口`isSelected`。
+
+```ts
+  @Param isSelected: boolean = false
+
+  .fontColor(this.isSelected ? $r('app.color.common_main_color') : $r('app.color.black'))
+```
+
+然后在首页问题列表的下半区组件中再添加一个变量用于标明被选中的标签ID，随后在半模态中通过点击事件来改变这个变量的值。
+
+```ts
+  @Local filterSelectedIndex: number = -1
+  FilterButton({
+    text: item.name,
+    isNew: item.displayNewestFlag == 1,
+    isSelected: this.filterSelectedIndex === i
+  })
+    .onClick(() => {
+      this.filterSelectedIndex = i
+    })
+```
+
+##### 排序筛选按钮
+
+首先我们先考虑默认和推荐两种排序方式，因为这两种方式最简单，观看量和难度都有**正逆序**需要考虑我们后面再说。
+我们需要依赖于之前定义的枚举类型`SortType`来进行排序。
+
+```ts
+  @Local filterSortType: SortType = SortType.Default //高亮显示当前的排序方式
+  FilterButton({
+    text: '默认',
+    isSelected: this.filterSortType === SortType.Default
+  })
+    .onClick(() => {
+      this.filterSortType = SortType.Default
+    })
+  FilterButton({
+    text: '浏览量',
+    isSort: true,
+    isSelected: this.filterSortType === SortType.ViewLow || this.filterSortType === SortType.ViewHigh
+  })
+  FilterButton({
+    text: '难度',
+    isSort: true,
+    isSelected: this.filterSortType === SortType.DifficultyLow || this.filterSortType === SortType.DifficultyHigh
+  })
+  FilterButton({
+    text: '推荐',
+    isSelected: this.filterSortType === SortType.Commend
+  })
+    .onClick(() => {
+      this.filterSortType = SortType.Commend
+    })
+```
+
+利用`filterSortType`变量来标志当前选中的排序方式。
+
+<video width="100%" controls>
+  <source src="61.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+再配合上日志信息我们可以看到排序方式已经成功的切换了。
+
+![62](MianShiTong/62.png)
+
+##### 正逆序的实现
+
+首先我们在`FilterButton`是预留了正逆序的上下箭头的，而这个箭头是`svg`图标，可以通过`fillColor`属性来调整图标颜色。
+
+我们可以直接**分类判断难度和观看量的正逆序**来高亮显示，但那样还是比较**冗余**，我们可以用更简单的方式，不过这就需要我们善于观察并**发现规律**了。
+
+![63](MianShiTong/63.png)
+
+我们通过观察可以看出两者正逆序代表的数字**奇偶性一致**，这样我们就可以通过**判断奇偶**来统一的管理正逆序。
+
+```ts
+  Image($r('sys.media.ohos_ic_public_arrow_up'))
+    .size({ width: 12, height: 6 })
+    .fillColor(this.isSelected && (this.sortType % 2 === 1) ? $r('app.color.common_main_color') :
+    $r('app.color.black'))
+  Image($r('sys.media.ohos_ic_public_arrow_down'))
+    .size({ width: 12, height: 6 })
+    .fillColor(this.isSelected && (this.sortType % 2 === 0) ? $r('app.color.common_main_color') :
+    $r('app.color.black'))
+```
+
+对于点击事件我们需要进行判断，首先是判断是否已经是**选中高亮状态**，其次是判断当前是**升序还是降序**，然后进行切换。
+
+```ts
+  FilterButton({
+    text: '浏览量',
+    isSort: true,
+    isSelected: this.filterSortType === SortType.ViewLow || this.filterSortType === SortType.ViewHigh,
+    sortType: this.filterSortType
+  })
+    .onClick(() => {
+      //如果已经是高亮状态就上下箭头切换
+      if (this.filterSortType == SortType.ViewLow || this.filterSortType == SortType.ViewHigh) {
+        this.filterSortType = this.filterSortType === SortType.ViewLow ? SortType.ViewHigh : SortType.ViewLow
+      } else { //若不是高亮状态则设为高亮
+        this.filterSortType = SortType.ViewLow
+      }
+    })
+  FilterButton({
+    text: '难度',
+    isSort: true,
+    isSelected: this.filterSortType === SortType.DifficultyLow || this.filterSortType === SortType.DifficultyHigh,
+    sortType: this.filterSortType
+  })
+    .onClick(() => {
+      //如果已经是高亮状态就上下箭头切换
+      if (this.filterSortType == SortType.DifficultyLow || this.filterSortType == SortType.DifficultyHigh) {
+        this.filterSortType =
+          this.filterSortType === SortType.DifficultyLow ? SortType.DifficultyHigh : SortType.DifficultyLow
+      } else { //若不是高亮状态则设为高亮
+        this.filterSortType = SortType.DifficultyLow
+      }
+    })
+```
+
+这里面的判断赋值代码看着有点奇怪，但这也是巧妙利用三元运算符来简化`ifelse`语句嵌套的一种方式。
+
+<video width="100%" controls>
+  <source src="64.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+这样我们就完成了正逆序的切换。
+
+##### 正逆序逻辑优化
+
+在仔细分析了上面的代码后，我发现其实还是有优化的余地的。
+
+我们的第一步是判断他是否是高亮状态，也就是说在四种正逆序的可能中，有两种情况是**非高亮状态**，有两种情况是**高亮状态**。
+但这两种非高亮状态恰好包含在了判断是否为制定变量的正逆序的三种假情况中。
+
+比如说：当我们当前是**浏览量的正序**时，第一步代码判断出的**假**情况有**难度的正逆序**两种，而在第二步判断是否为**浏览量的正序**时，假的情况有三种：**难度的正逆序和浏览量的逆序**恰好包含了第一步所判断出的情况，说明我们**没有必要去进行第一步判断**，直接进行第二步的三元判断赋值即可。
+
+```ts
+  .onClick(() => {
+    this.filterSortType = this.filterSortType === SortType.ViewLow ? SortType.ViewHigh : SortType.ViewLow
+  })
+  .onClick(() => {
+    this.filterSortType =
+      this.filterSortType === SortType.DifficultyLow ? SortType.DifficultyHigh : SortType.DifficultyLow
+  })
+```
+
+经过测试，结果与我们推测的一样，正逆序切换到效果一致，代码也更加简洁了。
