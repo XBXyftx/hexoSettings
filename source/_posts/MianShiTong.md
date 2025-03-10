@@ -2315,3 +2315,173 @@ export struct FilterButton {
 ```
 
 经过测试，结果与我们推测的一样，正逆序切换到效果一致，代码也更加简洁了。
+
+#### 半模态完成按钮点击事件
+
+对于半模态的完成按钮，我们首先需要在点击时将我们选中的排序方式和试题类型回传到首页状态变量后再关闭半模态。
+
+```ts
+  Text('完成')
+    .fontWeight(500)
+    .fontSize(16)
+    .fontColor($r('app.color.common_main_color'))
+    .onClick(() => {
+      logger.info(HOME_CATEGORY_LOG_TAG + '完成按钮被点击')
+      this.activeIndex = this.filterSelectedIndex
+      this.sort = this.filterSortType
+      this.filterSheetIsShow = false
+    })
+```
+
+但这个逻辑看起来似乎没错，但在测试中我们发现遗漏了一个很重要的点。
+
+<video width="100%" controls>
+  <source src="65.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+正如上面视频所示，我们的`TabBar`虽然切换过来了，但`TabContent`并没有跟着进行数据更新。
+这是因为`Tabs`的`onChange`函数并非是双向绑定，这就导致来了我们直接操作`TabBar`的状态变量，而`TabContent`却没有进行响应。
+
+我们可以通过在`Tabs`组件的参数中强行规定`Tabs`的状态变量，这样才能通过改变状态变量来实现对问题列表内容改变的映射。
+
+```ts
+  Tabs({index:$$this.activeIndex})
+```
+
+我们将`onChange`函数删除，改为利用双向绑定传参的方式来实现对`TabContent`的映射。
+
+<video width="100%" controls>
+  <source src="66.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+测试后功能正常。
+
+随后我们将当前获取到的排序方式传入列表组件中，监听排序方式的改变，并重新执行刷新函数就可以实现排序方式的改变了。
+
+```ts
+  @Monitor('sortType')
+  onSortType(){
+    logger.warn(QUESTION_LIST_COMP_TAG+'检测到排序类型变换，即将更新typeId='+this.typeId+'的列表数据')
+    this.onRefresh()
+    logger.warn(QUESTION_LIST_COMP_TAG+'当前排序类型为:'+this.sortType.toString())
+  }
+```
+
+#### 半模态重置按钮点击事件
+
+这个就很简单了，直接重置所有的状态变量即可。
+
+```ts
+  resetFilterStates() {
+    this.filterSelectedIndex = -1
+    this.filterSortType = SortType.Default
+    logger.warn(HOME_CATEGORY_LOG_TAG + '已经重置筛选半模态')
+  }
+```
+
+#### 细节优化
+
+现在我们虽然实现了半模态筛选对`TabBar`的映射，但是我们点击`TabBar`的选项时，半模态中的默认值并没有改变，这很显然是不符合直觉的。
+
+<video width="100%" controls>
+  <source src="67.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+在监听函数中添加同步代码或是在`onChange`函数中添加同步代码都可以实现这个功能。
+
+### 首页骨架屏效果(可入建立的性能优化小点)
+
+骨架屏这个东西还是挺常见的，是一种用于替换加载动画的的效果，它可以在加载数据时显示一个占位的页面，让用户知道数据正在加载中。
+
+![68](MianShiTong/68.jpg)
+
+饿了吗的骨架屏效果就是很典型的客户端骨架屏效果。
+
+关于为什么要用骨架屏效果，我们可以参考github上的这段话：
+
+![69](MianShiTong/69.png)
+
+**用户不喜欢看到白屏**，骨架屏会让用户感到数据马上就会出现在眼前，虽然只是心里安慰，但却依旧可以有效的**提升用户体验**。
+
+#### 骨架屏组件的封装
+
+首先这属于通用组件所以我们要在`components`文件夹下新建一个`Skeleton`文件夹，然后在该文件夹里面去进行封装。
+
+首先骨架是分为两种组件，一种是单个小灰色块，另一种则是包含了动画效果以及UI自定义布局接口的大组件。
+
+##### 单个小灰色块
+
+首先我们新建一个`HcSkeletonItem`组件，然后在该组件中定义一个`widthValue`的样式变量，用于定义小灰色块的大小。
+它的变量类型是`Length`我们平常在写长宽时既可以写数字也可以写字符串，这个类型就是`Length`类型。
+
+```ts
+@ComponentV2
+export struct HcSkeletonItem {
+  @Param widthValue: Length = '100%'
+
+  build() {
+    Text()
+      .height(16)
+      .width(this.widthValue)
+      .borderRadius(2)
+      .backgroundColor($r('app.color.common_gray_bg'))
+  }
+}
+```
+
+##### 骨架屏组件
+
+然后我们新建一个`HcSkeleton`组件，由于该通用组件的适用范围广泛，我们需要去利用`@BuilderParam`来进行UI自定义的接口暴露。
+
+```ts
+@ComponentV2
+export struct HcSkeleton {
+  @Local opacityValue: number = 1
+
+  @Builder
+  defaultBuilder() {
+  }
+
+  @BuilderParam
+  default: () => void = this.defaultBuilder
+
+  build() {
+    Row({ space: 15 }) {
+      this.default()
+    }
+    .opacity(this.opacityValue)
+    .animation({
+      duration: 600,
+      playMode: PlayMode.Alternate,
+      iterations: -1,
+      curve: Curve.EaseInOut
+    })
+    .onAppear(() => {
+      this.opacityValue = 0.5
+    })
+  }
+}
+```
+
+这里还要复习一个重要的知识点在于，单个和多个`@BuilderParam`传参方式上是有区别的，当只有一个时，我们只需要在调用该自定义组件时利用**尾随闭包**的方式进行传参即可，也就是所谓的**包含子组件**，而当存在多个时我们则需要在调用时通过键值对传参的形式来传入。
+
+而在当前组件中是单个的，所以我们只需要在调用时利用**尾随闭包**的方式进行传参即可。
+
+这里的动画效果是为了模拟呼吸灯的效果。
+整体实现的逻辑有以下几步：
+
+1. 定义状态变量`opacityValue`，用于控制透明度。
+2. 为展示区域添加动画效果，单次播放时长为`600ms`。
+3. 但很显然，在网络不好的情况下，加载动画不能只播放`600ms`后就停止，所以我们需要设置动画的播放次数为无限次。
+4. 随后为了防止在单次播放结束后透明度突然跳帧到1，我们需要设置循环播放动画模式`PlayMode.Alternate`。
+5. 最后，为了模拟呼吸灯的效果，我们需要设置动画的播放曲线为`Curve.EaseInOut`。
+
+#### 骨架屏效果实现
+
+首先我们来思考一下骨架需要在哪些地方使用。
+
+问题分类栏和问题列表是需求量最大的地方，轮播图的话目前是直接内嵌在程序里的所以暂时不需要添加骨架。
+而整个问题列表区域加载都是在`HomeCategory`组件的`aboutToAppear`生命周期函数中完成的，所以我们就需要在`aboutToAppear`生命周期函数中控制我们骨架的显示。
