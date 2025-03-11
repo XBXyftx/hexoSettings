@@ -5,8 +5,9 @@ tags:
   - 鸿蒙
   - 技术向
   - 项目
-top: 9
-cover: https://raw.githubusercontent.com/XBXyftx/hexoImgs4/main/202503020220794.jpg
+  - V2
+top: 12
+cover: https://raw.githubusercontent.com/XBXyftx/hexoImgs4/main/202503111700917.png
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
@@ -2485,3 +2486,71 @@ export struct HcSkeleton {
 
 问题分类栏和问题列表是需求量最大的地方，轮播图的话目前是直接内嵌在程序里的所以暂时不需要添加骨架。
 而整个问题列表区域加载都是在`HomeCategory`组件的`aboutToAppear`生命周期函数中完成的，所以我们就需要在`aboutToAppear`生命周期函数中控制我们骨架的显示。
+
+为了防止骨架代码的添加导致整体代码可读性变差，我们将其封装为一个`Builder`。
+
+##### 测试骨架屏效果
+
+```ts
+  @Builder
+  HcSkeleton() {
+    HcSkeleton() {
+      Column({ space: 20 }) {
+        Row({ space: 20 }) {
+          HcSkeletonItem({ widthValue: '20%' })
+          HcSkeletonItem({ widthValue: '13%' })
+          HcSkeletonItem({ widthValue: '16%' })
+          HcSkeletonItem({ widthValue: '18%' })
+          HcSkeletonItem({ widthValue: '13%' })
+        }
+        .width('100%')
+
+        List({ space: 20 }) {
+          ForEach(Array.from({ length: 10 }), () => {
+            ListItem() {
+              Column({space:10}) {
+                HcSkeletonItem({ widthValue: '30%' })
+                HcSkeletonItem({ widthValue: '58%' })
+              }
+              .alignItems(HorizontalAlign.Start)
+              .width('100%')
+            }
+          })
+        }
+        .scrollBar(BarState.Off)
+        .edgeEffect(EdgeEffect.None)
+        .layoutWeight(1)
+        .divider({
+          strokeWidth: 1,
+          color: $r('app.color.common_gray_border')
+        })
+
+      }
+      .width('100%')
+
+    }
+  }
+
+
+      //判断是否显示骨架
+    if (this.isLoading){
+      this.HcSkeleton()
+    }
+```
+
+<video width="100%" controls>
+  <source src="70.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+这里我们为了延长骨架屏的效果暂时将加载结束的标识取消了。
+可以看到整体效果还是很理想的，复刻了有数据时的UI形状，这样就可以实现了骨架屏的效果了。
+
+<video width="100%" controls>
+  <source src="71.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+短短一瞬间的骨架屏也可以看出来我们的校园网还是可以的。
+
+至此首页也就做完了！！！
