@@ -7,7 +7,7 @@ tags:
   - 项目
   - V2
 top: 11
-cover: https://raw.githubusercontent.com/XBXyftx/hexoImgs4/main/202503111700917.png
+cover: /img/ArticleTopImgs/MSTTopImg.png
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

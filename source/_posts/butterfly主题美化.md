@@ -4,7 +4,7 @@ date: 2025-01-26 17:07:22
 tags:
   - hexo博客搭建
   - 主题美化
-cover: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/20250127013446.png
+cover:  /img/ArticleTopImgs/ButterTopImg.png
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

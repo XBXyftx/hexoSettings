@@ -4,7 +4,7 @@ date: 2025-01-25 01:27:06
 tags: 
   - hexo博客搭建
   - 技术向
-cover: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/183094c3dd5a8020e0b74ed7e6e90b6.png
+cover: /img/ArticleTopImgs/DuoDianNaoTopImg.png
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
