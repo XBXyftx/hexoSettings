@@ -389,7 +389,7 @@ readmode: true
 darkmode:
   enable: true
   # Toggle Button to switch dark/light mode
-  button: true
+  button: false
   # Switch dark/light mode automatically
   # autoChangeMode: 1  Following System Settings, if the system doesn't support dark mode, it will switch dark mode between 6 pm to 6 am
   # autoChangeMode: 2  Switch dark mode between 6 pm to 6 am
@@ -1039,9 +1039,13 @@ css_prefix: true
 # Insert the code to head (before '</head>' tag) and the bottom (before '</body>' tag)
 inject:
   head:
-    # - <link rel="stylesheet" href="/xxx.css">
+   ## 星空背景
+   - <link rel="stylesheet" href="/css/universe.css">
+   - <link rel="stylesheet" href="/css/transpancy.css">
   bottom:
-    # - <script src="xxxx"></script>
+   # 星空背景
+   - <canvas id="universe"></canvas>
+   - <script defer src="/js/universe.js"></script>
 
 # CDN Settings
 # Don't modify the following settings unless you know how they work
@@ -1156,4 +1160,48 @@ CDN:
     # valine:
     # waline_css:
     # waline_js:
+electric_clock:
+  enable: true # 开关
+  priority: 5 #过滤器优先权
+  enable_page: all # 应用页面
+  exclude:
+    # - /posts/
+    # - /about/
+  layout: # 挂载容器类型
+    type: class
+    name: sticky_layout
+    index: 0
+  loading: https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/loading.gif #加载动画自定义
+  clock_css: https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.css
+  clock_js: https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.js
+  ip_api: https://widget.qweather.net/simple/static/js/he-simple-common.js?v=2.0
+  # 和风天气key 默认是 b16a1fa0e63c46a4b8f28abfb06ae3fe
+  qweather_key: da54ed7504284b8d97ecdbf93f821cdf
+  # 高得地图web服务key 默认为 e2b04289e870b005374ee030148d64fd&s=rsv3
+  gaud_map_key: c25dd516b6a1aa4c5269e50077fac6f4
+  default_rectangle: true # 开启后将一直显示rectangle位置的天气，否则将获取访问者的地理位置与天气
+  rectangle: 115.982279,40.19409 # 获取访问者位置失败时会显示该位置的天气，同时该位置为开启default_rectangle后的位置
 
+# # hexo-filter-gitcalendar
+# # see https://akilar.top/posts/1f9c68c9/
+# gitcalendar:
+#   enable: true # 开关
+#   priority: 5 #过滤器优先权
+#   enable_page: / # 应用页面
+#   # butterfly挂载容器
+#   layout: # 挂载容器类型
+#     type: id
+#     name: recent-posts
+#     index: 0
+#   user: XBXyftx #git用户名
+#   apiurl: 'https://gitcalendar.akilar.top'
+#   minheight:
+#     pc: 280px #桌面端最小高度
+#     mibile: 0px #移动端最小高度
+#   # color: "['#e4dfd7', '#f9f4dc', '#f7e8aa', '#f7e8aa', '#f8df72', '#fcd217', '#fcc515', '#f28e16', '#fb8b05', '#d85916', '#f43e06']" #橘黄色调
+#   # color: "['#ebedf0', '#fdcdec', '#fc9bd9', '#fa6ac5', '#f838b2', '#f5089f', '#c4067e', '#92055e', '#540336', '#48022f', '#30021f']" #浅紫色调
+#   color: "['#ebedf0', '#f0fff4', '#dcffe4', '#bef5cb', '#85e89d', '#34d058', '#28a745', '#22863a', '#176f2c', '#165c26', '#144620']" #翠绿色调
+#   # color: "['#ebedf0', '#f1f8ff', '#dbedff', '#c8e1ff', '#79b8ff', '#2188ff', '#0366d6', '#005cc5', '#044289', '#032f62', '#05264c']" #天青色调
+#   container: .recent-post-item(style='width:100%;height:auto;padding:10px;') #父元素容器，需要使用pug语法
+#   gitcalendar_css: https://npm.elemecdn.com/hexo-filter-gitcalendar/lib/gitcalendar.css
+#   gitcalendar_js: https://npm.elemecdn.com/hexo-filter-gitcalendar/lib/gitcalendar.js
