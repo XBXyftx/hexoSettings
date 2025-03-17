@@ -517,3 +517,69 @@ enm……这件事再次警告我们要**认真读文档！！！**
 
 对于自定义动画其实现方式要稍微复杂一些，首先是要通过在`Navigation`组件的`customNavContentTransition`事件去获取即将触发动画的来去两个页面的页面信息，再从`CustomTransitionFW`动画框架工具类中查询注册的动画信息。
 不过要注意我们的动画效果依旧是通过`transelate`属性去实现的所以我们仍旧需要为组件添加该属性。
+
+## 利用`BuilderMap`对`RouterMap`进行替换
+
+昨天在编辑`RouterMap`配置文件时，感觉手动填写相对路径并且进行相关配置的填写来实现路由表的构建还是有些麻烦，而且容易错，于是我再次阅读文档加上阅读了一些开源软件的代码，发现其实可以用一个`BuilderMap`来对`RouterMap`进行替换，从而简化路由表的构建。
+
+`BuilderMap`的构建方式如下：
+
+1. 创建路由页面路径的常量，所有的页面路由都要用常量进行控制防止出现没有代码提示导致的输入错误
+2. 创建一个`BuilderMap`的`Builder`然后设定一个字符串类型的形参进行当前栈顶页面的名称获取
+3. 判断当前的栈顶页面值，并跳转至对应的子页面组件
+
+```ts
+  @Builder
+  NavDestMap(name:string){
+    if(name==NavDests.INDEX){
+      Index()
+    }else if (name==NavDests.SECOND){
+      Second()
+    }else if (name==NavDests.THIRD){
+      Third()
+    }
+  }
+
+    .navDestination(this.NavDestMap)
+```
+
+然后将各个页面的入口`builder`以及之前在`module.json5`中配置的`routerMap`字段删除，并将`routerMap`文件删除。不过这里要注意，由于我们没有了配置文件，我们需要将**页面栈的初始化提前**，提前至页面构建之前，否则会在子页面中获取页面栈对象时报错页面栈未初始化。
+
+```ts
+  onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
+    this.context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
+    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onCreate');
+    AppStorageV2.connect(NavPathStack,NAV_PATH_STUCK,()=>new NavPathStack())
+  }
+```
+
+<video width="100%" controls>
+  <source src="20.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+我们可以看到我们成功的实现了简洁且有代码提示的路由表构建，并且可以很方便的添加新的页面。
+
+## 自定义动画的简单应用
+
+这里介绍一种简单的丝滑小动画，不用向上面一样的准备工具类啥的，我们只需要在每个子页面添加一个动画属性即可。
+
+```ts
+export const animateParam: AnimateParam = { duration: 1500, curve: curves.springMotion(0.6, 0.7) };
+    .transition(TransitionEffect.OPACITY
+      .animation(animateParam)
+      .combine(TransitionEffect.translate({y:200})))
+```
+
+<video width="100%" controls>
+  <source src="21.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+嗯！看着还是很舒服的。
+
+## 工具栏切换页面
+
+对于工具栏，我在学习一多之前进行了尝试但是效果和我想的不一样，所以我决定先去学一多，所以咱们可以移步一多的博客了。
+
+![22](Navigation/22.jpg)
