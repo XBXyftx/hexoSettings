@@ -50,7 +50,7 @@ social:
 # Image Settings
 # --------------------------------------
 
-favicon: https://github.com/XBXyftx/HexoImg/blob/main/Settings/48431edade01f1fbd58a48265a0df32.jpg?raw=true
+favicon: /img/avatar.jpg
 
 avatar:
   img: /img/avatar.jpg
@@ -394,10 +394,10 @@ darkmode:
   # autoChangeMode: 1  Following System Settings, if the system doesn't support dark mode, it will switch dark mode between 6 pm to 6 am
   # autoChangeMode: 2  Switch dark mode between 6 pm to 6 am
   # autoChangeMode: false
-  autoChangeMode: 2
+  autoChangeMode: false
   # Set the light mode time. The value is between 0 and 24. If not set, the default value is 6 and 18
-  start: 0
-  end: 0
+  start: 3
+  end: 3
 
 # Show scroll percent in scroll-to-top button
 rightside_scroll_percent: false
@@ -1039,13 +1039,28 @@ css_prefix: true
 # Insert the code to head (before '</head>' tag) and the bottom (before '</body>' tag)
 inject:
   head:
+   - <script>localStorage.setItem('theme','dark')</script>
+   - <script>document.documentElement.setAttribute('data-theme', 'dark');</script>
    ## 星空背景
    - <link rel="stylesheet" href="/css/universe.css">
    - <link rel="stylesheet" href="/css/transpancy.css">
+   - <script>
+     // 强制锁定为暗黑模式
+     localStorage.setItem('theme', 'dark');
+     // 防止其他脚本覆盖模式
+     document.documentElement.setAttribute('data-theme', 'dark');
+     </script>
   bottom:
    # 星空背景
+   - <script>localStorage.setItem('theme','dark')</script>
    - <canvas id="universe"></canvas>
    - <script defer src="/js/universe.js"></script>
+   - <script>
+     // 强制锁定为暗黑模式
+     localStorage.setItem('theme', 'dark');
+     // 防止其他脚本覆盖模式
+     document.documentElement.setAttribute('data-theme', 'dark');
+     </script>
 
 # CDN Settings
 # Don't modify the following settings unless you know how they work

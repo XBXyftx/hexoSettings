@@ -85,6 +85,8 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 拉伸能力主要作用是将一个组件中的核心区域选出，然后当组件的尺寸发生变化时，将增加或减少的空间分配给核心区域，从而实现组件的拉伸效果。
 
+##### `flexGrow`和`flexShrink`
+
 ```ts
 @Entry
 @Component
@@ -132,6 +134,49 @@ struct Index {
 我们可以看到，当我们在进行宽高比例的变化时，左右两侧的绿色区域会不断的伸缩，始终保持图标处于正中央。
 当我们的宽超过了总宽度的`700vp`时，图片就会在保持长宽比的情况下放大，这是因为我们的外层row组件设置了宽为`100%`，而左右两侧的绿色区域设置了`flexGrow(0)`，所以当宽度超过`700vp`时，图片就会占据剩余的空间，而左右两侧的**绿色区域就会保持不变**。
 图片我们则是设置了`flexGrow(1)`，所以当宽度超过`700vp`时，**图片就会占据剩余的空间**。
+
+##### `blank`组件
+
+其实对于拉伸能力官方还提供了一种可以自动填充剩余空间的组件，就是`blank`组件，它可以将其左右或上下的组件沿着父组件的主轴方向向两侧推开，自动填充剩余的空白部分，无论设备有多宽或多高，其两侧的组件始终在父组件的两端。
+
+```ts
+import { LengthMetrics, LengthUnit } from '@kit.ArkUI'
+
+@Entry
+@ComponentV2
+struct Index {
+  @Local rate: number = 1
+  build() {
+    Column() {
+      Row(){
+        Image($rawfile('pre.svg'))
+          .height(50)// .layoutWeight(this.rate)
+          .aspectRatio(1)
+          .fillColor(Color.White)
+          .displayPriority(2)
+        Blank()
+        Image($rawfile('next.svg'))
+          .height(50)
+          .aspectRatio(1)
+          .fillColor(Color.White)
+          .displayPriority(2)
+      }
+      // .justifyContent(FlexAlign.SpaceEvenly)
+      .width(this.rate * 95 + '%')
+      .backgroundColor(Color.Black)
+
+    }
+    // .justifyContent(FlexAlign.End)
+    .height('100%')
+    .width('100%')
+  }
+}
+```
+
+<video width="100%" controls>
+  <source src="11.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
 
 #### 均分能力
 
@@ -224,6 +269,16 @@ struct Index {
     Column() {
       Row() {
         Column(){
+          Image($rawfile('like.svg'))
+            .height(30)
+              // .layoutWeight(this.rate)
+              // .aspectRatio(1)
+            .fillColor(Color.White)
+        }
+        .backgroundColor(Color.Red)
+        .padding(10)
+        .layoutWeight(this.rate)
+        Column(){
           Image($rawfile('pre.svg'))
             .height(30)
             // .layoutWeight(this.rate)
@@ -251,9 +306,18 @@ struct Index {
         .backgroundColor(Color.Green)
         .padding(10)
         .layoutWeight(this.rate)
+        Column(){
+          Image($rawfile('list.svg'))
+            .height(30)
+              // .aspectRatio(1)
+            .fillColor(Color.White)
+        }
+        .backgroundColor(Color.Red)
+        .padding(10)
+        .layoutWeight(this.rate)
       }
       .justifyContent(FlexAlign.SpaceEvenly)
-      .width(this.rate*60+'%')
+      .width(this.rate*90+'%')
       .backgroundColor(Color.Black)
 
     }
@@ -269,4 +333,165 @@ struct Index {
   您的浏览器不支持视频标签。
 </video>
 
+#### 缩放能力
+
+对于缩放能力主要是为了保障图片在不同大小的设备上显示时不会改变长宽比导致显示区域的错误或比例的错误。
+利用`aspectRatio`属性可以设置图片的宽高比，当图片的宽高比与设置的不一致时，会自动缩放图片，保证图片的宽高比不变。
+
+```ts
+import { LengthMetrics, LengthUnit } from '@kit.ArkUI'
+
+@Entry
+@ComponentV2
+struct Index {
+  @Local rate: number = 1
+
+  build() {
+    Column() {
+      Image($rawfile('1.jpg'))
+        .aspectRatio(1)
+    }
+    .justifyContent(FlexAlign.Center)
+    .height('100%')
+    .width('100%')
+  }
+}
+```
+
+<video width="100%" controls>
+  <source src="12.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+无论设备的长宽比如何改变**图片的长宽比始终为设定值不会变**。
+
 #### 隐藏能力
+
+隐藏能力指的是可以设定组件的显示优先级，在空间不足时自动将优先级低的组件隐藏，优先级高的组件显示。
+
+```ts
+@Entry
+@ComponentV2
+struct Index {
+  @Local rate: number = 1
+
+  build() {
+    Column() {
+      Row({space:70}) {
+
+        Image($rawfile('like.svg'))
+          .height(50)// .layoutWeight(this.rate)
+          .aspectRatio(1)
+          .fillColor(Color.White)
+          .displayPriority(1)
+
+        Image($rawfile('pre.svg'))
+          .height(50)// .layoutWeight(this.rate)
+          .aspectRatio(1)
+          .fillColor(Color.White)
+          .displayPriority(2)
+
+        Image($rawfile('stop.svg'))
+          .height(50)// .layoutWeight(this.rate)
+          .aspectRatio(1)
+          .fillColor(Color.White)
+          .displayPriority(3)
+
+        Image($rawfile('next.svg'))
+          .height(50)
+          .aspectRatio(1)
+          .fillColor(Color.White)
+          .displayPriority(2)
+
+        Image($rawfile('list.svg'))
+          .height(50)
+          .aspectRatio(1)
+          .fillColor(Color.White)
+          .displayPriority(1)
+      }
+      .justifyContent(FlexAlign.SpaceEvenly)
+      .width(this.rate * 95 + '%')
+      .backgroundColor(Color.Black)
+
+    }
+    .justifyContent(FlexAlign.End)
+    .height('100%')
+    .width('100%')
+  }
+}
+```
+
+<video width="100%" controls>
+  <source src="9.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+我们可以看到，在代码中我们用`Row`容器的`space`参数设置了两个图标的最小间距值，当整体宽度**大于这个值**时，系统会自动对其进行拉伸并将组件**依照均分能力去进行空间分配**，当我们的宽度不足各组件之间的最小间距值时，就会将点赞和列表两个**显示优先级低的组件**隐藏，而**显示优先级高的上一首下一首**会显示。空间再压缩时，就会将上下切歌按钮也隐藏，仅保留**显示优先级最高的**播放按钮。
+
+#### 折行能力
+
+这行能力主要体现在`Flex`组件的自动换行能力，当内容组件宽度或高度超出一行或一列的显示上限时就会自动进行换行显示。
+
+```ts
+import { LengthMetrics, LengthUnit } from '@kit.ArkUI'
+
+@Entry
+@ComponentV2
+struct Index {
+  @Local rate: number = 1
+
+  build() {
+    Column() {
+      Flex({wrap:FlexWrap.Wrap,space:{main:LengthMetrics.vp(50),cross:LengthMetrics.vp(50)}}) {
+
+        Image($rawfile('like.svg'))
+          .height(50)// .layoutWeight(this.rate)
+          .aspectRatio(1)
+          .fillColor(Color.White)
+          .displayPriority(1)
+
+        Image($rawfile('pre.svg'))
+          .height(50)// .layoutWeight(this.rate)
+          .aspectRatio(1)
+          .fillColor(Color.White)
+          .displayPriority(2)
+
+        Image($rawfile('stop.svg'))
+          .height(50)// .layoutWeight(this.rate)
+          .aspectRatio(1)
+          .fillColor(Color.White)
+          .displayPriority(3)
+
+        Image($rawfile('next.svg'))
+          .height(50)
+          .aspectRatio(1)
+          .fillColor(Color.White)
+          .displayPriority(2)
+
+        Image($rawfile('list.svg'))
+          .height(50)
+          .aspectRatio(1)
+          .fillColor(Color.White)
+          .displayPriority(1)
+      }
+      // .justifyContent(FlexAlign.SpaceEvenly)
+      .width(this.rate * 60 + '%')
+      .backgroundColor(Color.Black)
+
+    }
+    // .justifyContent(FlexAlign.End)
+    .height('100%')
+    .width('100%')
+  }
+}
+```
+
+<video width="100%" controls>
+  <source src="10.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+可以看到，当我们的宽度不足时，系统会自动将组件进行换行显示。这对于类似于标签选择器等组件是有相当优秀的适配效果的。
+
+### 自适应布局的官方案例分析
+
