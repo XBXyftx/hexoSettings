@@ -11,7 +11,7 @@ cover: /img/ArticleTopImgs/MSTTopImg.png
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
-copyright_url: https://XBXyftx.github.io
+copyright_url: https://xbxyftx.top
 copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自原作者
 ---
 

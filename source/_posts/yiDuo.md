@@ -10,7 +10,7 @@ cover: /img/ArticleTopImgs/yiduoTopImg.png
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
-copyright_url: https://XBXyftx.github.io
+copyright_url: https://xbxyftx.top
 copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自原作者
 ---
 
@@ -735,6 +735,10 @@ export class BreakpointState<T extends Object> {
     return new BreakpointState(options)
   }
 
+  public getCurrentBreakPointType(){
+    return this.value?.toString()
+  }
+
   /** 根据断点类型更新状态值 */
   public update(type: BreakpointType): void {
     // 通过条件判断选择对应配置[1](@ref)
@@ -766,4 +770,108 @@ export class BreakpointState<T extends Object> {
 一个设备在**同一时间内只会有一种断点类型**，不会说同时出现两种断点类型，所以我们需要将`BreakpointSystem`工具系统作为一个**单例**来使用，保证全局只有一个断点系统在运行。
 
 `breakpoints`属性存储了各个断点的最小生效范围。在启动断点监听器之后会**依据这个数组的数据进行设备宽度的断点区间数据匹配**。
-同时这个属性
+同时这个属性兼具了存储对应断点的监听器实例对象的功能。
+
+依据以上分析我们可以得出`Breakpoint`接口的作用就是**存储媒体查询的设备宽度数据与断点类型的映射关系**，其包含的三个属性：
+
+- `name`：断点类型
+- `size`：断点最小宽度
+- `mediaQueryListener`：媒体查询监听器实例
+
+分别对应了获取当前媒体数据的工具，获取到数据的处理标准，以及最后对应的断点名称。
+而对于媒体查询监听器实例的数据匹配规则语法我们可以参考官方文档的解释：
+
+![15](yiDuo/15.png)
+
+我们通过`size`所存储的断点最小生效长度就可以为媒体查询监听器实例的匹配规则进行动态生成，**对每个规定的需要监听的断点区间分别创建一个对应匹配规则的媒体查询监听器实例**，并存储在`breakpoints`数组中。
+
+随后为媒体查询监听器实例都绑定一个数据变化的监听器`on`类型设置为`'change'`，当监听到设备宽度变化时，会触发回调函数，**根据当前设备宽度与断点区间进行匹配，并更新所有观察者的状态**。
+
+##### `BreakpointState`
+
+`BreakpointState`类是观察者模式中的**观察者**，它负责存储不同断点类型对应的配置数据，并在断点变化时更新自身的状态值。
+他的`value`属性存储了当前生效的断点配置数据，`options`属性存储了所有断点配置数据。
+
+我们在使用时就可以创建一个`BreakpointState`实例，将**各种断点情况下的配置项存储在一个对象中并放入`options`的对应断点字段中**，不需要配置的可以为空所以接口`BreakpointOptions`的各个字段都是**可选项**，并将该实例存储在`BreakpointSystem`的`states`属性中，这样当断点变化时，`BreakpointSystem`就会遍历`states`属性，并调用每个`BreakpointState`实例的`update`方法，**根据当前断点类型更新所有观察者的状态值**。
+
+观察者的`value`值就会**自动随着媒体查询的结果变化而变化**，我们就可以通过观察者的`value`属性获取到当前生效的断点，从而进一步获取到先前存储好的配置数据。
+
+#### 断点系统的应用
+
+```ts
+/**
+ * 获取当前设备断点系统的包装类
+ * 调用getBreakPointSystem获取当前断点系统
+ */
+class GetBreakPointSystem{
+  private breakPointSystem:BreakpointSystem=BreakpointSystem.getInstance()
+  /**
+   * 获取当前断点系统
+   * @returns 当前断点系统
+   */
+  getBreakPointSystem(){
+    return this.breakPointSystem
+  }
+}
+export const GET_BREAK_POINT_SYSTEM='getBreakpointSystem'
+AppStorageV2.connect(GetBreakPointSystem,GET_BREAK_POINT_SYSTEM,()=>new GetBreakPointSystem())
+```
+
+由于我们的断点系统工具类的构造函数是`private`私有的，所以我们需要创建一个包装类来获取当前断点系统实例，并通过`AppStorageV2`进行存储，这样我们就可以在全局范围内获取到当前断点系统实例，并调用其方法。
+
+##### 在UI中获取当前断点
+
+我们首先通过AppStorageV2获取当前的断点系统实例的存储包装类，然后调用`getBreakPointSystem`方法获取当前断点系统实例，最后调用`getBreakPoint`方法获取当前断点类型。
+
+```ts
+import {
+  BreakpointState,
+  BreakpointSystem,
+  GetBreakPointSystem,
+  GET_BREAK_POINT_SYSTEM
+} from '../common/BreakPointSystem'
+import { AppStorageV2 } from '@kit.ArkUI'
+export const XBX_LOG_TAG = 'XBXLog:  '
+@Entry
+@ComponentV2
+struct ExtensionCapabilitySample1 {
+  @Local breakPointSystem: BreakpointSystem =
+    AppStorageV2.connect(GetBreakPointSystem, GET_BREAK_POINT_SYSTEM)!.getBreakPointSystem()
+  @Local breakPointState: BreakpointState<Object> = BreakpointState.of({
+    xs: 'xs',
+    sm: 'sm',
+    xl: 'xl',
+    xxl: 'xxl',
+    md: 'md',
+    lg: 'lg'
+  })
+  @Monitor('breakPointState')
+  onChange(){
+    console.log(this.breakPointState.getCurrentBreakPointType())
+  }
+  aboutToAppear(): void {
+    this.breakPointSystem.attach(this.breakPointState)
+    this.breakPointSystem.start()
+  }
+
+  aboutToDisappear(): void {
+    this.breakPointSystem.stop()
+  }
+
+  build() {
+    Column() {
+      Text(this.breakPointState.getCurrentBreakPointType())
+        .fontSize(30)
+        .onClick(()=>{
+          console.log(XBX_LOG_TAG+'当前断点类型为'+this.breakPointState.getCurrentBreakPointType())
+        })
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+```
+
+我们要清楚一个点就是我们的断点系统工具类是用来管理以及更新各个断点状态的，我们在获取当前的断点状态时依靠的是当前组件的断点状态`BreakpointState`，所以我们需要在组件中创建一个`BreakpointState`实例，存储当前页面不同断点情况下所需的配置数据，然后通过`BreakpointSystem`的`attach`方法将当前组件的断点状态实例添加到`BreakpointSystem`的`states`属性中，用以统一管理。
+
+上文所提到的更新所有断点状态指的就是**各个页面对应的断点情况数据集**，而并不是多个断点系统，这一点要分清。
