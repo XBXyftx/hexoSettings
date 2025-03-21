@@ -2,8 +2,8 @@
   class_desc: 那些人，那些事
   link_list:
     - name: XBXyftx
-      link: https://XBXyftx.github.io
-      avatar: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/48431edade01f1fbd58a48265a0df32.jpg
+      link: https://xbxyftx.top/
+      avatar: /img/avatar.jpg
       descr: 爱鸿蒙，爱编程，更爱生活
     - name: 唐志远
       link: https://fe32.top/
@@ -11,22 +11,34 @@
       descr: 技术佬
     - name: 赖总
       link: https://andy-lucky2005.github.io/
-      avatar: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAA8CAYAAAA6/NlyAAAAAXNSR0IArs4c6QAAAtlJREFUaEPtmV9IU1Ecx793ztbCOUFlIq00C6MWM9QigggDXywkeughiKKH8KGgeigKejN6qocoCoLI6KGHgsAItD9YSZCWLJbTsCydI02lS7Zac3dxL02OCTbp/n4Xbuc87eGM3z7f7+98f+cwpfTB1TT+o6VIYJu7LR22ucGQDkuHbaaAbGmbGToHRzosHbaZArKlbWaoDC3Z0rKlbaYAa0vvLKlAc+UmeJ0uQ8aH48PYG2pjlZQV+GJgKxp9FVB+I37++R1He5/g0USUDZoNeMUSL25U1aPMnY9vqSTcDqcBeTPWjxN9nfYDPlQWxJHy9XA5ctAxOYKgpwgFuS6Ev05g18t7mEolWaDZHG4J1mNbkR9JTcOlj6+NzwFPoeF280AXrkcj9gGuK1yKc2u2oHiRG58ScRx+04EdvnLsKa2EQ1FYw4vF4dOrNuCAfy2cigPPJmPY3XMfYmJzhhc5cF5OLm5XNxjtm9BSOD/YgwsfQkb73q3ZjhqvD1o6zRZe5MCik9EfU2gKP8YrdcwAPrmyFgeXBQznucKLHFicvW3jQ9gfap8JJ/Fsc4UXKbA4e+OpaZwZ6MK1aO+sNM6kN9fNixRYnL3v4ir2hdrxPq7OAhb3cIQXKXDGPf3/2FuxtzgWeTpn1opdoIdXy0gEp/qfk81kMmDxfC7k11OHFxmwOHsXAkwdXiTA4uzV2/SFOgp9JM23ar0+LHd7yJ+NJMDi7P2STOB4XydaxwbnBT67evPMVZMyvEiAxdnbrY6isbv1r10tnnnK8DIdWEzd6bSGK0NhY/5ms+5UN2BjQYmxlSq8TAf+l7kqfpcqvEwHFm9OmZdRNu7qe6ryi3F5XR38i/PIwstUYPEc/vkyyhZaPP8U4WUqcLZQVu6TwFaqz1FbOsyhspU1pMNWqs9RWzrMobKVNaTDVqrPUVs6zKGylTWkw1aqz1FbOsyhspU1pMNWqs9R+xf3DcjIptWMJwAAAABJRU5ErkJggg==
+      avatar: /img/LaiAv.jpg
       descr: 赖总最强
     - name: 骏哥
       link: https://whlcj.github.io/
       avatar: https://whlcj.github.io/img/me.jpg
       descr: 超级技术佬
-    - name: 黄总
+    - name: 黄豫新
       link: https://baiyb.top/
       avatar: https://img.picui.cn/free/2025/03/11/67d0382a077d0.jpg
       descr: 动手能力极强的后起之秀
+    - name: 王鹏程
+      link: http://neuronx.top/
+      avatar: /imgs/WangPengChengAv.png
+      descr: 尘土功名，风轻云淡
+    - name: 胡紫珩
+      link: https://ziheng27-3.github.io/
+      avatar: /imgs/huZiAv.png
+      descr: 一只皱皮
+    - name: 李佳澎
+      link: http://blog.lijiapeng365.cn/
+      avatar: /imgs/LiJiaPengAv.png
+      descr: 做游戏的佬
 - class_name: hexo搭建教程推荐
   class_desc: 搭建博客的教程
   link_list:
     - name: 我自己的搭建教程博客
       link: https://xbxyftx.github.io/2025/01/26/butterfly%E4%B8%BB%E9%A2%98%E7%BE%8E%E5%8C%96/
-      avatar: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/48431edade01f1fbd58a48265a0df32.jpg
+      avatar: /img/avatar.jpg
       descr: 去看看吧
     - name: 大佬的教程博客
       link: https://blog.csdn.net/weixin_44414930/article/details/137079132
