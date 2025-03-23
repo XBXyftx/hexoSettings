@@ -15,6 +15,11 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ## 前言
 
+{% note info flat  %}
+不想看前言的可以直接点传送门跳转到正式解决方案部分哦
+**[正式解决方案传送门](https://xbxyftx.top/2025/03/20/directconnection/#%E6%AD%A3%E5%BC%8F%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88)**
+{% endnote %}
+
 ### 起始
 
 在我博客开始正式运营的这段时间里，我一直都在寻求着如何让**国内直连的速度更快一点，更稳定一些。**
@@ -127,3 +132,101 @@ microsoft_clarity:
 它网页提示一天内就会用邮件联系我，我翻了两天的垃圾邮件也没发现21云盒子的踪迹。
 
 废止！！！
+
+### 最终方案浮出水面
+
+在经过了以上的一系列尝试后，要么是卡在了某一步无法解决，要么是有个几千块钱的年成本，不划算。在这之后的低强度浏览过程中我还是发现了一个方案，有点像是`Hexo + GitHub + Netlify + Cloudflare`方案的翻版，都是将Hexo博客部署到Netlify上，但区别在于我们不需要利用`Cloudflare`进行DNS解析来进行加速，而是**利用Netlify的新加坡节点来实现国内直连。**
+
+废话不多说，接下来就把正式解决方案端上来。
+
+## 正式解决方案
+
+首先上原作者的博客和github的repo。
+
+[提升部署在cloudflare、vercel或netlify的网站在中国国内的访问速度和稳定性](https://xingpingcn.top/enhanced-faas-in-cn.html)
+
+[repo传送门](https://github.com/xingpingcn/enhanced-FaaS-in-China)
+
+{% note warning flat  %}
+虽然当前的方案成功后你的博客可以国内直连，但这个过程还是可能会用到科学上网！
+{% endnote %}
+
+### 准备工作
+
+#### 准备域名
+
+先去买一个自己的域名，要确保自己能够进入域名供应商的控制台界面，以便于后续添加DNS解析记录。
+
+{% note warning flat %}
+有些白嫖的域名或是二级子域名，你是无法进入其供应商的控制台界面的，比如github的二级域名，所以你需要购买一个顶级域名。
+{% endnote %}
+
+这里我推荐去华为云薅一个，[传送门](https://www.huaweicloud.com/product/domain.html)
+现在华为云有首年1块钱的活动，为了降低后续的成本，建议别选`.com .cn`等热门域名，选个小众点的后续续费也比较便宜。
+
+![9](DirectConnection/9.png)
+
+可以看到整体价格差异还是比较大的。为了符合我们低成本尽可能白嫖的中心思路我就选择了一个寓意比较好同时续费价格可接受的`.top`域名。
+
+按照要求提交身份审核材料，等待官方审核即可，这个过程需要1到2天左右的时间，所以我们在准备工作第一步做。
+
+#### 博客搭建
+
+{% note info flat  %}
+已经做完这一部分的可以直接跳过。
+{% endnote %}
+
+交完钱就可以将自己的hexo博客搭出来，保障能用github的二级域名正常访问。
+
+{% note info flat  %}
+[博客搭建文章传送门](https://xbxyftx.top/2025/01/26/butterfly%E4%B8%BB%E9%A2%98%E7%BE%8E%E5%8C%96/)可以参考我这篇博客，里面有详细的教程以及一些常见Bug的解决方案。
+{% endnote %}
+
+### 将博客部署到Netlify
+
+#### 注册Netlify账户
+
+[Netlify传送门](https://app.netlify.com/)这是一个静态网站托管平台，每个月有免费的：
+
+* 100G带宽
+* 300min的构建时间
+
+对于构建一个个人博客还是十分充裕的，只要你不是强迫症患者，没写几个字就提交让它构建一遍，就基本用不完。
+
+{% note success flat %}
+至于为什么要选择Netlify，而不是githubPages主要有两点原因：
+
+* 它支持自定义域名，有着更加简洁的DNS操作界面。
+* 它拥有压力较小的美国或者欧洲的路线。
+{% endnote %}
+
+![10](DirectConnection/10.png)
+
+官方的速度平均快，但方差大，有很大概率无法连接，所以我们需要借助Netlify修改访问的节点来提升访问速度。
+
+#### 利用github博客仓库创建Netlify项目
+
+我们直接在Netlify上创建一个项目，然后选择github上的博客仓库。
+
+![11](DirectConnection/11.png)
+![12](DirectConnection/12.png)
+
+然后静待Netlify自动构建我们的博客即可，这个过程是比较快的，几分钟就可以完成构建。
+
+{% note info flat  %}
+Netlify能同时托管多个静态网站，并不一定只能用启用了`githubPages`的仓库，这两者并无直接联系，只要仓库里含有`index.html`文件即可。
+{% endnote %}
+
+构建完成我们就可以通过Netlify为我们提供的二级子域名就可以去访问我们的博客了。
+
+![13](DirectConnection/13.png)
+
+#### 配置自定义域名
+
+在Netlify上配置自定义域名，这里我选择的是之前在华为云上购买的`.top`域名。
+
+![14](DirectConnection/14.png)
+
+按照Netlify的提示我们回到自己的域名供应商的控制台，添加Cname解析记录，将自定义域名指向Netlify提供的二级子域名。以验证所有权
+
+![15](DirectConnection/15.png)
