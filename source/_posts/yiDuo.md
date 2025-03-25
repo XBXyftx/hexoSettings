@@ -1227,3 +1227,207 @@ struct ExtensionCapabilitySample1 {
 我们要注意我们在使用挪移布局时要提前考虑各个断电情况的布局，像是从直板机到折叠屏的断点，我们就可以简单的将子组件占据的栅格数量设置满，这就相当于是将宽度设置为`100%`，可以很自然的利用自适应布局的响应能力充满我们的屏幕。
 **但当我们折叠屏向平板的断点情况转移时，就不能只简单的扩展栅格数量了，而是要考虑横向布局后每个组件所占的宽度的占比，从而分别设置栅格宽度，确保横向能够排布下，而不是因为少了一个栅格的宽度而导致自动折行在右侧留白。**
 {% endnote %}
+
+当然我们也可以将两部分的组件设为不对等的栅格数量，从而实现不同的布局效果。
+而`offset`属性的生效规则依旧不变，如果存在剩余空间可供偏移就会从左向右偏移可偏移的格数，像下面这个案例我们将第二个`GridCol`的栅格数量设置为6，偏移量设置为1，第一个则设为一。
+
+```Tsimport {
+  BreakpointState,
+  BreakpointSystem,
+  GetBreakPointSystem,
+  GET_BREAK_POINT_SYSTEM
+} from '../common/BreakPointSystem'
+import { AppStorageV2 } from '@kit.ArkUI'
+export const XBX_LOG_TAG = 'XBXLog:  '
+@Entry
+@ComponentV2
+struct ExtensionCapabilitySample1 {
+  @Local breakPointSystem: BreakpointSystem =
+    AppStorageV2.connect(GetBreakPointSystem, GET_BREAK_POINT_SYSTEM)!.getBreakPointSystem()
+  @Local breakPointState: BreakpointState<Object> = BreakpointState.of({
+    xs: 'xs',
+    sm: 'sm',
+    xl: 'xl',
+    xxl: 'xxl',
+    md: 'md',
+    lg: 'lg'
+  })
+  @Monitor('breakPointState')
+  onChange(){
+    console.log(this.breakPointState.getCurrentBreakPointType())
+  }
+  aboutToAppear(): void {
+    this.breakPointSystem.attach(this.breakPointState)
+    this.breakPointSystem.start()
+  }
+
+  aboutToDisappear(): void {
+    this.breakPointSystem.stop()
+  }
+
+  build() {
+    Column() {
+      GridRow({
+        columns:{
+          sm:4,
+          md:8,
+          lg:12
+        },
+        gutter:{
+          x:'12vp'
+        }
+      }){
+        GridCol({
+          span:{
+            sm:4,
+            md:8,
+            lg:4
+          }
+        }){
+          Column(){
+            Image($rawfile('like.svg'))
+              .width('20%')
+            Text('请登录')
+              .fontColor(Color.White)
+              .fontSize(40)
+            TextInput()
+              .width('100%')
+          }
+          .width('100%')
+
+        }
+        GridCol({
+          span:{
+            sm:4,
+            md:8,
+            lg:6
+          },
+          offset:{
+            lg:1
+          }
+        }){
+          Column(){
+            Image($rawfile('like.svg'))
+              .width('20%')
+            Text('请登录')
+              .fontColor(Color.White)
+              .fontSize(40)
+            TextInput()
+              .width('100%')
+          }
+          .width('100%')
+
+        }
+      }
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+```
+
+![29](yiDuo/29.jpg)
+
+我们接下来就可以借助循环渲染来实现列表的自适应呈现了。
+
+```tsimport {
+  BreakpointState,
+  BreakpointSystem,
+  GetBreakPointSystem,
+  GET_BREAK_POINT_SYSTEM
+} from '../common/BreakPointSystem'
+import { AppStorageV2 } from '@kit.ArkUI'
+
+export const XBX_LOG_TAG = 'XBXLog:  '
+
+@Entry
+@ComponentV2
+struct ExtensionCapabilitySample1 {
+  @Local breakPointSystem: BreakpointSystem =
+    AppStorageV2.connect(GetBreakPointSystem, GET_BREAK_POINT_SYSTEM)!.getBreakPointSystem()
+  @Local breakPointState: BreakpointState<Object> = BreakpointState.of({
+    xs: 'xs',
+    sm: 'sm',
+    xl: 'xl',
+    xxl: 'xxl',
+    md: 'md',
+    lg: 'lg'
+  })
+
+  @Monitor('breakPointState')
+  onChange() {
+    console.log(this.breakPointState.getCurrentBreakPointType())
+  }
+
+  aboutToAppear(): void {
+    this.breakPointSystem.attach(this.breakPointState)
+    this.breakPointSystem.start()
+  }
+
+  aboutToDisappear(): void {
+    this.breakPointSystem.stop()
+  }
+
+  build() {
+    Column() {
+      Scroll(){
+        GridRow({
+          columns: {
+            sm: 4,
+            md: 8,
+            lg: 12
+          },
+          gutter: {
+            x: '12vp'
+          }
+        }) {
+          ForEach(Array.from({length:40}),()=>{
+            GridCol({ span: { sm: 4, md: 4, lg: 6 } }) {
+              Row() {
+                Column() {
+                  Text('新闻标题')
+                    .fontColor(Color.Blue)
+                    .fontSize(30)
+                  Text('新闻内容内容内容内容')
+                    .fontSize(18)
+                }
+                .justifyContent(FlexAlign.SpaceEvenly)
+
+                Blank()
+                Image($rawfile('like.svg'))
+                  .height('100%')
+              }
+              .padding(10)
+              .borderRadius(20)
+              .backgroundColor('#a60fff06')
+              .height(80)
+              .width('100%')
+              .margin(10)
+            }
+            
+          })
+
+        }
+      }
+      .height('100%')
+      .scrollBar(BarState.Off)
+
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+```
+
+<video width="100%" controls>
+  <source src="30.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+<video width="100%" controls>
+  <source src="31.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+我们可以看到，在大屏和折叠屏的断点情况下我们的列表会自动显示为两列，且宽度自动延伸，而在直板机情况下则是显示单独一列，这就与上文所展示过的官方音乐播放器的音乐列表效果一致了。
+（至此我终于读懂了当年大一上时子安学长的一多能力活动的代码……）
