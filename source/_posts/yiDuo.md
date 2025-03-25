@@ -919,3 +919,311 @@ struct ExtensionCapabilitySample1 {
 占据栅格的格数与所占据的栅格的偏移量，这两者是栅格布局的关键所在。
 
 所有的组件布局在初始化时都是只占一个栅格的通过设置`span`属性，我们可以设置在不同断点的情况下它占多少个栅格。
+
+```ts
+      GridRow({
+        columns:{
+          sm:4,
+          md:8,
+          lg:12
+        },
+        gutter:{
+          x:'12vp'
+        }
+      }){
+        GridCol({
+          span:{
+            sm:4,
+            md:8,
+            lg:12
+          },
+          offset:{
+            sm:0,
+            md:1 ,
+            lg:2
+          }
+        })
+      }
+```
+
+这里我们设置了在小屏幕，中屏幕，大屏幕下，它分别占据4，8，12个栅格，并且在小屏幕下，它的偏移量为0，在中屏幕下，它的偏移量为1，在大屏幕下，它的偏移量为2。
+
+对于一般应用的开发，我们只使用栅格组件默认提供的xs、sm、md、lg四个断点即可满足绝大多数的设备部署需求，但是对于一些特殊的应用场景，我们可能需要自定义一些断点，这时候就需要我们自己去定义断点了。
+一多能力还支持开发者启用xl和xxl两个额外的断点。
+
+{% note warning flat %}
+断点并非越多越好，通常每个断点都需要开发者“精心适配”以达到最佳显示效果。
+{% endnote %}
+
+#### `GridRow`与`GridCol`
+
+`GridRow`是栅格布局的行容器，它的子元素必须是`GridCol`，`GridCol`是栅格布局的列容器，它的子元素可以是任意组件。
+
+`GridRow`有两个关键参数：
+
+- `columns`：设置栅格列数，传入一个对象，传入默认提供的四种断点类型所对应的栅格数。
+- `gutter`：设置栅格间隔，也就是每个栅格之间的距离。
+
+`GridCol`也有两个关键参数：
+
+- `span`：设置子组件在不同断点情况下占据的栅格数。
+- `offset`：设置栅格偏移量，也就是从哪一列开始占据。
+
+```ts
+import {
+  BreakpointState,
+  BreakpointSystem,
+  GetBreakPointSystem,
+  GET_BREAK_POINT_SYSTEM
+} from '../common/BreakPointSystem'
+import { AppStorageV2 } from '@kit.ArkUI'
+export const XBX_LOG_TAG = 'XBXLog:  '
+@Entry
+@ComponentV2
+struct ExtensionCapabilitySample1 {
+  @Local breakPointSystem: BreakpointSystem =
+    AppStorageV2.connect(GetBreakPointSystem, GET_BREAK_POINT_SYSTEM)!.getBreakPointSystem()
+  @Local breakPointState: BreakpointState<Object> = BreakpointState.of({
+    xs: 'xs',
+    sm: 'sm',
+    xl: 'xl',
+    xxl: 'xxl',
+    md: 'md',
+    lg: 'lg'
+  })
+  @Monitor('breakPointState')
+  onChange(){
+    console.log(this.breakPointState.getCurrentBreakPointType())
+  }
+  aboutToAppear(): void {
+    this.breakPointSystem.attach(this.breakPointState)
+    this.breakPointSystem.start()
+  }
+
+  aboutToDisappear(): void {
+    this.breakPointSystem.stop()
+  }
+
+  build() {
+    Column() {
+      GridRow({
+        columns:{
+          sm:4,
+          md:8,
+          lg:12
+        },
+        gutter:{
+          x:'12vp'
+        }
+      }){
+        GridCol({
+          span:{
+            sm:4,
+            md:6,
+            lg:8
+          },
+          offset:{
+            sm:1,
+            md:1,
+            lg:2
+          }
+        }){
+          Column(){
+            Image($rawfile('like.svg'))
+              .width('60%')
+            Text('请登录')
+              .fontColor(Color.White)
+              .fontSize(40)
+            TextInput()
+              .width('100%')
+          }
+          .width('100%')
+
+        }
+        .backgroundColor(Color.Gray)
+      }
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+```
+
+！[20](yiDuo/20.jpg)
+
+我们可以看到，在小屏幕下，它占据了4个栅格，并且在小屏幕下，它的偏移量哪怕设置为1，也没有效果，这是因为整个屏幕只有4个栅格，所以偏移量为1的话，它就会直接从第一个栅格开始占据，并无可偏移的余地。
+
+但是如歌我们将占据的栅格数改为3，然后再去对偏移量进行修改就会出现效果如下所示：
+
+```ts
+          span:{
+            sm:3,
+            md:6,
+            lg:8
+          },
+          offset:{
+            sm:1,
+            md:1,
+            lg:2
+          }
+```
+
+![21](yiDuo/21.jpg)
+
+可以看到，在小屏幕下，它占据了3个栅格，并且在小屏幕下，它的偏移量为1，就会从第二个栅格开始占据，并且有1个栅格的偏移量。
+当我们再将其偏移量改为0则会发现其从第一个栅格开始占据并且空出最后一个栅格。
+
+```ts
+          span:{
+            sm:3,
+            md:6,
+            lg:8
+          },
+          offset:{
+            sm:0,
+            md:1,
+            lg:2
+          }
+```
+
+![22](yiDuo/22.jpg)
+
+{% note success flat %}
+栅格偏移量的生效是基于当前组件所占据的栅格数的，若我米有可偏移空间，设置了偏移量也不会生效。
+{% endnote %}
+
+我们将这套代码移动到平板上
+
+！[23](yiDuo/23.jpg)
+
+可以看到整个区域占据了8个栅格空出了左右的四个栅格，整体居中，还是比较美观的。
+
+#### 挪移布局
+
+我们在很多的一多应用中都可以看到它在手机和平板上的布局是不同的。就像是学习通，在手机上时其工具导航栏是位于整体的下部，而在平板上时其工具导航栏是位于整体的左侧。
+
+![24](yiDuo/24.jpg)
+![25](yiDuo/25.jpg)
+
+与此同时主页上部分的轮播图显示的内容数量不同，这就是利用了上面提到的**自适应布局滚动组件的延伸能力**，会自动适应屏幕宽度的变化。
+然后各个工具图标的长宽比始终为1，并没有因为屏幕宽度的变化而变化，这就是用到了**自适应布局的缩放能力**。
+图标之间的间距自动延伸填充空缺依赖的是自适应布局能力的**均分能力**。
+
+{% note info flat  %}
+响应式布局与自适应布局是**相辅相成**的，绝非割裂的两种能力，**要综合使用，才能达到最佳的显示效果。**
+{% endnote %}
+
+```tsimport {
+  BreakpointState,
+  BreakpointSystem,
+  GetBreakPointSystem,
+  GET_BREAK_POINT_SYSTEM
+} from '../common/BreakPointSystem'
+import { AppStorageV2 } from '@kit.ArkUI'
+export const XBX_LOG_TAG = 'XBXLog:  '
+@Entry
+@ComponentV2
+struct ExtensionCapabilitySample1 {
+  @Local breakPointSystem: BreakpointSystem =
+    AppStorageV2.connect(GetBreakPointSystem, GET_BREAK_POINT_SYSTEM)!.getBreakPointSystem()
+  @Local breakPointState: BreakpointState<Object> = BreakpointState.of({
+    xs: 'xs',
+    sm: 'sm',
+    xl: 'xl',
+    xxl: 'xxl',
+    md: 'md',
+    lg: 'lg'
+  })
+  @Monitor('breakPointState')
+  onChange(){
+    console.log(this.breakPointState.getCurrentBreakPointType())
+  }
+  aboutToAppear(): void {
+    this.breakPointSystem.attach(this.breakPointState)
+    this.breakPointSystem.start()
+  }
+
+  aboutToDisappear(): void {
+    this.breakPointSystem.stop()
+  }
+
+  build() {
+    Column() {
+      GridRow({
+        columns:{
+          sm:4,
+          md:8,
+          lg:12
+        },
+        gutter:{
+          x:'12vp'
+        }
+      }){
+        GridCol({
+          span:{
+            sm:4,
+            md:6,
+            lg:6
+          }
+        }){
+          Column(){
+            Image($rawfile('like.svg'))
+              .width('20%')
+            Text('请登录')
+              .fontColor(Color.White)
+              .fontSize(40)
+            TextInput()
+              .width('100%')
+          }
+          .width('100%')
+
+        }
+        GridCol({
+          span:{
+            sm:4,
+            md:6,
+            lg:6
+          }
+        }){
+          Column(){
+            Image($rawfile('like.svg'))
+              .width('20%')
+            Text('请登录')
+              .fontColor(Color.White)
+              .fontSize(40)
+            TextInput()
+              .width('100%')
+          }
+          .width('100%')
+
+        }
+      }
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+```
+
+我们通过将可以挪移的部分单独写进一个`GridCol`组件中，然后设置其在大设备占据的栅格数为6，这样就可以实现挪移的效果。
+
+！[26](yiDuo/26.jpg)
+
+然后这套代码在直板机上运行时，因为直板机总共只有4个栅格，所以它的挪移效果就会变成上下移动的效果。
+
+![27](yiDuo/27.jpg)
+
+当然我们可以利用平板的竖屏状态来模拟中尺寸设备的状态。
+当旋转时整体的布局就会随之改变，这也体现了我们的断点监听体统类可以见听到整体断点情况的变化，并且更新当前页面的断点状态对象。效果如下视频所示：
+
+<video width="100%" controls>
+  <source src="28.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+在屏幕旋转过来后，我们的布局就会随之改变，这就是挪移布局的作用。
+
+{% note warning flat %}
+我们要注意我们在使用挪移布局时要提前考虑各个断电情况的布局，像是从直板机到折叠屏的断点，我们就可以简单的将子组件占据的栅格数量设置满，这就相当于是将宽度设置为`100%`，可以很自然的利用自适应布局的响应能力充满我们的屏幕。
+**但当我们折叠屏向平板的断点情况转移时，就不能只简单的扩展栅格数量了，而是要考虑横向布局后每个组件所占的宽度的占比，从而分别设置栅格宽度，确保横向能够排布下，而不是因为少了一个栅格的宽度而导致自动折行在右侧留白。**
+{% endnote %}
