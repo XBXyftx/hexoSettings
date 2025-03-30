@@ -1044,6 +1044,7 @@ inject:
      // 防止其他脚本覆盖模式
      document.documentElement.setAttribute('data-theme', 'dark');
      </script>
+   - <link rel="stylesheet" href="/css/styles.css">
   bottom:
    # 星空背景
    - <script>localStorage.setItem('theme','dark')</script>
