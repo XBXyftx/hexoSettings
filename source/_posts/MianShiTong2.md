@@ -6,7 +6,6 @@ tags:
   - 技术向
   - 项目
   - V2
-top: 11
 cover: /img/ArticleTopImgs/MSTTopImg.png
 post_copyright:
 copyright_author: XBXyftx
