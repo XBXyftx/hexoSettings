@@ -593,6 +593,44 @@ const ai:ICoZePostBody = {
 数据以及流式效果全都成功了！！！
 （撒花）
 
+### 第三方MD解析组件库测试
+
+我们刚完成了流式API的测试，接下来我们就需要将我们的流式数据进行解析，由于鸿蒙开发并没有提供原生的MD解析渲染API，所以我们需要使用OpenHarmony的第三方组件库来进行解析。
+
+#### 三方库安装
+
+```bash
+ohpm install @lidary/markdown
+```
+
+命令执行后可以再在第三方包管理模块的文件夹下看到我们刚才安装的三方库。
+
+![三方库安装](“HongXiaoYi”/30.png)
+
+这样就安装成功了。
+
+#### 全局变量定义
+
+```ts
+const msgModel: MessageModel = AppStorageV2.connect(MessageModel, 'msg', () => new MessageModel())!;
+```
+
+我们首先创建一个全局变量来存储以及共享我们所接受的流式数据。
+随后我们在数据获取监听器的回调函数中添加对数据进行增量的处理。
+因为此处我们仅做测试所以我们先只定义一种接口来去接收流式数据。
+
+```ts
+interface IHXYConversationMessage_Event {
+  event: string;
+  data: IHXYConversationMessage_DeltaData;
+}
+```
+
+#### 组件使用
+
+在组件中使用组件库中的组件。
+
+
 ## AI对话行业解决方案
 
 我们虽然已经做出来了流式返回的发出与接收，但是我们还是需要去了解一下这个技术以及其在AI对话行业的应用。
@@ -648,7 +686,7 @@ HTTP 轮询是一种客户端定期向服务器发送请求以获取最新数据
 
 对此我们可以使用我们后端发回的数据来进行分析
 
-```ts
+```JSON
 event: conversation.chat.created
 data: {
     "id": "7488569408730791948",
@@ -676,7 +714,7 @@ data: {
 可以看到`event`字段的值为`conversation.chat.created`，这代表这是一个对话创建事件。
 而`data`字段则是一个JSON对象，包含了对话的ID、对话ID、创建时间、错误信息、对话状态、使用情况、章节ID以及插入的附加消息等信息。
 
-```ts
+```JSON
 event: conversation.chat.in_progress
 data: {
     "id": "7488569408730791948",
@@ -706,7 +744,7 @@ data: {
 
 接下来在接收到的数据包就应该是最终回复大模型所输出的内容了。
 
-```ts
+```JSON
 event: conversation.message.delta
 data: {
     "id": "7488569482340810764",
@@ -734,6 +772,66 @@ data: {
 
 我们可以看到现在我们不断收到的数据包就是我们所需要的正文信息了由于第一条正文信息仅仅是Md格式中的一级标题标识符`#`，所以我又放了一条来作为示例。
 `event`字段的值变为了`conversation.message.delta`，这代表这是一个对话消息的增量事件。我们就可以开始将当前收到的最新的数据包中的正文信息添加到我们需要进行渲染的字符串变量上了。
+
+最后为了标志当前流式传输数据已经结束，服务端还会传来对话流结束事件包。
+
+```JSON
+event: conversation.message.completed
+data: {
+    "id": "7488569645440729099",
+    "conversation_id": "7488569389520945191",
+    "role": "assistant",
+    "type": "verbose",
+    "content": "{\"msg_type\":\"generate_answer_finish\",\"data\":\"{\\\"finish_reason\\\":0,\\\"FinData\\\":\\\"\\\"}\",\"from_module\":null,\"from_unit\":null}",
+    "content_type": "text",
+    "chat_id": "7488569408730791948",
+    "section_id": "7488569389520945191",
+    "created_at": 1743568492,
+    "updated_at": 1743568492
+}
+event: conversation.chat.completed
+data: {
+    "id": "7488569408730791948",
+    "conversation_id": "7488569389520945191",
+    "created_at": 1743568436,
+    "completed_at": 1743568492,
+    "last_error": {
+        "code": 0,
+        "msg": ""
+    },
+    "status": "completed",
+    "usage": {
+        "token_count": 27240,
+        "output_count": 1072,
+        "input_count": 26168
+    },
+    "section_id": "7488569389520945191",
+    "inserted_additional_messages": [
+        {
+            "id": "7488569389340672063"
+        }
+    ]
+}
+```
+
+我们可以看到在流失传输结束后服务端会发送两个事件为`conversation.message.completed`和`conversation.chat.completed`的数据包。
+这两个数据包一个包含了当前对话流返回的完整内容，另一个则是包含了当前对话流的使用情况信息。
+这样我们就可以通过这两个数据包来获取当前对话流的使用情况信息了。
+
+{% note warning flat %}
+这两个数据包的作用并不一样，一个是用来标志当前对话流的返回内容已经结束，另一个则是用来标志当前对话流已经结束。
+{% endnote %}
+
+最后为了终止本次对话流的SEE单向连接，服务端还会返回一个事件为`done`的数据包。
+
+```json
+event: done
+data: {
+    "debug_url": "https://www.coze.cn/work_flow?execute_id=7488569393241391167&space_id=7486837278376427535&workflow_id=7487986803871760399&execute_mode=2"
+}
+```
+
+这样我们就完成了一个完整的对话流的SEE单向连接。
 
 ## 网页端开发笔记
 
