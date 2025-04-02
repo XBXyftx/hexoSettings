@@ -630,6 +630,89 @@ interface IHXYConversationMessage_Event {
 
 在组件中使用组件库中的组件。
 
+```ts
+import { MessageModel, requestAi } from './api';
+import { AppStorageV2, promptAction } from '@kit.ArkUI';
+import { MarkdownV2 } from '@lidary/markdown';
+
+@Entry
+@ComponentV2
+struct Index {
+  @Local message: MessageModel = AppStorageV2.connect(MessageModel, 'msg')!
+  @Monitor('message.content')
+  onChange(){
+    promptAction.showToast({
+      message:this.message.content
+    })
+  }
+  build() {
+    Navigation() {
+      Scroll() {
+        Column({ space: 10 }) {
+          Button('点我获取数据')
+            .onClick(() => {
+              promptAction.showToast({
+                message: '点击触发'
+              })
+              console.log('点击触发')
+              requestAi()
+            })
+          Column() {
+            if (!this.message.hasEnd) {
+              LoadingProgress()
+                .size({
+                  width: 20,
+                  height: 20
+                })
+            }
+            MarkdownV2({
+              content: this.message.content,
+              fontStyle: {
+                fontColor: Color.White
+              }
+            })
+              .width('100%')
+            Text(this.message.content)
+              .fontSize(20)
+              .fontColor(Color.White)
+          }
+          .alignItems(HorizontalAlign.Start)
+          .width('80%')
+          .backgroundColor('#9035006e')
+          .padding(10)
+
+        }
+        .linearGradient({
+          direction: GradientDirection.Bottom,
+          colors: [['#ff002cff', 0], ['#ff000000', 0.5]]
+        })
+        .borderRadius(15)
+        .margin(20)
+        .width('100%')
+        .height('100%')
+      }
+
+    }
+    .title('MD组件测试')
+    .height('100%')
+    .width('100%')
+  }
+}
+```
+
+进行测试：
+
+![组件使用](“HongXiaoYi”/31.png)
+
+enmm……果然报错了
+
+问了下AI：
+
+![组件使用](“HongXiaoYi”/32.png)
+
+无法写入磁盘……，指的应该不是这个，而是无法写入AppStorageV2。
+
+因为报错的是Rcp网络请求模块，所以我又看了一下报错信息中的握手时间等网络相关信息发现一切正常，而且
 
 ## AI对话行业解决方案
 
