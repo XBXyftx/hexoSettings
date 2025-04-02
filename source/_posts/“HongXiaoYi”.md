@@ -706,13 +706,104 @@ struct Index {
 
 enmm……果然报错了
 
+#### 错误分析
+
 问了下AI：
 
 ![组件使用](“HongXiaoYi”/32.png)
 
 无法写入磁盘……，指的应该不是这个，而是无法写入AppStorageV2。
 
-因为报错的是Rcp网络请求模块，所以我又看了一下报错信息中的握手时间等网络相关信息发现一切正常，而且
+因为报错的是Rcp网络请求模块，所以我又看了一下报错信息中的握手时间等网络相关信息发现一切正常，而且我能正常的去获取到我们的流式传输创建的数据包以及流式传输正在处理的事件包。
+所以我认为当前的问题并非是出在网络请求部分，而是出在了我们的数据处理过程中。
+我添加了大量日志，将每一步都数据处理的结果都打印出来。
+每一步操作后都添加一步日志的打印，打印执行的操作，以及被执行变量的值。
+
+此时奇怪的现象出现了**我除了在第一次收获到数据包也就是流式返回创建数据包以及流式返回正在处理的事件包后，其他的日志都没有打印出来**。
+我非常疑惑，怀疑是添加日志的操作没有保存当前运行的还是老版本呢的代码。
+
+但在经过了重启IDE以及重新连接真机的操作后日志依旧没有变化，还是仅执行到了打印第一次收到的两个数据包的部分甚至连对这两个数据包进行解析的部分都没有执行。
+
+![组件使用](“HongXiaoYi”/33.png)
+
+我开始回顾我的整体数据处理过程，并且回顾之前子安学长在HSD的活动中讲解的大模型流式返回数据的注意点。
+在思考了一顿时间后我发现了问题所在。
+
+#### 错误原因与解决
+
+![组件使用](“HongXiaoYi”/34.png)
+
+我们注意看着一块，流式响应接口返回的数据时`ArrayBuffer`类型并不是json字符串格式，在将他解析为字符串`s`后我们观察它的结构。
+
+```json
+event: conversation.message.delta
+data: {
+    "id": "7488569482340810764",
+    "conversation_id": "7488569389520945191",
+    "role": "assistant",
+    "type": "answer",
+    "content": "#",
+    "content_type": "text",
+    "chat_id": "7488569408730791948",
+    "section_id": "7488569389520945191"
+}
+```
+
+event字段和data字段是分开的并不是被包裹在同一个对象中的！
+所以我们直接用内置的`JSON.parse`函数去解析这个字符串是会报错的。
+所谓的无法写入也是因为这个原因！！！
+
+于是我迅速进行修改，不再直接使用`JSON.parse`函数去解析字符串，而是使用`split`方法对字符串以`'data: '`字符为分割依据进行切割，从而切割出`data`字段，再用`JSON.parse`函数去解析字符串中的`data`字段。
+
+```ts
+const sessionConfig: rcp.SessionConfiguration = {
+  headers: {
+    Authorization: "Bearer pat_iuGVoKCI6tgDJal7l7GFqJGCMLPkpXrcYaYBwc2icILL0gRLmAJ07xegxb1ZG0cN",
+    "Content-Type": "application/json"
+  },
+  requestConfiguration: {
+    transfer: {
+      timeout: {
+        transferMs: 1200000
+      }
+    },
+    tracing: {
+      httpEventsHandler: {
+        onDataReceive: (inComingData: ArrayBuffer) => {
+          msgModel.hasEnd = false
+          const bufferFrom: Uint8Array = new Uint8Array(inComingData);
+          const s = new util.TextDecoder().decodeToString(bufferFrom);
+          console.log('onDataReceive原始数据  ' + s)
+          try {
+            if (s.includes('conversation.message.delta')) {
+              s.split('data: ').forEach((item:string,index)=>{
+                const data = s.split('data: ')[(index*2)+1]
+                const event = s.split('data: ')[index*2]
+                console.log('读取到的event：'+event)
+                console.log('读取到的data'+data)
+                const message_data = JSON.parse(data) as IHXYConversationMessage_DeltaData
+                console.log('message.event= ' + data)
+                console.log('onDataReceive写入： ' + message_data.content)
+                console.log('msgModel.hasEnd= ' + msgModel.hasEnd)
+                msgModel.content += message_data.content
+              })
+
+            } else if (s.includes('done')) {
+              msgModel.hasEnd = true
+            }
+          }catch (err){
+            console.error(err)
+          }
+
+        }
+      }
+    }
+  }
+}
+```
+
+经过修改后我们再次进行测试,流失传输效果成功实现！！！
+MD组件也正常运作进行渲染了。
 
 ## AI对话行业解决方案
 
