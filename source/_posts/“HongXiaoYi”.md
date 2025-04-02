@@ -648,6 +648,92 @@ HTTP 轮询是一种客户端定期向服务器发送请求以获取最新数据
 
 对此我们可以使用我们后端发回的数据来进行分析
 
+```ts
+event: conversation.chat.created
+data: {
+    "id": "7488569408730791948",
+    "conversation_id": "7488569389520945191",
+    "created_at": 1743568436,
+    "last_error": {
+        "code": 0,
+        "msg": ""
+    },
+    "status": "created",
+    "usage": {
+        "token_count": 0,
+        "output_count": 0,
+        "input_count": 0
+    },
+    "section_id": "7488569389520945191",
+    "inserted_additional_messages": [
+        {
+            "id": "7488569389340672063"
+        }
+    ]
+}
+```
+
+可以看到`event`字段的值为`conversation.chat.created`，这代表这是一个对话创建事件。
+而`data`字段则是一个JSON对象，包含了对话的ID、对话ID、创建时间、错误信息、对话状态、使用情况、章节ID以及插入的附加消息等信息。
+
+```ts
+event: conversation.chat.in_progress
+data: {
+    "id": "7488569408730791948",
+    "conversation_id": "7488569389520945191",
+    "created_at": 1743568436,
+    "last_error": {
+        "code": 0,
+        "msg": ""
+    },
+    "status": "in_progress",
+    "usage": {
+        "token_count": 0,
+        "output_count": 0,
+        "input_count": 0
+    },
+    "section_id": "7488569389520945191",
+    "inserted_additional_messages": [
+        {
+            "id": "7488569389340672063"
+        }
+    ]
+}
+```
+
+注意看第一行的`event`字段的值变为`conversation.chat.in_progress`，这代表当前对话正在加载中，同时还包含了当前已经使用的token数量信息、当前会话的ID、创建的时间戳。
+能够成功收到这个信息说明我们的对话流开始思考如何回答我们的问题了。
+
+接下来在接收到的数据包就应该是最终回复大模型所输出的内容了。
+
+```ts
+event: conversation.message.delta
+data: {
+    "id": "7488569482340810764",
+    "conversation_id": "7488569389520945191",
+    "role": "assistant",
+    "type": "answer",
+    "content": "#",
+    "content_type": "text",
+    "chat_id": "7488569408730791948",
+    "section_id": "7488569389520945191"
+}
+
+event: conversation.message.delta
+data: {
+    "id": "7488569482340810764",
+    "conversation_id": "7488569389520945191",
+    "role": "assistant",
+    "type": "answer",
+    "content": " 鸿蒙开发准备工作指南",
+    "content_type": "text",
+    "chat_id": "7488569408730791948",
+    "section_id": "7488569389520945191"
+}
+```
+
+我们可以看到现在我们不断收到的数据包就是我们所需要的正文信息了由于第一条正文信息仅仅是Md格式中的一级标题标识符`#`，所以我又放了一条来作为示例。
+`event`字段的值变为了`conversation.message.delta`，这代表这是一个对话消息的增量事件。我们就可以开始将当前收到的最新的数据包中的正文信息添加到我们需要进行渲染的字符串变量上了。
 
 ## 网页端开发笔记
 
