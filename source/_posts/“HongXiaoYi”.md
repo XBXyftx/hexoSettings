@@ -394,7 +394,7 @@ async function main({ params }: Args): Promise<Output> {
 不过仍有一个现存问题在于，我并没有办法在提示词中像是`{{对话历史}}`这样的方式去引用对话历史信息，所以我只能通过手动写要利用对话上下文去进行分析，我并不确定这样写是否能真的让大模型去阅读当前的上下文信息。效果有待测试。
 {% endnote %}
 
-## 鸿蒙端开发笔记
+## 鸿蒙端功能测试笔记
 
 ### 流式API接口测试
 
@@ -1006,6 +1006,171 @@ data: {
 ```
 
 这样我们就完成了一个完整的对话流的SEE单向连接。
+
+## 鸿蒙端侧正式开发笔记
+
+经历了前些天的功能测试之后我们就可以正式开始进行鸿蒙端的开发了。
+
+### 工程结构搭建
+
+从这个项目开始我们要将制作的应用包含一多能力，为此我们就需要去进行工程结构的标准化，不能再将全部功能都放在同一个模块中。
+
+#### 创建通用特性包以及特性能力包
+
+在工程目录层级下创建`common`文件夹，用于存放通用的特性包。
+在工程目录层级下创建`feature`文件夹，用于存放通用的特性能力包。
+最后在创建一个`products`文件夹，用于存放产品定制层。
+
+![工程结构](“HongXiaoYi”/35.png)
+
+对于这三个包的功能我就直接放官方文档了：
+
+“一多”推荐在应用开发过程中使用如下的“三层工程结构”。
+
+* common（公共能力层）：用于存放公共基础能力集合（如工具库、公共配置等）。
+
+  common层可编译成一个或多个HAR包或HSP包（HAR中的代码和资源跟随使用方编译，如果有多个使用方，它们的编译产物中会存在多份相同拷贝；而HSP中的代码和资源可以独立编译，运行时在一个进程中代码也只会存在一份），其只可以被products和features依赖，不可以反向依赖。
+
+* features（基础特性层）：用于存放基础特性集合（如应用中相对独立的各个功能的UI及业务逻辑实现等）。
+
+  各个feature高内聚、低耦合、可定制，供产品灵活部署。不需要单独部署的feature通常编译为HAR包或HSP包，供products或其它feature使用，但是不能反向依赖products层。需要单独部署的feature通常编译为Feature类型的HAP包，和products下Entry类型的HAP包进行组合部署。features层可以横向调用及依赖common层。
+
+* products（产品定制层）：用于针对不同设备形态进行功能和特性集成。
+
+  products层各个子目录各自编译为一个Entry类型的HAP包，作为应用主入口。products层不可以横向调用。
+
+总而言之，像是日志的打印工具封装、网络请求的封装、通用动画的常量等可以应用在本项目的多个页面，乃至其他项目中的我们称之为公共能力层。
+
+{% note info flat %}
+与此同时公共能力是都可以独立运行的，不需要去依赖于特性能力以及产品定制层。
+{% endnote %}
+
+而基础特性层则是依赖于公共能力层的一些功能，像是要依赖于公共能力层的网络请求以及日志打印工具还有相关常量枚举类型的特性能力，像是要用网络请求模块进行制定API的数据获取的特性能力等。
+
+产品定制层则是包含了绝大多数的页面渲染以及交互逻辑处理的模式，这一层我们要符合`MVVM`模式。
+
+#### 工程结构
+
+![工程结构](“HongXiaoYi”/36.png)
+
+### 公共能力层
+
+#### 日志工具封装
+
+在过去我们用的都是`console.log()`来进行日志的输出，`console`中虽然为我们封装了很多js中常用的输出方式，诸如：`log`、`warn`、`error`等，但是其弊端也很明显。
+
+1. 无法进行日志的分类，导致日志混杂在一起，难以定位问题。
+2. 无法进行日志的过滤，导致日志过多，难以定位问题。
+3. 无法进行日志的格式化，导致日志输出不美观。
+
+hilog为我们提供了上述问题的解决方案，hilog为我们提供了日志的分类、过滤和格式化等功能。
+hilog通过鸿蒙底层的重构之后，为我们提供了更加高效的日志输出方式。
+
+```ts
+function debug(domain: number, tag: string, format: string, ...args: any[]): void;
+function info(domain: number, tag: string, format: string, ...args: any[]): void;
+function warn(domain: number, tag: string, format: string, ...args: any[]): void;
+function error(domain: number, tag: string, format: string, ...args: any[]): void;
+function fatal(domain: number, tag: string, format: string, ...args: any[]): void;
+function isLoggable(domain: number, tag: string, level: LogLevel): boolean;
+```
+
+* 参数 domain：用于指定输出日志所对应的业务领域，取值范围为 0x0000~0xFFFF，开发者可以根据需要进行自定义。
+* 参数 tag：用于指定日志标识，可以为任意字符串，建议标识调用所在的类或者业务行为。
+* 参数 format：格式字符串，用于日志的格式化输出。%{public}s 字符串 %{public}d 数字
+* 参数 args：可以为 0 个或多个参数，可以为 0 个或多个参数，是格式字符串中参数类型对应的参数列表。
+
+所以我们要对hilog进行本项目的封装。
+
+```ts
+import { hilog } from '@kit.PerformanceAnalysisKit'
+const tag = 'XBXLogger'
+/**
+ * hilog的业务封装类
+ * 内置了业务领域的输出格式，开发者个人标识，以及信息的格式化方式
+ * 包含了hilog的四种日志打印模式
+ * 支持传入一个字符串作为输出内容
+ */
+class Logger{
+  private domain:number // 十六进制输出业务格式
+  private tag:string // 制定的自己的标识
+  private format:string = '%{public}s' //格式化方式
+
+  constructor(domain: number = 0x0000, tag: string = '') {
+    this.domain = domain
+    this.tag = tag
+  }
+  debug(args: string): void {
+    hilog.debug(this.domain, this.tag, this.format, args);
+  }
+
+  info(args: string): void {
+    hilog.info(this.domain, this.tag, this.format, args);
+  }
+
+  warn(args: string): void {
+    hilog.warn(this.domain, this.tag, this.format, args);
+  }
+
+  error(args: string): void {
+    hilog.error(this.domain, this.tag, this.format, args);
+  }
+
+}
+
+export const logger:Logger = new Logger(0x1234,tag)
+```
+
+进行一下自己的个人标识以及业务领域的设定，这样就可以方便的进行日志的分类和过滤了。
+
+#### 一多断点系统移植
+
+对于一多的断点系统我们直接移植此前在[鸿蒙一多能力](https://xbxyftx.top/2025/03/16/yiduo/#%E5%AA%92%E4%BD%93%E6%9F%A5%E8%AF%A2)这篇博客中分析过的断点系统即可
+
+但此前我的所有数据模型和核心工具类都放在了同一个文件中，那时候是为了学习方便，并没有进行模块化的处理，但在这个项目中我们要规范化。
+
+![工程结构](“HongXiaoYi”/37.png)
+
+在数据模型包中存储断点系统和断点状态的所有接口和类数据模型。在工具包中存储断点系统工具类。
+
+#### 导出流构建
+
+在多模块项目中导出流是很重要的，来自树状结构各个分支下的export文件都需要统一汇总到模块根目录下的`Index.ets`文件中，才能被其他模块引用。但如果全交给这一个文件去进行导出处理很显然会导致导出的行数过多，结构复杂难以维护，所以我们需要在各个树状结构的分值节点添加导出节点，来将本分支下的所有导出文件进行汇总打包，这样在模块根目录下我们就只需要去导出子节点的那一个导出汇总文件即可。
+
+![工程结构](“HongXiaoYi”/38.png)
+
+{% note info flat  %}
+导出流的构建在每一个包都要做，绝不会只局限在这里进行一次，后续需要持续维护输出流的构建。
+{% endnote %}
+
+#### 启动与停止断点系统服务
+
+我们需要在页面构建的生命周期钩子中去启动和停止断点系统服务，这样才能保证断点系统服务的正常运行。
+
+```ts
+  onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
+    this.context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
+    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onCreate');
+    AppStorageV2.connect(GetBreakPointSystem,GET_BREAK_POINT_SYSTEM,()=>new GetBreakPointSystem())!.getBreakPointSystem().start()
+    logger.warn(ENTRYABILITY_LOG_TAG+'断点系统已经启动')
+  }
+
+  onDestroy(): void {
+    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onDestroy');
+    AppStorageV2.connect(GetBreakPointSystem,GET_BREAK_POINT_SYSTEM,()=>new GetBreakPointSystem())!.getBreakPointSystem().stop()
+    logger.warn(ENTRYABILITY_LOG_TAG+'断点系统已经关闭')
+  }
+```
+
+{% note success flat %}
+详尽的日志是一个合格的应用程序所必须的，当UI失去响应时我们只能依据日志来进行当前状态的监控以及bug的排查。
+{% endnote %}
+
+### 特性层
+
+#### cozeAPI
+
+由于我们的coze
 
 ## 网页端开发笔记
 
