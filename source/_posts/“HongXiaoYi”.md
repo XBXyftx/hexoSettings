@@ -1211,8 +1211,126 @@ data: {
 对于这个数据结构，我们首先是无法直接用`JSON.parse`函数去解析的，因为它并不是一个JSON字符串。于是我考虑到要对他进行关键字剪切处理来对其进行解析。
 而这个数据的特殊之处并不只在于不是标准JSON字符串这一点，与此同时它一次流式传输发回的数据包**包含了两个事件和数据**，所以我们应当进行两次数据的采集工作。
 
-对上面的案例我们以`data`
+等等，**两次数据的分割与采集？**
+如果我默认将数据按照`data`进行拆分，我获得的其实是长度为三的字符串数组，而不是长度为四的数组。
 
+```ts
+if (s.includes('conversation.message.delta')) {
+  s.split('data: ').forEach((item:string,index)=>{
+    const data = s.split('data: ')[(index*2)+1]
+    const event = s.split('data: ')[index*2]
+    console.log('读取到的event： '+event)
+    console.log('读取到的data： '+data)
+    const message_data = JSON.parse(data) as IHXYConversationMessage_DeltaData
+    console.log('onDataReceive写入： ' + message_data.content)
+    msgModel.content += message_data.content
+    console.log('msgModel.hasEnd= ' + msgModel.hasEnd)
+  })
+} else if (s.includes('done')) {
+  msgModel.hasEnd = true
+}
+```
+
+如果我按照我以上的代码对上面的案例我们以`data:`为分割符，那获得的是：
+
+```ts
+[
+  'event: conversation.message.delta',
+  '{
+    "id": "7488569482340810764",
+    "conversation_id": "7488569389520945191",
+    "role": "assistant",
+    "type": "answer",
+    "content": "#",
+    "content_type": "text",
+    "chat_id": "7488569408730791948",
+    "section_id": "7488569389520945191"
+  }
+  event: conversation.message.delta',
+  '{
+    "id": "7488569482340810764",
+    "conversation_id": "7488569389520945191",
+    "role": "assistant",
+    "type": "answer",
+    "content": " 鸿蒙开发准备工作指南",
+    "content_type": "text",
+    "chat_id": "7488569408730791948",
+    "section_id": "7488569389520945191"
+  }'
+]
+```
+
+我们所获得的数组并不能直接去获取到我们所需要的`data`对象,我们需要进行分类讨论，当索引为0时不做处理，索引为1时要在进行字符串的切割，将我们所需的`data`对象切割出来,最后在索引为2时直接获取到我们所需的`data`对象即可。
+
+```ts
+  if (s.includes('conversation.message.delta')) {
+    s.split('data: ').forEach((item: string, index) => {
+      if (index === 1) {
+      const data = item.split('event: ')[0]
+      logger.info('____________________________')
+      logger.info('读取到的data： ' + data)
+      const message_data = JSON.parse(data) as IHXYConversationMessage_DeltaData
+      logger.info('onDataReceive写入： ' + message_data.content)
+      CurrentMsg.content += message_data.content
+      logger.info('msgModel.hasEnd= ' + CurrentMsg.hasEnd)
+      logger.info('____________________________')
+      }else if (index === 2){
+        const data = item
+        logger.info('____________________________')
+        logger.info('读取到的data： ' + data)
+        const message_data = JSON.parse(data) as IHXYConversationMessage_DeltaData
+        logger.info('onDataReceive写入： ' + message_data.content)
+        CurrentMsg.content += message_data.content
+        logger.info('msgModel.hasEnd= ' + CurrentMsg.hasEnd)
+        logger.info('____________________________')
+      }
+    })
+  } else if (s.includes('done')) {
+    CurrentMsg.hasEnd = true
+  }
+```
+
+#### 对话历史的记录与传输
+
+在扣子的API中我们可以看到需要传输的有一项是对话历史的对象数组，而这个数组的数量上限是50条，所以我们需要将这个数组进行包装，以便于控制数组的长度。
+
+![工程结构](“HongXiaoYi”/41.png)
+
+```ts
+/**
+ * 扣子对话历史工具类
+ */
+@ObservedV2
+export class MessageList {
+  /**
+   * 传输给扣子的对话历史
+   * 数量上限为50
+   */
+  @Trace private List: IHXYCozeMessagesItem[] = []
+
+  /**
+   * 添加聊天记录
+   * 检测数组长度防止超过30
+   * @param Message 待添加对话记录对象
+   */
+  public addMessage(Message: IHXYCozeMessagesItem) {
+    if (this.List.length >= 30) {
+      logger.warn(MESSAGE_LIST + '当前数组长度超过30')
+      // 如果数组长度超过30，删除数组的第一位
+      this.List.shift();
+    }
+    logger.info(MESSAGE_LIST + '当前数组长度:  ' + this.List.length)
+    // 加入新的消息
+    this.List.push(Message);
+  }
+}
+```
+
+为了减小网络请求的数据负担，我们将50条减到30条，通过包装后的添加方式来实现数组长度的控制，并将`List`数组设为私有属性，防止外部篡改数组，保障数据的安全性。
+
+{% note info flat %}
+当然这个类还有**可拓展性**，像是重置数组内容以便于开启新的对话，清空数组内容以便于删除对话记录等功能都可以在这个类中进行拓展。
+{% endnote %}
 
 ## 网页端开发笔记
 
