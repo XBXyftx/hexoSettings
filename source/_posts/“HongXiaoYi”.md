@@ -1297,40 +1297,159 @@ if (s.includes('conversation.message.delta')) {
 ![工程结构](“HongXiaoYi”/41.png)
 
 ```ts
+import { logger } from 'common';
+import { IHXYCozeMessagesItem } from '..'
+
+const MESSAGE_LIST = 'MessageList:  '
+
 /**
  * 扣子对话历史工具类
  */
 @ObservedV2
-export class MessageList {
+export class HistoryMessageList {
   /**
    * 传输给扣子的对话历史
    * 数量上限为50
    */
-  @Trace private List: IHXYCozeMessagesItem[] = []
+  @Trace private list: CozeHistoryMessagesItem[] = []
 
   /**
    * 添加聊天记录
    * 检测数组长度防止超过30
    * @param Message 待添加对话记录对象
    */
-  public addMessage(Message: IHXYCozeMessagesItem) {
-    if (this.List.length >= 30) {
+  public addMessage(Message: CozeHistoryMessagesItem) {
+    if (this.list.length >= 30) {
       logger.warn(MESSAGE_LIST + '当前数组长度超过30')
       // 如果数组长度超过30，删除数组的第一位
-      this.List.shift();
+      this.list.shift();
     }
-    logger.info(MESSAGE_LIST + '当前数组长度:  ' + this.List.length)
+    logger.info(MESSAGE_LIST + '当前数组长度:  ' + this.list.length)
     // 加入新的消息
-    this.List.push(Message);
+    this.list.push(Message);
+  }
+
+  public clone(){
+    const newList = this.list.map(item=>item.clone())
+    logger.debug(MESSAGE_LIST+'list:  '+this.list.toString())
+    logger.debug(MESSAGE_LIST+'newList:  '+newList.toString())
+    return newList
+  }
+  public getList(): CozeHistoryMessagesItem<undefined, undefined>[]{
+    return this.clone()
   }
 }
 ```
 
 为了减小网络请求的数据负担，我们将50条减到30条，通过包装后的添加方式来实现数组长度的控制，并将`List`数组设为私有属性，防止外部篡改数组，保障数据的安全性。
+与此同时利用深克隆来进行数组的复制，防止外部获取到原始数据进行篡改。
 
 {% note info flat %}
 当然这个类还有**可拓展性**，像是重置数组内容以便于开启新的对话，清空数组内容以便于删除对话记录等功能都可以在这个类中进行拓展。
 {% endnote %}
+
+#### 调整扣子API
+
+此前我们针对于流式传输结束的处理仅仅是将当前的信息对象进行结束标识，我们现在需要将结束的对话内容记录到我们的对话历史中，在下一次用户发送新的消息时将其作为对话历史的一部分进行传输。
+为此我们就需要在原本的`onDataReceive`函数中进行修改。
+
+```ts
+/**
+ * 当前需要发送给AI的聊天记录
+ */
+const historyMessageList: HistoryMessageList = AppStorageV2.connect(HistoryMessageList, MESSAGE_LIST,()=>new HistoryMessageList())!
+
+
+const ON_DATA_RECEIVE = 'onDataReceive:  ';
+const sessionConfig: rcp.SessionConfiguration = {
+  headers: {
+    Authorization: "Bearer pat_iuGVoKCI6tgDJal7l7GFqJGCMLPkpXrcYaYBwc2icILL0gRLmAJ07xegxb1ZG0cN",
+    "Content-Type": "application/json"
+  },
+  requestConfiguration: {
+    transfer: {
+      timeout: {
+        transferMs: 12000
+      }
+    },
+    tracing: {
+      httpEventsHandler: {
+        onDataReceive: (inComingData: ArrayBuffer) => {
+          currentMsg.hasEnd = false
+          const bufferFrom: Uint8Array = new Uint8Array(inComingData);
+          const s = new util.TextDecoder().decodeToString(bufferFrom);
+          console.log('onDataReceive原始数据：  ' + s)
+          try {
+            if (s.includes('conversation.message.delta')) {
+              s.split('data: ').forEach((item: string, index) => {
+                if (index === 1) {
+                const data = item.split('event: ')[0]
+                logger.info('____________________________')
+                logger.info('读取到的data： ' + data)
+                const message_data = JSON.parse(data) as IHXYConversationMessage_DeltaData
+                logger.info('onDataReceive写入： ' + message_data.content)
+                currentMsg.content += message_data.content
+                logger.info('msgModel.hasEnd= ' + currentMsg.hasEnd)
+                logger.info('____________________________')
+                }else if (index === 2){
+                  const data = item
+                  logger.info('____________________________')
+                  logger.info('读取到的data： ' + data)
+                  const message_data = JSON.parse(data) as IHXYConversationMessage_DeltaData
+                  logger.info('onDataReceive写入： ' + message_data.content)
+                  currentMsg.content += message_data.content
+                  logger.info('msgModel.hasEnd= ' + currentMsg.hasEnd)
+                  logger.info('____________________________')
+                }
+              })
+            } else if (s.includes('done')) {
+              logger.warn(ON_DATA_RECEIVE+ '当前对话流式传输结束，开始进行对话历史写入')
+              currentMsg.hasEnd = true
+              const message = new CozeHistoryMessagesItem(HistoryMessages_Role.Assistant)
+              message.content_type= STRING
+              message.content=currentMsg.content!
+              historyMessageList.addMessage(message)
+              logger.warn(ON_DATA_RECEIVE+'历史添加完毕')
+            }
+          } catch (err) {
+            logger.error(ON_DATA_RECEIVE+ 'onDataReceive捕获异常: ' + err)
+          }
+
+        }
+      }
+    }
+  }
+}
+
+
+export function requestCozeAi() {
+  const ai: ICoZePostBody = {
+    workflow_id: '7487986803871760399',
+    additional_messages:historyMessageList.getList(),
+    parameters: new Map<string, string>([['CONVERSATION_NAME', 'HXY' + Date.now()]])
+  }
+  promptAction.showToast({
+    message: '发送请求成功'
+  })
+  console.log('进入requestAi')
+  const session = rcp.createSession(sessionConfig)
+  session.post('https://api.coze.cn/v1/workflows/chat', ai)
+    .catch((err: BusinessError) => {
+      logger.error(err.message)
+    })
+    .finally(() => {
+      logger.info('requestCozeAi:  ' + '数据传输已完成')
+      session.close()
+      logger.warn('session已关闭')
+    })
+}
+```
+
+在修改结束逻辑的同时我也将`requestCozeAi`函数的请求参数**由测试对象改为了历史对话数组**，这样就可以将历史对话数组作为请求参数进行传输了。
+
+### 产品定制层
+
+接下来就该进行产品定制层的UI开发了，首先我会先做一个demo测试整个对话流是否能正常进行对话，随后我会再去UI进行美化。
 
 ## 网页端开发笔记
 
