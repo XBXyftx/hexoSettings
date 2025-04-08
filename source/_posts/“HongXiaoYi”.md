@@ -1451,6 +1451,80 @@ export function requestCozeAi() {
 
 接下来就该进行产品定制层的UI开发了，首先我会先做一个demo测试整个对话流是否能正常进行对话，随后我会再去UI进行美化。
 
+#### 系统环境信息获取
+
+我们需要依据用户当前的深浅色模式来进行颜色上的适配所以我们需要获取到用户的系统环境信息。
+
+{% note info flat  %}
+V1版本与V2版本的获取方式不同，所以我们需要参考V2版本的官方文档来去进行数据的获取。
+{% endnote %}
+
+首先我们先定义一个包含我们所需要的系统信息的类，并以单实例模式创建对象并导出。
+
+```ts
+import { ConfigurationConstant } from '@kit.AbilityKit';
+import { logger } from '../../../../../Index';
+
+const ENV_LOG_TAG = 'Env:  '
+
+@ObservedV2
+class Env {
+  /**
+   * 语言模式
+   */
+  @Trace language: string | undefined;
+  /**
+   * 颜色模式，0是深色模式，1是浅色模式
+   */
+  @Trace colorMode: ConfigurationConstant.ColorMode | undefined;
+  /**
+   * 唯一实例
+   */
+  private static instance: Env | null = null;
+
+  private constructor() {
+    this.language = undefined;
+    this.colorMode = undefined;
+  }
+
+  public static getInstance(): Env {
+    if (!Env.instance) {
+      logger.warn(ENV_LOG_TAG + '当前没有实例，已经创建唯一实例')
+      Env.instance = new Env();
+    }
+    logger.info(ENV_LOG_TAG + '获取唯一实例')
+    return Env.instance;
+  }
+}
+
+/**
+ * 当前系统环境参数对象
+ */
+export let env: Env = Env.getInstance();
+```
+
+随后我们在页面构建的生命周期钩子中去获取到系统环境信息。
+
+```ts
+  onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
+    this.context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
+    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onCreate');
+
+    AppStorageV2.connect(GetBreakPointSystem,GET_BREAK_POINT_SYSTEM,()=>new GetBreakPointSystem())!.getBreakPointSystem().start()
+    logger.warn(ENTRYABILITY_LOG_TAG+'断点系统已经启动')
+
+    AppStorageV2.connect(ViewMessageModel, MSG, () => new ViewMessageModel())
+    logger.warn(ENTRYABILITY_LOG_TAG+'当前信息对象已经初始化完成')
+
+    AppStorageV2.connect(HistoryMessageList, MESSAGE_LIST,()=>new HistoryMessageList())
+    logger.warn(ENTRYABILITY_LOG_TAG+'扣子对话历史记录数组初始化完成')
+
+    env.language = this.context.config.language;
+    env.colorMode = this.context.config.colorMode;
+    logger.warn(ENTRYABILITY_LOG_TAG+'env数据:  '+'env.language: '+env.language+' env.colorMode: '+env.colorMode)
+  }
+```
+
 ## 网页端开发笔记
 
 待续~
