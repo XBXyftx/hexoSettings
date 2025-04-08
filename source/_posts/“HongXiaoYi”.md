@@ -1529,6 +1529,72 @@ export let env: Env = Env.getInstance();
 我们这里对系统信息进行获取与封装主要是为了备用，主要的背景颜色还有字体颜色我们直接在`base`和`dark`文件夹下的`color.json`文件中进行同名配置系统就会**自动进行适配**。
 {% endnote %}
 
+#### 深浅色切换测试
+
+我们先对当前的页面的深浅色切换功能进行一下测试。
+
+```ts
+import { BreakpointState, env, Env, logger } from 'common'
+import { ViewMessageModel } from 'feature1/src/main/ets/modules/CozeApiModules/CozeApiModule'
+
+@Entry
+@ComponentV2
+struct Index {
+  /**
+   * 渲染对话列表数组
+   */
+  @Local viewMessageList: ViewMessageModel[] = []
+  @Local breakPointState: BreakpointState<Object> = BreakpointState.of({
+    xs: 'xs',
+    sm: 'sm',
+    xl: 'xl',
+    xxl: 'xxl',
+    md: 'md',
+    lg: 'lg'
+  })
+  @Local env:Env = env
+  @Monitor('env.colorMode')
+  onColorModeChange(){
+    logger.warn('onColorModeChange:  '+'当前颜色模式编号为'+env.colorMode)
+  }
+
+  build() {
+    Navigation() {
+      Column(){
+        Text('深浅色模式测试')
+          .fontSize(30)
+          .fontColor($r('app.color.test_fontcolor'))
+          .backgroundColor('#003b2222')
+      }
+      .justifyContent(FlexAlign.Center)
+      .width('100%')
+      .height('100%')
+
+    }
+    .linearGradient({
+      direction:GradientDirection.Bottom,
+      colors:[[$r('app.color.total_main_linearGradient_0'),0],[$r('app.color.total_main_linearGradient_0point5'),0.5]]
+    })
+    .hideTitleBar(true)
+    .hideToolBar(true)
+    .height('100%')
+    .width('100%')
+  }
+}
+```
+
+<video width="100%" controls>
+  <source src="42.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+我们可以看到，我们在切换深浅色模式时，系统就会自动调用对应的配置文件进行颜色的替换。
+但通过日志我们还能看到一个问题就是，我们手动获取的数据由于仅仅是在界面构建的生命周期钩子中进行获取，所以我们在切换深浅色模式时，系统并不会自动调用对应的获取方法，所以我们的监听器并没有见听到深浅色模式的变化。
+
+![工程结构](“HongXiaoYi”/43.png)
+
+所以我们暂时搁置手动适配的这个方案。
+
 ## 网页端开发笔记
 
 待续~
