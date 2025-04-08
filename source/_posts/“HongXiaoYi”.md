@@ -1525,6 +1525,10 @@ export let env: Env = Env.getInstance();
   }
 ```
 
+{% note info flat  %}
+我们这里对系统信息进行获取与封装主要是为了备用，主要的背景颜色还有字体颜色我们直接在`base`和`dark`文件夹下的`color.json`文件中进行同名配置系统就会**自动进行适配**。
+{% endnote %}
+
 ## 网页端开发笔记
 
 待续~
