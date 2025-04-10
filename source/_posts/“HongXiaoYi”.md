@@ -1721,6 +1721,162 @@ struct Main {
 
 深色浅色模式看起来还是都很不错的。
 
+#### 聊天记录列表组件
+
+聊天记录的渲染很简单，只需要依据我们的`viewMessageList`数组来进行渲染即可。
+依据于`type`属性来进行分类渲染，用不同的颜色和左右列来进行区分。
+同时依据与`hasEnd`属性来进行判断是否需要显示加载动画。
+
+```ts
+import { ViewMessageModel } from "feature1";
+
+@ComponentV2
+export struct ContentComp {
+  @Param @Require messages: ViewMessageModel[];
+  @Param @Require hasEnd: boolean;
+  @Param @Require content: string;
+  @Param @Require currentIndex: number;
+
+  build() {
+    Column() {
+      List({ space: '5vp' }) {
+        Repeat(this.messages)
+          .each((msg: RepeatItem<ViewMessageModel>) => {
+            ListItem() {
+              if (msg.item.type === 0) {
+                Column() {
+                  Text(msg.item.content)
+                    .backgroundColor(Color.Green)
+                    .padding(10)
+                    .fontColor(Color.White)
+                    .borderRadius(5)
+                    .visibility(msg.item.content == '' ? Visibility.None : Visibility.Visible)
+
+                  if (!this.hasEnd && this.currentIndex == msg.index) {
+                    Column({ space: '5vp' }) {
+                      LoadingProgress()
+                        .size({
+                          width: '20vp',
+                          height: '20vp'
+                        })
+                        .color(Color.White)
+                      Text(this.content)
+                        .fontColor(Color.White)
+                    }
+                    .backgroundColor(Color.Green)
+                    .padding(10)
+                    .alignItems(HorizontalAlign.Start)
+                    .borderRadius(5)
+                  }
+
+                  Blank()
+                }
+                .width('80%')
+                .alignItems(HorizontalAlign.Start)
+              } else if (msg.item.type === 1) {
+                Row() {
+                  Blank()
+                  Text(msg.item.content)
+                    .backgroundColor(Color.Orange)
+                    .padding(10)
+                    .borderRadius(5)
+                }
+                .width('100%')
+
+              }
+            }
+          })
+      }
+      .width('100%')
+      .height('100%')
+    }
+    .backgroundColor(Color.Transparent)
+  }
+}
+```
+
+#### 问题发送组件
+
+这个组件将会包含一个文本输入框，一个发送按钮，发送按钮的点击事件需要与主页面的渲染数据列表以及对话历史列表进行数据交互，所以我们需要利用`@Event`装饰器去暴露一个回调函数来进行数据传输以及聊天记录的添加。
+
+```ts
+import { promptAction } from "@kit.ArkUI";
+import { logger } from "common/Index";
+
+@ComponentV2
+export struct ToolBarComp {
+  @Local content: string = '';
+
+
+  @Event submit: (content: string) => void;
+
+  build() {
+    Row({ space: '10vp' }) {
+      TextInput({ placeholder: '请输入内容', text: this.content })
+        .layoutWeight(3)
+        .onChange((value: string) => {
+          this.content = value;
+        })
+      Button('发送')
+        .layoutWeight(1)
+        .clickEffect({ level: ClickEffectLevel.LIGHT })
+        .onClick(() => {
+          if (this.content === '') {
+            logger.warn('消息为空')
+            promptAction.showToast({
+              message: '发送消息不能为空',
+              duration: 3000
+            })
+          } else {
+            this.submit(this.content);
+
+            this.content = ''
+          }
+        })
+    }
+    .height('10%')
+    .width('100%')
+
+    .padding(10)
+    .expandSafeArea()
+  }
+
+}
+```
+
+而主页面对于`submit`回调函数的编写则是重中之重，发送请求获取数据在此前的测试阶段就已经完成，重点在于如何渲染多轮对话的数据，在获取到数据之前我们就需要让聊天记录列表组件渲染出当前的对话框，并显示加载动画。
+所以我们在点击发送按钮后就先行创建一个空内容的对话记录对象，将其添加到对话历史数组中，随后我们就可以调用`requestCozeAi`函数来进行请求了。
+
+```ts
+  ToolBarComp({
+    submit: (content: string) => {
+      this.viewMessageList.push({ content: content, type: 1, hasEnd: true });
+      this.viewMessageList.push({ content: '', type: 0, hasEnd: true });
+      const history: CozeHistoryMessagesItem = new CozeHistoryMessagesItem(HistoryMessages_Role.User)
+      history.content_type = CONTENT_TYPE_STRING
+      history.content = content
+      this.historyMsgs.addMessage(history)
+      logger.info('Chat:  ' + 'addMessage成功' + content)
+      this.currentMsg.currentIndex = this.viewMessageList.length - 1;
+      this.currentMsg.hasEnd = false;
+      requestCozeAi()
+    }
+  })
+```
+
+当然与此同时由于我们`requestCozeAi`函数在获取完当前的对话数据后只会去添加到对话历史记录数组，并不会添加到渲染数组中，所以在`hasEnd`属性变为true时对话内容就会消失，所以我们还需要对`hasEnd`属性进行监听，当变化为true时就去替换原始的空内容对象，并将当前的信息对象清空以便于接收下一条对话信息。
+
+```ts
+  @Monitor ('currentMsg.hasEnd')
+  onContentEnd(): void {
+    if (this.currentMsg.hasEnd) {
+      this.viewMessageList.pop();
+      this.viewMessageList.push({ content: this.currentMsg.content!.replace('null', ''), type: 0, hasEnd: true });
+      this.currentMsg.content = '';
+    }
+  }
+```
+
 ## 网页端开发笔记
 
 待续~
