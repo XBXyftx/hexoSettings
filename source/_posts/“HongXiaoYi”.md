@@ -1597,7 +1597,129 @@ struct Index {
 
 #### 初始化Navigation及其页面栈
 
-在全局变量中初始化页面栈，同时初始化
+在全局变量中初始化页面栈，同时初始化`BuilderMap`。
+
+```ts
+    AppStorageV2.connect(NavPathStack,NAV_PATH_STUCK,()=>new NavPathStack())
+    logger.warn(ENTRYABILITY_LOG_TAG+'页面栈初始化完成')
+
+  @Builder
+  NavDestMap(name: string) {
+    if (name === NavDests.MAIN) {
+      Main()
+    } else if (name === NavDests.CHAT) {
+      Chat()
+    }
+  }
+```
+
+首页我们作为开屏显示，并设定计时器在两秒之后从开屏页面跳转至主页面。
+
+```ts
+import { BreakpointState, env, Env, logger, NavDests, NAV_PATH_STUCK } from 'common'
+import { ViewMessageModel } from 'feature1/src/main/ets/modules/CozeApiModules/CozeApiModule'
+import { AppStorageV2 } from '@kit.ArkUI'
+import { Chat } from './navDestsComponents/Chat'
+
+@Entry
+@ComponentV2
+struct Main {
+  /**
+   * 渲染对话列表数组
+   */
+  @Local viewMessageList: ViewMessageModel[] = []
+  @Local breakPointState: BreakpointState<Object> = BreakpointState.of({
+    xs: 'xs',
+    sm: 'sm',
+    xl: 'xl',
+    xxl: 'xxl',
+    md: 'md',
+    lg: 'lg'
+  })
+  @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, NAV_PATH_STUCK)!
+  @Local env: Env = env
+
+  @Monitor('env.colorMode')
+  onColorModeChange() {
+    logger.warn('onColorModeChange:  ' + '当前颜色模式编号为' + env.colorMode)
+  }
+
+  @Builder
+  NavDestMap(name: string) {
+    if (name === NavDests.MAIN) {
+      Main()
+    } else if (name === NavDests.CHAT) {
+      Chat()
+    }
+  }
+
+  onPageShow(): void {
+    setTimeout(() => {
+      this.navPathStuck.pushPath({ name: NavDests.CHAT })
+    }, 2000)
+  }
+
+  build() {
+    Column() {
+      Navigation(this.navPathStuck) {
+        GridRow() {
+          GridCol({ span: { sm: 12, md: 10, lg: 8 }, offset: { sm: 0, md: 1, lg: 2 } }) {
+            Column() {
+              Image($rawfile('logo.jpg'))
+                .width(100)
+                .borderRadius(25)
+              Text('鸿小易')
+                .fontSize(50)
+                .fontColor($r('app.color.test_fontcolor'))
+              Row({ space: 20 }) {
+                Text('鸿蒙开发智能体')
+                  .fontSize(25)
+                  .width(30)
+                  .fontColor($r('app.color.test_fontcolor'))
+                  .margin({ bottom: 25 })
+                Text('您的开发好帮手')
+                  .fontSize(25)
+                  .width(30)
+                  .fontColor($r('app.color.test_fontcolor'))
+                  .margin({ top: 25 })
+              }
+            }
+            .justifyContent(FlexAlign.SpaceEvenly)
+            .padding({ top: '20%', bottom: '10%' })
+            .width('100%')
+            .height('100%')
+          }
+
+        }
+        .width('100%')
+        .height('100%')
+
+      }
+      .backgroundColor(Color.Transparent)
+      .padding(10)
+      .navDestination(this.NavDestMap)
+      .hideTitleBar(true)
+      .hideToolBar(true)
+      .height('100%')
+      .width('100%')
+      .hideBackButton(true)
+      .titleMode(NavigationTitleMode.Mini)
+      .mode(NavigationMode.Stack)
+    }
+    .expandSafeArea()
+    .linearGradient({
+      direction: GradientDirection.Bottom,
+      colors: [[$r('app.color.total_main_linearGradient_0'), 0],
+        [$r('app.color.total_main_linearGradient_0point5'), 0.5]]
+    })
+  }
+}
+```
+
+![浅色模式](“HongXiaoYi”/44.jpg)
+![深色模式](“HongXiaoYi”/45.jpg)
+
+深色浅色模式看起来还是都很不错的。
 
 ## 网页端开发笔记
 
