@@ -1877,6 +1877,351 @@ export struct ToolBarComp {
   }
 ```
 
-## 网页端开发笔记 
+#### 使用MD第三方库
+
+在测试了多轮对话功能正常之后，我现在准备将原生文本组件替换为之前测试过的三方库，来渲染`MarkDown`格式的文本。
+
+不过这次在安装时却出现了异常的报错。
+
+![报错](“HongXiaoYi”/46.png)
+
+通过报错信息我们可以看到是依赖问题，而且依赖错误发生的位置并不是三方库的下载，三方库并没有开始下载。
+通过在CSDN查阅报错信息，发现问题出现在`common`模块错误的依赖了作为入口模块的`default`模块，导致了`common`模块的依赖错误。
+
+```ts
+{
+  "name": "common",
+  "version": "1.0.0",
+  "description": "公共能力层",
+  "main": "Index.ets",
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "default": "file:../../product/default"
+  }
+}
+```
+
+我们可以看到，`common`模块依赖了`default`模块，而`default`模块又依赖了`common`模块，这样就形成了一个循环依赖的问题。
+
+```ts
+{
+  "name": "common",
+  "version": "1.0.0",
+  "description": "公共能力层",
+  "main": "Index.ets",
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {}
+}
+```
+
+将错误的依赖信息删除即可。
+
+![解决](“HongXiaoYi”/47.png)
+
+安装成功。
+
+随后将原生文本组件替换为三方库。
+
+```ts
+import { ViewMessageModel } from "feature1";
+import { MarkdownV2 } from '@lidary/markdown';
+@ComponentV2
+export struct ContentComp {
+  @Param @Require messages: ViewMessageModel[];
+  @Param @Require hasEnd: boolean;
+  @Param @Require content: string;
+  @Param @Require currentIndex: number;
+
+  build() {
+    Column() {
+      Stack({alignContent:Alignment.Bottom}){
+        List({ space: '5vp' }) {
+          Repeat(this.messages)
+            .each((msg: RepeatItem<ViewMessageModel>) => {
+              ListItem() {
+                if (msg.item.type === 0) {
+                  Column() {
+                    // Text(msg.item.content)
+                    //   .backgroundColor(Color.Green)
+                    //   .padding(10)
+                    //   .fontColor(Color.White)
+                    //   .borderRadius(5)
+                    //   .visibility(msg.item.content == '' ? Visibility.None : Visibility.Visible)
+                    MarkdownV2({
+                      content:msg.item.content,
+                      lineSpace:6,
+                      fontStyle:{
+                        fontColor:$r('app.color.chat_ai_fontcolor'),
+                        fontSize:14
+                      }
+                    })
+                      .padding(10)
+                      .backgroundColor($r('app.color.chat_ai_bg_color'))
+                      .visibility(msg.item.content == '' ? Visibility.None : Visibility.Visible)
+                      .borderRadius(5)
+
+                    if (!this.hasEnd && this.currentIndex == msg.index) {
+                      Column({ space: '5vp' }) {
+                        Row({space:10}){
+                          LoadingProgress()
+                            .size({
+                              width: '20vp',
+                              height: '20vp'
+                            })
+                            .color(Color.White)
+                          Text('思考中')
+                            .fontSize(14)
+                            .fontColor($r('app.color.chat_ai_fontcolor'))
+                        }
+
+                        // Text(this.content)
+                        //   .fontColor(Color.White)
+                        MarkdownV2({
+                          content:this.content,
+                          lineSpace:6,
+                          fontStyle:{
+                            fontColor:$r('app.color.chat_ai_fontcolor'),
+                            fontSize:14
+                          },
+                          theme:{
+                            themeColor:$r('app.color.chat_ai_md_theme_color')
+                          }
+                        })
+                      }
+                      .backgroundColor($r('app.color.chat_ai_bg_color'))
+                      .padding(10)
+                      .alignItems(HorizontalAlign.Start)
+                      .borderRadius(5)
+                    }
+
+                    Blank()
+                  }
+                  .width('80%')
+                  .alignItems(HorizontalAlign.Start)
+                } else if (msg.item.type === 1) {
+                  Row() {
+                    Blank()
+                    Text(msg.item.content)
+                      .backgroundColor($r('app.color.chat_human_bg_color'))
+                      .padding(10)
+                      .borderRadius(5)
+                  }
+                  .width('100%')
+
+                }
+              }
+            })
+        }
+        .scrollBar(BarState.Off)
+        .width('100%')
+        .height('100%')
+        Column()
+          .width('100%')
+          .height(35)
+          .linearGradient({
+            direction:GradientDirection.Bottom,
+            colors:[[$r('app.color.chat_tool_hide_bar_color'),0],[$r('app.color.total_main_linearGradient_0point5'),1]]
+          })
+      }
+
+    }
+    .backgroundColor(Color.Transparent)
+  }
+}
+```
+
+与此同时我还添加了一个覆盖层，放置在聊天记录列表组件底部用于进行渐隐渐现的过度效果。
+
+#### 键盘区域规避
+
+这一部分我们直接将面试通项目的代码移植过来即可。
+首先是获取当前应用的上下文对象。
+
+```ts
+    AppStorageV2.connect<GetContext>(GetContext, CONTEXT, () => new GetContext(this.context))
+    logger.warn(ENTRYABILITY_LOG_TAG+'获取上下文对象成功')
+```
+
+由于上下文对象无法直接存储到全局变量中，所以我们需要在`GetContext`类中进行存储。同时再定义一个包装上下规避高度的类，用于在键盘区域显示时进行高度的调整。
+
+```ts
+/**
+ * 存储开启沉浸式模式后的导航栏和状态栏规避高度信息
+ * top:     顶部状态栏规避高度
+ * bottom:  底部导航栏规避高度
+ */
+@ObservedV2
+export class AvoidArea {
+  @Trace top: number = 0;
+  @Trace bottom: number = 0;
+}
+
+/**
+ * 上下文对象包装类
+ * 用于在AppStorageV2中存储上下文对象
+ */
+@ObservedV2
+export class GetContext{
+  @Trace context:Context
+
+  constructor(context: Context) {
+    this.context = context
+  }
+
+}
+```
+
+随后定义一个类用来包裹开启全屏和关闭全屏的方法。
+
+```ts
+import { AppStorageV2, promptAction, window } from '@kit.ArkUI'
+import { AvoidArea } from '../../../models/utils/AvoidArea';
+import { FULL_SCREEN_LOG_TAG, GetContext, logger } from '../../../ExportCentre'
+import { CONTEXT } from '../../../entryability/EntryAbility';
+
+export const AVOID_AREA = 'AvoidAres';
+/**
+ * 初始化AppStorageV2中的AvoidAres键值
+ * 用于存储需要规避区域的高度值
+ */
+const avoid_area = AppStorageV2.connect(AvoidArea, AVOID_AREA, () => new AvoidArea())!
+
+class FullScreen {
+  /**
+   * 开启沉浸式方法
+   * 依赖于当前应用的上下文对象
+   */
+  async enable() {
+    logger.debug(FULL_SCREEN_LOG_TAG+'进入FullScreen.enable')
+    try {
+      const context = AppStorageV2.connect<GetContext>(GetContext, CONTEXT)
+      if (context) {
+        logger.info(FULL_SCREEN_LOG_TAG+'找到Context')
+        //获取当前窗口
+        const win = await window.getLastWindow(context.context)
+        //设置当前窗口为沉浸式模式
+        await win.setWindowLayoutFullScreen(true)
+
+        //获取顶部区域
+        const topArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM).topRect
+        //将顶部高度存储到AppStorage
+        logger.info(FULL_SCREEN_LOG_TAG+'topAreaHeight: ' + px2vp(topArea.height))
+
+
+        //获取底部区域和底部区域高度
+        const bottomArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR).bottomRect
+        logger.info(FULL_SCREEN_LOG_TAG+'bottomAreaHeight: ' + px2vp(bottomArea.height))
+
+
+        avoid_area.top = px2vp(topArea.height);
+        avoid_area.bottom = px2vp(bottomArea.height)
+        logger.debug(FULL_SCREEN_LOG_TAG+'avoid_area数据更新完成')
+
+      } else {
+        logger.warn(FULL_SCREEN_LOG_TAG+'未找到Context')
+      }
+
+    } catch (err) {
+      logger.error(err)
+      promptAction.showToast({ message: err })
+    }
+  }
+
+  /**
+   * 关闭沉浸式方法
+   * 依赖于当前应用的上下文对象
+   */
+  async disable(){
+    logger.debug(FULL_SCREEN_LOG_TAG+'进入FullScreen.disable')
+    try {
+      const context = AppStorageV2.connect<GetContext>(GetContext, CONTEXT)
+      if (context) {
+        logger.info(FULL_SCREEN_LOG_TAG+'找到Context')
+        //获取当前窗口
+        const win = await window.getLastWindow(context.context)
+        //设置当前窗口为沉浸式模式
+        await win.setWindowLayoutFullScreen(false)
+
+        avoid_area.top = 0
+        avoid_area.bottom = 0
+        logger.debug(FULL_SCREEN_LOG_TAG+'avoid_area数据更新完成')
+
+      } else {
+        logger.warn(FULL_SCREEN_LOG_TAG+'未找到Context')
+      }
+
+    } catch (err) {
+      logger.error(err)
+      promptAction.showToast({ message: err })
+    }
+  }
+}
+
+export const fullScreen = new FullScreen()
+```
+
+但写到这我倒是意识到了一个问题，这个解决方案只能在页面创建时区更新一次避让区域的高度，而无法在后续的应用生命周期里去进行更新。
+所以我对这个方案进行了暂缓。
+
+#### 键盘区域规避最终方案
+
+在对面试通方案移植的方案搁浅之后我开始了文档的阅读。
+
+我的第一个设想是在`TextInput`组件的点击事件或是焦点事件中去更新一次规避区域的高度。
+但很显然这样麻烦的手动实现应该并不是官方希望的做法，这种基础功能应该是有自动实现的API的。所以我还需要继续查找。
+
+紧接着我想到了之前在开发面试通时的一个疑问，我在编写开启沉浸式模式以及关闭沉浸式模式时，我还需要手动控制进行规避高度的获取和更新，而`expandSafeArea`方法则是可以自动获取规避区域的高度，那官方预留的这个方法和这个属性有什么区别吗？
+
+于是我就回到了一直在用但是一直没仔细看过文档的`expandSafeArea`方法。
+
+点开安全区域文档之后我才知道，原来安全区域不只这一个属性，而且这个属性还有参数可以填……（对不起我是罪人）
+
+![expandSafeArea](“HongXiaoYi”/48.png)
+
+于是我依照文档所示修改了键盘区域的避让方式。
+
+```ts
+    windowStage.loadContent('pages/Main', (err) => {
+      windowStage.getMainWindowSync().getUIContext().setKeyboardAvoidMode(KeyboardAvoidMode.OFFSET);
+      logger.warn(ENTRYABILITY_LOG_TAG+'KeyboardAvoidMode:  '+JSON.stringify(windowStage.getMainWindowSync().getUIContext().getKeyboardAvoidMode()))
+      if (err.code) {
+        hilog.error(DOMAIN, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
+        return;
+      }
+      hilog.info(DOMAIN, 'testTag', 'Succeeded in loading the content.');
+    });
+```
+
+<video width="100%" controls>
+  <source src="49.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+enm……经过测试这个方案并不能实现我想要的效果。
+此前我也曾多次遇到按照文档中的API编写后没有实现效果的情况，一部分是文档API的代码和最新版本不相符，就像是之前在调试扣子工作流时遇到的情况一样，但是这种事少数情况，更多的情况是我遗漏了一些细节。
+
+![expandSafeArea](“HongXiaoYi”/50.png)
+
+官方文档中使用的都是`TextArea`组件而不是`TextInput`组件。我尝试了使用`TextArea`组件，但结果还是一样的。
+
+随后我怀疑到会不会是`expandSafeArea`属性被滥用导致的，因为我在许多位置都使用了该属性于是我删除了根组件以外的全部`expandSafeArea`属性。
+
+<video width="100%" controls>
+  <source src="51.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+成功了，事实证明与组件种类无关。
+
+随后我又进行了测试，我将文本框加上`expandSafeArea`属性，发送按钮不加，最终就实现了只有发送按钮避让的效果。
+
+<video width="100%" controls>
+  <source src="52.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+## 网页端开发笔记
 
 待续~
