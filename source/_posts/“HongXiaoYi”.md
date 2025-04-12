@@ -2222,6 +2222,82 @@ enm……经过测试这个方案并不能实现我想要的效果。
   您的浏览器不支持视频标签。
 </video>
 
+#### 开屏页分离
+
+当前的代码仍然存在一个潜在问题，就是用户打开应用，开屏页退去后，如果点击了系统的返回按钮，应用会从主页面从新退回开屏页。这很显然是错误的，我们不能在进入应用后还能再次回到开屏页同时无法从新进入主页面。
+
+<video width="100%" controls>
+  <source src="53.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+所以我们需要将主页面在开屏页后就进行销毁处理。
+
+我的第一个方案是将开屏页从`Navigation`组件中分离单独做成一个`navDestination`组件，然后调用`replacePath`方法进行销毁。
+
+![expandSafeArea](“HongXiaoYi”/54.png)
+
+但这个方案又遇到了另一个问题，就是在于开屏页确实是从页面栈中移出了，但问题是用户点击返回按钮后依旧会回到一个空白的主页面，因为将开屏页从`Navigation`组件中分离后，**主页面依旧存在而且为空**，所以这并没有解决问题，同时在跳转时会有一个明显的淡黑色透明组件框的拖延，这并不符合我们的预期。
+
+所以我决定将开屏页从一个组件转换为一个页面，并将chat组件直接放置于`Navigation`组件中。这样就可以销毁掉开屏页的同时保证主页面无需一次从空页面跳转到聊天页的无意义跳转了。
+效果如下：
+
+<video width="100%" controls>
+  <source src="55.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+<video width="100%" controls>
+  <source src="56.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+整体开屏效果更加**干脆利落**。
+
+与此同时我并不是将整个`Chat`组件拆开复制到了`Main`组件中，而是在**保持`Chat`组件的独立性的同时去进行导出与调用**，这样在后续开发中可以将主界面也就是`Navigation`组件替换为其他页面，诸如多个聊天页面的列表，添加`Tabs`组件**拓展更多的功能**等。
+
+```ts
+  @Builder
+  NavDestMap(name: string) {
+    if (name === NavDests.MAIN) {
+      Main()
+    } else if (name === NavDests.CHAT) {
+      Chat()
+    }
+  }
+
+  // aboutToAppear(): void {
+  //   this.navPathStuck.pushPath({name:NavDests.CHAT})
+  // }
+
+
+  build() {
+    Column() {
+      Navigation(this.navPathStuck) {
+        Chat()
+      }
+      .backgroundColor(Color.Transparent)
+      .padding(10)
+      .navDestination(this.NavDestMap)
+      .hideTitleBar(true)
+      .hideToolBar(true)
+      .height('100%')
+      .width('100%')
+      .hideBackButton(true)
+      .titleMode(NavigationTitleMode.Mini)
+      .mode(NavigationMode.Stack)
+    }
+    .expandSafeArea()
+    .linearGradient({
+      direction: GradientDirection.Bottom,
+      colors: [[$r('app.color.total_main_linearGradient_0'), 0],
+        [$r('app.color.total_main_linearGradient_0point5'), 0.5]]
+    })
+  }
+```
+
+保留了将`Chat`组件重新拆分出去的代码，以便于**后续拓展**。
+
 ## 网页端开发笔记
 
 待续~
