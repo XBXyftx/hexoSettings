@@ -2298,6 +2298,132 @@ enm……经过测试这个方案并不能实现我想要的效果。
 
 保留了将`Chat`组件重新拆分出去的代码，以便于**后续拓展**。
 
+#### `hasEnd`修改位置调整
+
+在测试中，有时候会出现在当前轮次对话接收完毕后，顶部的思考中提示字符以及加载动画并不消失，与此同时发送按钮也不会自动弹出，整个程序陷入了无法进行下轮对话的状态。
+
+{% note info flat  %}
+debug的一个很重要的手段就是去寻找多个现象的共同点，像是加载动画不消失和发送按钮不弹出两者之间的共同点就在于`hasEnd`属性变化是两者的触发条件，所以说明问题出现在`hasEnd`属性的切换上。
+{% endnote %}
+
+随后我查看了日志，发现问题出在了最后在解析`done`事件的数据包时发生了数据格式错误，JSON内置解析函数没有正常的执行解析导致将对话写入对话历史记录中的操作没有执行，再起之后的`hasEnd`属性也没有被正确的赋值，所以导致了加载动画和发送按钮的问题。
+
+所以我在`finally`回调函数中去对`hasEnd`属性进行了赋值，这样就可以保证在任何情况下都能正确的赋值。
+
+```ts
+  session.post('https://api.coze.cn/v1/workflows/chat', ai)
+    .catch((err: BusinessError) => {
+      logger.error(err.message)
+    })
+    .finally(() => {
+      currentMsg.hasEnd = true
+      logger.info('requestCozeAi:  ' + '数据传输已完成')
+      session.close()
+      logger.warn('requestCozeAi:  '+'session已关闭')
+    })
+```
+
+{% note warning flat %}
+由于在发现这个bug时我并没有录屏截图留存，所以现在我只能通过描述来进行复现，以后在遇到bug时应当**先行留档**。
+{% endnote %}
+
+但在这个bug修复后虽然会正常的结束当前轮次的对话了，但新的bug出现了。
+
+<video width="100%" controls>
+  <source src="57.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+在当前轮次对话结束的瞬间，整个对话内容会被复制一次，并写入渲染列表中。
+
+![expandSafeArea](“HongXiaoYi”/58.jpg)
+
+对于这个问题我们要分析当前bug的成因，首先触发渲染数组的写入事件是当前对话对象的`hasEnd`属性监听器，当该属性发生变化时就会触发写入事件，既然触发了两次写入事件，那就说明`hasEnd`属性发生了两次变化，我们需要找到冗余的一次变化。
+
+```ts
+  @Monitor ('currentMsg.hasEnd')
+  onContentEnd(): void {
+    if (this.currentMsg.hasEnd) {
+      this.viewMessageList.pop();
+      this.viewMessageList.push({ content: this.currentMsg.content!.replace('null', ''), type: 0, hasEnd: true });
+      this.currentMsg.content = '';
+    }
+  }
+```
+
+在修改上一个BUG时我仅仅是在`finally`回调函数中去对`hasEnd`属性进行了赋值，并没有将检测到`done`事件数据包时的代码块进行修改，所以这里还保留了一次`hasEnd`属性的变化，所以这里就找到了冗余的一次变化。
+
+```ts
+    tracing: {
+      httpEventsHandler: {
+        onDataReceive: (inComingData: ArrayBuffer) => {
+          currentMsg.hasEnd = false
+          const bufferFrom: Uint8Array = new Uint8Array(inComingData);
+          const s = new util.TextDecoder().decodeToString(bufferFrom);
+          console.log('onDataReceive原始数据：  ' + s)
+          try {
+            if (s.includes('conversation.message.delta')) {
+              s.split('data: ').forEach((item: string, index) => {
+                if (index === 1) {
+                const data = item.split('event: ')[0]
+                logger.info('____________________________')
+                logger.info('读取到的data： ' + data)
+                const message_data = JSON.parse(data) as IHXYConversationMessage_DeltaData
+                logger.info('onDataReceive写入： ' + message_data.content)
+                currentMsg.content += message_data.content.replace('null', '')
+                logger.info('msgModel.hasEnd= ' + currentMsg.hasEnd)
+                logger.info('____________________________')
+                }else if (index === 2){
+                  const data = item
+                  logger.info('____________________________')
+                  logger.info('读取到的data： ' + data)
+                  const message_data = JSON.parse(data) as IHXYConversationMessage_DeltaData
+                  logger.info('onDataReceive写入： ' + message_data.content)
+                  currentMsg.content += message_data.content.replace('null', '')
+                  logger.info('msgModel.hasEnd= ' + currentMsg.hasEnd)
+                  logger.info('____________________________')
+                }
+              })
+            }
+          } catch (err) {
+            logger.error(ON_DATA_RECEIVE+ 'onDataReceive捕获异常: ' + err)
+          }
+
+        }
+      }
+    }
+```
+
+这里我将`done`事件的判断直接删除，因为我在分析其功能之后发现与`finally`回调函数的功能一致，所以我直接将其功能代码转移至`finally`回调函数中。
+这样就避免了手动处理数据时可能产生的数据类型问题。
+
+```ts
+  session.post('https://api.coze.cn/v1/workflows/chat', ai)
+    .catch((err: BusinessError) => {
+      logger.error(err.message)
+    })
+    .finally(() => {
+      logger.warn('requestCozeAi:  '+ '当前对话流式传输结束，开始进行对话历史写入')
+      const message = new CozeHistoryMessagesItem(HistoryMessages_Role.Assistant)
+      message.content_type= CONTENT_TYPE_STRING
+      message.content=currentMsg.content!
+      historyMessageList.addMessage(message)
+      logger.warn('requestCozeAi:  '+'历史添加完毕')
+      currentMsg.hasEnd = true
+      logger.info('requestCozeAi:  ' + '数据传输已完成')
+      session.close()
+      logger.warn('requestCozeAi:  '+'session已关闭')
+    })
+```
+
+修改完后进行多次测试，该现象并没有再次发生。
+
+至此我的最初版本算是告一段落了。
+
+我将应用版本号修改为了`1.0.1`。
+
+![版本号](“HongXiaoYi”/59.jpg)
+
 ## 网页端开发笔记
 
 待续~
