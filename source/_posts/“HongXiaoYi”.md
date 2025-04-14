@@ -2518,7 +2518,91 @@ enm……很显然50毫秒还是太短了，整体根本看不出来打字机效
 
 这张图并不准确，只是大致示意主线程的执行过程，在一条语句写入期间，其他异步任务会将它们写入的字符串穿插在上一条语句的字符串中，随着数据包的接受与解析，这种穿插情况会愈发明显，最终就会出现**乱序排列**的情况。
 
-而对于
+而对于`hasEnd`属性的反复变化其实也很好理解，因为在**每个异步函数将其需要写入的字符串写入完成后就会去将`hasEnd`属性进行赋值**，所以就会出现反复的变化。
+
+由此我们可以总结出需要改变的两点：
+
+1. 创建缓存区，将全部获取的数据都写入到缓存区中，然后统一通过一个异步函数去进行写入，这样就可以避免多个异步混合执行导致的写入顺序问题。
+2. 调整`hasEnd`属性的赋值时机，将其赋值时机调整到异步函数写入完成后，这样就可以避免`hasEnd`属性在写入完成之前就进行赋值，导致的反复变化问题。
+
+在分析出当前结论之前，我还进行了另一种尝试，只修改了`hasEnd`属性的赋值时机，并没有修改写入缓存区的代码。
+
+```ts
+    tracing: {
+      httpEventsHandler: {
+        onDataReceive: (inComingData: ArrayBuffer) => {
+          currentMsg.hasEnd = false
+          const bufferFrom: Uint8Array = new Uint8Array(inComingData);
+          const s = new util.TextDecoder().decodeToString(bufferFrom);
+          console.log('onDataReceive原始数据：  ' + s)
+          try {
+            if (s.includes('conversation.message.delta')) {
+              s.split('data: ').forEach((item: string, index) => {
+                if (index === 1) {
+                  const data = item.split('event: ')[0]
+                  logger.info('____________________________')
+                  logger.info('读取到的data： ' + data)
+                  const message_data = JSON.parse(data) as IHXYConversationMessage_DeltaData
+                  logger.info('onDataReceive写入： ' + message_data.content)
+                  const dataWaitToAdd = message_data.content.replace('null', '')
+                  let i = 0
+                  const id = setInterval(()=>{
+                    if (i<dataWaitToAdd.length) {
+                      logger.warn('i='+i+'  dataWaitToAdd.charAt(i)  '+dataWaitToAdd.charAt(i))
+                      currentMsg.content += dataWaitToAdd.charAt(i)
+                      i++
+                    }else if (i===dataWaitToAdd.length){
+                      clearInterval(id)
+                    }
+                  },200)
+
+                  logger.info('msgModel.hasEnd= ' + currentMsg.hasEnd)
+                  logger.info('____________________________')
+                } else if (index === 2) {
+                  const data = item
+                  logger.info('____________________________')
+                  logger.info('读取到的data： ' + data)
+                  const message_data = JSON.parse(data) as IHXYConversationMessage_DeltaData
+                  logger.info('onDataReceive写入： ' + message_data.content)
+                  const dataWaitToAdd = message_data.content.replace('null', '')
+                  let i = 0
+                  const id = setInterval(()=>{
+                    if (i<dataWaitToAdd.length) {
+                      logger.warn('i='+i+'  dataWaitToAdd.charAt(i)  '+dataWaitToAdd.charAt(i))
+                      currentMsg.content += dataWaitToAdd.charAt(i)
+                      i++
+                    }else if (i===dataWaitToAdd.length){
+                      clearInterval(id)
+                    }
+                  },200)
+                  logger.info('msgModel.hasEnd= ' + currentMsg.hasEnd)
+                  logger.info('____________________________')
+                }
+              })
+            }
+          } catch (err) {
+            logger.error(ON_DATA_RECEIVE + 'onDataReceive捕获异常: ' + err)
+          }
+
+        }
+      }
+    }
+```
+
+这段代码中我将原本拆分出去的函数功能合并到了数据处理回调函数中，这里在写入后并不会直接修改`hasEnd`属性，而是仅进行数据的写入工作，整体依旧是多个异步操作，所以显示的数据依旧是乱序的。
+
+<video width="100%" controls>
+  <source src="64.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+这个测试也进一步的验证了我的猜想，因为这个测试中并没与进行频繁的`hasEnd`属性值切换操作，所以所有数据不会因为监听到了`hasEnd`属性的变化而进行清空操作，全部数据都有被正常的写入到了渲染数据对象中。
+与此同时我们仔细的阅读当前的文字也是能看出原本的文本是正常的，以及被打乱的痕迹。
+更直观的，通过日志：
+
+![日志](“HongXiaoYi”/65.png)
+
+我们可以看到异步操作是黄色的警告字体，而同步操作是白色的信息字体，每当接收到数据后就会**先去执行同步的代码然后再穿插着执行异步代码**，当前**异步写入字符的索引i的顺序是乱的**，这就很好的验证了我的猜想。
 
 ## 网页端开发笔记
 
