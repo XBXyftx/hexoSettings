@@ -2424,6 +2424,102 @@ debug的一个很重要的手段就是去寻找多个现象的共同点，像是
 
 ![版本号](“HongXiaoYi”/59.jpg)
 
+## 鸿蒙端侧优化开发笔记
+
+最初版本的应用已经开发完毕从这部分开始就是对应用的优化以及后续拓展的开发。
+
+### 打字机效果
+
+在当前版本中，我们采用的只是将当前数据包中的内容直接完整的写入到当前的对话渲染对象中，这样的效果就是在进行输出时的效果非常生硬，输出的频率以及每次的内容量都是只能由扣子平台进行控制。整体的输出效果是非常生硬的，虽然相比直接输出整段回答是要好很多，但这并不足以满足我对与应用优化的要求。
+
+我的目标是如下视频所示的效果：
+
+<video width="100%" controls>
+  <source src="60.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+在这个效果中，我们可以看到在进行输出时，每次的输出内容都是按照一定的时间间隔进行输出的，效果非常的流畅，这样的效果就更加符合我们的预期。
+
+#### AI尝试
+
+我本以为这是个很简单的效果，随便AI一下就能解决。于是我就让通义千问帮我修改了一下。
+
+```ts
+    tracing: {
+      httpEventsHandler: {
+        onDataReceive: (inComingData: ArrayBuffer) => {
+          currentMsg.hasEnd = false;
+          const bufferFrom: Uint8Array = new Uint8Array(inComingData);
+          const s = new util.TextDecoder().decodeToString(bufferFrom);
+          console.log('onDataReceive原始数据：  ' + s);
+          try {
+            if (s.includes('conversation.message.delta')) {
+              s.split('data: ').forEach((item: string, index) => {
+                if (index === 1 || index === 2) {
+                  const data = item.split('event: ')[0];
+                  logger.info('____________________________');
+                  logger.info('读取到的data： ' + data);
+                  const message_data = JSON.parse(data) as IHXYConversationMessage_DeltaData;
+                  logger.info('onDataReceive写入： ' + message_data.content);
+                  typeWriterEffect(message_data.content.replace('null', ''), 0);
+                  logger.info('msgModel.hasEnd= ' + currentMsg.hasEnd);
+                  logger.info('____________________________');
+                }
+              });
+            }
+          } catch (err) {
+            logger.error(ON_DATA_RECEIVE + 'onDataReceive捕获异常: ' + err);
+          }
+        }
+      }
+    }
+
+function typeWriterEffect(text: string, index: number) {
+  if (index < text.length) {
+    currentMsg.content += text.charAt(index);
+    setTimeout(() => typeWriterEffect(text, index + 1), 50); // 每50毫秒输出一个字符
+  } else {
+    currentMsg.hasEnd = true;
+  }
+}
+```
+
+看起来很美好对吧，每次将接收到的数组进行遍历，随后将待添加字符串每隔50毫秒录入一个字符，这样就可以实现固定时间的输出来进行打字机输出效果了。
+但在实际测试时才能将它的缺陷展示出来。
+
+<video width="100%" controls>
+  <source src="61.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+enm……很显然50毫秒还是太短了，整体根本看不出来打字机效果，与此同时还有另一个问题就是在将当前接收到的文字全部写入后，下一个数据包还没有获取到或是没有解析完成，导致两次输出之间还有及其明显的速度差异，显得还是十分卡顿，并不符合我们的预期。
+
+{% note primary flat %}
+很多时候都是这样，理论上看似十分美好，但实际测试才能真正的去暴露问题，这也是学习编程不能只学理论不实操的原因。
+{% endnote %}
+
+随后我将间隔时间由50毫秒改为了200毫秒，却又出现了新的问题：
+
+<video width="100%" controls>
+  <source src="62.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+可以看到输出的过程在频繁地闪烁，而且输出的内容大多是乱码，但在仔细观察这些乱码之后我发现这并不是简单的乱码，而是**正常内容被切割后的错序排列**。
+与此同时，我们可以看到当前页面的右下角的发送按钮出现了**频繁地闪烁**，反复的处于当前对话结束以及当前对话开始的状态，这**一点能反映出`hasEnd`属性在反复的变化**。
+
+由此可知我们的问题还是出在了`hasEnd`状态的变化机制上，这一点产生的原因也不难猜测，因为刚才50ms的时间间隔，两个数据包之间解析与写入的间隔较大，而当间隔设为200ms之后，**单次数据的写入时间被大大拉长**，上一次数据在写入**完成之前**就会去进行下一次的写入，`setTimeout`这个异步函数在**同一时间有多个异步任务等待被执行**，主线程就会穿插执行这多个异步任务，所以就会出现**数据的乱序排列**。
+
+这个过程我并没有开启多线程处理，整体都是利用主线程来进行简单的异步处理，js、ts、以及ArkTS的单线程异步处理都是用事件循环机制实现的。程序执行时会首先执行非异步代码，将异步代码放入事件队列中，在主线程执行完全部非异步代码后，会从事件队列中取出异步代码进行执行。
+大致的执行流程如下图所示：
+
+![事件循环](“HongXiaoYi”/63.png)
+
+这张图并不准确，只是大致示意主线程的执行过程，在一条语句写入期间，其他异步任务会将它们写入的字符串穿插在上一条语句的字符串中，随着数据包的接受与解析，这种穿插情况会愈发明显，最终就会出现**乱序排列**的情况。
+
+而对于
+
 ## 网页端开发笔记
 
 待续~
