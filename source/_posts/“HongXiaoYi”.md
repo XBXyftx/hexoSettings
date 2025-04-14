@@ -2604,6 +2604,75 @@ enm……很显然50毫秒还是太短了，整体根本看不出来打字机效
 
 我们可以看到异步操作是黄色的警告字体，而同步操作是白色的信息字体，每当接收到数据后就会**先去执行同步的代码然后再穿插着执行异步代码**，当前**异步写入字符的索引i的顺序是乱的**，这就很好的验证了我的猜想。
 
+#### 最终方案
+
+经过以上分析，我首先去创建了一个字符串缓冲区，在接收到第一条数据后等待一秒去进行输出，这是为了防止网络卡顿导致接收到的数据量少，在数据传输结束之前就终止了输出。
+随后我将`hasEnd`属性的赋值时机调整到了异步函数写入完成后，这样就可以避免`hasEnd`属性在写入完成之前就进行赋值，导致的反复变化问题。
+
+```ts
+@ObservedV2
+  /**
+   * 打字机效果的数据接收缓冲区
+   */
+class TypeStringBuffer {
+  /**
+   * 启动标识符
+   */
+  @Trace private startSign: boolean = false
+  /**
+   * 待输出字符串数组
+   */
+  @Trace private charArray: string[] = []
+  currentMsg: ViewMessageModel = AppStorageV2.connect(ViewMessageModel, MSG, () => new ViewMessageModel())!;
+
+  strAdd(addStr: string) {
+    if (addStr === '') {
+      logger.warn('StringBuffer.strAdd:  ' + 'str为空')
+      return
+    }
+    logger.warn('StringBuffer.strAdd:  '+'addstr='+addStr)
+    for (let i=0;i<addStr.length;i++) {
+      this.charArray.push(addStr.charAt(i));
+    }
+    logger.warn('StringBuffer.strAdd:  ' + 'charArray=' + this.charArray.join(''));
+  }
+
+  start() {
+    if (this.startSign) {
+      logger.warn('StringBuffer.start:  '+'已经在执行')
+    }else {
+      this.startSign = true;
+      setTimeout(() => {
+        const id = setInterval(() => {
+          if (this.charArray.length > 0) {
+            const currentChar = this.charArray.shift()!; // 取出并删除第一个字符
+            logger.warn('StringBuffer.start:  '+'currentChar='+currentChar)
+            this.currentMsg.content += currentChar;
+            logger.warn('StringBuffer.start:  ' + '输出字符=' + currentChar);
+          } else {
+            clearInterval(id);
+            this.startSign = false;
+            logger.warn('StringBuffer.start:  ' + '所有字符已输出');
+            this.currentMsg.hasEnd=true
+          }
+        }, 100);
+      }, 1000);
+    }
+  }
+}
+
+export const typeStringBuffer: TypeStringBuffer = new TypeStringBuffer()
+```
+
+随后就是激动人心的测试环节：
+
+<video width="100%" controls>
+  <source src="66.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+呦西成功了，这里显得有点慢是为了演示方便观察，所以将字符写入的间隔改为了100ms，后续只需要将间隔进行调整即可。
+
 ## 网页端开发笔记
 
 待续~
