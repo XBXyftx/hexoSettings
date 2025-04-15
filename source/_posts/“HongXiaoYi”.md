@@ -1007,6 +1007,23 @@ data: {
 
 这样我们就完成了一个完整的对话流的SEE单向连接。
 
+## 后端优化笔记
+
+此前我也提到过我们的智能体后端依旧存在着一些幻觉以及近似内容混淆的问题。
+所以这里我们需要继续去进行优化。
+
+### 调整大模型节点生成随机性
+
+大模型的生成随机性指的就是**发散思维**的程度，这个数值越低，大模型生成的语言越精准，仅会依据提供的问题和数据去进行回答，不会有过多的`"人话"`，会有更多的介绍性、描述性的语言。而这个数值越高，大模型的发散性思维越强，越适合创作性的任务，越适合去生成一些具有创造性的内容。
+
+所以我将关键词提取大模型的生成随机性调整为了0.2。因为还需要去理解用户可能比较口语化的内容所以生成随机性也不能拉的太低。
+
+![调整大模型节点生成随机性](“HongXiaoYi”/74.png)
+
+然后将最终回复生成大模型的生成随机性调整为了0.6。相比于关键词提取大模型，最终回复大模型会直接与用户交流，需要有一些衔接词以及有`"人情味"`的语句，但与此同时又不能太过发散导致虚构一些不存在的内容，所以我们需要调整至中值左右。
+
+![调整大模型节点生成随机性](“HongXiaoYi”/75.png)
+
 ## 鸿蒙端侧正式开发笔记
 
 经历了前些天的功能测试之后我们就可以正式开始进行鸿蒙端的开发了。
@@ -2800,6 +2817,133 @@ export class ViewMessageModel {
 </video>
 
 ok成功了，null问题解决了。
+
+### 卡顿问题
+
+当前的版本还是存在比较严重的卡顿问题，我怀疑是在实现打字机效果时，频繁的对文字缓冲区进行删改操作导致的。
+
+所以我决定先将删的操作去除，利用动态更新待输出字符串长度的方式进行优化。与此同时去除无用日志打印。同时去除无用Trace修饰符
+
+```ts
+import { logger } from 'common'
+import { ViewMessageModel } from '..';
+import { AppStorageV2 } from '@kit.ArkUI';
+import { MSG } from '../../constants';
+
+@ObservedV2
+  /**
+   * 打字机效果的数据接收缓冲区
+   */
+class TypeStringBuffer {
+  /**
+   * 启动标识符
+   */
+  private startSign: boolean = false
+  /**
+   * 待输出字符串数组
+   */
+  private charArray: string[] = []
+  currentMsg: ViewMessageModel = AppStorageV2.connect(ViewMessageModel, MSG, () => new ViewMessageModel())!;
+
+  strAdd(addStr: string) {
+    if (addStr === '') {
+      logger.warn('StringBuffer.strAdd:  ' + 'str为空')
+      return
+    }
+    // logger.warn('StringBuffer.strAdd:  '+'addstr='+addStr)
+    for (let i=0;i<addStr.length;i++) {
+      this.charArray.push(addStr.charAt(i));
+    }
+    // logger.warn('StringBuffer.strAdd:  ' + 'charArray=' + this.charArray.join(''));
+  }
+
+  start() {
+    if (this.startSign) {
+      logger.warn('StringBuffer.start:  '+'已经在执行')
+    }else {
+      this.startSign = true;
+      setTimeout(() => {
+        let index = 0
+        const id = setInterval(() => {
+          if (this.charArray.length > 0 && index<this.charArray.length) {
+            const currentChar = this.charArray[index]
+            // logger.warn('StringBuffer.start:  '+'currentChar='+currentChar)
+            this.currentMsg.content += currentChar;
+            index++
+            // logger.warn('StringBuffer.start:  ' + '输出字符=' + currentChar + '  index='+index);
+          } else {
+            clearInterval(id);
+            this.startSign = false;
+            logger.warn('StringBuffer.start:  ' + '所有字符已输出');
+            this.currentMsg.hasEnd=true
+            this.charArray=[]
+          }
+        }, 50);
+      }, 1000);
+    }
+  }
+}
+
+export const typeStringBuffer: TypeStringBuffer = new TypeStringBuffer()
+```
+
+<video width="100%" controls>
+  <source src="76.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+这个视频我特意录的长了些，可以看出现在的问题在于一开始整体的滚动是很丝滑的，但是越往后他的效果就越卡顿，这是为什么呢？
+这个改动效果不明显，先将改动进行回退。
+
+#### 转机
+
+![日志](“HongXiaoYi”/77.png)
+
+在我和骏哥的讨论中我意识到了一个问题在于渐变色很可能对于需要高频率渲染的场景造成较大压力，于是我将聊天框的百分之60不透明度删除，再次测试。
+结果大差不差，就不放视频了。
+
+现在已经几乎排除了所有的性能问题，但依旧成效不大。
+
+![日志](“HongXiaoYi”/78.png)
+
+于是我接着将这些“花里胡哨”的东西都去掉了，只保留了最基本的功能。
+但测试结果还是不算理想。
+
+至此基本可以排除是性能的问题了……
+
+随后骏哥提出了一个很让人震惊但确实可能性很大的猜想：
+
+![日志](“HongXiaoYi”/79.png)
+
+我草很有道理诶，这种并非程序本身问题的场外因素确实有可能造成意料之外的卡顿。
+
+{% note primary flat %}
+写到这时我不禁想到了对弈的胜负不只局限于棋盘之中，盘外招虽被大多数人所鄙视，但我们却又无法忽视盘外招所造成的影响，所以**要学会向后退**，退到棋盘之外，让视野变大，才能更好的发现问题。
+{% endnote %}
+
+于是我换了另一种解决方案：
+添加一个监听器，每当当前渲染的文字内容发生改变时，也就是打字机新增了字符后就去将列表滚动到底部。
+
+```ts
+  listScroller:Scroller = new Scroller()
+  @Monitor('content')
+  onChange(){
+    this.listScroller.scrollEdge(Edge.Bottom)
+  }
+```
+
+<video width="100%" controls>
+  <source src="80.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+这样直接取消了用户手动滚动的可能，同时也变相解决了卡顿问题。
+
+但这个问题仍存在疑点，因为上面视频第一秒和第50秒的帧率感觉明显不一样，而且我都是在手动滚动，这和骏哥的猜测并不相符，但现在暂时没有新想法，就先暂时搁置吧。
+
+### 打印速度问题
+
+当前还存在一个问题
 
 ## 网页端开发笔记
 
