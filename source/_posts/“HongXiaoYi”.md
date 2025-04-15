@@ -2943,7 +2943,41 @@ export const typeStringBuffer: TypeStringBuffer = new TypeStringBuffer()
 
 ### 打印速度问题
 
-当前还存在一个问题
+当前还存在一个问题就是当我的打字机效果字符之间的间隔时长过长像是100ms左右，就会显得打印过慢，这对于用户来说是非常不友好的，浪费时间。
+但如果打印过快像是20ms一个字符左右又会导致出现，字符缓冲区内容打印完成了，`hasEnd`属性进行了切换，但当前对话信息并没有结束，这就会导致同一条回复被割裂成了两个文本框。
+
+所以我们还需要去修改`hasEnd`属性的赋值判断条件。
+
+我想到的解决方案是双标志符
+一个是当前缓冲区已经没有字符了，另一个是当前流式传输已经结束。
+
+```ts
+
+      setTimeout(() => {
+        const id = setInterval(() => {
+          if (this.charArray.length > 0 && !this.rcpEnd) {
+            const currentChar = this.charArray.shift()!; // 取出并删除第一个字符
+            logger.warn('StringBuffer.start:  '+'currentChar='+currentChar)
+            this.currentMsg.content += currentChar;
+          } else if(this.charArray.length===0 && !this.rcpEnd) {
+            logger.warn('StringBuffer.start:  '+'当前无数据但流失传输未结束')
+          } else if (this.rcpEnd && this.charArray.length===0){
+            clearInterval(id);
+            this.startSign = false;
+            logger.warn('StringBuffer.start:  ' + '所有字符已输出');
+            this.currentMsg.hasEnd=true
+          }
+        }, 30);
+      }, 1000);
+```
+
+<video width="100%" controls>
+  <source src="81.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+经过多次调整，10ms输出一个字符，延迟两秒预制数据算是比较均衡的方案。整体效果也是非常喜人。
+观察日志也可以发现整体的输出速度与数据的获取速度基本成正比，无数据情况发生极少。
 
 ## 网页端开发笔记
 
