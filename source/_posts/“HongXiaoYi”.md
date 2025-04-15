@@ -2671,7 +2671,135 @@ export const typeStringBuffer: TypeStringBuffer = new TypeStringBuffer()
   您的浏览器不支持视频标签。
 </video>
 
-呦西成功了，这里显得有点慢是为了演示方便观察，所以将字符写入的间隔改为了100ms，后续只需要将间隔进行调整即可。
+ok成功了，这里显得有点慢是为了演示方便观察，所以将字符写入的间隔改为了100ms，后续只需要将间隔进行调整即可。
+
+<video width="100%" controls>
+  <source src="67.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+修改字符输出速度之后整体的流畅度还是非常完美的。
+
+### 欢迎字段
+
+当前版本中，用户进入APP后面对的就是一个冷冰冰的聊天界面，并没有任何的欢迎字段，这对于用户来说是非常不友好的，所以我打算在用户进入APP后展示一个欢迎字段。
+
+单一的欢迎词还是略显乏味，所以我决定多定义几个欢迎词然后每次随机获取。
+
+```ts
+export const WELCOME_WORD = [
+  'HI，我是鸿小易，一名鸿蒙开发专家，有任何鸿蒙开发的问题都可以问我哦。',
+  'Hello Wold，欢迎来到鸿蒙开发的世界，我是鸿蒙开发专家鸿小易，欢迎问我鸿蒙开发问题。',
+  'Hi开发者！鸿小易在此待命，HarmonyOS应用开发中的疑难杂症，我们一起来攻克吧！',
+  '欢迎进入鸿蒙世界！我是你的开发伙伴鸿小易，从环境配置到分布式开发，任何卡点都欢迎随时交流~',
+  '你好呀~我是鸿小易，专注鸿蒙生态开发指导。无论是ArkUI还是Stage模型的问题，我都准备好为你解答啦！'
+]
+```
+
+由于这一部分会直接修改渲染数据，而且依赖于特性层的字符串缓冲区，所以我们将他封装在特性层的API中。
+
+```ts
+@ObservedV2
+export class WelcomeApi{
+  /**
+   * 随机获取欢迎词并进行打字机输出
+   */
+  public static welcome (){
+    const currentWelcomeWord :string =WELCOME_WORD[Math.floor(Math.random() * WELCOME_WORD.length)]
+    logger.warn(WELCOME_API_LOG_TAG+currentWelcomeWord)
+    typeStringBuffer.strAdd(currentWelcomeWord)
+    typeStringBuffer.start()
+  }
+}
+```
+
+![欢迎词](“HongXiaoYi”/68.jpg)
+
+enm……失败了，看看日志。
+
+![日志](“HongXiaoYi”/69.png)
+
+获取欢迎词成功了，字符串缓冲区的打字机效果也生效了，但是页面没有显示。
+对于页面显示，我们需要思考显示页面的关键是什么，我们的对话列表是循环渲染的`viewMessageList`，所以说明我们的当前对话信息对象并**没有被存储进渲染对话列表中**。
+由此我们可以继续推测到是我们没有进行与用户**点击发送按钮之后的相同操作**，也就是**没有新建待渲染的空对象**。
+
+所以我们先回到`Chat`页面组件将我们的`viewMessageList`属性在初始化时就留出我们的欢迎语空对象。
+
+```ts
+  @Local viewMessageList: ViewMessageModel[] = [{ content: '', type: 0, hasEnd: true }]
+```
+
+随后回到欢迎Api进行当前对话信息对象的初始化工作。
+
+```ts
+  /**
+   * 随机获取欢迎词并进行打字机输出
+   */
+  public static welcome (){
+    const currentWelcomeWord :string =WELCOME_WORD[Math.floor(Math.random() * WELCOME_WORD.length)]
+    logger.warn(WELCOME_API_LOG_TAG+currentWelcomeWord)
+    typeStringBuffer.strAdd(currentWelcomeWord)
+    AppStorageV2.connect(ViewMessageModel, MSG, () => new ViewMessageModel())!.hasEnd=false
+    AppStorageV2.connect(ViewMessageModel, MSG, () => new ViewMessageModel())!.type=0
+    AppStorageV2.connect(ViewMessageModel, MSG, () => new ViewMessageModel())!.currentIndex=0
+    typeStringBuffer.start()
+  }
+```
+
+进行测试。
+
+<video width="100%" controls>
+  <source src="70.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+ok成功了，欢迎词也显示出来了。
+
+但这也暴露出了另一个问题，我们在进行渲染是时会固定的刷新出一个null在开头，而且在写入完成后，它还会消失，就很奇怪。
+
+### 解决null问题
+
+对于这个问题，我的想法是添加当前对话信息对象的监听器，来打印当前的对话信息。
+
+```ts
+  @Monitor('currentMsg.content')
+  onContentChange():void{
+    logger.debug('currentMsg.content:  '+this.currentMsg.content)
+  }
+```
+
+![日志](“HongXiaoYi”/71.png)
+
+对于这个现象我认为是在`AppStorageV2`中进行对象的初始化时并没有写初始化`content`属性的值，其值为`null`所以才导致了直接在其之上添加字符会导致`null`的显示。
+
+```ts
+/**
+ * 对话渲染数据模型
+ */
+@ObservedV2
+export class ViewMessageModel {
+  /**
+   * 人类是1Ai是0
+   */
+  type: number | null = null;
+  @Trace hasEnd: boolean = true;
+  @Trace content: string = '';
+  @Trace currentIndex?: number;
+}
+```
+
+修改渲染模型的默认值。
+
+再次测试。
+
+![日志](“HongXiaoYi”/72.png)
+
+<video width="100%" controls>
+  <source src="73.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+ok成功了，null问题解决了。
 
 ## 网页端开发笔记
 
