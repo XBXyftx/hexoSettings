@@ -1007,23 +1007,6 @@ data: {
 
 这样我们就完成了一个完整的对话流的SEE单向连接。
 
-## 后端优化笔记
-
-此前我也提到过我们的智能体后端依旧存在着一些幻觉以及近似内容混淆的问题。
-所以这里我们需要继续去进行优化。
-
-### 调整大模型节点生成随机性
-
-大模型的生成随机性指的就是**发散思维**的程度，这个数值越低，大模型生成的语言越精准，仅会依据提供的问题和数据去进行回答，不会有过多的`"人话"`，会有更多的介绍性、描述性的语言。而这个数值越高，大模型的发散性思维越强，越适合创作性的任务，越适合去生成一些具有创造性的内容。
-
-所以我将关键词提取大模型的生成随机性调整为了0.2。因为还需要去理解用户可能比较口语化的内容所以生成随机性也不能拉的太低。
-
-![调整大模型节点生成随机性](“HongXiaoYi”/74.png)
-
-然后将最终回复生成大模型的生成随机性调整为了0.6。相比于关键词提取大模型，最终回复大模型会直接与用户交流，需要有一些衔接词以及有`"人情味"`的语句，但与此同时又不能太过发散导致虚构一些不存在的内容，所以我们需要调整至中值左右。
-
-![调整大模型节点生成随机性](“HongXiaoYi”/75.png)
-
 ## 鸿蒙端侧正式开发笔记
 
 经历了前些天的功能测试之后我们就可以正式开始进行鸿蒙端的开发了。
@@ -2353,6 +2336,11 @@ debug的一个很重要的手段就是去寻找多个现象的共同点，像是
 
 在当前轮次对话结束的瞬间，整个对话内容会被复制一次，并写入渲染列表中。
 
+{% note danger flat  %}
+请注意这里的解决方案并非最终解决方案，在实现打字机效果后对这个问题有了新发现，重复写入问题的成因并非`hasEnd`属性变化导致。
+[新解决方案传送门](https://xbxyftx.top/2025/03/31/%E2%80%9Chongxiaoyi%E2%80%9D/#%E5%86%85%E5%AE%B9%E9%87%8D%E5%A4%8D%E5%86%99%E5%85%A5%E9%97%AE%E9%A2%98)
+{% endnote %}
+
 ![expandSafeArea](“HongXiaoYi”/58.jpg)
 
 对于这个问题我们要分析当前bug的成因，首先触发渲染数组的写入事件是当前对话对象的`hasEnd`属性监听器，当该属性发生变化时就会触发写入事件，既然触发了两次写入事件，那就说明`hasEnd`属性发生了两次变化，我们需要找到冗余的一次变化。
@@ -2978,6 +2966,160 @@ export const typeStringBuffer: TypeStringBuffer = new TypeStringBuffer()
 
 经过多次调整，10ms输出一个字符，延迟两秒预制数据算是比较均衡的方案。整体效果也是非常喜人。
 观察日志也可以发现整体的输出速度与数据的获取速度基本成正比，无数据情况发生极少。
+
+### 内容重复写入问题
+
+在之前没有制作打字机效果之前就出现过内容重复写入的效果，只不过那时候没有设置缓冲区所以整体是统一出现的，导致我误判成为了因为`hasEnd`属性的赋值时机问题。
+但在制作了缓冲区之后我才发现他是逐行打印出来的，这就说明问题并不出在了`hasEnd`属性的赋值时机上，而是在数据的处理过程中。
+
+![日志](“HongXiaoYi”/82.png)
+
+数据处理的过程中向缓冲区重复写入了当前的完整数据，导致了重复写入的问题。
+这也是引出了我曾经的猜想，因为同一个数据包中包含了两条数据，如果同一个数据包中第一条是我们所需要的数据，而第二条则是我们所不需要的标志性数据，那就会出现重复写入了最后总结性时间数据的问题。
+
+所以我们还需要在加一步判断。
+
+```ts
+  try {
+    typeStringBuffer.rcpEnd = false
+    let secondIsCompleted: boolean = false
+    if (s.includes('conversation.message.delta')) {
+      s.split('data: ').forEach((item: string, index) => {
+        if (index === 1) {
+          const data = item.split('event: ')[0]
+          const secondEvent = item.split('event: ')[1]
+          if (secondEvent.includes('message.completed')) {
+            secondIsCompleted = true
+            logger.warn('onDataReceive 第二个事件为completed')
+          }
+          logger.info('____________________________')
+          logger.info('读取到的data： ' + data)
+          const message_data = JSON.parse(data) as IHXYConversationMessage_DeltaData
+          const dataWaitToAdd = message_data.content.replace('null', '')
+          logger.info('onDataReceive 向字符缓冲区写入： ' + dataWaitToAdd)
+          typeStringBuffer.strAdd(dataWaitToAdd)
+          typeStringBuffer.start()
+          logger.info('msgModel.hasEnd= ' + currentMsg.hasEnd)
+          logger.info('____________________________')
+        } else if (index === 2 && !secondIsCompleted) {
+          const data = item
+          logger.info('____________________________')
+          logger.info('读取到的data： ' + data)
+          const message_data = JSON.parse(data) as IHXYConversationMessage_DeltaData
+          logger.info('onDataReceive 向字符缓冲区写入： ' + message_data.content)
+          const dataWaitToAdd = message_data.content.replace('null', '')
+          typeStringBuffer.strAdd(dataWaitToAdd)
+          logger.info('msgModel.hasEnd= ' + currentMsg.hasEnd)
+          logger.info('____________________________')
+        }
+      })
+    }
+  } catch (err) {
+    logger.error(ON_DATA_RECEIVE + 'onDataReceive捕获异常: ' + err)
+  }
+```
+
+经测试暂未发现问题，后续会继续测试。
+
+### 数据包丢失
+
+![日志](“HongXiaoYi”/83.jpg)
+
+在测试中发现，有时候后端发回的数据会包含有仅一个事件的情况，这直接打破了我们之前一直在沿用的数据解析算法，导致了类型错误，数据解析工作全部失败。
+
+![日志](“HongXiaoYi”/85.png)
+
+这时我才想起来骏哥说过的“逐行解析“的含金量啊……
+
+![日志](“HongXiaoYi”/84.png)
+
+我怎么敢说出已经解决了这种话的……
+
+```ts
+    tracing: {
+      httpEventsHandler: {
+        onDataReceive: (inComingData: ArrayBuffer) => {
+          currentMsg.hasEnd = false
+          const bufferFrom: Uint8Array = new Uint8Array(inComingData);
+          const s = new util.TextDecoder().decodeToString(bufferFrom);
+          logger.info('onDataReceive原始数据：  ' + s)
+          const lines:string[] = s.split('\n');
+          let deltaDataLines:number[]=[]
+          typeStringBuffer.rcpEnd = false
+          try {
+            lines.forEach((item:string,index:number)=>{
+              if (item.includes('conversation.message.delta')) {
+                deltaDataLines.push(index+1)
+              }
+            })
+            lines.forEach((item:string,index:number)=>{
+              if (deltaDataLines.includes(index)) {
+                const message_data = (JSON.parse(item) as IHXYConversationMessage_DeltaData).content.replace('null', '')
+                logger.info('________________________________________________________')
+                typeStringBuffer.strAdd(message_data)
+                typeStringBuffer.start()
+                logger.info('onDataReceive 向字符缓冲区写入： ' + message_data)
+                logger.info('________________________________________________________')
+              }
+            })
+          } catch (err) {
+            logger.error(ON_DATA_RECEIVE + 'onDataReceive捕获异常: ' + err)
+          }
+
+        }
+      }
+    }
+```
+
+在我理清思路写下这些代码的时候才意识到原来这段代码可以这么简洁……
+
+![日志](“HongXiaoYi”/86.png)
+
+奥不对，没有对data进行数据拆解。
+
+```ts
+  lines.forEach((item:string,index:number)=>{
+    if (deltaDataLines.includes(index)) {
+      const data = item.split('data: ')[1]
+      const message_data = (JSON.parse(data) as IHXYConversationMessage_DeltaData).content.replace('null', '')
+      logger.info('________________________________________________________')
+      logger.info('onDataReceive data='+data)
+      typeStringBuffer.strAdd(message_data)
+      typeStringBuffer.start()
+      logger.info('onDataReceive 向字符缓冲区写入： ' + message_data)
+      logger.info('________________________________________________________')
+    }
+  })
+```
+
+后续测试的日志证明数据包的数量不仅会少，还会更多。
+
+![日志](“HongXiaoYi”/87.png)
+
+{% note danger flat %}
+挖掘数据共同点，抽象化重复性的通用操作是非常重要的，不能仅针对当前数据定制处理方案，这样一旦数据发生变化就会导致处理方案失效。
+{% endnote %}
+
+## 后端优化笔记
+
+此前我也提到过我们的智能体后端依旧存在着一些幻觉以及近似内容混淆的问题。
+所以这里我们需要继续去进行优化。
+
+### 调整大模型节点生成随机性
+
+大模型的生成随机性指的就是**发散思维**的程度，这个数值越低，大模型生成的语言越精准，仅会依据提供的问题和数据去进行回答，不会有过多的`"人话"`，会有更多的介绍性、描述性的语言。而这个数值越高，大模型的发散性思维越强，越适合创作性的任务，越适合去生成一些具有创造性的内容。
+
+所以我将关键词提取大模型的生成随机性调整为了0.2。因为还需要去理解用户可能比较口语化的内容所以生成随机性也不能拉的太低。
+
+![调整大模型节点生成随机性](“HongXiaoYi”/74.png)
+
+然后将最终回复生成大模型的生成随机性调整为了0.6。相比于关键词提取大模型，最终回复大模型会直接与用户交流，需要有一些衔接词以及有`"人情味"`的语句，但与此同时又不能太过发散导致虚构一些不存在的内容，所以我们需要调整至中值左右。
+
+![调整大模型节点生成随机性](“HongXiaoYi”/75.png)
+
+### 优化提示词
+
+当前的提示词字数还是不够用灵活，而且用户所输入的问题也是多样化的，很有可能会涉及到上下文，也有可能有一些没有包含技术点的问题，所以我们需要对提示词进行优化，告诉大模型在面对不同情况的问题时该如何去回答。
 
 ## 网页端开发笔记
 
