@@ -3100,6 +3100,76 @@ export const typeStringBuffer: TypeStringBuffer = new TypeStringBuffer()
 挖掘数据共同点，抽象化重复性的通用操作是非常重要的，不能仅针对当前数据定制处理方案，这样一旦数据发生变化就会导致处理方案失效。
 {% endnote %}
 
+### 对话历史信息记录与上下文关联回复生成
+
+之前虽然大模型偶尔会生成类似于”根据我们之前的对话“这种话，但那都是因为我的大模型提示词中包含了这句话。实际生成的有效内容可以看得出来都是伪历史，也就是说大模型依据我的语义去猜测的，而不是依据我之前的对话去生成的。
+
+但是我在前面的开发笔记也记录了我存储对话历史并回传的操作，为什么没有生效呢。
+在这种时刻我们就需要去回归文档，去仔细的阅读生效条件，去寻找问题的根本原因。
+
+首先在大模型节点的会话历史按钮，它是这么描述的
+
+![文档](“HongXiaoYi”/91.png)
+
+利用一个唯一标识来去存储对话历史记录，这很合理，那有没有可能是我的唯一标识变化了？
+
+![日志](“HongXiaoYi”/93.png)
+
+果然，我的标识在每次发送请求时都会进行刷新。我之前没意识到这一点，真是不应该。
+
+```ts
+const date = `${Date.now()}${Math.floor(Math.random() * 1000)}`
+```
+
+将当前的唯一标识进行提取，仅在应用启动时生成一次。
+
+但经过测试上下文**依旧没有被成功读取**。
+
+于是我继续翻找文档：
+
+![文档](“HongXiaoYi”/94.png)
+
+从这两个参数来看我之前的理解应该是正确的，用传参的形式将对话历史信息传递给大模型，但在测试时表现出的效果证明我肯定还有遗漏的点。
+
+![日志](“HongXiaoYi”/95.png)
+
+对话流产生的消息会保存到此对话中,这个描述说实话有点暧昧。
+对话流产生的消息到底包不包含用户的问题，会话ID指的是什么？指的是当前的一问一答还是说当前页面的所有对话？
+
+![日志](“HongXiaoYi”/96.png)
+
+`additional_messages`对象类型中明明已经包含了发送这条消息的实体这个选项，那为什么还要在云端再存一次。真的很奇怪
+但在看了官方给出的实例后发现都填写了这一字段的值，所以我也先进行尝试吧。
+
+```ts
+  const ai: ICoZePostBody = {
+    workflow_id: '7487986803871760399',
+    additional_messages: historyMessageList.getList(),
+    parameters: new Map<string, string>([['CONVERSATION_NAME', 'HXY' + date]]),
+    conversation_id: date
+  }
+```
+
+![日志](“HongXiaoYi”/97.png)
+
+请求对象直接关闭了，返回的数据包为错误信息`“Invalid request parameters. Please check your input and ensure all required fields are correctly formatted and within allowed ranges.”`
+参数问题。
+
+我的猜测是我的参数值为纯数字，虽然我在客户端将它设定为字符串，但在网络请求的过程中并不会携带类型进行传输，纯数字可能会被服务器认为是一个`int`类型导致参数错误。
+
+```ts
+  const ai: ICoZePostBody = {
+    workflow_id: '7487986803871760399',
+    additional_messages: historyMessageList.getList(),
+    parameters: new Map<string, string>([['CONVERSATION_NAME', 'HXY' + date]]),
+    conversation_id: 'abc'+date
+  }
+```
+
+于是在我进行字符的拼接之后，就成功实现了上下文的读取！！！
+
+![日志](“HongXiaoYi”/98.jpg)
+
 ## 后端优化笔记
 
 此前我也提到过我们的智能体后端依旧存在着一些幻觉以及近似内容混淆的问题。
@@ -3121,6 +3191,28 @@ export const typeStringBuffer: TypeStringBuffer = new TypeStringBuffer()
 
 当前的提示词字数还是不够用灵活，而且用户所输入的问题也是多样化的，很有可能会涉及到上下文，也有可能有一些没有包含技术点的问题，所以我们需要对提示词进行优化，告诉大模型在面对不同情况的问题时该如何去回答。
 
-## 网页端开发笔记
+![优化提示词](“HongXiaoYi”/88.png)
 
-待续~
+首先添加了一段最重要的要求，用来强调最常见的几种情形，也是此前它表现不太好的几种情况。
+
+![优化提示词](“HongXiaoYi”/89.png)
+
+随后在工作流程中更加明细了遇到各种类型问题时的处理模式。
+
+随后又调整了对话历史轮数，提升到了5轮，虽然token消耗会多一些，但对话的上下文关联效果也会更好。
+
+## 特别鸣谢
+
+{% flink %}
+- class_name: 特别鸣谢
+  class_desc: 感谢对鸿小易开发提供鼎力支持的各位
+  link_list:
+    - name: 李昌骏
+      link: https://whlcj.github.io/
+      avatar: /JunAv.png
+      descr: iOS大佬
+    - name: 孙博辰
+      link: https://xbxyftx.top/2025/03/31/%E2%80%9Chongxiaoyi%E2%80%9D/#%E7%89%B9%E5%88%AB%E9%B8%A3%E8%B0%A2
+      avatar: /sbcAv.jpg
+      descr: 亲妈级好学长
+{% endflink %}
