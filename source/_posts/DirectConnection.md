@@ -6,6 +6,7 @@ tags:
   - netlify
   - 国内直连
 cover: /img/ArticleTopImgs/DirectTopImg.png
+description: 本文将介绍如何利用hexo+netlify+github搭建一个国内直连的博客，并且解决国内访问速度问题。
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

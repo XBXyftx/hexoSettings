@@ -7,6 +7,7 @@ tags:
   - 项目
   - V2
 cover: /img/ArticleTopImgs/MSTTopImg.png
+description: 面试通项目开发笔记2（暂时停更）
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

@@ -5,6 +5,7 @@ tags:
   - hexo博客搭建
   - 技术向
 cover: /img/ArticleTopImgs/DuoDianNaoTopImg.png
+description: 多电脑同步更新hexo的方式
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

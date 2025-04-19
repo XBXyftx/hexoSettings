@@ -6,6 +6,7 @@ tags:
   - 技术向
   - V2
 cover: /img/ArticleTopImgs/NavTopImg.png
+description: 本文将介绍Navigation与NavDestination的使用方法。
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

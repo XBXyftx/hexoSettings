@@ -5,6 +5,7 @@ tags:
   - 独白
   - hexo博客搭建
 cover: /img/ArticleTopImgs/HelloWorld.png
+description: 欢迎来到XBXyftx的博客!Hello World!
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

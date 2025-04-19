@@ -5,6 +5,7 @@ tags:
   - hexo博客搭建
   - 主题美化
 cover:  /img/ArticleTopImgs/ButterTopImg.png
+description: 博客搭建教程
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
