@@ -7,3 +7,15 @@
     max-height: calc(100vh - 380px);
     width: calc(100% + 48px);
 }
+
+.post-message-container .post-message p {
+    color: white !important;
+}
+
+body{
+    color: #65ffff !important;
+}
+
+/* p{
+    color: white !important;
+} */

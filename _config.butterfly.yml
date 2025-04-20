@@ -524,7 +524,7 @@ comments:
   # Leave it empty if you don't need comments
   # Choose: Disqus/Disqusjs/Livere/Gitalk/Valine/Waline/Utterances/Facebook Comments/Twikoo/Giscus/Remark42/Artalk
   # Format of two comments system : Disqus,Waline
-  use:
+  use: Disqus
   # Display the comment name next to the button
   text: true
   # Lazyload: The comment system will be load when comment element enters the browser's viewport.
@@ -538,7 +538,7 @@ comments:
 # Disqus
 # https://disqus.com/
 disqus:
-  shortname:
+  shortname: xbxyftx-1
   # For newest comments widget
   apikey:
 
@@ -777,7 +777,7 @@ mask:
 
 # Loading Animation
 preloader:
-  enable: true
+  enable: false
   # source
   # 1. fullpage-loading
   # 2. pace (progress bar)
@@ -1045,6 +1045,11 @@ inject:
      document.documentElement.setAttribute('data-theme', 'dark');
      </script>
    - <link rel="stylesheet" href="/css/styles.css">
+   - <script>
+     document.querySelectorAll('#post-comment).forEach(el => {
+       el.style.backgroundColor = 'rgba(255, 255, 255, 0.6)';
+     });
+     </script>
   bottom:
    # 星空背景
    - <script>localStorage.setItem('theme','dark')</script>
@@ -1056,7 +1061,12 @@ inject:
      // 防止其他脚本覆盖模式
      document.documentElement.setAttribute('data-theme', 'dark');
      </script>
-
+   - <link rel="stylesheet" href="/css/styles.css">
+   - <script>
+     document.querySelectorAll('#post-comment).forEach(el => {
+       el.style.backgroundColor = 'rgba(255, 255, 255, 0.6)';
+     });
+     </script>
 # CDN Settings
 # Don't modify the following settings unless you know how they work
 CDN:
