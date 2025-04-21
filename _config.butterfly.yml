@@ -26,6 +26,7 @@ menu:
   #   音乐: /music/ || fas fa-music
   #   电影: /movies/ || fas fa-video
   友情链接: /link/ || fas fa-link
+  留言板: /comments/ || fa-solid fa-comment
   # 关于我们: /about/ || fas fa-heart
 
 # Code Blocks (代码块相关)
@@ -1202,6 +1203,27 @@ electric_clock:
   gaud_map_key: c25dd516b6a1aa4c5269e50077fac6f4
   default_rectangle: true # 开启后将一直显示rectangle位置的天气，否则将获取访问者的地理位置与天气
   rectangle: 115.982279,40.19409 # 获取访问者位置失败时会显示该位置的天气，同时该位置为开启default_rectangle后的位置
+
+# envelope_comment
+# see https://akilar.top/posts/e2d3c450/
+envelope_comment:
+  enable: true #控制开关
+  custom_pic:      
+    cover: https://npm.elemecdn.com/hexo-butterfly-envelope/lib/violet.jpg #信笺头部图片
+    line: https://npm.elemecdn.com/hexo-butterfly-envelope/lib/line.png #信笺底部图片
+    beforeimg: https://npm.elemecdn.com/hexo-butterfly-envelope/lib/before.png # 信封前半部分
+    afterimg: https://npm.elemecdn.com/hexo-butterfly-envelope/lib/after.png # 信封后半部分
+  message: #信笺正文，多行文本，写法如下
+    - 有什么想问的？
+    - 有什么想说的？
+    - 有什么想吐槽的？
+    - 哪怕是有什么想吃的，都可以告诉我哦~
+  bottom: 自动书记人偶竭诚为您服务！ #仅支持单行文本
+  height: #1050px，信封划出的高度
+  path: #【可选】comments 的路径名称。默认为 comments，生成的页面为 comments/index.html
+  front_matter: #【可选】comments页面的 front_matter 配置
+    title: 留言板
+    comments: true
 
 # # hexo-filter-gitcalendar
 # # see https://akilar.top/posts/1f9c68c9/

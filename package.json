@@ -15,6 +15,7 @@
     "hexo": "^7.3.0",
     "hexo-asset-image": "github:CodeFalling/hexo-asset-image",
     "hexo-butterfly-clock-anzhiyu": "^1.1.8",
+    "hexo-butterfly-envelope": "^1.0.15",
     "hexo-butterfly-tag-plugins-plus": "^1.0.18",
     "hexo-deployer-git": "^4.0.0",
     "hexo-filter-gitcalendar": "^1.0.11",
