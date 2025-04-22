@@ -10,6 +10,7 @@ tags:
   - 扣子
   - 智能体
 top: 15
+swiper_index: 1
 description: 鸿小易，你的鸿蒙开发好帮手。
 cover: /img/ArticleTopImgs/hxyTopImg.png
 post_copyright:

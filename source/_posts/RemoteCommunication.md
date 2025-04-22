@@ -5,7 +5,8 @@ tags:
   - 鸿蒙
   - 技术向
   - 远场通信
-description: 本文将介绍鸿蒙远场通信服务（待更新）
+description: 本文将介绍鸿蒙远场通信服务
+swiper_index: 2
 cover: /img/ArticleTopImgs/RCPTopImg.png
 post_copyright:
 copyright_author: XBXyftx

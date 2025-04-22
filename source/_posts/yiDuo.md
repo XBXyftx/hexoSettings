@@ -8,6 +8,7 @@ tags:
   - 一次开发多端部署
 cover: /img/ArticleTopImgs/yiduoTopImg.png
 description: 一多能力的学习笔记
+swiper_index: 4
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
