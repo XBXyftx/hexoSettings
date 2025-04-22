@@ -1074,6 +1074,7 @@ inject:
    - <script src="/js/jquery-3.6.0.min.js"></script> # 右键菜单脚本需要使用的jq文件
    - <script src="/js/rightmenu.js"></script> # 右键菜单rightMenu
    - <link rel="twikoo" href="/css/twikoo.css">
+   - <script src="/js/happy-title.js" async></script>
 # CDN Settings
 # Don't modify the following settings unless you know how they work
 CDN:
