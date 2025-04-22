@@ -779,14 +779,10 @@ mask:
 
 # Loading Animation
 preloader:
-  enable: true
-  # source
-  # 1. fullpage-loading
-  # 2. pace (progress bar)
-  source: 1
-  # pace theme (see https://codebyzach.github.io/pace/)
-  pace_css_url: /css/center-atom.css
-
+  enable: true # true|false
+  load_color: '#000000' # '#37474f'
+  load_style: wizard # default|gear|ironheart|scarecrow|triangles|wizard|image
+  load_image: /img/loadImg.jpg
 # Page Transition
 enter_transitions: true
 

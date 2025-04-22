@@ -1,0 +1,30 @@
+- var loadimage = theme.preloader.load_image ? theme.preloader.load_image : theme.error_img.post_page
+#loading-box
+  .loading-left-bg
+  .loading-right-bg
+  img.load-image(src=url_for(loadimage) alt='')
+
+
+script.
+  (()=>{
+    const $loadingBox = document.getElementById('loading-box')
+    const $body = document.body
+    const preloader = {
+      endLoading: () => {
+        $body.style.overflow = ''
+        $loadingBox.classList.add('loaded')
+      },
+      initLoading: () => {
+        $body.style.overflow = 'hidden'
+        $loadingBox.classList.remove('loaded')
+      }
+    }
+
+    preloader.initLoading()
+    window.addEventListener('load', preloader.endLoading)
+
+    if (!{theme.pjax && theme.pjax.enable}) {
+      btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+      btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+    }
+  })()

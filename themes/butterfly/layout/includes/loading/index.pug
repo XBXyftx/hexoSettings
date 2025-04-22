@@ -1,5 +1,8 @@
 if theme.preloader.enable
-  if theme.preloader.source === 1
-    include ./fullpage-loading.pug
-  else
-    include ./pace.pug
+  case theme.preloader.load_style    
+    when 'image'
+      include ./load_style/image.pug
+    default
+      include ./load_style/default.pug
+    when 'wizard'
+      include ./load_style/wizard.pug
