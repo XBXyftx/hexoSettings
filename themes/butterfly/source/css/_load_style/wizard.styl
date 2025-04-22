@@ -5,13 +5,28 @@
   height 100%
   background var(--preloader-bg)
 #loading-box
+  position fixed
+  z-index 1000
+  display flex
+  align-items center
+  justify-content center
+  flex-direction column
+  width 100vw
+  height 100vh
+  overflow hidden
+  opacity 1
+  transition opacity 0.8s ease-out, z-index 0.8s ease-out
+
   .loading-left-bg
     @extend .loading-bg
     left 0
   .loading-right-bg
     @extend .loading-bg
     right 0
+
   &.loaded
+    opacity 0
+    pointer-events none
     z-index -1000
     .loading-left-bg
       transition all 1.0s
@@ -19,6 +34,8 @@
     .loading-right-bg
       transition all 1.0s
       transform translate(100%, 0)
+    .wizard-scene
+      display none
 #loading-box
   position fixed
   z-index 1000
@@ -81,8 +98,8 @@
   transform-origin 16px 22px
   -webkit-transform rotate(70deg)
   transform rotate(70deg)
-  -webkit-animation right_arm 10s ease-in-out infinite
-  animation right_arm 10s ease-in-out infinite
+  -webkit-animation right_arm 5s ease-in-out infinite
+  animation right_arm 5s ease-in-out infinite
   .right-hand
     position absolute
     right 8px
@@ -124,8 +141,8 @@
   transform-origin 60px 26px
   -webkit-transform rotate(-70deg)
   transform rotate(-70deg)
-  -webkit-animation left_arm 10s ease-in-out infinite
-  animation left_arm 10s ease-in-out infinite
+  -webkit-animation left_arm 5s ease-in-out infinite
+  animation left_arm 5s ease-in-out infinite
   .wizard-left-hand
     position absolute
     left -18px
@@ -161,8 +178,8 @@
   transform-origin center center
   -webkit-transform rotate(-3deg)
   transform rotate(-3deg)
-  -webkit-animation head 10s ease-in-out infinite
-  animation head 10s ease-in-out infinite
+  -webkit-animation head 5s ease-in-out infinite
+  animation head 5s ease-in-out infinite
   .wizard-beard
     position absolute
     bottom 0
@@ -319,8 +336,8 @@
   border-radius 50%
   -webkit-transform rotate(-360deg)
   transform rotate(-360deg)
-  -webkit-animation path_square 10s ease-in-out infinite
-  animation path_square 10s ease-in-out infinite
+  -webkit-animation path_square 5s ease-in-out infinite
+  animation path_square 5s ease-in-out infinite
   &::after
     content ""
     position absolute
@@ -339,8 +356,8 @@
   border-radius 50%
   -webkit-transform rotate(-360deg)
   transform rotate(-360deg)
-  -webkit-animation path_circle 10s ease-in-out infinite
-  animation path_circle 10s ease-in-out infinite
+  -webkit-animation path_circle 5s ease-in-out infinite
+  animation path_circle 5s ease-in-out infinite
   &::after
     content ""
     position absolute
@@ -360,8 +377,8 @@
   border-radius 50%
   -webkit-transform rotate(-360deg)
   transform rotate(-360deg)
-  -webkit-animation path_triangle 10s ease-in-out infinite
-  animation path_triangle 10s ease-in-out infinite
+  -webkit-animation path_triangle 5s ease-in-out infinite
+  animation path_triangle 5s ease-in-out infinite
   &::after
     content ""
     position absolute
@@ -374,7 +391,7 @@
     border-color transparent transparent #89beb3 transparent
 
 
-/** 10s animation - 10% = 1s */
+/** 5s animation - 10% = 0.5s */
 @-webkit-keyframes right_arm
   0%
     -webkit-transform rotate(70deg)
@@ -723,7 +740,7 @@
   56%
     -webkit-transform rotate(-3deg)
     transform rotate(-3deg)
-/** 10s animation - 10% = 1s */
+/** 5s animation - 10% = 0.5s */
 @-webkit-keyframes path_circle
   0%
     -webkit-transform translateY(0)

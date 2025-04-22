@@ -1,26 +1,29 @@
 #loading-box
   .loading-left-bg
   .loading-right-bg
-  .wizard-scene
-    .wizard-objects
-      .wizard-square
-      .wizard-circle
-      .wizard-triangle
-    .wizard
-      .wizard-body
-      .wizard-right-arm
-        .wizard-right-hand
-      .wizard-left-arm
-        .wizard-left-hand
-      .wizard-head
-        .wizard-beard
-        .wizard-face
-          .wizard-adds
-        .wizard-hat
-          .wizard-hat-of-the-hat
-          .wizard-four-point-star.--first
-          .wizard-four-point-star.--second
-          .wizard-four-point-star.--third
+  .loading-content(style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;")
+    .wizard-scene
+      .wizard-objects
+        .wizard-square
+        .wizard-circle
+        .wizard-triangle
+      .wizard
+        .wizard-body
+        .wizard-right-arm
+          .wizard-right-hand
+        .wizard-left-arm
+          .wizard-left-hand
+        .wizard-head
+          .wizard-beard
+          .wizard-face
+            .wizard-adds
+          .wizard-hat
+            .wizard-hat-of-the-hat
+            .wizard-four-point-star.--first
+            .wizard-four-point-star.--second
+            .wizard-four-point-star.--third
+    .loading-word= _p('loading')
+
 script.
   (()=>{
     const $loadingBox = document.getElementById('loading-box')
@@ -29,10 +32,14 @@ script.
       endLoading: () => {
         $body.style.overflow = ''
         $loadingBox.classList.add('loaded')
+        setTimeout(() => {
+          $loadingBox.style.display = 'none'
+        }, 800)
       },
       initLoading: () => {
-        $body.style.overflow = 'hidden'
+        $loadingBox.style.display = 'flex'
         $loadingBox.classList.remove('loaded')
+        $body.style.overflow = 'hidden'
       }
     }
 
