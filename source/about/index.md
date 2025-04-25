@@ -10,7 +10,7 @@ description: "这里是你的个人简介"
 <div class="about-container">
     <div class="about-header">
         <div class="avatar-container">
-            <img src="https://bu.dusays.com/2025/04/25/680b4105c1c22.png" alt="avatar" class="avatar">
+            <img src="a.png" alt="avatar" class="avatar">
             <div class="avatar-glow"></div>
         </div>
         <h1 class="about-title">薛博璇</h1>
@@ -41,12 +41,12 @@ description: "这里是你的个人简介"
             <div class="tech-description">
                 曾复刻网易云课堂官网首页
             </div>
-            <img src="https://bu.dusays.com/2025/04/25/680b40b85c678.png" alt="网易云" class="tech-image">
+            <img src="WYY.png" alt="网易云" class="tech-image">
             <div class="tech-description">
                 制作响应式布局的连连看网页小游戏，游玩链接：
                 <a href="https://xbxlianliankan.netlify.app/" target="_blank" title="连连看传送门">点击这里体验</a>
             </div>
-            <img src="https://bu.dusays.com/2025/04/25/680b40d962f94.png" alt="连连看" class="tech-image">
+            <img src="LLK.png" alt="连连看" class="tech-image">
         </div>
         <div class="tech-card">
             <div class="card-header">
@@ -56,9 +56,9 @@ description: "这里是你的个人简介"
                 两年来举办了多场技术分享交流会，更新社团官网，为社团成员提供技术支持。
                 <a href="http://bistumaker.cn/" target="_blank" title="创客官网传送门">点此进入创客空间</a>
             </div>
-            <img src="https://bu.dusays.com/2025/04/25/680b3dc72a3f4.jpg" alt="maker" class="tech-image">
-            <img src="https://bu.dusays.com/2025/04/25/680b3de4daf73.jpg" alt="maker" class="tech-image">
-            <img src="https://bu.dusays.com/2025/04/25/680b3da9a8f29.jpg" alt="maker" class="tech-image">
+            <img src="maker1.jpg" alt="maker" class="tech-image">
+            <img src="maker2.jpg" alt="maker" class="tech-image">
+            <img src="maker3.jpg" alt="maker" class="tech-image">
         </div>
         <div class="tech-card">
             <div class="card-header">
@@ -67,10 +67,10 @@ description: "这里是你的个人简介"
             <div class="tech-description">
                 参加了两次跑跑码特校园挑战赛，参与组织数次HSD技术分享活动。
             </div>
-            <img src="https://bu.dusays.com/2025/04/25/680b3cb35d640.jpg" alt="hsd" class="tech-image">
-            <img src="https://bu.dusays.com/2025/04/25/680b3ca5ce20e.jpg" alt="hsd" class="tech-image">
-            <img src="https://bu.dusays.com/2025/04/25/680b3cbfc3dcd.jpg" alt="hsd" class="tech-image">
-            <img src="https://bu.dusays.com/2025/04/25/680b3cb909e2d.jpg" alt="hsd" class="tech-image">
+            <img src="hsd4.jpg" alt="hsd" class="tech-image">
+            <img src="hsd2.jpg" alt="hsd" class="tech-image">
+            <img src="hsd3.jpg" alt="hsd" class="tech-image">
+            <img src="hsd1.jpg" alt="hsd" class="tech-image">
         </div>
                 <div class="tech-card">
             <div class="card-header">
@@ -79,13 +79,13 @@ description: "这里是你的个人简介"
             <div class="tech-description">
                 主办了24级招新工作，参与了数次花粉社区活动，也曾前往华为北京研究所参观交流。
             </div>
-            <img src="https://bu.dusays.com/2025/04/25/680b3bc57272a.jpg" alt="hsd" class="tech-image">
-            <img src="https://bu.dusays.com/2025/04/25/680b3bc722e75.jpg" alt="hsd" class="tech-image">
-            <img src="https://bu.dusays.com/2025/04/25/680b3b93b1088.jpg" alt="hsd" class="tech-image">
-            <img src="https://bu.dusays.com/2025/04/25/680b3b9419262.jpg" alt="hsd" class="tech-image">
-            <img src="https://bu.dusays.com/2025/04/25/680b3b96559e9.jpg" alt="hsd" class="tech-image">
-            <img src="https://bu.dusays.com/2025/04/25/680b3ba37e5e1.jpg" alt="hsd" class="tech-image">
-            <img src="https://bu.dusays.com/2025/04/25/680b3bc57272a.jpg" alt="hsd" class="tech-image">
+            <img src="hf7.jpg" alt="hsd" class="tech-image">
+            <img src="hf6.jpg" alt="hsd" class="tech-image">
+            <img src="hf1.jpg" alt="hsd" class="tech-image">
+            <img src="hf2.jpg" alt="hsd" class="tech-image">
+            <img src="hf3.jpg" alt="hsd" class="tech-image">
+            <img src="hf4.jpg" alt="hsd" class="tech-image">
+            <img src="hf5.jpg" alt="hsd" class="tech-image">
         </div>
         <div class="about-section">
             <div class="section-header">
