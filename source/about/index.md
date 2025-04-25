@@ -29,6 +29,7 @@ description: "这里是你的个人简介"
                 已经考取鸿蒙开发者高级认证
             </div>
             <img src="professional.jpg" alt="技术栈概览" class="tech-image">
+            <img src="hdd.jpg" alt="技术栈概览" class="tech-image">
         </div>
         <div class="tech-card">
             <div class="card-header">
@@ -47,7 +48,7 @@ description: "这里是你的个人简介"
             </div>
             <img src="LLK.png" alt="连连看" class="tech-image">
         </div>
-                <div class="tech-card">
+        <div class="tech-card">
             <div class="card-header">
                 <h2>作为创客空间副社长</h2>
             </div>
@@ -55,9 +56,36 @@ description: "这里是你的个人简介"
                 两年来举办了多场技术分享交流会，更新社团官网，为社团成员提供技术支持。
                 <a href="http://bistumaker.cn/" target="_blank" title="创客官网传送门">点此进入创客空间</a>
             </div>
-            <img src="maker1.jpg" alt="网易云" class="tech-image">
-            <img src="maker2.jpg" alt="网易云" class="tech-image">
-            <img src="maker3.jpg" alt="网易云" class="tech-image">
+            <img src="maker1.jpg" alt="maker" class="tech-image">
+            <img src="maker2.jpg" alt="maker" class="tech-image">
+            <img src="maker3.jpg" alt="maker" class="tech-image">
+        </div>
+        <div class="tech-card">
+            <div class="card-header">
+                <h2>作为HSD校园开发者</h2>
+            </div>
+            <div class="tech-description">
+                参加了两次跑跑码特校园挑战赛，参与组织数次HSD技术分享活动。
+            </div>
+            <img src="hsd1.jpg" alt="hsd" class="tech-image">
+            <img src="hsd2.jpg" alt="hsd" class="tech-image">
+            <img src="hsd3.jpg" alt="hsd" class="tech-image">
+            <img src="hsd4.jpg" alt="hsd" class="tech-image">
+        </div>
+                <div class="tech-card">
+            <div class="card-header">
+                <h2>作为花粉俱乐部宣传部部长</h2>
+            </div>
+            <div class="tech-description">
+                主办了24级招新工作，参与了数次花粉社区活动，也曾前往华为北京研究所参观交流。
+            </div>
+            <img src="hf6.jpg" alt="hsd" class="tech-image">
+            <img src="hf7.jpg" alt="hsd" class="tech-image">
+            <img src="hf1.jpg" alt="hsd" class="tech-image">
+            <img src="hf2.jpg" alt="hsd" class="tech-image">
+            <img src="hf3.jpg" alt="hsd" class="tech-image">
+            <img src="hf4.jpg" alt="hsd" class="tech-image">
+            <img src="hf5.jpg" alt="hsd" class="tech-image">
         </div>
         <div class="about-section">
             <div class="section-header">
@@ -242,7 +270,50 @@ description: "这里是你的个人简介"
     border-radius: 15px;
     box-shadow: 0 8px 32px rgba(74, 144, 226, 0.2);
     margin-bottom: 1.5rem;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.5s ease;
+    opacity: 0;
+    position: relative;
+    background: linear-gradient(90deg, rgba(74, 144, 226, 0.1) 0%, rgba(0, 255, 157, 0.1) 50%, rgba(74, 144, 226, 0.1) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+.tech-image.loaded {
+    opacity: 1;
+    animation: none;
+    background: none;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.tech-image-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 15px;
+    margin-bottom: 1.5rem;
+}
+
+.tech-image-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(74, 144, 226, 0.1), rgba(0, 255, 157, 0.1));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.tech-image-container:hover::after {
+    opacity: 0.3;
 }
 
 .tech-image:hover {
@@ -390,3 +461,27 @@ description: "这里是你的个人简介"
     }
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const images = document.querySelectorAll('.tech-image');
+    
+    images.forEach(img => {
+        // 如果图片已经缓存，直接显示
+        if (img.complete) {
+            img.classList.add('loaded');
+        } else {
+            // 监听图片加载完成事件
+            img.addEventListener('load', function() {
+                this.classList.add('loaded');
+            });
+            
+            // 监听图片加载错误事件
+            img.addEventListener('error', function() {
+                this.style.background = 'rgba(255, 0, 0, 0.1)';
+                this.style.border = '2px dashed #ff0000';
+            });
+        }
+    });
+});
+</script>
