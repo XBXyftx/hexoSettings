@@ -195,6 +195,6 @@ java后端？干算法？确实是高薪高上限职业，但当初我的基础�
 
 ![86不存在的战区](ToTheApril2025/36.jpg)
 
-![86不存在的战区](ToTheApril2025/37.jpg)
+![86不存在的战区](ToTheApril2025/37.png)
 
-![86不存在的战区](ToTheApril2025/38.jpg)
+![86不存在的战区](ToTheApril2025/38.png)
