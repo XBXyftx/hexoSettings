@@ -11,7 +11,7 @@
 
 nav:
   # Navigation bar logo image
-  logo: /img/avatar.jpg
+  logo: /img/logo.png
   display_title: true
   # Whether to fix navigation bar
   fixed: false
@@ -52,10 +52,10 @@ social:
 # Image Settings
 # --------------------------------------
 
-favicon: /img/avatar.jpg
+favicon: /img/logo.png
 
 avatar:
-  img: /img/avatar.jpg
+  img: /img/logo.png
   effect: false
 
 # Disable all banner images
