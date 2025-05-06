@@ -15,25 +15,36 @@
   width 100vw
   height 100vh
   overflow hidden
-  opacity 1
-  transition opacity 0.8s ease-out, z-index 0.8s ease-out
+  background var(--preloader-bg)
+  clip-path: inset(0 0 0 0)
+  transition clip-path 1.0s ease-out
 
   .loading-left-bg
-    @extend .loading-bg
+    position fixed
+    z-index 1000
+    width 50%
+    height 100%
+    background var(--preloader-bg)
     left 0
+    transition all 1.0s
+
   .loading-right-bg
-    @extend .loading-bg
+    position fixed
+    z-index 1000
+    width 50%
+    height 100%
+    background var(--preloader-bg)
     right 0
+    transition all 1.0s
 
   &.loaded
+    clip-path: inset(0 50% 0 50%)
     opacity 0
     pointer-events none
     z-index -1000
     .loading-left-bg
-      transition all 1.0s
       transform translate(-100%, 0)
     .loading-right-bg
-      transition all 1.0s
       transform translate(100%, 0)
     .wizard-scene
       display none

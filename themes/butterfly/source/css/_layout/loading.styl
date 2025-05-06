@@ -3,5 +3,7 @@ if hexo-config('preloader.enable')
     @import './_load_style/image'
   else if hexo-config('preloader.load_style') == 'wizard'
     @import './_load_style/wizard'
+  else if hexo-config('preloader.load_style') == 'spincat'
+    @import './_load_style/spincat'
   else
     @import './_load_style/default'
