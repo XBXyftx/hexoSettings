@@ -5,5 +5,7 @@ if hexo-config('preloader.enable')
     @import './_load_style/wizard'
   else if hexo-config('preloader.load_style') == 'spincat'
     @import './_load_style/spincat'
+  else if hexo-config('preloader.load_style') == 'nyancat'
+    @import './_load_style/nyancat'
   else
     @import './_load_style/default'
