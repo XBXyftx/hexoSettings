@@ -42,3 +42,33 @@ if theme.aside.card_webinfo.enable
           .item-name= `${_p('aside.card_webinfo.last_push_date.name')} :`
           .item-count#last-push-date(data-lastPushDate=date_xml(Date.now()))
             i.fa-solid.fa-spinner.fa-spin
+
+script.
+    function initCounter(targetId, initValue) {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                const element = mutation.target;
+                const currentValue = parseInt(element.textContent);
+                if (!isNaN(currentValue)) {
+                    element.textContent = currentValue + parseInt(#{theme.busuanzi.init_pv}); 
+                    observer.disconnect();
+                }
+            });
+        });
+
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+            observer.observe(targetElement, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
+        }
+    }
+
+    // 初始化访问量统计
+    initCounter('busuanzi_value_site_pv');
+    // 初始化访客量统计 
+    initCounter('busuanzi_value_site_uv');
+script checkUv()
+

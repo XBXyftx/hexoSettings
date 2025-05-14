@@ -107,8 +107,10 @@ theme: butterfly
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
-  repo: git@github.com:XBXyftx/XBXyftx.github.io.git
-  branch: main
+  repo: 
+    github: git@github.com:XBXyftx/XBXyftx.github.io.git,main
+    blog: root@113.47.8.204:/home/git/blog.git,main
+  # branch: main
   
 mermaid:
   enable: true
