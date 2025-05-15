@@ -108,9 +108,9 @@ theme: butterfly
 deploy:
   type: git
   repo: 
-    github: git@github.com:XBXyftx/XBXyftx.github.io.git,main
-    blog: root@113.47.8.204:/home/git/blog.git,main
-  # branch: main
+    github: git@github.com:XBXyftx/XBXyftx.github.io.git
+    blog: git@113.47.8.204:/home/git/blog.git
+  branch: main
   
 mermaid:
   enable: true
