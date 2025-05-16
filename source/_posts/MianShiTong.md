@@ -7,7 +7,6 @@ tags:
   - 项目
   - V2
 description: 面试通项目开发笔记
-swiper_index: 5
 cover: /img/ArticleTopImgs/MSTTopImg.png
 post_copyright:
 copyright_author: XBXyftx

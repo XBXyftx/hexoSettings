@@ -10,7 +10,6 @@ tags:
   - 扣子
   - 智能体
 top: 15
-swiper_index: 1
 description: 鸿小易，你的鸿蒙开发好帮手。
 cover: /img/ArticleTopImgs/hxyTopImg.png
 post_copyright:
@@ -3221,7 +3220,7 @@ Account Kit（华为账号服务）提供简单、快速、安全的登录功能
 
 这一部分我会单独拆出一篇文章来进行记录。
 
-[传送门](https://xbxyftx.top/2025/05/14/accountkittest/)
+[传送门](/2025/05/14/accountkittest/)
 
 ## 特别鸣谢
 
