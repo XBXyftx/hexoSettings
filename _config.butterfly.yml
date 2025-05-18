@@ -451,17 +451,14 @@ busuanzi:
 # if you set it to true, it will load mathjax/katex script in each page
 # if you set it to false, it will load mathjax/katex script according to your setting (add the 'mathjax: true' or 'katex: true' in page's front-matter)
 math:
-  # Choose: mathjax, katex
-  # Leave it empty if you don't need math
-  use:
-  per_page: true
-  hide_scrollbar: false
-
+  engine: 'mathjax' # 使用MathJax引擎来渲染公式
   mathjax:
-    # Enable the contextual menu
-    enableMenu: true
-    # Choose: all / ams / none, This controls whether equations are numbered and how
-    tags: none
+    src: //cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+    config:
+      tex2jax:
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ]
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        processEscapes: true
 
   katex:
     # Enable the copy KaTeX formula
@@ -1272,3 +1269,12 @@ swiper:
   swiper_js: https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiper.min.js #swiper js依赖
   custom_css: https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiperstyle.css # 适配主题样式补丁
   custom_js: https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiper_init.js # swiper初始化方法
+# math:
+#   engine: 'mathjax' # 使用MathJax引擎来渲染公式
+#   mathjax:
+#     src: //cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+#     config:
+#       tex2jax:
+#         inlineMath: [ ['$','$'], ["\\(","\\)"] ]
+#         skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+#         processEscapes: true
