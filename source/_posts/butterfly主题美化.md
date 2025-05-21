@@ -4,7 +4,7 @@ date: 2025-01-26 17:07:22
 tags:
   - hexo博客搭建
   - 主题美化
-cover:  /img/ArticleTopImgs/ButterTopImg.png
+cover:  /img/ArticleTopImgs/ButterTopImg.jpg
 description: 博客搭建教程
 post_copyright:
 copyright_author: XBXyftx
