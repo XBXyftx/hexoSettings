@@ -266,8 +266,7 @@ footer:
   owner:
     enable: true
     since: 2023
-  custom_text:
-  # Copyright of theme and framework
+  custom_text: <a href="https://beian.miit.gov.cn/#/Integrated/index"><span>备案号：京ICP备2025126467号</span></a>
   copyright: true
 
 # --------------------------------------
@@ -296,7 +295,7 @@ aside:
       link: https://github.com/XBXyftx
   card_announcement:
     enable: true
-    content: 25年的计划开始执行了吗？
+    content: ICP备案完成！xbxyftx.top正式恢复运营！！！
   card_recent_post:
     enable: true
     # If set 0 will show all
