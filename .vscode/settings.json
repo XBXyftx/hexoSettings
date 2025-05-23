@@ -11,5 +11,6 @@
         "strings": "on"
     },
     "Codegeex.RepoIndex": true,
-    "Codegeex.CommitMessageStyle": "Default"
+    "Codegeex.CommitMessageStyle": "Default",
+    "Codegeex.CompletionDelay": 0.3
 }
