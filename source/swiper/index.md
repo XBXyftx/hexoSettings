@@ -69,7 +69,7 @@ description: "这里是你的个人简介"
     /* 移除文字遮罩层，只保留图片放大效果 */
 
   /* 加载动画 */
-  .loading-indicator {
+  .loading-indicator, .load-more-indicator {
     text-align: center;
     padding: 40px;
     color: rgba(255, 255, 255, 0.7);
@@ -85,6 +85,45 @@ description: "这里是你的个人简介"
     border-top-color: rgba(255, 255, 255, 0.8);
     animation: spin 1s ease-in-out infinite;
     margin-bottom: 10px;
+  }
+
+  /* 进度指示器样式 */
+  .progress-indicator {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 12px;
+    padding: 15px 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    opacity: 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+    min-width: 200px;
+  }
+
+  .progress-text {
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00f5ff, #0080ff);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+    width: 0%;
   }
 
   @keyframes spin {
@@ -157,6 +196,15 @@ description: "这里是你的个人简介"
     .waterfall-item:hover {
       transform: translateY(-3px) scale(1.04);
     }
+
+    .progress-indicator {
+      top: 10px;
+      right: 10px;
+      left: 10px;
+      min-width: auto;
+      font-size: 12px;
+      padding: 12px 15px;
+    }
   }
 
   @media (max-width: 480px) {
@@ -214,6 +262,16 @@ description: "这里是你的个人简介"
     <div class="loading-spinner"></div>
     <div>正在扫描图片文件...本功能为测试功能数据加载较慢请耐心等待一分钟左右</div>
   </div>
+  
+
+  
+  <!-- 进度指示器 -->
+  <div class="progress-indicator" id="progressIndicator" style="display: none;">
+    <div class="progress-text">已加载 <span id="loadedCount">0</span> / <span id="totalCount">0</span> 张图片</div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -223,7 +281,7 @@ description: "这里是你的个人简介"
     imageFolderPath: '/swiper/images/',
     // 支持的图片格式
     supportedFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'],
-    loadDelay: 200, // 每张图片加载间隔
+    loadDelay: 150, // 每张图片加载间隔（优化为150ms）
     observerOptions: {
       threshold: 0.1,
       rootMargin: '50px'
@@ -233,11 +291,16 @@ description: "这里是你的个人简介"
   document.addEventListener('DOMContentLoaded', function() {
     const grid = document.getElementById('waterfallGrid');
     const loadingIndicator = document.getElementById('loadingIndicator');
+    const progressIndicator = document.getElementById('progressIndicator');
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
     let loadedCount = 0;
     let currentImages = [];
+    let allImages = []; // 存储所有图片
+    let currentBatch = 0; // 当前批次
+    let isLoading = false; // 是否正在加载
     let columnHeights = [0, 0]; // 两列的高度
+    const BATCH_SIZE = 30; // 每批加载的图片数量
     const getGap = () => window.innerWidth <= 480 ? 10 : (window.innerWidth <= 768 ? 12 : 15);
     const columnWidth = () => (grid.offsetWidth - getGap()) / 2; // 计算列宽
 
@@ -307,7 +370,7 @@ description: "这里是你的个人简介"
     }
 
         // 创建图片元素
-    function createImageItem(src, index, filename = '') {
+    function createImageItem(src, index, filename = '', onLoadCallback = null) {
       const item = document.createElement('div');
       item.className = 'waterfall-item';
       
@@ -318,35 +381,51 @@ description: "这里是你的个人简介"
       
       item.appendChild(img);
 
+      // 添加超时处理
+      let loadTimeout;
+      let hasLoaded = false;
+
+      const handleLoadComplete = (success = true) => {
+        if (hasLoaded) return; // 防止重复调用
+        hasLoaded = true;
+        
+        if (loadTimeout) {
+          clearTimeout(loadTimeout);
+        }
+        
+        if (success) {
+          console.log(`✅ 图片 ${index + 1} (${filename}) 加载成功`);
+        } else {
+          console.warn(`❌ 图片 ${index + 1} (${filename}) 加载失败或超时`);
+        }
+        
+        // 调用回调函数
+        if (onLoadCallback) {
+          onLoadCallback();
+        }
+      };
+
       // 图片加载完成后的处理
       img.onload = () => {
         positionItem(item, img);
-        loadedCount++;
-        
-        // 延迟一点时间再检查是否全部加载完成，确保布局稳定
-        setTimeout(() => {
-          if (loadedCount === currentImages.length) {
-            hideLoadingIndicator();
-            updateGridHeight();
-            // 触发所有图片的浮现动画
-            triggerVisibilityAnimation();
-          }
-        }, 50);
+        handleLoadComplete(true);
       };
 
       // 图片加载失败的处理
       img.onerror = () => {
+        console.warn(`图片加载失败: ${src}`);
         item.style.display = 'none';
-        loadedCount++;
-        
-        setTimeout(() => {
-          if (loadedCount === currentImages.length) {
-            hideLoadingIndicator();
-            updateGridHeight();
-            triggerVisibilityAnimation();
-          }
-        }, 50);
+        handleLoadComplete(false);
       };
+
+      // 设置超时处理（6秒后强制完成）
+      loadTimeout = setTimeout(() => {
+        if (!hasLoaded) {
+          console.warn(`⏰ 图片加载超时(4s): ${src}`);
+          item.style.display = 'none';
+          handleLoadComplete(false);
+        }
+      }, 4000);
 
       // 添加点击事件
       item.addEventListener('click', () => {
@@ -402,9 +481,24 @@ description: "这里是你的个人简介"
       });
     }
 
-    // 逐个加载图片
+    // 触发新加载图片的动画
+    function triggerNewItemsAnimation(startIndex) {
+      const allItems = grid.querySelectorAll('.waterfall-item.positioned');
+      const newItems = Array.from(allItems).slice(startIndex);
+      
+      newItems.forEach((item, index) => {
+        setTimeout(() => {
+          observer.observe(item);
+        }, index * 50);
+      });
+    }
+
+
+
+    // 分批加载图片
     function loadImages(imageList) {
-      currentImages = imageList;
+      allImages = imageList;
+      currentBatch = 0;
       loadedCount = 0;
       grid.innerHTML = ''; // 清空现有内容
       resetLayout(); // 重置布局
@@ -415,14 +509,109 @@ description: "这里是你的个人简介"
         return;
       }
 
-      imageList.forEach((src, index) => {
-        setTimeout(() => {
-          const filename = src.split('/').pop();
-          const item = createImageItem(src, index, filename);
-          grid.appendChild(item);
+      // 显示进度指示器（当图片数量大于1批时）
+      if (imageList.length > BATCH_SIZE) {
+        showProgressIndicator();
+        updateProgress();
+      }
+
+      // 加载第一批图片
+      loadNextBatch();
+    }
+
+    // 加载下一批图片
+    function loadNextBatch() {
+      if (isLoading || currentBatch * BATCH_SIZE >= allImages.length) {
+        return;
+      }
+
+      isLoading = true;
+      const startIndex = currentBatch * BATCH_SIZE;
+      const endIndex = Math.min(startIndex + BATCH_SIZE, allImages.length);
+      const batchImages = allImages.slice(startIndex, endIndex);
+      
+      console.log(`🚀 开始加载第 ${currentBatch + 1} 批图片: ${startIndex + 1}-${endIndex} (共 ${allImages.length} 张)`);
+      
+      // 更新加载提示（仅在第一批时显示主加载指示器）
+      if (currentBatch === 0) {
+        // 第一批使用主加载指示器
+        const loadingText = loadingIndicator.querySelector('div:last-child');
+        if (loadingText) {
+          loadingText.textContent = `正在加载第 ${currentBatch + 1} 批图片 (${startIndex + 1}-${endIndex}/${allImages.length})...`;
+        }
+      }
+      // 后续批次不显示底部加载指示器，只通过右上角进度条显示进度
+
+      let batchLoadedCount = 0;
+      
+      // 设置批次超时机制（10秒后强制完成当前批次）
+      const batchTimeout = setTimeout(() => {
+        if (batchLoadedCount < batchImages.length) {
+          console.warn(`⚠️ 批次 ${currentBatch + 1} 加载超时(10s)，强制完成。已加载 ${batchLoadedCount}/${batchImages.length} 张`);
           
-          // 不在这里添加observer，等所有图片加载完成后统一处理
-        }, index * config.loadDelay);
+          // 强制完成当前批次
+          currentBatch++;
+          isLoading = false;
+          
+          // 继续加载下一批
+          if (currentBatch * BATCH_SIZE < allImages.length) {
+            setTimeout(() => {
+              loadNextBatch();
+            }, 300);
+          } else {
+            console.log('🎉 所有图片加载完成（部分可能超时）！');
+          }
+        }
+      }, 10000);
+      
+      batchImages.forEach((src, batchIndex) => {
+        setTimeout(() => {
+          const globalIndex = startIndex + batchIndex;
+          const filename = src.split('/').pop();
+          const item = createImageItem(src, globalIndex, filename, () => {
+            batchLoadedCount++;
+            loadedCount++;
+            
+            console.log(`批次 ${currentBatch + 1}: 已加载 ${batchLoadedCount}/${batchImages.length} 张，总计 ${loadedCount}/${allImages.length} 张`);
+            
+            // 更新进度
+            updateProgress();
+            
+            // 当前批次加载完成
+            if (batchLoadedCount === batchImages.length) {
+              // 清除批次超时定时器
+              clearTimeout(batchTimeout);
+              
+              currentBatch++;
+              isLoading = false;
+              
+              console.log(`✅ 第 ${currentBatch} 批图片加载完成！(${batchImages.length}张)`);
+              
+              // 如果是第一批，隐藏加载指示器并显示内容
+              if (currentBatch === 1) {
+                hideLoadingIndicator();
+                updateGridHeight();
+                triggerVisibilityAnimation();
+              } else {
+                updateGridHeight();
+                // 为新加载的图片添加动画
+                triggerNewItemsAnimation(startIndex);
+              }
+              
+              // 检查是否还有更多图片需要加载，如果有则自动继续加载
+              if (currentBatch * BATCH_SIZE < allImages.length) {
+                console.log(`🔄 还有 ${allImages.length - currentBatch * BATCH_SIZE} 张图片待加载，继续自动加载...`);
+                // 短暂延迟后自动加载下一批，确保当前批次的动画效果完成
+                setTimeout(() => {
+                  loadNextBatch();
+                }, 300);
+              } else {
+                console.log('🎉 所有图片加载完成！');
+              }
+            }
+          });
+          grid.appendChild(item);
+        }, batchIndex * config.loadDelay);
       });
     }
 
@@ -451,6 +640,49 @@ description: "这里是你的个人简介"
           loadingIndicator.style.display = 'none';
         }, 300);
       }, 500);
+    }
+
+
+
+    // 显示进度指示器
+    function showProgressIndicator() {
+      progressIndicator.style.display = 'block';
+      setTimeout(() => {
+        progressIndicator.style.opacity = '1';
+      }, 10);
+    }
+
+    // 隐藏进度指示器
+    function hideProgressIndicator() {
+      progressIndicator.style.opacity = '0';
+      setTimeout(() => {
+        progressIndicator.style.display = 'none';
+      }, 300);
+    }
+
+    // 更新进度
+    function updateProgress() {
+      const totalCount = allImages.length;
+      const loadedCountSpan = document.getElementById('loadedCount');
+      const totalCountSpan = document.getElementById('totalCount');
+      const progressFill = document.getElementById('progressFill');
+      
+      if (loadedCountSpan) loadedCountSpan.textContent = loadedCount;
+      if (totalCountSpan) totalCountSpan.textContent = totalCount;
+      
+      const percentage = totalCount > 0 ? (loadedCount / totalCount) * 100 : 0;
+      if (progressFill) progressFill.style.width = percentage + '%';
+      
+      // 输出详细的进度信息
+      console.log(`📊 进度更新: ${loadedCount}/${totalCount} (${percentage.toFixed(1)}%)`);
+      
+      // 当全部加载完成时，延迟隐藏进度指示器
+      if (loadedCount >= totalCount && totalCount > 0) {
+        console.log('🎯 所有图片加载完成，准备隐藏进度指示器');
+        setTimeout(() => {
+          hideProgressIndicator();
+        }, 2000);
+      }
     }
 
     // 处理文件上传
@@ -494,19 +726,22 @@ description: "这里是你的个人简介"
 
     // 加载上传的图片
     function loadUploadedImages(imageData) {
-      currentImages = imageData;
+      // 将上传的图片转换为URL格式
+      const imageUrls = imageData.map(item => item.src);
+      
+      // 使用分批加载逻辑
+      allImages = imageUrls;
+      currentBatch = 0;
       loadedCount = 0;
       grid.innerHTML = ''; // 清空现有内容
       resetLayout(); // 重置布局
 
-      imageData.forEach((item, index) => {
-        setTimeout(() => {
-          const imageItem = createImageItem(item.src, index, item.name);
-          grid.appendChild(imageItem);
-          
-          // 不在这里添加observer，等所有图片加载完成后统一处理
-        }, index * config.loadDelay);
-      });
+      // 显示加载指示器
+      loadingIndicator.style.display = 'block';
+      loadingIndicator.style.opacity = '1';
+      
+      // 开始分批加载
+      loadNextBatch();
     }
 
     // 设置文件上传事件
@@ -672,6 +907,32 @@ description: "这里是你的个人简介"
       }, 100);
     }
 
+    // 加载状态监控
+    function startLoadingMonitor() {
+      const monitorInterval = setInterval(() => {
+        if (allImages.length > 0) {
+          const progress = (loadedCount / allImages.length * 100).toFixed(1);
+          const expectedBatch = Math.ceil(loadedCount / BATCH_SIZE);
+          console.log(`🔍 加载监控: ${loadedCount}/${allImages.length} (${progress}%) - 当前批次: ${currentBatch + 1} - 正在加载: ${isLoading}`);
+          
+          // 检查是否有异常情况
+          if (isLoading && currentBatch > 0) {
+            const currentBatchStart = (currentBatch - 1) * BATCH_SIZE;
+            const currentBatchEnd = Math.min(currentBatchStart + BATCH_SIZE, allImages.length);
+            console.log(`📋 当前批次详情: 第${currentBatch}批 (${currentBatchStart + 1}-${currentBatchEnd})`);
+          }
+          
+          // 如果加载完成，停止监控
+          if (loadedCount >= allImages.length) {
+            console.log('✅ 加载监控: 所有图片已加载完成');
+            clearInterval(monitorInterval);
+          }
+        }
+      }, 5000); // 每5秒检查一次
+      
+      return monitorInterval;
+    }
+
     // 初始化
     async function initialize() {
       setupFileUpload();
@@ -689,6 +950,9 @@ description: "这里是你的个人简介"
       if (localImages && localImages.length > 0) {
         console.log('找到本地图片:', localImages.length, '张');
         loadImages(localImages);
+        
+        // 启动加载监控
+        startLoadingMonitor();
       } else {
         console.log('未找到本地图片，显示空状态');
         // 直接显示空状态，不加载任何备用图片
