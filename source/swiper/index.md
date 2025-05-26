@@ -192,43 +192,7 @@ description: "这里是你的个人简介"
     background: rgba(255, 255, 255, 0.5);
   }
 
-  /* 返回顶部按钮 */
-  .back-to-top {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 50px;
-    height: 50px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-    z-index: 1000;
-  }
 
-  .back-to-top.visible {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  .back-to-top:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-3px);
-  }
-
-  .back-to-top::before {
-    content: "↑";
-    color: white;
-    font-size: 20px;
-    font-weight: bold;
-  }
 </style>
 
 <div class="waterfall-container">
@@ -252,8 +216,6 @@ description: "这里是你的个人简介"
   </div>
 </div>
 
-<div class="back-to-top" id="backToTop"></div>
-
 <script>
   // 配置参数
   const config = {
@@ -271,7 +233,6 @@ description: "这里是你的个人简介"
   document.addEventListener('DOMContentLoaded', function() {
     const grid = document.getElementById('waterfallGrid');
     const loadingIndicator = document.getElementById('loadingIndicator');
-    const backToTop = document.getElementById('backToTop');
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
     let loadedCount = 0;
@@ -683,23 +644,7 @@ description: "这里是你的个人简介"
       document.addEventListener('keydown', handleKeydown);
     }
 
-    // 返回顶部功能
-    function setupBackToTop() {
-      window.addEventListener('scroll', () => {
-        if (window.pageYOffset > 300) {
-          backToTop.classList.add('visible');
-        } else {
-          backToTop.classList.remove('visible');
-        }
-      });
 
-      backToTop.addEventListener('click', () => {
-        window.scrollTo({
-          top: 0,
-          behavior: 'smooth'
-        });
-      });
-    }
 
     // 重新布局所有图片
     function relayoutImages() {
@@ -730,7 +675,6 @@ description: "这里是你的个人简介"
     // 初始化
     async function initialize() {
       setupFileUpload();
-      setupBackToTop();
 
       // 窗口大小变化时重新布局
       let resizeTimeout;
