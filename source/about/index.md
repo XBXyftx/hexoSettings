@@ -67,6 +67,8 @@ description: "这里是你的个人简介"
             <div class="tech-description">
                 参加了两次跑跑码特校园挑战赛，参与组织数次HSD技术分享活动。
             </div>
+            <img src="hsd6.jpg" alt="hsd" class="tech-image">
+            <img src="hsd5.jpg" alt="hsd" class="tech-image">
             <img src="hsd4.jpg" alt="hsd" class="tech-image">
             <img src="hsd2.jpg" alt="hsd" class="tech-image">
             <img src="hsd3.jpg" alt="hsd" class="tech-image">

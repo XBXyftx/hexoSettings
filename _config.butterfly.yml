@@ -27,6 +27,7 @@ menu:
   #   电影: /movies/ || fas fa-video
   友情链接: /link/ || fas fa-link
   留言板: /comments/ || fa-solid fa-comment
+  图图图图图: /swiper/ || fa-solid fa-star-of-david
   关于我: /about/ || fas fa-heart
 
 # Code Blocks (代码块相关)
