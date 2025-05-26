@@ -88,6 +88,8 @@ description: "这里是你的个人简介"
             <img src="hf3.jpg" alt="hsd" class="tech-image">
             <img src="hf4.jpg" alt="hsd" class="tech-image">
             <img src="hf5.jpg" alt="hsd" class="tech-image">
+            <img src="hf8.jpg" alt="hsd" class="tech-image">
+            <img src="hf9.jpg" alt="hsd" class="tech-image">
         </div>
         <div class="about-section">
             <div class="section-header">
