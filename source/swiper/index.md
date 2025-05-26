@@ -248,7 +248,7 @@ description: "这里是你的个人简介"
   
   <div class="loading-indicator" id="loadingIndicator">
     <div class="loading-spinner"></div>
-    <div>正在扫描图片文件...</div>
+    <div>正在扫描图片文件...本功能为测试功能数据加载较慢请耐心等待一分钟左右</div>
   </div>
 </div>
 
