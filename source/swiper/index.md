@@ -1,5 +1,5 @@
 ---
-title: 图图图图图
+title: 昨日重现
 date: 2025-05-26 16:03:13
 type: about
 top_img: /img/swiperTopImg.jpg  # 自定义顶部图
