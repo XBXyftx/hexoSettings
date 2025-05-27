@@ -37,10 +37,34 @@ description: "这里是你的个人简介"
     visibility: hidden; /* 初始隐藏，防止未定位时显示 */
   }
 
+
+
   .waterfall-item.visible {
     opacity: 1;
     transform: translateY(0) scale(1);
     visibility: visible; /* 定位完成后显示 */
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3),
+                0 0 0 2px rgba(135, 206, 250, 0.5),
+                0 0 0 4px rgba(0, 255, 127, 0.4);
+    animation: colorfulGlow 0.8s ease-out;
+  }
+
+  @keyframes colorfulGlow {
+    0% {
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
+                  0 0 0 0px rgba(135, 206, 250, 0),
+                  0 0 0 0px rgba(0, 255, 127, 0);
+    }
+    50% {
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3),
+                  0 0 0 3px rgba(135, 206, 250, 0.8),
+                  0 0 0 6px rgba(0, 255, 127, 0.7);
+    }
+    100% {
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3),
+                  0 0 0 2px rgba(135, 206, 250, 0.5),
+                  0 0 0 4px rgba(0, 255, 127, 0.4);
+    }
   }
 
   .waterfall-item.positioned {
@@ -49,10 +73,12 @@ description: "这里是你的个人简介"
 
   .waterfall-item:hover {
     transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4),
+                0 0 0 3px rgba(135, 206, 250, 0.8),
+                0 0 0 6px rgba(0, 255, 127, 0.7);
     border: 2px solid transparent;
     background: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)) padding-box,
-                linear-gradient(135deg, #00f5ff, #0080ff, #00ff80, #00f5ff) border-box;
+                linear-gradient(135deg, #87ceeb, #00ff7f, #87ceeb) border-box;
   }
 
   .waterfall-item img {
@@ -90,8 +116,9 @@ description: "这里是你的个人简介"
   /* 进度指示器样式 */
   .progress-indicator {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
     background: rgba(0, 0, 0, 0.8);
     border-radius: 12px;
     padding: 15px 20px;
@@ -198,12 +225,23 @@ description: "这里是你的个人简介"
     }
 
     .progress-indicator {
-      top: 10px;
-      right: 10px;
+      top: auto;
+      bottom: 80px;
       left: 10px;
+      right: 10px;
+      transform: none;
       min-width: auto;
       font-size: 12px;
       padding: 12px 15px;
+    }
+
+    .preload-indicator {
+      top: auto;
+      bottom: 140px;
+      left: 10px;
+      right: 10px;
+      transform: none;
+      text-align: center;
     }
   }
 
@@ -253,12 +291,48 @@ description: "这里是你的个人简介"
   .waterfall-container {
     -webkit-overflow-scrolling: touch; /* iOS 滚动优化 */
     overscroll-behavior: auto; /* 允许原生滚动行为 */
+    contain: layout style paint; /* CSS containment 优化 */
+  }
+
+  /* 图片加载优化 */
+  .waterfall-item img {
+    will-change: transform; /* 提示浏览器优化变换 */
+    content-visibility: auto; /* 内容可见性优化 */
+    contain: layout style paint; /* CSS containment */
+  }
+
+  /* 预加载提示 */
+  .preload-indicator {
+    position: fixed;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-80px); /* 在进度指示器上方 */
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    z-index: 1001;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .preload-indicator.visible {
+    opacity: 1;
+    visibility: visible;
   }
 
 
-</style>
+  </style>
 
 <div class="waterfall-container">
+  <div style="text-align: center; margin-bottom: 20px; color: rgba(255, 255, 255, 0.8); font-size: 18px; font-weight: 500;">
+    📸 本功能仍为beta测试版，欢迎大家在评论区提意见
+  </div>
+  
   <div class="upload-area" id="uploadArea" style="display: none;">
     <div style="color: rgba(255, 255, 255, 0.7); margin-bottom: 10px;">
       📁 将图片拖拽到这里或点击选择图片
@@ -277,17 +351,19 @@ description: "这里是你的个人简介"
     <div class="loading-spinner"></div>
     <div>正在扫描图片文件...本功能为测试功能数据加载较慢请耐心等待一分钟左右</div>
   </div>
-  
+    
 
-  
-  <!-- 进度指示器 -->
   <div class="progress-indicator" id="progressIndicator" style="display: none;">
     <div class="progress-text">已加载 <span id="loadedCount">0</span> / <span id="totalCount">0</span> 张图片</div>
     <div class="progress-bar">
       <div class="progress-fill" id="progressFill"></div>
     </div>
   </div>
-</div>
+
+  <div class="preload-indicator" id="preloadIndicator">
+    🚀 预加载中...
+  </div>
+    </div>
 
 <script>
   // 配置参数
@@ -296,10 +372,12 @@ description: "这里是你的个人简介"
     imageFolderPath: '/swiper/images/',
     // 支持的图片格式
     supportedFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'],
-    loadDelay: 150, // 每张图片加载间隔（优化为150ms）
+    loadDelay: 50, // 减少加载间隔到50ms
+    concurrentLoads: 6, // 并发加载数量
+    preloadCount: 10, // 预加载图片数量
     observerOptions: {
-      threshold: 0.1,
-      rootMargin: '50px'
+      threshold: 0.15, // 增加阈值，图片更多进入视口才显示
+      rootMargin: '20px' // 减少边距，延迟显示时机
     }
   };
 
@@ -315,7 +393,10 @@ description: "这里是你的个人简介"
     let currentBatch = 0; // 当前批次
     let isLoading = false; // 是否正在加载
     let columnHeights = [0, 0]; // 两列的高度
-    const BATCH_SIZE = 30; // 每批加载的图片数量
+    const BATCH_SIZE = 20; // 减少每批数量，增加并发
+    let activeLoads = 0; // 当前活跃的加载任务数
+    let loadQueue = []; // 加载队列
+    let preloadedImages = new Map(); // 预加载的图片缓存
     const getGap = () => window.innerWidth <= 480 ? 10 : (window.innerWidth <= 768 ? 12 : 15);
     const columnWidth = () => (grid.offsetWidth - getGap()) / 2; // 计算列宽
 
@@ -323,8 +404,11 @@ description: "这里是你的个人简介"
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
+          // 添加额外延迟，让图片浮现更晚一些
+          setTimeout(() => {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }, 200); // 200ms延迟，让浮现效果更明显
         }
       });
     }, config.observerOptions);
@@ -384,15 +468,51 @@ description: "这里是你的个人简介"
       return validImages.length > 0 ? validImages : null;
     }
 
-        // 创建图片元素
+    // 预加载图片
+    function preloadImage(src) {
+      return new Promise((resolve, reject) => {
+        if (preloadedImages.has(src)) {
+          resolve(preloadedImages.get(src));
+          return;
+        }
+
+        const img = new Image();
+        img.onload = () => {
+          preloadedImages.set(src, img);
+          resolve(img);
+        };
+        img.onerror = reject;
+        img.src = src;
+      });
+    }
+
+    // 并发加载管理器
+    function processLoadQueue() {
+      while (loadQueue.length > 0 && activeLoads < config.concurrentLoads) {
+        const task = loadQueue.shift();
+        activeLoads++;
+        
+        task().finally(() => {
+          activeLoads--;
+          processLoadQueue(); // 继续处理队列
+        });
+      }
+    }
+
+    // 添加加载任务到队列
+    function addToLoadQueue(loadTask) {
+      loadQueue.push(loadTask);
+      processLoadQueue();
+    }
+
+        // 创建图片元素（使用预加载）
     function createImageItem(src, index, filename = '', onLoadCallback = null) {
       const item = document.createElement('div');
       item.className = 'waterfall-item';
       
       const img = document.createElement('img');
-      img.src = src;
       img.alt = filename || `图片 ${index + 1}`;
-      img.loading = 'lazy'; // 懒加载
+      img.loading = 'eager'; // 改为eager加载，因为我们有并发控制
       
       item.appendChild(img);
 
@@ -420,63 +540,143 @@ description: "这里是你的个人简介"
         }
       };
 
-      // 图片加载完成后的处理
-      img.onload = () => {
-        positionItem(item, img);
-        handleLoadComplete(true);
-      };
-
-      // 图片加载失败的处理
-      img.onerror = () => {
-        console.warn(`图片加载失败: ${src}`);
-        item.style.display = 'none';
-        handleLoadComplete(false);
-      };
-
-      // 设置超时处理（6秒后强制完成）
-      loadTimeout = setTimeout(() => {
-        if (!hasLoaded) {
-          console.warn(`⏰ 图片加载超时(4s): ${src}`);
+      // 使用预加载的图片或直接加载
+      const loadImage = async () => {
+        try {
+          let preloadedImg;
+          
+          // 尝试使用预加载的图片
+          if (preloadedImages.has(src)) {
+            preloadedImg = preloadedImages.get(src);
+            console.log(`🚀 使用预加载图片 ${index + 1}`);
+          } else {
+            // 如果没有预加载，直接加载
+            preloadedImg = await preloadImage(src);
+            console.log(`📥 直接加载图片 ${index + 1}`);
+          }
+          
+          // 设置图片源
+          img.src = src;
+          
+          // 确保容器有宽度再进行定位
+          if (grid.offsetWidth > 0) {
+            positionItem(item, preloadedImg);
+          } else {
+            // 如果容器宽度为0，等待一下再重试
+            setTimeout(() => {
+              if (grid.offsetWidth > 0) {
+                positionItem(item, preloadedImg);
+              } else {
+                console.warn(`容器宽度为0，无法定位图片: ${src}`);
+                // 使用默认布局，但仍然等待滚动显示
+                item.style.position = 'relative';
+                item.style.width = '100%';
+                item.style.marginBottom = '15px';
+                item.classList.add('positioned');
+                // 不直接添加visible类，让Observer来控制显示
+              }
+            }, 100);
+          }
+          
+          handleLoadComplete(true);
+        } catch (error) {
+          console.warn(`图片加载失败: ${src}`, error);
           item.style.display = 'none';
           handleLoadComplete(false);
         }
-      }, 4000);
+      };
+
+      // 设置超时处理（减少到3秒）
+      loadTimeout = setTimeout(() => {
+        if (!hasLoaded) {
+          console.warn(`⏰ 图片加载超时(3s): ${src}`);
+          item.style.display = 'none';
+          handleLoadComplete(false);
+        }
+      }, 3000);
 
       // 添加点击事件
       item.addEventListener('click', () => {
         openImageModal(src, index, filename);
       });
 
+      // 开始加载
+      loadImage();
+
       return item;
     }
 
-    // 定位图片到瀑布流中
-    function positionItem(item, img) {
+    // 修改定位函数，支持预加载的图片对象
+    function positionItem(item, imgElement) {
+      const containerWidth = grid.offsetWidth;
+      if (containerWidth <= 0) {
+        console.warn('容器宽度为0，延迟定位');
+        setTimeout(() => positionItem(item, imgElement), 100);
+        return;
+      }
+
       const width = columnWidth();
       const gap = getGap();
-      const aspectRatio = img.naturalHeight / img.naturalWidth;
-      const height = width * aspectRatio;
       
-      // 找到较短的列
-      const shortestColumn = columnHeights[0] <= columnHeights[1] ? 0 : 1;
+      // 如果传入的是预加载的图片对象，使用其尺寸
+      const naturalWidth = imgElement.naturalWidth || imgElement.width;
+      const naturalHeight = imgElement.naturalHeight || imgElement.height;
       
-      // 设置图片位置和大小
-      item.style.width = width + 'px';
-      item.style.height = height + 'px';
-      item.style.left = shortestColumn * (width + gap) + 'px';
-      item.style.top = columnHeights[shortestColumn] + 'px';
-      
-      // 标记为已定位，可以显示
-      item.classList.add('positioned');
-      
-      // 更新列高度
-      columnHeights[shortestColumn] += height + gap;
+      if (naturalWidth && naturalHeight && width > 0) {
+        const aspectRatio = naturalHeight / naturalWidth;
+        const height = width * aspectRatio;
+        
+        // 找到较短的列
+        const shortestColumn = columnHeights[0] <= columnHeights[1] ? 0 : 1;
+        
+        // 设置图片位置和大小
+        item.style.position = 'absolute';
+        item.style.width = width + 'px';
+        item.style.height = height + 'px';
+        item.style.left = shortestColumn * (width + gap) + 'px';
+        item.style.top = columnHeights[shortestColumn] + 'px';
+        
+        // 标记为已定位，可以显示
+        item.classList.add('positioned');
+        
+        // 更新列高度
+        columnHeights[shortestColumn] += height + gap;
+        
+        console.log(`📍 定位图片: 列${shortestColumn}, 位置(${shortestColumn * (width + gap)}, ${columnHeights[shortestColumn] - height - gap}), 尺寸(${width}x${height})`);
+      } else {
+        console.warn('无法获取图片尺寸或宽度为0，使用默认布局');
+        item.style.position = 'relative';
+        item.style.width = '100%';
+        item.style.marginBottom = '15px';
+        item.classList.add('positioned');
+      }
     }
+
+
 
     // 更新网格容器高度
     function updateGridHeight() {
       const maxHeight = Math.max(...columnHeights);
-      grid.style.height = maxHeight + 'px';
+      if (maxHeight > 0) {
+        grid.style.height = maxHeight + 'px';
+        console.log(`📏 更新容器高度: ${maxHeight}px`);
+      } else {
+        // 如果计算高度为0，使用实际内容高度
+        const items = grid.querySelectorAll('.waterfall-item.positioned');
+        if (items.length > 0) {
+          let actualMaxHeight = 0;
+          items.forEach(item => {
+            const itemBottom = item.offsetTop + item.offsetHeight;
+            if (itemBottom > actualMaxHeight) {
+              actualMaxHeight = itemBottom;
+            }
+          });
+          if (actualMaxHeight > 0) {
+            grid.style.height = (actualMaxHeight + 20) + 'px'; // 添加一些底部间距
+            console.log(`📏 使用实际内容高度: ${actualMaxHeight + 20}px`);
+          }
+        }
+      }
     }
 
     // 重置瀑布流布局
@@ -488,11 +688,18 @@ description: "这里是你的个人简介"
     // 触发所有图片的可见性动画
     function triggerVisibilityAnimation() {
       const items = grid.querySelectorAll('.waterfall-item.positioned');
+      console.log(`🎬 设置可见性监听，共 ${items.length} 个已定位的图片`);
+      
       items.forEach((item, index) => {
-        // 使用Intersection Observer监听元素
+        // 检查图片是否已经可见
+        if (item.classList.contains('visible')) {
+          return; // 已经可见，跳过
+        }
+        
+        // 使用Intersection Observer监听元素，等待滚动到时才显示
         setTimeout(() => {
           observer.observe(item);
-        }, index * 50); // 错开动画时间
+        }, index * 80); // 增加延迟时间，让浮现更晚一些
       });
     }
 
@@ -501,20 +708,30 @@ description: "这里是你的个人简介"
       const allItems = grid.querySelectorAll('.waterfall-item.positioned');
       const newItems = Array.from(allItems).slice(startIndex);
       
+      console.log(`🎬 设置新图片监听，从索引 ${startIndex} 开始，共 ${newItems.length} 个新图片`);
+      
       newItems.forEach((item, index) => {
+        // 检查图片是否已经可见
+        if (item.classList.contains('visible')) {
+          return; // 已经可见，跳过
+        }
+        
+        // 只设置Observer监听，等待用户滚动到时才显示
         setTimeout(() => {
           observer.observe(item);
-        }, index * 50);
+        }, index * 80); // 增加延迟时间，让浮现更晚一些
       });
     }
 
 
 
-    // 分批加载图片
+    // 分批加载图片（优化版）
     function loadImages(imageList) {
       allImages = imageList;
       currentBatch = 0;
       loadedCount = 0;
+      activeLoads = 0;
+      loadQueue = [];
       grid.innerHTML = ''; // 清空现有内容
       resetLayout(); // 重置布局
 
@@ -524,17 +741,70 @@ description: "这里是你的个人简介"
         return;
       }
 
+      console.log(`🚀 开始加载 ${imageList.length} 张图片，并发数: ${config.concurrentLoads}`);
+
       // 显示进度指示器（当图片数量大于1批时）
       if (imageList.length > BATCH_SIZE) {
         showProgressIndicator();
         updateProgress();
       }
 
+      // 预加载前几张图片
+      preloadInitialImages(imageList);
+
       // 加载第一批图片
       loadNextBatch();
     }
 
-    // 加载下一批图片
+    // 预加载初始图片
+    async function preloadInitialImages(imageList) {
+      const preloadList = imageList.slice(0, config.preloadCount);
+      console.log(`🔄 开始预加载前 ${preloadList.length} 张图片`);
+      
+      // 显示预加载指示器
+      const preloadIndicator = document.getElementById('preloadIndicator');
+      if (preloadIndicator && preloadList.length > 0) {
+        preloadIndicator.textContent = `🚀 预加载中... 0/${preloadList.length}`;
+        preloadIndicator.classList.add('visible');
+      }
+      
+      let completedCount = 0;
+      const preloadPromises = preloadList.map(async (src, index) => {
+        try {
+          await preloadImage(src);
+          completedCount++;
+          console.log(`✅ 预加载完成: 图片 ${index + 1}`);
+          
+          // 更新预加载指示器
+          if (preloadIndicator) {
+            preloadIndicator.textContent = `🚀 预加载中... ${completedCount}/${preloadList.length}`;
+          }
+        } catch (error) {
+          completedCount++;
+          console.warn(`❌ 预加载失败: 图片 ${index + 1}`, error);
+          
+          // 即使失败也要更新计数
+          if (preloadIndicator) {
+            preloadIndicator.textContent = `🚀 预加载中... ${completedCount}/${preloadList.length}`;
+          }
+        }
+      });
+
+      // 并发预加载，但不等待全部完成
+      Promise.allSettled(preloadPromises).then(() => {
+        console.log(`🎉 预加载阶段完成`);
+        
+        // 隐藏预加载指示器
+        if (preloadIndicator) {
+          preloadIndicator.textContent = `✅ 预加载完成`;
+          setTimeout(() => {
+            preloadIndicator.classList.remove('visible');
+          }, 1500);
+        }
+      });
+    }
+
+    // 加载下一批图片（并发优化版）
     function loadNextBatch() {
       if (isLoading || currentBatch * BATCH_SIZE >= allImages.length) {
         return;
@@ -545,24 +815,22 @@ description: "这里是你的个人简介"
       const endIndex = Math.min(startIndex + BATCH_SIZE, allImages.length);
       const batchImages = allImages.slice(startIndex, endIndex);
       
-      console.log(`🚀 开始加载第 ${currentBatch + 1} 批图片: ${startIndex + 1}-${endIndex} (共 ${allImages.length} 张)`);
+      console.log(`🚀 开始并发加载第 ${currentBatch + 1} 批图片: ${startIndex + 1}-${endIndex} (共 ${allImages.length} 张)`);
       
       // 更新加载提示（仅在第一批时显示主加载指示器）
       if (currentBatch === 0) {
-        // 第一批使用主加载指示器
         const loadingText = loadingIndicator.querySelector('div:last-child');
         if (loadingText) {
-          loadingText.textContent = `正在加载第 ${currentBatch + 1} 批图片 (${startIndex + 1}-${endIndex}/${allImages.length})...`;
+          loadingText.textContent = `正在并发加载第 ${currentBatch + 1} 批图片 (${startIndex + 1}-${endIndex}/${allImages.length})...`;
         }
       }
-      // 后续批次不显示底部加载指示器，只通过右上角进度条显示进度
 
       let batchLoadedCount = 0;
       
-      // 设置批次超时机制（10秒后强制完成当前批次）
+      // 设置批次超时机制（减少到6秒，因为并发加载更快）
       const batchTimeout = setTimeout(() => {
         if (batchLoadedCount < batchImages.length) {
-          console.warn(`⚠️ 批次 ${currentBatch + 1} 加载超时(10s)，强制完成。已加载 ${batchLoadedCount}/${batchImages.length} 张`);
+          console.warn(`⚠️ 批次 ${currentBatch + 1} 加载超时(6s)，强制完成。已加载 ${batchLoadedCount}/${batchImages.length} 张`);
           
           // 强制完成当前批次
           currentBatch++;
@@ -572,61 +840,96 @@ description: "这里是你的个人简介"
           if (currentBatch * BATCH_SIZE < allImages.length) {
             setTimeout(() => {
               loadNextBatch();
-            }, 300);
+            }, 200);
           } else {
             console.log('🎉 所有图片加载完成（部分可能超时）！');
           }
         }
-      }, 10000);
+      }, 6000);
+
+      // 预加载下一批图片
+      if (currentBatch * BATCH_SIZE + BATCH_SIZE < allImages.length) {
+        const nextBatchStart = (currentBatch + 1) * BATCH_SIZE;
+        const nextBatchEnd = Math.min(nextBatchStart + config.preloadCount, allImages.length);
+        const nextBatchImages = allImages.slice(nextBatchStart, nextBatchEnd);
+        
+        console.log(`🔄 预加载下一批的前 ${nextBatchImages.length} 张图片`);
+        nextBatchImages.forEach(src => {
+          preloadImage(src).catch(() => {}); // 静默处理预加载错误
+        });
+      }
       
+      // 使用并发队列加载当前批次
       batchImages.forEach((src, batchIndex) => {
-        setTimeout(() => {
-          const globalIndex = startIndex + batchIndex;
-          const filename = src.split('/').pop();
-          const item = createImageItem(src, globalIndex, filename, () => {
-            batchLoadedCount++;
-            loadedCount++;
-            
-            console.log(`批次 ${currentBatch + 1}: 已加载 ${batchLoadedCount}/${batchImages.length} 张，总计 ${loadedCount}/${allImages.length} 张`);
-            
-            // 更新进度
-            updateProgress();
-            
-            // 当前批次加载完成
-            if (batchLoadedCount === batchImages.length) {
-              // 清除批次超时定时器
-              clearTimeout(batchTimeout);
-              
-              currentBatch++;
-              isLoading = false;
-              
-              console.log(`✅ 第 ${currentBatch} 批图片加载完成！(${batchImages.length}张)`);
-              
-              // 如果是第一批，隐藏加载指示器并显示内容
-              if (currentBatch === 1) {
-                hideLoadingIndicator();
-                updateGridHeight();
-                triggerVisibilityAnimation();
-              } else {
-                updateGridHeight();
-                // 为新加载的图片添加动画
-                triggerNewItemsAnimation(startIndex);
-              }
-              
-              // 检查是否还有更多图片需要加载，如果有则自动继续加载
-              if (currentBatch * BATCH_SIZE < allImages.length) {
-                console.log(`🔄 还有 ${allImages.length - currentBatch * BATCH_SIZE} 张图片待加载，继续自动加载...`);
-                // 短暂延迟后自动加载下一批，确保当前批次的动画效果完成
-                setTimeout(() => {
-                  loadNextBatch();
-                }, 300);
-              } else {
-                console.log('🎉 所有图片加载完成！');
-              }
-            }
+        const globalIndex = startIndex + batchIndex;
+        const filename = src.split('/').pop();
+        
+        // 添加到并发加载队列
+        addToLoadQueue(async () => {
+          return new Promise((resolve) => {
+            // 延迟创建，避免同时创建太多DOM元素
+            setTimeout(() => {
+              const item = createImageItem(src, globalIndex, filename, () => {
+                batchLoadedCount++;
+                loadedCount++;
+                
+                console.log(`批次 ${currentBatch + 1}: 已加载 ${batchLoadedCount}/${batchImages.length} 张，总计 ${loadedCount}/${allImages.length} 张`);
+                
+                // 更新进度
+                updateProgress();
+                
+                // 当前批次加载完成
+                if (batchLoadedCount === batchImages.length) {
+                  // 清除批次超时定时器
+                  clearTimeout(batchTimeout);
+                  
+                  currentBatch++;
+                  isLoading = false;
+                  
+                  console.log(`✅ 第 ${currentBatch} 批图片加载完成！(${batchImages.length}张)`);
+                  
+                  // 如果是第一批，隐藏加载指示器并显示内容
+                  if (currentBatch === 1) {
+                    hideLoadingIndicator();
+                    // 强制更新高度，确保没有空白
+                    setTimeout(() => {
+                      updateGridHeight();
+                      // 再次确保高度正确
+                      setTimeout(() => {
+                        updateGridHeight();
+                        triggerVisibilityAnimation();
+                      }, 100);
+                    }, 50);
+                  } else {
+                    // 强制更新高度，确保没有空白
+                    setTimeout(() => {
+                      updateGridHeight();
+                      // 再次确保高度正确
+                      setTimeout(() => {
+                        updateGridHeight();
+                        triggerNewItemsAnimation(startIndex);
+                      }, 100);
+                    }, 50);
+                  }
+                  
+                  // 检查是否还有更多图片需要加载，如果有则自动继续加载
+                  if (currentBatch * BATCH_SIZE < allImages.length) {
+                    console.log(`🔄 还有 ${allImages.length - currentBatch * BATCH_SIZE} 张图片待加载，继续自动加载...`);
+                    // 短暂延迟后自动加载下一批
+                    setTimeout(() => {
+                      loadNextBatch();
+                    }, 200);
+                  } else {
+                    console.log('🎉 所有图片加载完成！');
+                  }
+                }
+                
+                resolve();
+              });
+              grid.appendChild(item);
+            }, batchIndex * config.loadDelay);
           });
-          grid.appendChild(item);
-        }, batchIndex * config.loadDelay);
+        });
       });
     }
 
@@ -914,12 +1217,19 @@ description: "这里是你的个人简介"
         }
       });
       
+      // 多次更新高度确保正确
       updateGridHeight();
+      setTimeout(() => {
+        updateGridHeight();
+      }, 100);
+      setTimeout(() => {
+        updateGridHeight();
+      }, 300);
       
       // 重新触发可见性动画
       setTimeout(() => {
         triggerVisibilityAnimation();
-      }, 100);
+      }, 200);
     }
 
     // 加载状态监控
@@ -937,9 +1247,79 @@ description: "这里是你的个人简介"
             console.log(`📋 当前批次详情: 第${currentBatch}批 (${currentBatchStart + 1}-${currentBatchEnd})`);
           }
           
+          // 检查Observer是否正常工作
+          const positionedItems = grid.querySelectorAll('.waterfall-item.positioned');
+          const visibleItems = grid.querySelectorAll('.waterfall-item.visible');
+          const hiddenCount = positionedItems.length - visibleItems.length;
+          
+          if (hiddenCount > 0) {
+            console.log(`📊 状态检查: ${positionedItems.length} 个已定位图片，${visibleItems.length} 个已显示，${hiddenCount} 个等待滚动显示`);
+            
+            // 检查是否有图片在视口内但未显示（可能是Observer失效）
+            let needsObserverReset = false;
+            positionedItems.forEach(item => {
+              if (!item.classList.contains('visible')) {
+                const rect = item.getBoundingClientRect();
+                const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+                if (isInViewport) {
+                  console.warn(`⚠️ 发现视口内未显示的图片，Observer可能失效`);
+                  needsObserverReset = true;
+                }
+              }
+            });
+            
+            // 如果Observer失效，重新设置监听
+            if (needsObserverReset) {
+              console.log(`🔄 重新设置Observer监听`);
+              positionedItems.forEach(item => {
+                if (!item.classList.contains('visible')) {
+                  observer.unobserve(item);
+                  observer.observe(item);
+                }
+              });
+            }
+          }
+          
           // 如果加载完成，停止监控
           if (loadedCount >= allImages.length) {
             console.log('✅ 加载监控: 所有图片已加载完成');
+            
+            // 最终检查：确保Observer正常工作
+            setTimeout(() => {
+              const finalPositionedItems = grid.querySelectorAll('.waterfall-item.positioned');
+              const finalVisibleItems = grid.querySelectorAll('.waterfall-item.visible');
+              const finalHiddenCount = finalPositionedItems.length - finalVisibleItems.length;
+              
+              console.log(`🎉 加载完成状态：${finalPositionedItems.length} 个图片已定位，${finalVisibleItems.length} 个已显示，${finalHiddenCount} 个等待滚动显示`);
+              
+              // 检查Observer是否正常工作
+              if (finalHiddenCount > 0) {
+                let inViewportCount = 0;
+                finalPositionedItems.forEach(item => {
+                  if (!item.classList.contains('visible')) {
+                    const rect = item.getBoundingClientRect();
+                    const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+                    if (isInViewport) {
+                      inViewportCount++;
+                    }
+                  }
+                });
+                
+                if (inViewportCount > 0) {
+                  console.warn(`⚠️ 最终检查：有 ${inViewportCount} 个图片在视口内但未显示，Observer可能有问题`);
+                  // 重新设置Observer
+                  finalPositionedItems.forEach(item => {
+                    if (!item.classList.contains('visible')) {
+                      observer.unobserve(item);
+                      observer.observe(item);
+                    }
+                  });
+                } else {
+                  console.log(`✅ Observer工作正常，图片将在滚动到时显示`);
+                }
+              }
+            }, 3000);
+            
             clearInterval(monitorInterval);
           }
         }
@@ -984,6 +1364,82 @@ description: "这里是你的个人简介"
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (e.key === 'End') {
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      }
+    });
+
+    // 页面焦点恢复时检查Observer状态
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && allImages.length > 0) {
+        console.log('🔍 页面重新获得焦点，检查Observer状态');
+        setTimeout(() => {
+          const positionedItems = grid.querySelectorAll('.waterfall-item.positioned');
+          const visibleItems = grid.querySelectorAll('.waterfall-item.visible');
+          const hiddenCount = positionedItems.length - visibleItems.length;
+          
+          if (hiddenCount > 0) {
+            console.log(`📊 焦点恢复检查：${hiddenCount} 个图片等待滚动显示`);
+            
+            // 检查是否有图片在视口内但未显示
+            let needsReset = false;
+            positionedItems.forEach(item => {
+              if (!item.classList.contains('visible')) {
+                const rect = item.getBoundingClientRect();
+                const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+                if (isInViewport) {
+                  needsReset = true;
+                }
+              }
+            });
+            
+            if (needsReset) {
+              console.log(`🔄 重新设置Observer（页面焦点恢复）`);
+              positionedItems.forEach(item => {
+                if (!item.classList.contains('visible')) {
+                  observer.unobserve(item);
+                  observer.observe(item);
+                }
+              });
+            }
+          }
+        }, 500);
+      }
+    });
+
+    // 窗口焦点恢复时也进行检查
+    window.addEventListener('focus', () => {
+      if (allImages.length > 0) {
+        console.log('🔍 窗口重新获得焦点，检查Observer状态');
+        setTimeout(() => {
+          const positionedItems = grid.querySelectorAll('.waterfall-item.positioned');
+          const visibleItems = grid.querySelectorAll('.waterfall-item.visible');
+          const hiddenCount = positionedItems.length - visibleItems.length;
+          
+          if (hiddenCount > 0) {
+            console.log(`📊 窗口焦点检查：${hiddenCount} 个图片等待滚动显示`);
+            
+            // 检查是否有图片在视口内但未显示
+            let needsReset = false;
+            positionedItems.forEach(item => {
+              if (!item.classList.contains('visible')) {
+                const rect = item.getBoundingClientRect();
+                const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+                if (isInViewport) {
+                  needsReset = true;
+                }
+              }
+            });
+            
+            if (needsReset) {
+              console.log(`🔄 重新设置Observer（窗口焦点恢复）`);
+              positionedItems.forEach(item => {
+                if (!item.classList.contains('visible')) {
+                  observer.unobserve(item);
+                  observer.observe(item);
+                }
+              });
+            }
+          }
+        }, 500);
       }
     });
 
