@@ -240,6 +240,21 @@ description: "这里是你的个人简介"
     background: rgba(255, 255, 255, 0.5);
   }
 
+  /* 优化滚动性能 */
+  html {
+    scroll-behavior: auto; /* 确保不会有意外的平滑滚动 */
+  }
+
+  body {
+    -webkit-overflow-scrolling: touch; /* iOS 滚动优化 */
+    overscroll-behavior: auto; /* 允许原生滚动行为 */
+  }
+
+  .waterfall-container {
+    -webkit-overflow-scrolling: touch; /* iOS 滚动优化 */
+    overscroll-behavior: auto; /* 允许原生滚动行为 */
+  }
+
 
 </style>
 
@@ -972,36 +987,6 @@ description: "这里是你的个人简介"
       }
     });
 
-    // 添加触摸滑动优化
-    let touchStartY = 0;
-    let touchEndY = 0;
-
-    document.addEventListener('touchstart', (e) => {
-      touchStartY = e.changedTouches[0].screenY;
-    }, { passive: true });
-
-    document.addEventListener('touchend', (e) => {
-      touchEndY = e.changedTouches[0].screenY;
-      handleSwipe();
-    }, { passive: true });
-
-    function handleSwipe() {
-      const swipeThreshold = 100;
-      const diff = touchStartY - touchEndY;
-      
-      if (Math.abs(diff) > swipeThreshold) {
-        if (diff > 0) {
-          // 向上滑动，快速滚动到底部
-          if (window.pageYOffset < document.body.scrollHeight - window.innerHeight - 100) {
-            window.scrollBy({ top: window.innerHeight * 0.8, behavior: 'smooth' });
-          }
-        } else {
-          // 向下滑动，快速滚动到顶部
-          if (window.pageYOffset > 100) {
-            window.scrollBy({ top: -window.innerHeight * 0.8, behavior: 'smooth' });
-          }
-        }
-      }
-    }
+    // 保持原生滚动体验，不添加任何滚动干预
   });
 </script>
