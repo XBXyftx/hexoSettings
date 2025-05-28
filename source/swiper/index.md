@@ -7,18 +7,18 @@ comments: true  # 是否开启评论
 description: "这里是你的个人简介"
 ---
 
-<style>
+    <style>
   /* 瀑布流样式 */
   .waterfall-container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
     padding: 20px;
     box-sizing: border-box;
   }
 
   .waterfall-grid {
-    position: relative;
+        position: relative;
     width: 100%;
   }
 
@@ -32,7 +32,7 @@ description: "这里是你的个人简介"
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     opacity: 0;
     transform: translateY(50px) scale(0.9);
-    position: absolute;
+        position: absolute;
     cursor: pointer;
     visibility: hidden; /* 初始隐藏，防止未定位时显示 */
   }
@@ -83,7 +83,7 @@ description: "这里是你的个人简介"
 
   .waterfall-item img {
     width: 100%;
-    height: auto;
+        height: auto;
     display: block;
     transition: transform 0.3s ease;
   }
@@ -104,10 +104,10 @@ description: "这里是你的个人简介"
 
   .loading-spinner {
     display: inline-block;
-    width: 40px;
-    height: 40px;
+        width: 40px;
+        height: 40px;
     border: 3px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
+        border-radius: 50%;
     border-top-color: rgba(255, 255, 255, 0.8);
     animation: spin 1s ease-in-out infinite;
     margin-bottom: 10px;
@@ -197,7 +197,7 @@ description: "这里是你的个人简介"
     text-align: center;
     margin: 20px 0;
     transition: all 0.3s ease;
-    cursor: pointer;
+        cursor: pointer;
   }
 
   .upload-area:hover {
@@ -305,7 +305,7 @@ description: "这里是你的个人简介"
   .preload-indicator {
     position: fixed;
     top: 50%;
-    left: 20px;
+        left: 20px;
     transform: translateY(-80px); /* 在进度指示器上方 */
     background: rgba(0, 0, 0, 0.8);
     color: white;
@@ -326,7 +326,7 @@ description: "这里是你的个人简介"
   }
 
 
-  </style>
+    </style>
 
 <div class="waterfall-container">
   <div style="text-align: center; margin-bottom: 20px; color: rgba(255, 255, 255, 0.8); font-size: 18px; font-weight: 500;">
@@ -365,9 +365,9 @@ description: "这里是你的个人简介"
   </div>
     </div>
 
-<script>
-  // 配置参数
-  const config = {
+    <script>
+      // 配置参数
+      const config = {
     // 图片文件夹路径（相对于当前页面）
     imageFolderPath: '/swiper/images/',
     // 支持的图片格式
@@ -1444,5 +1444,5 @@ description: "这里是你的个人简介"
     });
 
     // 保持原生滚动体验，不添加任何滚动干预
-  });
-</script>
+      });
+    </script>

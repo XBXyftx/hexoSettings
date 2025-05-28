@@ -17,6 +17,10 @@ div
   if theme.snackbar.enable
     script(src=url_for(theme.asset.snackbar))
 
+  // 瀑布流JavaScript - 只在首页加载
+  if globalPageType === 'home'
+    script(src=url_for('/js/waterfall.js'))
+
   .js-pjax
     if needLoadCountJs
       != partial("includes/third-party/card-post-count/index", {}, { cache: true })

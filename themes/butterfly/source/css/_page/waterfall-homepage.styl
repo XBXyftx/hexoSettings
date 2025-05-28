@@ -1,0 +1,249 @@
+/* 瀑布流首页样式 */
+$waterfallEnable = hexo-config('cover.index_enable')
+
+#recent-posts.waterfall-masonry
+  // 轮播图样式重置
+  .blog-slider
+    width: 100% !important
+    max-width: none !important
+    margin-bottom: 20px !important
+    
+  // 瀑布流容器
+  .waterfall-container
+    position: relative
+    width: 100%
+    margin-bottom: 40px
+    min-height: 600px
+    
+    // 瀑布流项目
+    .waterfall-item
+      position: absolute
+      width: calc(50% - 12.5px)
+      opacity: 0
+      transform: translateY(30px)
+      transition: all 0.6s ease
+      
+      &.positioned
+        opacity: 1
+        transform: translateY(0)
+      
+      .post-card-wrapper
+        background: rgba(255, 255, 255, 0.05)
+        backdrop-filter: blur(20px)
+        border-radius: 16px
+        overflow: hidden
+        border: 1px solid rgba(255, 255, 255, 0.1)
+        transition: all 0.3s ease
+        height: auto
+        display: flex
+        flex-direction: column
+        
+        &:hover
+          transform: translateY(-5px)
+          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3)
+          border-color: rgba(255, 255, 255, 0.2)
+          background: rgba(255, 255, 255, 0.08)
+          
+        .post_cover
+          width: 100%
+          height: 200px
+          overflow: hidden
+          border-radius: 16px 16px 0 0
+          
+          a
+            display: block
+            width: 100%
+            height: 100%
+            
+          .post-bg
+            width: 100%
+            height: 100%
+            object-fit: cover
+            object-position: center
+            transition: transform 0.3s ease
+            border-radius: 16px 16px 0 0
+            
+            &:hover
+              transform: scale(1.05)
+        
+        .recent-post-info
+          padding: 20px
+          flex: 1
+          display: flex
+          flex-direction: column
+          
+          .article-title
+            margin-bottom: 12px
+            
+            a
+              color: var(--font-color)
+              font-size: 16px
+              font-weight: 600
+              line-height: 1.4
+              text-decoration: none
+              display: -webkit-box
+              -webkit-line-clamp: 2
+              -webkit-box-orient: vertical
+              overflow: hidden
+              transition: color 0.3s ease
+              
+              &:hover
+                color: var(--theme-color)
+          
+          .article-meta-wrap
+            margin-bottom: 12px
+            
+            .article-meta
+              display: flex
+              align-items: center
+              font-size: 12px
+              color: var(--font-color)
+              opacity: 0.7
+              margin-bottom: 8px
+              
+              i
+                margin-right: 5px
+                
+              .post-meta-date
+                margin-left: 5px
+            
+            .tags
+              display: flex
+              flex-wrap: wrap
+              gap: 6px
+              
+              .article-meta__tags
+                background: rgba(74, 144, 226, 0.1)
+                color: #4a90e2
+                padding: 2px 8px
+                border-radius: 12px
+                font-size: 11px
+                text-decoration: none
+                transition: all 0.3s ease
+                
+                &:hover
+                  background: rgba(74, 144, 226, 0.2)
+                  transform: scale(1.05)
+          
+          .content
+            color: var(--font-color)
+            font-size: 13px
+            line-height: 1.5
+            opacity: 0.8
+            display: -webkit-box
+            -webkit-line-clamp: 3
+            -webkit-box-orient: vertical
+            overflow: hidden
+            margin-top: auto
+
+// 瀑布流淡入动画
+@keyframes waterfallFadeIn
+  from
+    opacity: 0
+    transform: translateY(30px)
+  to
+    opacity: 1
+    transform: translateY(0)
+
+.waterfall-fade-in
+  animation: waterfallFadeIn 0.6s ease-out forwards
+
+// 响应式布局
+@media (min-width: 1400px)
+  #recent-posts.waterfall-masonry .waterfall-container .waterfall-item
+    width: calc(33.333% - 16.67px)
+
+@media (max-width: 768px)
+  #recent-posts.waterfall-masonry .waterfall-container .waterfall-item
+    width: calc(50% - 7.5px)
+
+@media (max-width: 600px)
+  #recent-posts.waterfall-masonry .waterfall-container .waterfall-item
+    width: 100%
+    
+    .post-card-wrapper
+      .post_cover
+        height: 150px
+      
+      .recent-post-info
+        padding: 15px
+
+// 确保侧边栏不受影响
+.layout
+  display: flex
+  
+  #recent-posts.waterfall-masonry
+    flex: 1
+    
+  .aside-content
+    flex-shrink: 0
+    width: var(--aside-content-width, 300px)
+    margin-left: 20px
+    
+    +maxWidth1024()
+      display: none
+
+// 强制覆盖原有样式，确保所有文章都显示
+#recent-posts.waterfall-masonry
+  overflow: visible !important
+  height: auto !important
+  max-height: none !important
+  
+  .waterfall-container
+    position: relative !important
+    overflow: visible !important
+    height: auto !important
+    max-height: none !important
+    
+  .waterfall-item
+    position: absolute !important
+    display: block !important
+    height: auto !important
+    overflow: visible !important
+    
+    .post-card-wrapper
+      display: flex !important
+      flex-direction: column !important
+      background: rgba(255, 255, 255, 0.05) !important
+      overflow: visible !important
+      
+    .post_cover
+      width: 100% !important
+      height: 200px !important
+      order: 0 !important
+      overflow: hidden !important
+      
+    .recent-post-info
+      width: 100% !important
+      position: relative !important
+      overflow: visible !important
+
+  // 分页组件样式
+  #pagination
+    display: block !important
+    visibility: visible !important
+    margin-top: 40px
+    clear: both
+    position: relative !important
+    z-index: 10
+    
+    .pagination
+      display: flex !important
+      justify-content: center !important
+      align-items: center !important
+      gap: 10px
+      
+      .page-number, .extend
+        display: inline-block !important
+        visibility: visible !important
+        opacity: 1 !important
+        
+      .current
+        background: var(--theme-color) !important
+        color: #fff !important
+        
+      .extend
+        color: var(--font-color) !important
+        
+        &:hover
+          color: var(--theme-color) !important 

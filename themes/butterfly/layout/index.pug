@@ -2,4 +2,12 @@ extends includes/layout.pug
 
 block content
   include ./includes/mixins/indexPostUI.pug
-  +indexPostUI
+  - const indexLayout = theme.index_layout
+  - const masonryLayoutClass = indexLayout === 8 ? 'waterfall-masonry' : ''
+  #recent-posts.recent-posts.nc(class=masonryLayoutClass)
+    if indexLayout === 8
+      .recent-post-items
+        +indexPostUI(page.posts)
+    else
+      .recent-post-items
+        +indexPostUI(page.posts)
