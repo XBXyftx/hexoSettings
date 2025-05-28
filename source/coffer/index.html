@@ -255,12 +255,36 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
       transition: all 0.3s ease;
       cursor: pointer;
+      overflow: hidden;
     }
 
     .post-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
       background: rgba(255, 255, 255, 0.15);
+    }
+
+    .post-cover {
+      width: 100%;
+      height: 200px;
+      border-radius: 12px;
+      object-fit: cover;
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      display: block;
+    }
+
+    .post-cover-placeholder {
+      width: 100%;
+      height: 200px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      font-size: 48px;
+      opacity: 0.6;
     }
 
     .post-title {

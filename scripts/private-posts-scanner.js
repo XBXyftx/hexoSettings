@@ -69,12 +69,14 @@ hexo.extend.filter.register('before_generate', function() {
           const tagsMatch = frontMatter.match(/tags:\s*\[(.*?)\]/s);
           const categoriesMatch = frontMatter.match(/categories:\s*\[(.*?)\]/s);
           const descriptionMatch = frontMatter.match(/description:\s*(.+?)(?:\r?\n|$)/);
+          const coverMatch = frontMatter.match(/cover:\s*(.+?)(?:\r?\n|$)/);
           
           console.log('🏷️ 解析结果:', {
             title: titleMatch ? titleMatch[1] : 'null',
             date: dateMatch ? dateMatch[1] : 'null',
             tags: tagsMatch ? tagsMatch[1] : 'null',
-            categories: categoriesMatch ? categoriesMatch[1] : 'null'
+            categories: categoriesMatch ? categoriesMatch[1] : 'null',
+            cover: coverMatch ? coverMatch[1] : 'null'
           });
           
           // 提取文章摘要（前200个字符）
@@ -91,6 +93,7 @@ hexo.extend.filter.register('before_generate', function() {
             tags: tagsMatch ? tagsMatch[1].split(',').map(tag => tag.trim().replace(/['"]/g, '')) : [],
             categories: categoriesMatch ? categoriesMatch[1].split(',').map(cat => cat.trim().replace(/['"]/g, '')) : [],
             description: descriptionMatch ? descriptionMatch[1].trim().replace(/['"]/g, '') : '',
+            cover: coverMatch ? coverMatch[1].trim().replace(/['"]/g, '') : '',
             excerpt: excerpt,
             wordCount: postContent.length,
             lastModified: fs.statSync(filePath).mtime.toISOString()

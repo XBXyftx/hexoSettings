@@ -200,11 +200,18 @@ document.addEventListener('DOMContentLoaded', function() {
       ? post.tags.map(tag => '<span class="post-tag">' + tag + '</span>').join('')
       : '';
 
+    // 生成封面图片HTML
+    const coverHtml = post.cover 
+      ? '<img src="' + post.cover + '" alt="' + post.title + '" class="post-cover" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+        '<div class="post-cover-placeholder" style="display: none;">📄</div>'
+      : '<div class="post-cover-placeholder">📄</div>';
+
     const excerptHtml = post.excerpt ? '<p class="post-excerpt">' + post.excerpt + '</p>' : '';
     const tagsSection = tagsHtml ? '<div class="post-tags">' + tagsHtml + '</div>' : '';
     const lastModifiedText = post.lastModified ? '更新于 ' + formatDate(post.lastModified) : '';
 
     card.innerHTML = 
+      coverHtml +
       '<h3 class="post-title">' + post.title + '</h3>' +
       '<div class="post-meta">' +
         '<div class="post-date">' +
