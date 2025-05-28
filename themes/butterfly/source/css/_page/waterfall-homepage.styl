@@ -1,4 +1,4 @@
-/* 瀑布流首页样式 */
+/* 瀑布流首页样式 - 优化版 */
 $waterfallEnable = hexo-config('cover.index_enable')
 
 #recent-posts.waterfall-masonry
@@ -10,23 +10,28 @@ $waterfallEnable = hexo-config('cover.index_enable')
     
   // 瀑布流容器
   .waterfall-container
-    position: relative
-    width: 100%
+    position: relative !important
+    width: 100% !important
     margin-bottom: 40px
-    min-height: 600px
+    min-height: 400px
+    overflow: visible !important
+    box-sizing: border-box
     
-    // 瀑布流项目
+    // 瀑布流项目基础样式
     .waterfall-item
-      position: absolute
-      width: calc(50% - 12.5px)
-      opacity: 0
-      transform: translateY(30px)
-      transition: all 0.6s ease
+      // 移除所有可能冲突的定位样式，让JS完全控制
+      position: static // 初始状态为静态，JS会改为绝对定位
+      display: block !important
+      visibility: visible !important
+      box-sizing: border-box !important
+      margin: 0 !important
+      padding: 0 !important
+      border: none !important
+      outline: none !important
+      float: none !important
+      clear: none !important
       
-      &.positioned
-        opacity: 1
-        transform: translateY(0)
-      
+      // 卡片包装器样式
       .post-card-wrapper
         background: rgba(255, 255, 255, 0.05)
         backdrop-filter: blur(20px)
@@ -37,6 +42,7 @@ $waterfallEnable = hexo-config('cover.index_enable')
         height: auto
         display: flex
         flex-direction: column
+        box-sizing: border-box
         
         &:hover
           transform: translateY(-5px)
@@ -44,33 +50,35 @@ $waterfallEnable = hexo-config('cover.index_enable')
           border-color: rgba(255, 255, 255, 0.2)
           background: rgba(255, 255, 255, 0.08)
           
+        // 封面图片
         .post_cover
           width: 100%
           height: 200px
           overflow: hidden
-          border-radius: 16px 16px 0 0
+          position: relative
+          order: 0
           
           a
             display: block
             width: 100%
             height: 100%
             
-          .post-bg
+          img
             width: 100%
             height: 100%
             object-fit: cover
-            object-position: center
             transition: transform 0.3s ease
-            border-radius: 16px 16px 0 0
             
-            &:hover
-              transform: scale(1.05)
-        
+          &:hover img
+            transform: scale(1.05)
+            
+        // 文章信息
         .recent-post-info
           padding: 20px
           flex: 1
           display: flex
           flex-direction: column
+          position: relative
           
           .article-title
             margin-bottom: 12px
@@ -89,24 +97,23 @@ $waterfallEnable = hexo-config('cover.index_enable')
               
               &:hover
                 color: var(--theme-color)
-          
-          .article-meta-wrap
-            margin-bottom: 12px
+                
+          .article-meta
+            display: flex
+            flex-wrap: wrap
+            gap: 8px
+            margin-bottom: 10px
+            font-size: 12px
+            color: rgba(255, 255, 255, 0.6)
             
-            .article-meta
+            .article-meta__info
               display: flex
               align-items: center
-              font-size: 12px
-              color: var(--font-color)
-              opacity: 0.7
-              margin-bottom: 8px
+              gap: 4px
               
               i
-                margin-right: 5px
+                font-size: 11px
                 
-              .post-meta-date
-                margin-left: 5px
-            
             .tags
               display: flex
               flex-wrap: wrap
@@ -136,37 +143,38 @@ $waterfallEnable = hexo-config('cover.index_enable')
             overflow: hidden
             margin-top: auto
 
-// 瀑布流淡入动画
-@keyframes waterfallFadeIn
-  from
-    opacity: 0
-    transform: translateY(30px)
-  to
-    opacity: 1
-    transform: translateY(0)
-
-.waterfall-fade-in
-  animation: waterfallFadeIn 0.6s ease-out forwards
-
-// 响应式布局
+// 响应式布局 - 移除宽度设置，让JS完全控制
 @media (min-width: 1400px)
   #recent-posts.waterfall-masonry .waterfall-container .waterfall-item
-    width: calc(33.333% - 16.67px)
+    // JS会设置宽度，这里不需要CSS干预
 
 @media (max-width: 768px)
   #recent-posts.waterfall-masonry .waterfall-container .waterfall-item
-    width: calc(50% - 7.5px)
+    // JS会设置宽度，这里不需要CSS干预
+    
+    .post-card-wrapper
+      .post_cover
+        height: 180px
+      
+      .recent-post-info
+        padding: 15px
+        
+        .article-title a
+          font-size: 15px
 
 @media (max-width: 600px)
   #recent-posts.waterfall-masonry .waterfall-container .waterfall-item
-    width: 100%
+    // JS会设置宽度，这里不需要CSS干预
     
     .post-card-wrapper
       .post_cover
         height: 150px
       
       .recent-post-info
-        padding: 15px
+        padding: 12px
+        
+        .article-title a
+          font-size: 14px
 
 // 确保侧边栏不受影响
 .layout
@@ -183,42 +191,8 @@ $waterfallEnable = hexo-config('cover.index_enable')
     +maxWidth1024()
       display: none
 
-// 强制覆盖原有样式，确保所有文章都显示
+// 分页组件样式
 #recent-posts.waterfall-masonry
-  overflow: visible !important
-  height: auto !important
-  max-height: none !important
-  
-  .waterfall-container
-    position: relative !important
-    overflow: visible !important
-    height: auto !important
-    max-height: none !important
-    
-  .waterfall-item
-    position: absolute !important
-    display: block !important
-    height: auto !important
-    overflow: visible !important
-    
-    .post-card-wrapper
-      display: flex !important
-      flex-direction: column !important
-      background: rgba(255, 255, 255, 0.05) !important
-      overflow: visible !important
-      
-    .post_cover
-      width: 100% !important
-      height: 200px !important
-      order: 0 !important
-      overflow: hidden !important
-      
-    .recent-post-info
-      width: 100% !important
-      position: relative !important
-      overflow: visible !important
-
-  // 分页组件样式
   #pagination
     display: block !important
     visibility: visible !important
@@ -246,4 +220,12 @@ $waterfallEnable = hexo-config('cover.index_enable')
         color: var(--font-color) !important
         
         &:hover
-          color: var(--theme-color) !important 
+          color: var(--theme-color) !important
+
+// 移除所有可能干扰JS布局的强制样式
+#recent-posts.waterfall-masonry
+  .waterfall-container
+    .waterfall-item
+      // 让JS完全控制定位，移除所有CSS定位干扰
+      &.positioned
+        // 只保留必要的显示样式，位置由JS控制 
