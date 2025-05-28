@@ -86,6 +86,27 @@ hexo.extend.filter.register('before_generate', function() {
             .trim()
             .substring(0, 200) + (postContent.length > 200 ? '...' : '');
           
+          // 计算实际字数（中文字符 + 英文单词）
+          const calculateWordCount = (text) => {
+            // 移除markdown标记和多余空格
+            const cleanText = text
+              .replace(/[#*`\[\]()]/g, '') // 移除markdown标记
+              .replace(/\r?\n+/g, ' ') // 替换换行为空格
+              .replace(/\s+/g, ' ') // 合并多个空格
+              .trim();
+            
+            // 统计中文字符数
+            const chineseChars = (cleanText.match(/[\u4e00-\u9fa5]/g) || []).length;
+            
+            // 统计英文单词数
+            const englishWords = cleanText
+              .replace(/[\u4e00-\u9fa5]/g, '') // 移除中文字符
+              .split(/\s+/) // 按空格分割
+              .filter(word => word.length > 0).length;
+            
+            return chineseChars + englishWords;
+          };
+          
           const postInfo = {
             filename: filename,
             title: titleMatch ? titleMatch[1].trim().replace(/['"]/g, '') : filename.replace('.md', ''),
@@ -95,7 +116,7 @@ hexo.extend.filter.register('before_generate', function() {
             description: descriptionMatch ? descriptionMatch[1].trim().replace(/['"]/g, '') : '',
             cover: coverMatch ? coverMatch[1].trim().replace(/['"]/g, '') : '',
             excerpt: excerpt,
-            wordCount: postContent.length,
+            wordCount: calculateWordCount(postContent),
             lastModified: fs.statSync(filePath).mtime.toISOString()
           };
           
