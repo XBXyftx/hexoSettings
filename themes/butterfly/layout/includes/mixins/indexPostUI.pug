@@ -2,8 +2,8 @@ mixin indexPostUI(posts)
   if theme.index_layout == 8
     // 瀑布流布局
     .waterfall-container
-      // 显示所有文章，先按top字段降序排列（置顶），再按时间降序排列
-      - var sortedPosts = site.posts.data.sort(function(a, b) {
+      // 使用分页的文章数据，而不是所有文章
+      - var sortedPosts = posts.data.sort(function(a, b) {
       -   // 首先按top字段排序（有top字段的排在前面，top值大的排在前面）
       -   var aTop = a.top || 0;
       -   var bTop = b.top || 0;
@@ -37,6 +37,9 @@ mixin indexPostUI(posts)
                     each tag in article.tags.data
                       a.article-meta__tags(href=url_for(tag.path))= '#' + tag.name
               .content= truncate(strip_html(article.content), {length: 120})
+    
+    // 添加分页组件
+    include ../pagination.pug
   else
     // 原有布局逻辑
     each article in posts.data
