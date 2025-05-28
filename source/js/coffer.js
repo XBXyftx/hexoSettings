@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // 配置
   const config = {
-    correctPassword: 'mySecretPassword2024',
+    correctPassword: '10021021',
     sessionKey: 'coffer_authenticated',
     postsJsonPath: '/coffer/private-posts.json'
   };
@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const postsCount = document.getElementById('postsCount');
   const searchBox = document.getElementById('searchBox');
   const filterBtns = document.querySelectorAll('.filter-btn');
+  const container = document.querySelector('.coffer-container');
 
   let allPosts = [];
   let filteredPosts = [];
@@ -51,11 +52,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (inputPassword === config.correctPassword) {
       console.log('密码正确，开始显示文章');
       sessionStorage.setItem(config.sessionKey, 'true');
+      
+      // 先隐藏密码区域
       hidePasswordSection();
+      
+      // 等待密码区域完全隐藏后再显示文章区域
       setTimeout(() => {
         showPostsSection();
         loadPosts();
-      }, 500);
+      }, 600); // 等待密码区域动画完成
 
       passwordInput.value = '';
       hideError();
@@ -95,6 +100,9 @@ document.addEventListener('DOMContentLoaded', function() {
   function showPostsSection() {
     console.log('显示文章区域');
     postsSection.classList.add('visible');
+    if (container) {
+      container.classList.add('authenticated');
+    }
   }
 
   // 加载私密文章
