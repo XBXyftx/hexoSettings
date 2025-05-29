@@ -36,7 +36,7 @@ mixin indexPostUI(posts)
                   .tags
                     each tag in article.tags.data
                       a.article-meta__tags(href=url_for(tag.path))= '#' + tag.name
-              .content= truncate(strip_html(article.content), {length: 120})
+              .content= article.description || truncate(strip_html(article.content), {length: 120})
     
     // 添加分页组件
     include ../pagination.pug
