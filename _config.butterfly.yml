@@ -69,7 +69,7 @@ disable_top_img: false
 default_top_img: /img/topImg86.jpg
 
 # The banner image of index page
-index_img: /img/topImg86.jpg
+index_img: /img/bg2.png
 
 # The banner image of archive page
 archive_img: /img/archiveTopImg.png
@@ -95,7 +95,7 @@ footer_img: /img/footerBg.png
 
 # Website Background
 # Can set it to color or image url
-background: /img/bg.png
+background: /img/bg1.png #bg1.png 是02，bg2.png是豆包的机械工厂
 # background: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/bgImg.png
 cover:
   # Disable the cover or not
