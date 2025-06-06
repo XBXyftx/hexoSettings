@@ -454,7 +454,10 @@ busuanzi:
 # if you set it to true, it will load mathjax/katex script in each page
 # if you set it to false, it will load mathjax/katex script according to your setting (add the 'mathjax: true' or 'katex: true' in page's front-matter)
 math:
-  engine: #'mathjax' # 使用MathJax引擎来渲染公式
+  # 设置为空以禁用数学公式功能，避免加载CSS文件
+  # Choose: mathjax, katex
+  # Leave it empty if you don't need math
+  use:
   mathjax:
     src: #https://cdn.bootcdn.net/ajax/libs/mathjax/3.2.2/es5/a11y/assistive-mml.js
     config:
