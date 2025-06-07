@@ -31,6 +31,8 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ## 准备工作
 
+![1](HuaWeiCloud/2.png)
+
 ### 购买服务器
 
 我选择的是华为云Flexus云服务L实例。
@@ -226,5 +228,3 @@ git symbolic-ref HEAD refs/heads/main
 ---
 
 希望这篇博客能对你有所帮助，如果你也有类似的经历，欢迎留言交流 😊
-
-![1](HuaWeiCloud/2.png)

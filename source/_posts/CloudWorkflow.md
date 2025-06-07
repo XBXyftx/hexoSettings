@@ -48,6 +48,8 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ## github codeSpace
 
+![7](CloudWorkflow/8.png)
+
 哎，为什么这么好用的东西没有多少人宣传呢，老早之前就看到过这个功能，但不知道是什么就一直没尝试过，直到偶然刷到一个视频才知道这个功能的。至此我们的正式解决方案也终于是浮出了水面。
 
 首先我们在仓库处创建一个codeSpace后，打开就会看到一个包含着我们的仓库代码的VScode界面。
@@ -75,5 +77,3 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 ## 结语
 
 codeSpace真的是个好东西啊，这是真有用啊，希望这篇文章能够起发到你，帮你早日突破终端的局限去自由的coding。
-
-![7](CloudWorkflow/8.png)
