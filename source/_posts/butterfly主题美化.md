@@ -20,6 +20,8 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ### Hexo静态网页生成
 
+![cmd](butterfly主题美化/9.png)
+
 ### nodejs安装
 
 首先我们需要下载nodejs，官网：[Node.js — 在任何地方运行 JavaScript](https://nodejs.org/zh-cn)
