@@ -399,7 +399,7 @@ darkmode:
   end: 3
 
 # Show scroll percent in scroll-to-top button
-rightside_scroll_percent: false
+rightside_scroll_percent: true
 
 # Don't modify the following settings unless you know how they work
 # Choose: readmode,translate,darkmode,hideAside,toc,chat,comment
@@ -995,9 +995,9 @@ instantpage: false
 # Lazyload
 # https://github.com/verlok/vanilla-lazyload
 lazyload:
-  enable: false
+  enable: true
   # Specify the field to use lazyload (site or post)
-  field: site
+  field: post
   placeholder:
   blur: false
 
