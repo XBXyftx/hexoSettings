@@ -422,7 +422,7 @@ anchor:
   # Click the headline to scroll and update the anchor
   click_to_scroll: false
 
-photofigcaption: false
+photofigcaption: true
 
 copy:
   enable: true
@@ -898,7 +898,7 @@ clickShowText:
 # https://github.com/francoischalifour/medium-zoom
 # https://fancyapps.com/fancybox/
 # Leave it empty if you don't need lightbox
-lightbox: fancybox
+lightbox: false
 
 # --------------------------------------
 # Tag Plugins settings
@@ -1057,6 +1057,8 @@ inject:
      </script>
    - <link rel="twikoo" href="/css/twikoo.css">
    - <link rel="stylesheet" href="/css/rightmenu.css">
+   ## 自定义图片查看器 - 覆盖fancybox
+   - <script src="/js/custom-lightbox.js" defer></script>
    - <script src="/js/nyan.js"></script>
   bottom:
    # 星空背景
