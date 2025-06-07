@@ -144,11 +144,11 @@ Markdown是一种轻量级标记语言，它允许您使用易读易写的纯文
 
 ```markdown
 ![图片描述](图片链接)
-![示例图片](https://via.placeholder.com/300x200?text=Markdown+Image)
+![示例图片](https://bu.dusays.com/2025/05/30/6839d54953864.jpg)
 ```
 
 **效果：**
-![示例图片](https://via.placeholder.com/300x200?text=Markdown+Image)
+![示例图片](https://bu.dusays.com/2025/05/30/6839d54953864.jpg)
 
 ---
 
@@ -219,10 +219,15 @@ console.log(greet('World'));
 ```
 
 **效果：**
+
 | 列1 | 列2 | 列3 |
 |-----|-----|-----|
 | 数据1 | 数据2 | 数据3 |
 | 数据4 | 数据5 | 数据6 |
+
+| 左对齐 | 居中对齐 | 右对齐 |
+|:-------|:-------:|-------:|
+| 左     |   中    |     右 |
 
 ---
 
