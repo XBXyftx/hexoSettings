@@ -142,6 +142,8 @@ microsoft_clarity:
 
 ## 正式解决方案
 
+![20](DirectConnection/20.png)
+
 首先上原作者的博客和github的repo。
 
 [提升部署在cloudflare、vercel或netlify的网站在中国国内的访问速度和稳定性](https://xingpingcn.top/enhanced-faas-in-cn.html)
