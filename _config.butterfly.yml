@@ -29,6 +29,7 @@ menu:
   留言板: /comments/ || fa-solid fa-comment
   昨日重现: /swiper/ || fa-solid fa-star-of-david
   连连看: /LianlianKan/ || fa-solid fa-gamepad
+  Markdown语法: /MarkdownPreview/ || fa-solid fa-file-code
   秘密基地: /coffer/ || fa-solid fa-key
   关于我: /about/ || fas fa-heart
 
