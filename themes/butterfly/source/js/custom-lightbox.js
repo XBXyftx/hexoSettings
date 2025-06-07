@@ -27,20 +27,7 @@
               </svg>
             </button>
             
-            <!-- 上一张按钮 -->
-            <button class="lightbox-btn lightbox-prev" id="lightboxPrev" title="上一张 (←)">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="15,18 9,12 15,6"></polyline>
-              </svg>
-            </button>
-            
-            <!-- 下一张按钮 -->
-            <button class="lightbox-btn lightbox-next" id="lightboxNext" title="下一张 (→)">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="9,18 15,12 9,6"></polyline>
-              </svg>
-            </button>
-            
+
             <!-- 放大按钮 -->
             <button class="lightbox-btn lightbox-zoom-in" id="lightboxZoomIn" title="放大 (+)">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -136,15 +123,81 @@
       }
 
       .lightbox-controls {
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 12px;
+        position: fixed;
+        top: 10px;
+        right: 10px;
         z-index: 10001;
-        max-width: 300px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 10px;
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+      }
+
+      /* 移动端适配 */
+      @media (max-width: 768px) {
+        .lightbox-controls {
+          gap: 8px;
+          padding: 8px;
+          top: 10px;
+          right: 10px;
+        }
+
+        .lightbox-btn {
+          width: 44px;
+          height: 44px;
+          font-size: 14px;
+          min-height: 44px;
+          min-width: 44px;
+          touch-action: manipulation;
+        }
+
+        .lightbox-info-bar {
+          bottom: 15px;
+          padding: 8px 12px;
+          font-size: 14px;
+        }
+
+        .lightbox-image {
+          max-width: 95%;
+          max-height: 85%;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .lightbox-controls {
+          gap: 6px;
+          padding: 6px;
+          top: 5px;
+          right: 5px;
+        }
+
+        .lightbox-btn {
+          width: 40px;
+          height: 40px;
+          font-size: 12px;
+          min-height: 40px;
+          min-width: 40px;
+          touch-action: manipulation;
+        }
+
+        .lightbox-info-bar {
+          bottom: 10px;
+          padding: 6px 10px;
+          font-size: 12px;
+        }
+
+        .action-btn {
+          width: 32px;
+          height: 32px;
+        }
+
+        .lightbox-image {
+          max-width: 98%;
+          max-height: 80%;
+        }
       }
 
       .lightbox-btn {
@@ -160,7 +213,7 @@
         justify-content: center;
         transition: all 0.3s ease;
         backdrop-filter: blur(10px);
-        flex-shrink: 0;
+        position: relative;
       }
 
       .lightbox-btn:hover {
@@ -172,24 +225,7 @@
         transform: scale(0.95);
       }
 
-      .lightbox-prev,
-      .lightbox-next {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 60px;
-        height: 60px;
-        z-index: 10001;
-        background: rgba(255, 255, 255, 0.15);
-      }
 
-      .lightbox-prev {
-        left: 20px;
-      }
-
-      .lightbox-next {
-        right: 20px;
-      }
 
       .lightbox-image-container {
         flex: 1;
@@ -391,13 +427,15 @@
     return modal;
   }
 
+  // 全局函数定义
+  let showImageFunction = null;
+  let closeModalFunction = null;
+
   // 初始化事件监听器
   function initializeEventListeners() {
     if (!modal) return;
 
     const closeBtn = document.getElementById('lightboxClose');
-    const prevBtn = document.getElementById('lightboxPrev');
-    const nextBtn = document.getElementById('lightboxNext');
     const zoomInBtn = document.getElementById('lightboxZoomIn');
     const zoomOutBtn = document.getElementById('lightboxZoomOut');
     const resetBtn = document.getElementById('lightboxReset');
@@ -407,7 +445,7 @@
     const image = document.getElementById('lightboxImage');
 
     // 关闭模态窗口
-    function closeModal() {
+    closeModalFunction = function closeModal() {
       if (!isModalOpen) return;
       isModalOpen = false;
       modal.classList.remove('active');
@@ -423,7 +461,7 @@
     }
 
     // 切换图片
-    function showImage(index) {
+    showImageFunction = function showImage(index) {
       if (index < 0 || index >= imageList.length) return;
       
       currentImageIndex = index;
@@ -447,27 +485,45 @@
       // 更新信息
       updateImageInfo();
       
-      // 预加载图片
-      const img = new Image();
-      img.onload = function() {
-        console.log('Image loaded successfully:', this.src);
-        imageElement.src = this.src;
-        imageElement.style.opacity = '1';
+      // 直接设置图片源，无需预加载
+      console.log('Loading image:', currentImage.src);
+      imageElement.src = currentImage.src;
+      
+      // 添加超时保护
+      const loadingTimeout = setTimeout(() => {
+        console.warn('Image loading timeout for:', currentImage.src);
         loading.classList.add('hidden');
+        imageElement.style.opacity = '1';
+        imageElement.alt = '图片加载超时';
+      }, 5000);
+      
+      // 设置加载和错误处理
+      imageElement.onload = function() {
+        console.log('Image loaded successfully:', this.src);
+        clearTimeout(loadingTimeout);
+        loading.classList.add('hidden');
+        imageElement.style.opacity = '1';
         setTimeout(() => {
           imageElement.classList.add('loaded');
         }, 100);
       };
       
-      img.onerror = function() {
+      imageElement.onerror = function() {
         console.error('Image failed to load:', this.src);
+        clearTimeout(loadingTimeout);
         loading.classList.add('hidden');
         imageElement.alt = '图片加载失败';
         imageElement.style.opacity = '1';
+        
+        // 尝试修复路径
+        const originalSrc = this.src;
+        if (originalSrc.includes('//')) {
+          // 如果是相对路径，尝试添加域名
+          const fixedSrc = window.location.origin + originalSrc.replace(/.*?\/\//, '/');
+          console.log('Trying fixed path:', fixedSrc);
+          this.src = fixedSrc;
+        }
       };
-      
-      console.log('Loading image:', currentImage.src);
-      img.src = currentImage.src;
     }
 
     // 更新图片信息
@@ -484,16 +540,7 @@
         counterElement.textContent = `${currentImageIndex + 1} / ${imageList.length}`;
       }
 
-      // 更新按钮状态
-      if (prevBtn) {
-        prevBtn.style.opacity = currentImageIndex > 0 ? '1' : '0.3';
-        prevBtn.disabled = currentImageIndex === 0;
-      }
-      
-      if (nextBtn) {
-        nextBtn.style.opacity = currentImageIndex < imageList.length - 1 ? '1' : '0.3';
-        nextBtn.disabled = currentImageIndex === imageList.length - 1;
-      }
+
     }
 
     // 重置图片变换
@@ -539,24 +586,10 @@
 
     // 事件监听器
     if (closeBtn) {
-      closeBtn.addEventListener('click', closeModal);
+      closeBtn.addEventListener('click', closeModalFunction);
     }
 
-    if (prevBtn) {
-      prevBtn.addEventListener('click', () => {
-        if (currentImageIndex > 0) {
-          showImage(currentImageIndex - 1);
-        }
-      });
-    }
 
-    if (nextBtn) {
-      nextBtn.addEventListener('click', () => {
-        if (currentImageIndex < imageList.length - 1) {
-          showImage(currentImageIndex + 1);
-        }
-      });
-    }
 
     if (zoomInBtn) {
       zoomInBtn.addEventListener('click', () => zoomImage(1.5));
@@ -595,7 +628,7 @@
     // 点击遮罩关闭
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
-        closeModal();
+        closeModalFunction();
       }
     });
 
@@ -605,16 +638,16 @@
       
       switch (e.key) {
         case 'Escape':
-          closeModal();
+          closeModalFunction();
           break;
         case 'ArrowLeft':
           if (currentImageIndex > 0) {
-            showImage(currentImageIndex - 1);
+            showImageFunction(currentImageIndex - 1);
           }
           break;
         case 'ArrowRight':
           if (currentImageIndex < imageList.length - 1) {
-            showImage(currentImageIndex + 1);
+            showImageFunction(currentImageIndex + 1);
           }
           break;
         case '=':
@@ -738,6 +771,46 @@
       isDragging = false;
       touchStartDistance = 0;
     });
+
+    // 滑动切换图片手势
+    let swipeStartX = 0;
+    let swipeStartY = 0;
+    let swipeStartTime = 0;
+
+    modal.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        swipeStartX = e.touches[0].clientX;
+        swipeStartY = e.touches[0].clientY;
+        swipeStartTime = Date.now();
+      }
+    });
+
+    modal.addEventListener('touchend', (e) => {
+      if (e.changedTouches.length === 1) {
+        const swipeEndX = e.changedTouches[0].clientX;
+        const swipeEndY = e.changedTouches[0].clientY;
+        const swipeEndTime = Date.now();
+        
+        const deltaX = swipeEndX - swipeStartX;
+        const deltaY = swipeEndY - swipeStartY;
+        const deltaTime = swipeEndTime - swipeStartTime;
+        
+        // 只有快速滑动且主要是水平方向才触发切换
+        if (deltaTime < 300 && Math.abs(deltaX) > 80 && Math.abs(deltaX) > Math.abs(deltaY) * 2) {
+          if (deltaX > 0) {
+            // 右滑 - 上一张
+            if (currentImageIndex > 0) {
+              showImageFunction(currentImageIndex - 1);
+            }
+          } else {
+            // 左滑 - 下一张
+            if (currentImageIndex < imageList.length - 1) {
+              showImageFunction(currentImageIndex + 1);
+            }
+          }
+        }
+      }
+    });
   }
 
   // 收集页面中的所有图片
@@ -798,12 +871,12 @@
       
       if (lightboxImage && lightboxLoading) {
         console.log('Modal elements found, showing image');
-        showImage(currentImageIndex);
+        showImageFunction(currentImageIndex);
       } else {
         console.error('Modal elements not found');
         // 再次尝试
         setTimeout(() => {
-          showImage(currentImageIndex);
+          showImageFunction(currentImageIndex);
         }, 200);
       }
     }, 150);
