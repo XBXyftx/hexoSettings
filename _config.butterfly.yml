@@ -206,7 +206,7 @@ toc:
   post: true
   page: false
   number: true
-  expand: false
+  expand: true
   # Only for post
   style_simple: false
   scroll_percent: true
@@ -1057,7 +1057,6 @@ inject:
      </script>
    - <link rel="twikoo" href="/css/twikoo.css">
    - <link rel="stylesheet" href="/css/rightmenu.css">
-   - <script src="/js/cache-manager.js"></script>
    - <script src="/js/nyan.js"></script>
   bottom:
    # 星空背景
@@ -1080,7 +1079,6 @@ inject:
    - <script src="/js/rightmenu.js"></script> # 右键菜单rightMenu
    - <link rel="twikoo" href="/css/twikoo.css">
    - <script src="/js/happy-title.js" async></script>
-   - <script src="/js/cache-manager.js"></script>
 # CDN Settings
 # Don't modify the following settings unless you know how they work
 CDN:
@@ -1155,7 +1153,7 @@ CDN:
     # disqusjs_css:
     # docsearch_css:
     # docsearch_js:
-    # egjs_infinitegrid:
+    egjs_infinitegrid: ''
     fancybox: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/fancybox/3.5.7/jquery.fancybox.min.js
     fancybox_css: https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/fancybox/3.5.7/jquery.fancybox.min.css
     # fireworks:

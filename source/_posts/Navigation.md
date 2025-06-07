@@ -71,6 +71,8 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 * `Router`不具备路由拦截能力，而`Navigation`则具备
 * `Navigation`没有路由数量限制，而`Router`则有32个的限制
 
+![23](Navigation/23.png)
+
 就凭这几点，`Navigation`的优势就非常明显了。
 
 而两者**最本质的区别**在于`Router`是通过**切换页面**来进行路由，所以它存在多个页面，但是`Navigation`是通过**切换`NavDestination`子组件**来进行路由的，其全称都**只有一个页面**。
@@ -109,6 +111,8 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 | `pageSourceFile` | 跳转目标页面在当前包内的路径，是相对于`src`文件夹的相对路径 |
 | `buildFunction` | 目标页入口函数名称，用于构建目标页面的视图组件，必须以@Builder进行修饰 |
 | `data` | 自定义字段。可以通过配置项读取接口getConfigInRouteMap获取 |
+
+![24](Navigation/24.png)
 
 #### `RouterMap`的配置文件
 

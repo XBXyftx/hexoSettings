@@ -75,3 +75,5 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 ## 结语
 
 codeSpace真的是个好东西啊，这是真有用啊，希望这篇文章能够起发到你，帮你早日突破终端的局限去自由的coding。
+
+![7](CloudWorkflow/8.png)
