@@ -18,7 +18,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 {% note info flat  %}
 不想看前言的可以直接点传送门跳转到正式解决方案部分哦
-**[正式解决方案传送门](https://xbxyftx.top/2025/03/20/directconnection/#%E6%AD%A3%E5%BC%8F%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88)**
+**[正式解决方案传送门](/2025/03/20/DirectConnection/#%E6%AD%A3%E5%BC%8F%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88)**
 {% endnote %}
 
 ### 起始
