@@ -996,7 +996,7 @@ instantpage: true
 # Lazyload
 # https://github.com/verlok/vanilla-lazyload
 lazyload:
-  enable: true
+  enable: false
   # Specify the field to use lazyload (site or post)
   field: post
   placeholder:
