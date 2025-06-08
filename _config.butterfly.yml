@@ -298,6 +298,8 @@ aside:
       icon: fab fa-github
       text: Follow Me
       link: https://github.com/XBXyftx
+  card_visitor_info:
+    enable: true
   card_announcement:
     enable: true
     content: 最近也是给自己挖了挺多坑还没填上的等暑假慢慢填吧，争取暑假把自己想写的都写上。<br/><img src="https://bu.dusays.com/2025/06/03/683ec52fd0dbc.jpg" alt="1748944170064.jpg" title="1748944170064.jpg" class="announcementImg"/>

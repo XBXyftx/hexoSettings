@@ -422,3 +422,112 @@
   if hexo-config('aside.card_webinfo.sort_order')
     .card-webinfo
       order: hexo-config('aside.card_webinfo.sort_order')
+
+// 访问者信息卡片样式
+.visitor-info
+  text-align: center
+  
+  .card-content
+    padding: 5px 0
+    
+  .visitor-welcome
+    margin-bottom: 12px
+    
+    i
+      color: #ff6b9d
+      margin-right: 6px
+      animation: heartbeat 1.5s ease-in-out infinite
+      
+    span
+      font-size: 1.1em
+      font-weight: 500
+      color: var(--font-color)
+      
+  .visitor-details
+    .visitor-location,
+    .visitor-ip,
+    .visitor-distance,
+    .visitor-tip
+      display: flex
+      align-items: center
+      justify-content: center
+      margin: 8px 0
+      font-size: 0.9em
+      color: var(--font-color)
+      transition: all 0.3s ease
+      
+      &:hover
+        transform: translateX(3px)
+        
+      i
+        margin-right: 6px
+        width: 14px
+        transition: all 0.3s ease
+        
+      span
+        line-height: 1.4
+        
+    .visitor-location i
+      color: #42b883
+      
+      &:hover
+        animation: bounce 0.6s
+      
+    .visitor-ip i
+      color: #1677ff
+      
+      &:hover
+        animation: spin 0.6s
+      
+    .visitor-distance i
+      color: #f56565
+      
+      &:hover
+        animation: pulse 0.6s
+      
+    .visitor-tip i
+      color: #ffd93d
+      
+      &:hover
+        animation: swing 0.6s
+
+// 访问者信息卡片动画
+@keyframes heartbeat
+  0%, 100%
+    transform: scale(1)
+  50%
+    transform: scale(1.1)
+
+@keyframes bounce
+  0%, 20%, 50%, 80%, 100%
+    transform: translateY(0)
+  40%
+    transform: translateY(-8px)
+  60%
+    transform: translateY(-4px)
+
+@keyframes spin
+  0%
+    transform: rotate(0deg)
+  100%
+    transform: rotate(360deg)
+
+@keyframes pulse
+  0%
+    transform: scale(1)
+  50%
+    transform: scale(1.2)
+  100%
+    transform: scale(1)
+
+@keyframes swing
+  20%
+    transform: rotate(15deg)
+  40%
+    transform: rotate(-10deg)
+  60%
+    transform: rotate(5deg)
+  80%
+    transform: rotate(-5deg)
+  100%
+    transform: rotate(0deg)
