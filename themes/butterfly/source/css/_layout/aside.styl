@@ -426,9 +426,28 @@
 // 访问者信息卡片样式
 .visitor-info
   text-align: center
+  position: relative
+  overflow: hidden
+  
+  // 专门为访问者信息卡片设置的背景覆盖层（提高优先级）
+  &.card-widget.card-info::before
+    content: '' !important
+    position: absolute !important
+    top: 0 !important
+    left: 0 !important
+    right: 0 !important
+    bottom: 0 !important
+    background-image: url('https://bu.dusays.com/2025/06/08/684576e3dccb5.jpg') !important
+    background-size: cover !important
+    background-position: center !important
+    background-repeat: no-repeat !important
+    opacity: 0.7 !important
+    z-index: 0 !important
   
   .card-content
     padding: 5px 0
+    position: relative
+    z-index: 1
     
   .visitor-welcome
     margin-bottom: 12px
@@ -490,6 +509,21 @@
       
       &:hover
         animation: swing 0.6s
+
+// 访问者信息卡片专用背景样式（最高优先级）
+#aside-content .visitor-info.card-widget.card-info::before
+  content: '' !important
+  position: absolute !important
+  top: 0 !important
+  left: 0 !important
+  right: 0 !important
+  bottom: 0 !important
+  background-image: url('https://bu.dusays.com/2025/06/08/684576e3dccb5.jpg') !important
+  background-size: cover !important
+  background-position: center !important
+  background-repeat: no-repeat !important
+  opacity: 0.4 !important
+  z-index: 0 !important
 
 // 访问者信息卡片动画
 @keyframes heartbeat
