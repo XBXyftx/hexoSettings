@@ -602,19 +602,19 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.style.overflow = 'hidden';
             isFullscreen = true;
             
-            // 更新按钮图标
+            // 更新按钮内容和提示
             const fullscreenBtn = event.target;
-            fullscreenBtn.innerHTML = '⛶';
-            fullscreenBtn.title = '退出全屏';
+            fullscreenBtn.innerHTML = '⛶ 退出全屏';
+            fullscreenBtn.title = '退出全屏模式 (ESC)';
         } else {
             container.classList.remove('fullscreen-mode');
             document.body.style.overflow = '';
             isFullscreen = false;
             
-            // 更新按钮图标
+            // 更新按钮内容和提示
             const fullscreenBtn = event.target;
-            fullscreenBtn.innerHTML = '⛶';
-            fullscreenBtn.title = '全屏模式';
+            fullscreenBtn.innerHTML = '⛶ 全屏';
+            fullscreenBtn.title = '全屏模式 (ESC退出)';
         }
         
         // 重新调整预览区域
