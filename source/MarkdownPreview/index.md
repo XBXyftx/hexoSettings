@@ -308,19 +308,19 @@ keywords: Markdown, 语法, 指南, 教程, 在线编辑器
         🖊️ Markdown在线编辑器
     </div>
     <div class="editor-toolbar">
-        <button class="toolbar-btn" onclick="insertText('**', '**')" title="粗体">B</button>
-        <button class="toolbar-btn" onclick="insertText('*', '*')" title="斜体">I</button>
-        <button class="toolbar-btn" onclick="insertText('~~', '~~')" title="删除线">S</button>
-        <button class="toolbar-btn" onclick="insertText('`', '`')" title="行内代码">&lt;/&gt;</button>
-        <button class="toolbar-btn" onclick="insertText('[', '](url)')" title="链接">🔗</button>
-        <button class="toolbar-btn" onclick="insertText('![', '](url)')" title="图片">🖼️</button>
-        <button class="toolbar-btn" onclick="insertHeading()" title="标题"># H</button>
-        <button class="toolbar-btn" onclick="insertList()" title="列表">📝</button>
-        <button class="toolbar-btn" onclick="insertQuote()" title="引用">💬</button>
-        <button class="toolbar-btn" onclick="insertTable()" title="表格">📊</button>
-        <button class="toolbar-btn" onclick="toggleFullscreen()" title="全屏模式">⛶</button>
-        <button class="toolbar-btn" onclick="saveMarkdown()" title="保存为文件">💾</button>
-        <button class="toolbar-btn" onclick="clearEditor()" title="清空">🗑️</button>
+        <button class="toolbar-btn" onclick="insertText('**', '**')" title="粗体 (Ctrl+B)">**B** 粗体</button>
+        <button class="toolbar-btn" onclick="insertText('*', '*')" title="斜体 (Ctrl+I)">*I* 斜体</button>
+        <button class="toolbar-btn" onclick="insertText('~~', '~~')" title="删除线">~~S~~ 删除线</button>
+        <button class="toolbar-btn" onclick="insertText('`', '`')" title="行内代码">&lt;/&gt; 代码</button>
+        <button class="toolbar-btn" onclick="insertText('[', '](url)')" title="链接 (Ctrl+K)">🔗 链接</button>
+        <button class="toolbar-btn" onclick="insertText('![', '](url)')" title="图片">🖼️ 图片</button>
+        <button class="toolbar-btn" onclick="insertHeading()" title="标题"># 标题</button>
+        <button class="toolbar-btn" onclick="insertList()" title="列表">📝 列表</button>
+        <button class="toolbar-btn" onclick="insertQuote()" title="引用">💬 引用</button>
+        <button class="toolbar-btn" onclick="insertTable()" title="表格">📊 表格</button>
+        <button class="toolbar-btn" onclick="toggleFullscreen()" title="全屏模式 (ESC退出)">⛶ 全屏</button>
+        <button class="toolbar-btn" onclick="saveMarkdown()" title="保存为文件">💾 保存</button>
+        <button class="toolbar-btn" onclick="clearEditor()" title="清空编辑器">🗑️ 清空</button>
     </div>
     <div class="editor-content">
         <div class="editor-pane">
