@@ -260,6 +260,43 @@ keywords: Markdown, 语法, 指南, 教程, 在线编辑器
 .markdown-preview::-webkit-scrollbar-thumb:hover {
     background: #777;
 }
+
+.fullscreen-mode {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 9999 !important;
+    background: #1e1e1e !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+}
+
+.fullscreen-mode .editor-content {
+    height: calc(100vh - 120px) !important;
+}
+
+.save-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #569cd6;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 6px;
+    z-index: 10000;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.save-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
 </style>
 
 # 🚀 Markdown编辑器
@@ -281,6 +318,8 @@ keywords: Markdown, 语法, 指南, 教程, 在线编辑器
         <button class="toolbar-btn" onclick="insertList()" title="列表">📝</button>
         <button class="toolbar-btn" onclick="insertQuote()" title="引用">💬</button>
         <button class="toolbar-btn" onclick="insertTable()" title="表格">📊</button>
+        <button class="toolbar-btn" onclick="toggleFullscreen()" title="全屏模式">⛶</button>
+        <button class="toolbar-btn" onclick="saveMarkdown()" title="保存为文件">💾</button>
         <button class="toolbar-btn" onclick="clearEditor()" title="清空">🗑️</button>
     </div>
     <div class="editor-content">
@@ -409,6 +448,84 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    let isFullscreen = false;
+    window.toggleFullscreen = function() {
+        const container = document.querySelector('.markdown-editor-container');
+        if (!container) return;
+        
+        if (!isFullscreen) {
+            container.classList.add('fullscreen-mode');
+            document.body.style.overflow = 'hidden';
+            isFullscreen = true;
+            
+            // 更新按钮图标
+            const fullscreenBtn = event.target;
+            fullscreenBtn.innerHTML = '⛶';
+            fullscreenBtn.title = '退出全屏';
+        } else {
+            container.classList.remove('fullscreen-mode');
+            document.body.style.overflow = '';
+            isFullscreen = false;
+            
+            // 更新按钮图标
+            const fullscreenBtn = event.target;
+            fullscreenBtn.innerHTML = '⛶';
+            fullscreenBtn.title = '全屏模式';
+        }
+        
+        // 重新调整预览区域
+        updatePreview();
+    };
+
+    window.saveMarkdown = function() {
+        if (!input) return;
+        
+        const content = input.value;
+        const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        
+        // 创建下载链接
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'markdown-document.md';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        // 显示保存通知
+        showSaveNotification('文件已保存为 markdown-document.md');
+    };
+
+    function showSaveNotification(message) {
+        // 移除已存在的通知
+        const existingNotification = document.querySelector('.save-notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+        
+        // 创建新通知
+        const notification = document.createElement('div');
+        notification.className = 'save-notification';
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        // 显示动画
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+        
+        // 3秒后自动移除
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
+    }
+
     if (input) {
         input.addEventListener('keydown', function(e) {
             if (e.ctrlKey || e.metaKey) {
@@ -432,8 +549,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 insertText('    ');
             }
+            
+            if (e.key === 'Escape' && isFullscreen) {
+                toggleFullscreen();
+            }
         });
     }
+
+    // 添加ESC键全局监听
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && isFullscreen) {
+            toggleFullscreen();
+        }
+    });
 
     updatePreview();
 });
