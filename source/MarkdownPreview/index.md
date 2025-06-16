@@ -387,6 +387,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // 保存编辑器状态的函数
+    function saveEditorState() {
+        return {
+            scrollTop: input.scrollTop,
+            selectionStart: input.selectionStart,
+            selectionEnd: input.selectionEnd
+        };
+    }
+
+    // 恢复编辑器状态的函数
+    function restoreEditorState(state) {
+        input.scrollTop = state.scrollTop;
+        input.setSelectionRange(state.selectionStart, state.selectionEnd);
+    }
+
     if (input) {
         input.addEventListener('input', updatePreview);
         input.addEventListener('scroll', function() {
@@ -400,6 +415,9 @@ document.addEventListener('DOMContentLoaded', function() {
     window.insertText = function(before, after = '') {
         if (!input) return;
         
+        // 保存编辑器当前滚动位置
+        const scrollTop = input.scrollTop;
+        
         const start = input.selectionStart;
         const end = input.selectionEnd;
         const selectedText = input.value.substring(start, end);
@@ -408,36 +426,162 @@ document.addEventListener('DOMContentLoaded', function() {
         input.value = input.value.substring(0, start) + newText + input.value.substring(end);
         input.focus();
         input.setSelectionRange(start + before.length, start + before.length + selectedText.length);
+        
+        // 恢复滚动位置
+        input.scrollTop = scrollTop;
+        
         updatePreview();
     };
 
     window.insertHeading = function() {
         if (!input) return;
+        
+        // 保存编辑器当前滚动位置
+        const scrollTop = input.scrollTop;
+        
         const start = input.selectionStart;
+        const end = input.selectionEnd;
         const lineStart = input.value.lastIndexOf('\n', start - 1) + 1;
-        input.setSelectionRange(lineStart, lineStart);
-        insertText('## ');
+        const lineEnd = input.value.indexOf('\n', end);
+        const actualLineEnd = lineEnd === -1 ? input.value.length : lineEnd;
+        
+        // 获取当前行内容
+        const currentLine = input.value.substring(lineStart, actualLineEnd);
+        
+        // 检查是否已经是标题格式
+        const headingMatch = currentLine.match(/^(#+)\s*/);
+        let newText;
+        
+        if (headingMatch) {
+            // 如果已经是标题，增加标题级别或移除
+            const currentLevel = headingMatch[1].length;
+            if (currentLevel >= 6) {
+                // 移除标题格式
+                newText = currentLine.replace(/^#+\s*/, '');
+            } else {
+                // 增加一个#
+                newText = '#' + currentLine;
+            }
+        } else {
+            // 添加二级标题
+            newText = '## ' + currentLine;
+        }
+        
+        input.value = input.value.substring(0, lineStart) + newText + input.value.substring(actualLineEnd);
+        input.focus();
+        input.setSelectionRange(lineStart + newText.length, lineStart + newText.length);
+        
+        // 恢复滚动位置
+        input.scrollTop = scrollTop;
+        
+        updatePreview();
     };
 
     window.insertList = function() {
         if (!input) return;
+        
+        // 保存编辑器当前滚动位置
+        const scrollTop = input.scrollTop;
+        
         const start = input.selectionStart;
+        const end = input.selectionEnd;
         const lineStart = input.value.lastIndexOf('\n', start - 1) + 1;
-        input.setSelectionRange(lineStart, lineStart);
-        insertText('- ');
+        const lineEnd = input.value.indexOf('\n', end);
+        const actualLineEnd = lineEnd === -1 ? input.value.length : lineEnd;
+        
+        // 获取当前行内容
+        const currentLine = input.value.substring(lineStart, actualLineEnd);
+        
+        // 检查是否已经是列表格式
+        const listMatch = currentLine.match(/^(\s*)-\s*/);
+        let newText;
+        
+        if (listMatch) {
+            // 如果已经是列表，移除列表格式
+            newText = currentLine.replace(/^(\s*)-\s*/, '$1');
+        } else {
+            // 添加列表格式
+            newText = '- ' + currentLine;
+        }
+        
+        input.value = input.value.substring(0, lineStart) + newText + input.value.substring(actualLineEnd);
+        input.focus();
+        input.setSelectionRange(lineStart + newText.length, lineStart + newText.length);
+        
+        // 恢复滚动位置
+        input.scrollTop = scrollTop;
+        
+        updatePreview();
     };
 
     window.insertQuote = function() {
         if (!input) return;
+        
+        // 保存编辑器当前滚动位置
+        const scrollTop = input.scrollTop;
+        
         const start = input.selectionStart;
+        const end = input.selectionEnd;
         const lineStart = input.value.lastIndexOf('\n', start - 1) + 1;
-        input.setSelectionRange(lineStart, lineStart);
-        insertText('> ');
+        const lineEnd = input.value.indexOf('\n', end);
+        const actualLineEnd = lineEnd === -1 ? input.value.length : lineEnd;
+        
+        // 获取当前行内容
+        const currentLine = input.value.substring(lineStart, actualLineEnd);
+        
+        // 检查是否已经是引用格式
+        const quoteMatch = currentLine.match(/^(\s*)>\s*/);
+        let newText;
+        
+        if (quoteMatch) {
+            // 如果已经是引用，移除引用格式
+            newText = currentLine.replace(/^(\s*)>\s*/, '$1');
+        } else {
+            // 添加引用格式
+            newText = '> ' + currentLine;
+        }
+        
+        input.value = input.value.substring(0, lineStart) + newText + input.value.substring(actualLineEnd);
+        input.focus();
+        input.setSelectionRange(lineStart + newText.length, lineStart + newText.length);
+        
+        // 恢复滚动位置
+        input.scrollTop = scrollTop;
+        
+        updatePreview();
     };
 
     window.insertTable = function() {
-        const tableText = '\n| 列1 | 列2 | 列3 |\n|-----|-----|-----|\n| 内容 | 内容 | 内容 |\n';
-        insertText(tableText);
+        if (!input) return;
+        
+        // 保存编辑器当前滚动位置
+        const scrollTop = input.scrollTop;
+        
+        const start = input.selectionStart;
+        const end = input.selectionEnd;
+        
+        // 检查光标是否在行首，如果不是则添加换行符
+        const beforeCursor = input.value.substring(0, start);
+        const needsNewlineBefore = beforeCursor.length > 0 && !beforeCursor.endsWith('\n');
+        const needsNewlineAfter = end < input.value.length && !input.value.substring(end).startsWith('\n');
+        
+        let tableText = '';
+        if (needsNewlineBefore) tableText += '\n';
+        tableText += '| 列1 | 列2 | 列3 |\n|-----|-----|-----|\n| 内容 | 内容 | 内容 |';
+        if (needsNewlineAfter) tableText += '\n';
+        
+        // 直接插入文本而不使用insertText函数
+        input.value = input.value.substring(0, start) + tableText + input.value.substring(end);
+        
+        // 将光标定位到第一个单元格内容
+        const firstCellPos = start + (needsNewlineBefore ? 1 : 0) + 2; // "| "之后
+        input.focus();
+        input.setSelectionRange(firstCellPos, firstCellPos + 2); // 选中"列1"
+        
+        // 恢复滚动位置
+        input.scrollTop = scrollTop;
+        
+        updatePreview();
     };
 
     window.clearEditor = function() {
