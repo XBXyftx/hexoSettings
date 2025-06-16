@@ -23,32 +23,6 @@ keywords: Markdown, 语法, 指南, 教程, 在线编辑器
     color: #ffffff;
 }
 
-.editor-toolbar {
-    background: #2d2d30;
-    border-bottom: 1px solid #444;
-    padding: 8px 12px;
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.toolbar-btn {
-    background: #3c3c3c;
-    border: 1px solid #555;
-    border-radius: 4px;
-    padding: 4px 8px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: #d4d4d4;
-}
-
-.toolbar-btn:hover {
-    background: #4a4a4a;
-    border-color: #777;
-    color: #ffffff;
-}
-
 .editor-content {
     display: flex;
     height: 500px;
@@ -224,6 +198,54 @@ keywords: Markdown, 语法, 指南, 教程, 在线编辑器
     margin: 24px 0;
 }
 
+.editor-toolbar {
+    background: #2d2d30;
+    border-bottom: 1px solid #444;
+    padding: 8px 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.toolbar-btn {
+    background: #3c3c3c;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #d4d4d4;
+}
+
+.toolbar-btn:hover {
+    background: #4a4a4a;
+    border-color: #777;
+    color: #ffffff;
+}
+
+.toolbar-separator {
+    width: 1px;
+    height: 20px;
+    background: #555;
+    margin: 0 4px;
+}
+
+.markdown-editor-container.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    border-radius: 0;
+    margin: 0;
+}
+
+.markdown-editor-container.fullscreen .editor-content {
+    height: calc(100vh - 120px);
+}
+
 @media (max-width: 768px) {
     .editor-content {
         flex-direction: column;
@@ -237,6 +259,15 @@ keywords: Markdown, 语法, 指南, 教程, 在线编辑器
     
     .markdown-input, .markdown-preview {
         height: 300px;
+    }
+    
+    .markdown-editor-container.fullscreen .editor-content {
+        height: calc(100vh - 100px);
+    }
+    
+    .markdown-editor-container.fullscreen .markdown-input,
+    .markdown-editor-container.fullscreen .markdown-preview {
+        height: calc(50vh - 50px);
     }
 }
 
@@ -281,6 +312,10 @@ keywords: Markdown, 语法, 指南, 教程, 在线编辑器
         <button class="toolbar-btn" onclick="insertList()" title="列表">📝</button>
         <button class="toolbar-btn" onclick="insertQuote()" title="引用">💬</button>
         <button class="toolbar-btn" onclick="insertTable()" title="表格">📊</button>
+        <div class="toolbar-separator"></div>
+        <button class="toolbar-btn" onclick="toggleFullscreen()" title="全屏/退出全屏" id="fullscreen-btn">🔳</button>
+        <button class="toolbar-btn" onclick="downloadMarkdown()" title="下载Markdown文件">💾</button>
+        <button class="toolbar-btn" onclick="downloadHTML()" title="下载HTML文件">📄</button>
         <button class="toolbar-btn" onclick="clearEditor()" title="清空">🗑️</button>
     </div>
     <div class="editor-content">
@@ -293,7 +328,7 @@ keywords: Markdown, 语法, 指南, 教程, 在线编辑器
 ### 功能特色
 
 - ✨ **实时预览** - 边写边看效果
-- 🎨 **语法高亮** - 清晰的代码展示  
+- 🎨 **语法高亮** - 清晰的代码展示
 - 📱 **响应式设计** - 适配各种设备
 - 🔧 **工具栏** - 快速插入常用语法
 
@@ -306,6 +341,13 @@ keywords: Markdown, 语法, 指南, 教程, 在线编辑器
 
 > 这是一个引用块
 > 可以包含多行内容
+
+```javascript
+// 代码块示例
+function hello() {
+    console.log("Hello Markdown!");
+}
+```
 
 | 表格 | 演示 | 示例 |
 |------|------|------|
@@ -327,123 +369,204 @@ keywords: Markdown, 语法, 指南, 教程, 在线编辑器
 
 <script src="./marked.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof marked !== 'undefined') {
-        marked.setOptions({
-            gfm: true,
-            breaks: true,
-            headerIds: false,
-            mangle: false
-        });
-    }
-
-    const input = document.getElementById('markdown-input');
-    const preview = document.getElementById('markdown-preview');
-
-    function updatePreview() {
-        if (input && preview && typeof marked !== 'undefined') {
-            const markdownText = input.value;
-            const htmlContent = marked.parse(markdownText);
-            preview.innerHTML = htmlContent;
-        }
-    }
-
-    if (input) {
-        input.addEventListener('input', updatePreview);
-        input.addEventListener('scroll', function() {
-            if (preview) {
-                const scrollPercent = input.scrollTop / (input.scrollHeight - input.clientHeight);
-                preview.scrollTop = scrollPercent * (preview.scrollHeight - preview.clientHeight);
-            }
-        });
-    }
-
-    window.insertText = function(before, after = '') {
-        if (!input) return;
-        
-        const start = input.selectionStart;
-        const end = input.selectionEnd;
-        const selectedText = input.value.substring(start, end);
-        const newText = before + selectedText + after;
-        
-        input.value = input.value.substring(0, start) + newText + input.value.substring(end);
-        input.focus();
-        input.setSelectionRange(start + before.length, start + before.length + selectedText.length);
-        updatePreview();
-    };
-
-    window.insertHeading = function() {
-        if (!input) return;
-        const start = input.selectionStart;
-        const lineStart = input.value.lastIndexOf('\n', start - 1) + 1;
-        input.setSelectionRange(lineStart, lineStart);
-        insertText('## ');
-    };
-
-    window.insertList = function() {
-        if (!input) return;
-        const start = input.selectionStart;
-        const lineStart = input.value.lastIndexOf('\n', start - 1) + 1;
-        input.setSelectionRange(lineStart, lineStart);
-        insertText('- ');
-    };
-
-    window.insertQuote = function() {
-        if (!input) return;
-        const start = input.selectionStart;
-        const lineStart = input.value.lastIndexOf('\n', start - 1) + 1;
-        input.setSelectionRange(lineStart, lineStart);
-        insertText('> ');
-    };
-
-    window.insertTable = function() {
-        const tableText = '\n| 列1 | 列2 | 列3 |\n|-----|-----|-----|\n| 内容 | 内容 | 内容 |\n';
-        insertText(tableText);
-    };
-
-    window.clearEditor = function() {
-        if (input && confirm('确定要清空编辑器内容吗？')) {
-            input.value = '';
-            updatePreview();
-            input.focus();
-        }
-    };
-
-    if (input) {
-        input.addEventListener('keydown', function(e) {
-            if (e.ctrlKey || e.metaKey) {
-                switch(e.key) {
-                    case 'b':
-                        e.preventDefault();
-                        insertText('**', '**');
-                        break;
-                    case 'i':
-                        e.preventDefault();
-                        insertText('*', '*');
-                        break;
-                    case 'k':
-                        e.preventDefault();
-                        insertText('[', '](url)');
-                        break;
-                }
-            }
-            
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                insertText('    ');
-            }
-        });
-    }
-
-    updatePreview();
+// 配置marked选项
+marked.setOptions({
+    gfm: true,
+    breaks: true,
+    headerIds: false,
+    mangle: false
 });
+
+const input = document.getElementById('markdown-input');
+const preview = document.getElementById('markdown-preview');
+
+// 实时预览函数
+function updatePreview() {
+    const markdownText = input.value;
+    const htmlContent = marked.parse(markdownText);
+    preview.innerHTML = htmlContent;
+}
+
+// 监听输入事件
+input.addEventListener('input', updatePreview);
+input.addEventListener('scroll', function() {
+    const scrollPercent = input.scrollTop / (input.scrollHeight - input.clientHeight);
+    preview.scrollTop = scrollPercent * (preview.scrollHeight - preview.clientHeight);
+});
+
+// 插入文本函数
+function insertText(before, after = '') {
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    const selectedText = input.value.substring(start, end);
+    const newText = before + selectedText + after;
+    
+    input.value = input.value.substring(0, start) + newText + input.value.substring(end);
+    input.focus();
+    input.setSelectionRange(start + before.length, start + before.length + selectedText.length);
+    updatePreview();
+}
+
+// 工具栏功能
+function insertHeading() {
+    const start = input.selectionStart;
+    const lineStart = input.value.lastIndexOf('\n', start - 1) + 1;
+    input.setSelectionRange(lineStart, lineStart);
+    insertText('## ');
+}
+
+function insertList() {
+    const start = input.selectionStart;
+    const lineStart = input.value.lastIndexOf('\n', start - 1) + 1;
+    input.setSelectionRange(lineStart, lineStart);
+    insertText('- ');
+}
+
+function insertQuote() {
+    const start = input.selectionStart;
+    const lineStart = input.value.lastIndexOf('\n', start - 1) + 1;
+    input.setSelectionRange(lineStart, lineStart);
+    insertText('> ');
+}
+
+function insertTable() {
+    const tableText = `
+| 列1 | 列2 | 列3 |
+|-----|-----|-----|
+| 内容 | 内容 | 内容 |
+`;
+    insertText(tableText);
+}
+
+function clearEditor() {
+    if (confirm('确定要清空编辑器内容吗？')) {
+        input.value = '';
+        updatePreview();
+        input.focus();
+    }
+}
+
+// 全屏功能
+function toggleFullscreen() {
+    const container = document.querySelector('.markdown-editor-container');
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    
+    if (container.classList.contains('fullscreen')) {
+        container.classList.remove('fullscreen');
+        fullscreenBtn.innerHTML = '🔳';
+        fullscreenBtn.title = '全屏';
+        document.body.style.overflow = 'auto';
+    } else {
+        container.classList.add('fullscreen');
+        fullscreenBtn.innerHTML = '🔲';
+        fullscreenBtn.title = '退出全屏';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+// 下载Markdown文件
+function downloadMarkdown() {
+    const content = input.value;
+    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'markdown-document.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// 下载HTML文件
+function downloadHTML() {
+    const markdownContent = input.value;
+    const htmlContent = marked.parse(markdownContent);
+    
+    const fullHTML = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown文档</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1, h2 { border-bottom: 1px solid #eaecef; padding-bottom: 8px; }
+        code { background: #f6f8fa; padding: 0.2em 0.4em; border-radius: 3px; }
+        pre { background: #f6f8fa; padding: 16px; border-radius: 6px; overflow: auto; }
+        blockquote { border-left: 4px solid #dfe2e5; margin: 0; padding: 0 16px; color: #6a737d; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #dfe2e5; padding: 6px 13px; }
+        th { background: #f6f8fa; }
+    </style>
+</head>
+<body>${htmlContent}</body>
+</html>`;
+    
+    const blob = new Blob([fullHTML], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'markdown-document.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// 键盘快捷键
+input.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey) {
+        switch(e.key) {
+            case 'b':
+                e.preventDefault();
+                insertText('**', '**');
+                break;
+            case 'i':
+                e.preventDefault();
+                insertText('*', '*');
+                break;
+            case 'k':
+                e.preventDefault();
+                insertText('[', '](url)');
+                break;
+            case 's':
+                e.preventDefault();
+                downloadMarkdown();
+                break;
+        }
+    }
+    
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        insertText('    ');
+    }
+    
+    if (e.key === 'F11') {
+        e.preventDefault();
+        toggleFullscreen();
+    }
+    
+    if (e.key === 'Escape') {
+        const container = document.querySelector('.markdown-editor-container');
+        if (container && container.classList.contains('fullscreen')) {
+            e.preventDefault();
+            toggleFullscreen();
+        }
+    }
+});
+
+// 初始化预览
+updatePreview();
 </script>
 
 ---
 
 # 📝 Markdown语法指南
 
-下面是详细的Markdown语法教程和示例。
+Markdown是一种轻量级标记语言，它允许您使用易读易写的纯文本格式编写文档。
 
 ## ✨ 为什么使用Markdown？
 
@@ -451,8 +574,4 @@ document.addEventListener('DOMContentLoaded', function() {
 - 🎨 **专注内容** - 专注于内容而非格式
 - 📱 **跨平台** - 支持各种编辑器和平台
 - 💾 **纯文本** - 易于版本控制和分享
-- 🔄 **可转换** - 可转换为HTML、PDF等格式
-
----
-
-*希望这个Markdown编辑器对您有帮助！开始您的创作之旅吧！* 🚀 
+- 🔄 **可转换** - 可转换为HTML、PDF等格式 
