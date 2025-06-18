@@ -729,22 +729,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
 ## 📋 目录
 
-- [标题](#标题)
-- [段落与换行](#段落与换行)
-- [文本强调](#文本强调)
-- [列表](#列表)
-- [链接](#链接)
-- [图片](#图片)
-- [代码](#代码)
-- [表格](#表格)
-- [引用](#引用)
-- [分割线](#分割线)
-- [任务列表](#任务列表)
-- [删除线](#删除线)
-- [表情符号](#表情符号)
-- [脚注](#脚注)
-- [数学公式](#数学公式)
-- [高级语法](#高级语法)
+- [标题](/MarkdownPreview/#🏷%EF%B8%8F-标题)
+- [段落与换行](/MarkdownPreview/#📝-段落与换行)
+- [文本强调](/MarkdownPreview/#✨-文本强调)
+- [列表](/MarkdownPreview/#📃-列表)
+- [链接](/MarkdownPreview/#🔗-链接)
+- [图片](/MarkdownPreview/#🖼%EF%B8%8F-图片)
+- [代码](/MarkdownPreview/#💻-代码)
+- [表格](/MarkdownPreview/#📊-表格)
+- [引用](/MarkdownPreview/#💬-引用)
+- [分割线](/MarkdownPreview/#➖-分割线)
+- [任务列表](/MarkdownPreview/#✅-任务列表)
+- [删除线](/MarkdownPreview/#~~📑~~-删除线)
+- [表情符号](/MarkdownPreview/#😊-表情符号)
+- [脚注](/MarkdownPreview/#📖-脚注)
+- [数学公式](/MarkdownPreview/#🔢-数学公式)
+- [高级语法](/MarkdownPreview/#🚀-高级语法)
 
 ---
 
