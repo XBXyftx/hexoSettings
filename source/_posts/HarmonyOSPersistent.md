@@ -53,17 +53,19 @@ XML（可扩展标记语言，全称 **eXtensible Markup Language**）是一种�
 
 1. **文档声明**  
    每个 XML 文档应以声明开头，定义版本和编码方式：  
-   ```xml
-   <?xml version="1.0" encoding="UTF-8"?>
-   ```  
 
-2. **根元素**  
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+```  
+
+2. **根元素**
    XML 文档必须有一个根元素，所有其他元素都嵌套在其中：  
-   ```xml
-   <root>
-       <!-- 其他内容 -->
-   </root>
-   ```  
+
+```xml
+<root>
+    <!-- 其他内容 -->
+</root>
+```  
 
 3. **标签匹配**  
    - 所有标签必须正确闭合，且大小写敏感。  
@@ -72,23 +74,26 @@ XML（可扩展标记语言，全称 **eXtensible Markup Language**）是一种�
 
 4. **嵌套结构**  
    元素可以包含子元素，但不能交叉嵌套：  
-   ```xml
-   <parent>
-       <child>Content</child>
-   </parent>
-   ```  
+
+```xml
+<parent>
+    <child>Content</child>
+</parent>
+```  
 
 5. **属性**  
    属性为元素提供额外信息，必须用引号括起来：  
-   ```xml
-   <element attribute="value">Content</element>
-   ```  
+
+```xml
+<element attribute="value">Content</element>
+```  
 
 6. **注释**  
    注释以 `<!--` 开头，以 `-->` 结尾：  
-   ```xml
-   <!-- 这是一个注释 -->
-   ```  
+
+```xml
+<!-- 这是一个注释 -->
+```  
 
 7. **特殊字符转义**  
    特殊字符需使用实体表示：  
