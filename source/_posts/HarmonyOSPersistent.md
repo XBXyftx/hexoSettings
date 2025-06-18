@@ -138,5 +138,38 @@ XML 以其清晰的层级结构和通用性，在鸿蒙系统中曾被广泛用�
 GSKV格式相比于XML格式，其最大的优势就是在于其具有`实时落盘`的特性，对用户首选项的数据进行修改之后其就会自动将修改后的数据写入磁盘中。
 
 {% note warning flat %}
-请注意，实时落盘特性不代表它的性能就会和PersistentceV2
+请注意，实时落盘特性不代表它的性能就会和PersistentceV2一样阻塞UI线程，降低整体应用的流畅度，因为其执行过程为异步进行读写操作，其执行过程不会阻塞UI线程。
 {% endnote %}
+
+首先对于XML格式，用户需要先去利用`put`或者`putSync`进行数据的修改，随后调用`flush`或者`flushSync`方法，将数据写入磁盘。
+
+`put`方法是异步回调接口，可以直接在第三个参数处去传入一个回调函数来处理回调逻辑，也可以将接口所返回的`Promise`对象存入变量，在适合的地方进行回调处理。
+
+```ts
+put
+
+put(key: string, value: ValueType, callback: AsyncCallback<void>): void
+
+将数据写入缓存的Preferences实例中，可通过flush将Preferences实例持久化，使用callback异步回调。
+
+put(key: string, value: ValueType): Promise<void>
+
+将数据写入缓存的Preferences实例中，可通过flush将Preferences实例持久化，使用Promise异步回调。
+```
+
+而`putSync`方法是同步接口，无需回调函数。
+
+```ts
+
+putSync
+
+putSync(key: string, value: ValueType): void
+
+将数据写入缓存的Preferences实例中，可通过flush将Preferences实例持久化，此为同步接口。
+```
+
+{% note warning flat %}
+请注意，到现在都还只是将数据写入到内存，而不是写入到磁盘，所以并没有IO过程，性能损耗极小。
+{% endnote %}
+
+而在需要持久化当前的用户设置时，就比如说通知开关，登录状态等轻量级设置时，我们需要手动调用`flush`或`flushSync`方法将数据写入磁盘，这样数据才能持久化。
