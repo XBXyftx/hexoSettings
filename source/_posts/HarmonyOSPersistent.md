@@ -7,7 +7,7 @@ tags:
   - V2
   - 用户首选项
   - 数据库
-description: 本文将会对比鸿蒙开发的几种数据持久化方式
+description: 本文将会对比鸿蒙开发的几种数据持久化方式（持续更新ing）
 cover: /img/ArticleTopImgs/persistentTopImg.png
 post_copyright:
 copyright_author: XBXyftx
@@ -18,7 +18,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ## 前言
 
-在鸿蒙开发中，想要实现数据的持久化存储主要有五种方式，分别是：**用户首选项（Preferences）**、**键值型数据库（KV-Store）**、**关系型数据库（RelationalStore）**、**向量数据库**、**PersistenceV2**。由于V1版本的状态管理已经不在推荐使用所以这里就不在列举了。在此前的开发中我仅用过状态管理V2版本中所提供的持久化存储UI状态的**PersistentceV2**的功能，在暂时没有尝试过其他的数据持久化方式，所以本文会对另外四种数据持久化的方式做出着重解析。
+在鸿蒙开发中，想要实现数据的持久化存储主要有五种方式，分别是：[**用户首选项（Preferences）**](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/data-persistence-by-preferences)、[**键值型数据库（KV-Store）**](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/data-persistence-by-kv-store)、[**关系型数据库（RelationalStore）**](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/data-persistence-by-rdb-store)、[**向量数据库**](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/data-persistence-by-vector-store)、[**PersistenceV2**](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/arkts-new-persistencev2)。由于V1版本的状态管理已经不在推荐使用所以这里就不在列举了。在此前的开发中我仅用过状态管理V2版本中所提供的持久化存储UI状态的**PersistentceV2**的功能，在暂时没有尝试过其他的数据持久化方式，所以本文会对另外四种数据持久化的方式做出着重解析。
 
 ## 少量数据持久化存储
 
@@ -233,6 +233,202 @@ GSKV格式相比于XML格式，具有以下关键优势：
 
 ![6](HarmonyOSPersistent/6.png)
 
+### 用户首选项的二次封装
+
+在用户首选项中，我们通过`get`接口获取到的数据并不是直接可用的基础类型而是一个联合类型[ValueType](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-data-preferences#valuetype)，这就导致我们需要对其进行一个二次封装来保障我们的数据类型安全以及数据的可用性。
+
+| 类型          | 说明                           |
+| ------------- | ------------------------------ |
+| number        | 表示值类型为数字。             |
+| string        | 表示值类型为字符串。           |
+| boolean       | 表示值类型为布尔值。           |
+| Array\<number\>  | 表示值类型为数字类型的数组。   |
+| Array\<boolean\> | 表示值类型为布尔类型的数组。   |
+| Array\<string\>  | 表示值类型为字符串类型的数组。 |
+| Uint8Array¹¹⁺  | 表示值类型为8位无符号整型的数组。 |
+| object¹²⁺     | 表示值类型为对象。             |
+| bigint¹²⁺     | 表示值类型为任意精度格式的整数。 |
+
+#### 初始化
+
+```ts
+constructor(ctx: common.UIAbilityContext, pfName: string) {
+    Logger.info(`初始化${pfName}首选项`, TAG)
+    let xmlType = preferences.StorageType.XML;
+    let gskvType = preferences.StorageType.GSKV;
+    let options: preferences.Options = {name: pfName, storageType: xmlType}
+    let observer = (key: string) => {
+      Logger.info(`${key} changed`, TAG)
+    }
+    let isGskvSupported = preferences.isStorageTypeSupported(gskvType);
+    if(isGskvSupported) {
+      options = {name: pfName, storageType: gskvType}
+      this.PFS_TYPE = gskvType;
+    } else {
+      this.PFS_TYPE = xmlType;
+    }
+    this.PFS = preferences.getPreferencesSync(ctx, options);
+    this.PFS.on("change",  observer)
+  }
+```
+
+首先在初始化时我们需要考虑设备的API版本，来对数据库的存储类型来进行兼容，虽然统一用`XML`格式可以确保最大规模的适配，但如果需要处理并发场景，那我们还是需要考虑`GSKV`格式的，使用我们这种写法也会是最通用的写法。
+
+#### 查询接口
+
+```ts
+/**
+   * 获取字符串
+   * @param key 键
+   * @returns 值
+   */
+  getStr(key: string): string {
+    try {
+      if (this.PFS.hasSync(key)) {
+        const value: string = this.PFS.getSync(key, "") as string;
+        return value;
+      } else {
+        Logger.warn(`key: ${key} not exist`, TAG)
+        return "";
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return "";
+    }
+  }
+
+  /**
+   * 获取数字
+   * @param key 键
+   * @returns 值
+   */
+  getNum(key: string): number {
+    try {
+      if (this.PFS.hasSync(key)) {
+        const value: number = this.PFS.getSync(key, 0) as number;
+        return value;
+      } else {
+        Logger.warn(`key: ${key} not exist`, TAG)
+        return 0;
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return 0;
+    }
+  }
+
+  /**
+   * 获取布尔值
+   * @param key 键
+   * @returns 值
+   */
+  getBool(key: string): boolean {
+    try {
+      if (this.PFS.hasSync(key)) {
+        const value: boolean = this.PFS.getSync(key, false) as boolean;
+        return value;
+      } else {
+        Logger.warn(`key: ${key} not exist`, TAG)
+        return false;
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return false;
+    }
+  }
+
+  getStrArr(key: string): Array<string> {
+    try {
+      if (this.PFS.hasSync(key)) {
+        const value: string[] = this.PFS.getSync(key, []) as string[];
+        return value;
+      } else {
+        Logger.warn(`key: ${key} not exist`, TAG)
+        return [];
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return [];
+    }
+  }
+
+  getNumArr(key: string): Array<number> {
+    try {
+      if (this.PFS.hasSync(key)) {
+        const value: number[] = this.PFS.getSync(key, []) as number[];
+        return value;
+      } else {
+        Logger.warn(`key: ${key} not exist`, TAG)
+        return [];
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return [];
+    }
+  }
+```
+
+在封装以下接口的时候我们都需要去有防御性编程的思想。要先去检查是否具有所查询的目标键，同时用try catch去捕获异常，如果异常发生则返回默认值。毕竟数据查询的过程是异常的高发阶段，我们不能因为这个数据查询错误导致整个APP的崩溃。
+
+#### 写入接口
+
+```ts
+setStr(key: string, value: string): void {
+    try {
+      this.PFS.putSync(key, value);
+      if (this.PFS_TYPE == preferences.StorageType.XML) {
+        this.PFS.flushSync();
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+    }
+  }
+
+  setNum(key: string, value: number): void {
+    try {
+      this.PFS.putSync(key, value);
+      if (this.PFS_TYPE == preferences.StorageType.XML) {
+        this.PFS.flushSync();
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+    }
+  }
+
+  setBool(key: string, value: boolean): void {
+    try {
+      this.PFS.putSync(key, value);
+      if (this.PFS_TYPE == preferences.StorageType.XML) {
+        this.PFS.flushSync();
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+    }
+  }
+
+  setStrArr(key: string, value: Array<string>): void {
+    try {
+      this.PFS.putSync(key, value);
+      if (this.PFS_TYPE == preferences.StorageType.XML) {
+        this.PFS.flushSync();
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+    }
+  }
+
+  setNumArr(key: string, value: Array<number>): void {
+    try {
+      this.PFS.putSync(key, value);
+      if (this.PFS_TYPE == preferences.StorageType.XML) {
+        this.PFS.flushSync();
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+    }
+  }
+```
+
 ## 大量数据持久化存储
 
 对于大量数据存储我们就需要使用数据库来进行数据的持久化了。在API18版本之前我们只有**键值型数据库（KV-Store）**和**关系型数据库（RelationalStore）**这两种选则，而在API18版本之后我华为官方又为我们提供了第三种选择**向量数据库**。
@@ -249,3 +445,6 @@ GSKV格式相比于XML格式，具有以下关键优势：
 
 前三条都好说，重点是第四条中的`阻塞操作`一词该怎么理解，还有为什么要限制阻塞操作？
 
+#### 阻塞操作
+
+所谓阻塞操作，这
