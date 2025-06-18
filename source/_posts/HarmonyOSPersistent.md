@@ -429,6 +429,542 @@ setStr(key: string, value: string): void {
   }
 ```
 
+#### 删除接口
+
+```ts
+deleteStr(key: string): string {
+    try {
+      if (this.PFS.hasSync(key)) {
+        const value: string = this.PFS.getSync(key, "") as string;
+        this.PFS.deleteSync(key);
+        if (this.PFS_TYPE == preferences.StorageType.XML) {
+          this.PFS.flushSync();
+        }
+        return value;
+      } else {
+        Logger.warn(`key: ${key} not exist`, TAG)
+        return ""
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return ""
+    }
+  }
+
+  deleteNum(key: string): number {
+    try {
+      if (this.PFS.hasSync(key)) {
+        const value: number = this.PFS.getSync(key, 0) as number;
+        this.PFS.deleteSync(key);
+        if (this.PFS_TYPE == preferences.StorageType.XML) {
+          this.PFS.flushSync();
+        }
+        return value;
+      } else {
+        Logger.warn(`key: ${key} not exist`, TAG)
+        return 0
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return 0
+    }
+  }
+
+  deleteBool(key: string): boolean {
+    try {
+      if (this.PFS.hasSync(key)) {
+        const value: boolean = this.PFS.getSync(key, false) as boolean;
+        this.PFS.deleteSync(key);
+        if (this.PFS_TYPE == preferences.StorageType.XML) {
+          this.PFS.flushSync();
+        }
+        return value;
+      } else {
+        Logger.warn(`key: ${key} not exist`, TAG)
+        return false
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return false
+    }
+  }
+
+  deleteStrArr(key: string): Array<string> {
+    try {
+      if (this.PFS.hasSync(key)) {
+        const value: string[] = this.PFS.getSync(key, []) as string[];
+        this.PFS.deleteSync(key);
+        if (this.PFS_TYPE == preferences.StorageType.XML) {
+          this.PFS.flushSync();
+        }
+        return value;
+      } else {
+        Logger.warn(`key: ${key} not exist`, TAG)
+        return []
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return []
+    }
+  }
+
+  deleteNumArr(key: string): Array<number> {
+    try {
+      if (this.PFS.hasSync(key)) {
+        const value: number[] = this.PFS.getSync(key, []) as number[];
+        this.PFS.deleteSync(key);
+        if (this.PFS_TYPE == preferences.StorageType.XML) {
+          this.PFS.flushSync();
+        }
+        return value;
+      } else {
+        Logger.warn(`key: ${key} not exist`, TAG)
+        return []
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return []
+    }
+  }
+
+  deleteAll(): void {
+    try {
+      this.PFS.clearSync();
+      if (this.PFS_TYPE == preferences.StorageType.XML) {
+        this.PFS.flushSync();
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+    }
+  }
+```
+
+#### 资源释放接口
+
+资源释放是一个很关键的环节，虽然现代的高级语言基本上都不需要程序员去向C/C++那样的去手动回收资源了，但我们在构造函数中去设置了一个监听器来进行日志的打印，来去进行数据的备份以及遵循数据库设计中**利用冗余信息来保障数据库的可恢复性**的思想，这个监听器的资源是需要我们手动去进行回收的，并不会被系统自动进行回收。所以我们还需要再去封装一个释放接口。
+
+```ts
+release() {
+    if (this.PFS) {
+      let observer = (key: string) => {
+        Logger.info(`${key} changed`, TAG)
+      }
+      this.PFS.off("change", observer);
+      preferences.removePreferencesFromCacheSync(this.ctx, this.PFS_NAME);
+      this.PFS = null;
+      this.PFS_TYPE = null;
+      this.ctx = null;
+      Logger.info(`${this.PFS_NAME} release success`, TAG)
+      this.PFS_NAME = ""
+    }
+  }
+```
+
+完整工具类源码[原仓库传送门](https://gitee.com/pengyoucongcode/TxtEdit/blob/master/lib/lib_util/src/main/ets/PreferencesUtil.ets#)：
+
+```ts
+/*
+ * Copyright (c) 2025/6/14 彭友聪
+ * TxtEdit is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2. 
+ * You may obtain a copy of Mulan PSL v2 at:
+            http://license.coscl.org.cn/MulanPSL2 
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, 
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, 
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.  
+ * See the Mulan PSL v2 for more details.  
+ * 
+ * Author: 彭友聪 
+ * email：2923616405@qq.com 
+ * date: 2025/6/14 16:33
+ * file: PreferencesUtil.ets
+ * product: DevEco Studio
+ * */
+import { common } from "@kit.AbilityKit";
+import { Logger } from "lib_log";
+import { preferences } from "@kit.ArkData";
+
+const TAG = "[PreferencesUtil]";
+/**
+ * 首选项工具类
+ */
+export class PreferencesUtil {
+  private PFS: preferences.Preferences|null;
+  private PFS_TYPE: preferences.StorageType|null;
+  private PFS_NAME: string;
+  private ctx: common.UIAbilityContext|null;
+  /**
+   * 构造函数
+   * @param ctx 上下文
+   * @param pfName 首选项集合名
+   */
+  constructor(ctx: common.UIAbilityContext, pfName: string) {
+    Logger.info(`初始化${pfName}首选项`, TAG)
+    this.PFS_NAME = pfName;
+    this.ctx = ctx;
+    let xmlType = preferences.StorageType.XML;
+    let gskvType = preferences.StorageType.GSKV;
+    let options: preferences.Options = {name: pfName, storageType: xmlType}
+    let observer = (key: string) => {
+      Logger.info(`${key} changed`, TAG)
+    }
+    let isGskvSupported = preferences.isStorageTypeSupported(gskvType);
+    if(isGskvSupported) {
+      options = {name: pfName, storageType: gskvType}
+      this.PFS_TYPE = gskvType;
+    } else {
+      this.PFS_TYPE = xmlType;
+    }
+    this.PFS = preferences.getPreferencesSync(ctx, options);
+    this.PFS.on("change",  observer)
+  }
+
+  /**
+   * 获取字符串
+   * @param key 键
+   * @returns 值
+   */
+  getStr(key: string): string {
+    try {
+      if (this.PFS) {
+        if (this.PFS.hasSync(key)) {
+          const value: string = this.PFS.getSync(key, "") as string;
+          return value;
+        } else {
+          Logger.warn(`key: ${key} not exist`, TAG)
+          return "";
+        }
+      } else {
+        Logger.error(`key: ${this.PFS_NAME} 首选项未初始化`, TAG)
+        return "";
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return "";
+    }
+  }
+
+  /**
+   * 获取数字
+   * @param key 键
+   * @returns 值
+   */
+  getNum(key: string): number {
+    try {
+      if (this.PFS) {
+        if (this.PFS.hasSync(key)) {
+          const value: number = this.PFS.getSync(key, "") as number;
+          return value;
+        } else {
+          Logger.warn(`key: ${key} not exist`, TAG)
+          return 0;
+        }
+      } else {
+        Logger.error(`key: ${this.PFS_NAME} 首选项未初始化`, TAG)
+        return 0;
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return 0;
+    }
+  }
+
+  /**
+   * 获取布尔值
+   * @param key 键
+   * @returns 值
+   */
+  getBool(key: string): boolean {
+    try {
+      if (this.PFS){
+        if (this.PFS.hasSync(key)) {
+          const value: boolean = this.PFS.getSync(key, false) as boolean;
+          return value;
+        } else {
+          Logger.warn(`key: ${key} not exist`, TAG)
+          return false;
+        }
+      }else{
+        Logger.error(`key: ${this.PFS_NAME} 首选项未初始化`, TAG)
+        return false;
+      }
+
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return false;
+    }
+  }
+
+  getStrArr(key: string): Array<string> {
+    try {
+      if (this.PFS) {
+        if (this.PFS.hasSync(key)) {
+          const value: string[] = this.PFS.getSync(key, []) as string[];
+          return value;
+        } else {
+          Logger.warn(`key: ${key} not exist`, TAG)
+          return [];
+        }
+      } else {
+        Logger.error(`key: ${this.PFS_NAME} 首选项未初始化`, TAG)
+        return [];
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return [];
+    }
+  }
+
+  getNumArr(key: string): Array<number> {
+    try {
+      if(this.PFS) {
+        if (this.PFS.hasSync(key)) {
+          const value: number[] = this.PFS.getSync(key, []) as number[];
+          return value;
+        } else {
+          Logger.warn(`key: ${key} not exist`, TAG)
+          return [];
+        }
+      } else {
+        Logger.error(`key: ${this.PFS_NAME} 首选项未初始化`, TAG)
+        return [];
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return [];
+    }
+  }
+
+  setStr(key: string, value: string): void {
+    try {
+      if  (this.PFS) {
+        this.PFS.putSync(key, value);
+        if (this.PFS_TYPE == preferences.StorageType.XML) {
+          this.PFS.flushSync();
+        }
+      } else {
+        Logger.error(`key: ${this.PFS_NAME} 首选项未初始化`, TAG)
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+    }
+  }
+
+  setNum(key: string, value: number): void {
+    try {
+      if  (this.PFS) {
+        this.PFS.putSync(key, value);
+        if (this.PFS_TYPE == preferences.StorageType.XML) {
+          this.PFS.flushSync();
+        }
+      } else {
+        Logger.error(`key: ${this.PFS_NAME} 首选项未初始化`, TAG)
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+    }
+  }
+
+  setBool(key: string, value: boolean): void {
+    try {
+      if  (this.PFS) {
+        this.PFS.putSync(key, value);
+        if (this.PFS_TYPE == preferences.StorageType.XML) {
+          this.PFS.flushSync();
+        }
+      } else {
+        Logger.error(`key: ${this.PFS_NAME} 首选项未初始化`, TAG)
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+    }
+  }
+
+  setStrArr(key: string, value: Array<string>): void {
+    try {
+      if(this.PFS){
+        this.PFS.putSync(key, value);
+        if (this.PFS_TYPE == preferences.StorageType.XML) {
+          this.PFS.flushSync();
+        }
+      } else {
+        Logger.error(`key: ${this.PFS_NAME} 首选项未初始化`, TAG)
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+    }
+  }
+
+  setNumArr(key: string, value: Array<number>): void {
+    try {
+      if(this.PFS) {
+        this.PFS.putSync(key, value);
+        if (this.PFS_TYPE == preferences.StorageType.XML) {
+          this.PFS.flushSync();
+        }
+      } else {
+        Logger.error(`key: ${this.PFS_NAME} 首选项未初始化`, TAG)
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+    }
+  }
+
+  deleteStr(key: string): string {
+    try {
+      if(this.PFS) {
+        if (this.PFS.hasSync(key)) {
+          const value: string = this.PFS.getSync(key, "") as string;
+          this.PFS.deleteSync(key);
+          if (this.PFS_TYPE == preferences.StorageType.XML) {
+            this.PFS.flushSync();
+          }
+          return value;
+        } else {
+          Logger.warn(`key: ${key} not exist`, TAG)
+          return ""
+        }
+      } else {
+        Logger.error(`key: ${this.PFS_NAME} 首选项未初始化`, TAG)
+        return ""
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return ""
+    }
+  }
+
+  deleteNum(key: string): number {
+    try {
+      if(this.PFS) {
+        if (this.PFS.hasSync(key)) {
+          const value: number = this.PFS.getSync(key, 0) as number;
+          this.PFS.deleteSync(key);
+          if (this.PFS_TYPE == preferences.StorageType.XML) {
+            this.PFS.flushSync();
+          }
+          return value;
+        } else {
+          Logger.warn(`key: ${key} not exist`, TAG)
+          return 0
+        }
+      } else {
+        Logger.error(`key: ${this.PFS_NAME} 首选项未初始化`, TAG)
+        return 0
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return 0
+    }
+  }
+
+  deleteBool(key: string): boolean {
+    try {
+      if(this.PFS) {
+        if (this.PFS.hasSync(key)) {
+          const value: boolean = this.PFS.getSync(key, false) as boolean;
+          this.PFS.deleteSync(key);
+          if (this.PFS_TYPE == preferences.StorageType.XML) {
+            this.PFS.flushSync();
+          }
+          return value;
+        } else {
+          Logger.warn(`key: ${key} not exist`, TAG)
+          return false
+        }
+      } else {
+        Logger.error(`key: ${this.PFS_NAME} 首选项未初始化`, TAG)
+        return false
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return false
+    }
+  }
+
+  deleteStrArr(key: string): Array<string> {
+    try {
+      if(this.PFS) {
+        if (this.PFS.hasSync(key)) {
+          const value: string[] = this.PFS.getSync(key, []) as string[];
+          this.PFS.deleteSync(key);
+          if (this.PFS_TYPE == preferences.StorageType.XML) {
+            this.PFS.flushSync();
+          }
+          return value;
+        } else {
+          Logger.warn(`key: ${key} not exist`, TAG)
+          return []
+        }
+      } else {
+        Logger.error(`key: ${this.PFS_NAME} 首选项未初始化`, TAG)
+        return []
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return []
+    }
+  }
+
+  deleteNumArr(key: string): Array<number> {
+    try {
+      if (this.PFS) {
+        if (this.PFS.hasSync(key)) {
+          const value: number[] = this.PFS.getSync(key, []) as number[];
+          this.PFS.deleteSync(key);
+          if (this.PFS_TYPE == preferences.StorageType.XML) {
+            this.PFS.flushSync();
+          }
+          return value;
+        } else {
+          Logger.warn(`key: ${key} not exist`, TAG)
+          return []
+        }
+      } else {
+        Logger.error(`key: ${this.PFS_NAME} 首选项未初始化`, TAG)
+        return []
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+      return []
+    }
+  }
+
+  deleteAll(): void {
+    try {
+      if (this.PFS) {
+        this.PFS.clearSync();
+        if (this.PFS_TYPE == preferences.StorageType.XML) {
+          this.PFS.flushSync();
+        }
+      } else {
+        Logger.error(`key: ${this.PFS_NAME} 首选项未初始化`, TAG)
+      }
+    } catch (e) {
+      Logger.error(`happen error: ${e}`, TAG)
+    }
+  }
+
+  release() {
+    if (this.PFS) {
+      let observer = (key: string) => {
+        Logger.info(`${key} changed`, TAG)
+      }
+      this.PFS.off("change", observer);
+      preferences.removePreferencesFromCacheSync(this.ctx, this.PFS_NAME);
+      this.PFS = null;
+      this.PFS_TYPE = null;
+      this.ctx = null;
+      Logger.info(`${this.PFS_NAME} release success`, TAG)
+      this.PFS_NAME = ""
+    }
+  }
+
+}
+```
+
+这种工具类都是比较固定可移植的，只要理解其工作原理以及其核心功能，我们就可以去针对于具体业务进行微调即可。
+
 ## 大量数据持久化存储
 
 对于大量数据存储我们就需要使用数据库来进行数据的持久化了。在API18版本之前我们只有**键值型数据库（KV-Store）**和**关系型数据库（RelationalStore）**这两种选则，而在API18版本之后我华为官方又为我们提供了第三种选择**向量数据库**。
