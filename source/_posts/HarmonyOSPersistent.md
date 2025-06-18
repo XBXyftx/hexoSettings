@@ -52,61 +52,85 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 XML（可扩展标记语言，全称 **eXtensible Markup Language**）是一种用于描述数据和其结构的标记语言，广泛用于数据存储与传输。它具有良好的可读性和跨平台兼容性，适用于配置文件、数据交换格式等场景。  
 
 1. **文档声明**  
-   每个 XML 文档应以声明开头，定义版本和编码方式：  
+    每个 XML 文档应以声明开头，定义版本和编码方式：  
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-```  
+    ```xml
+    <?xml version="1.0" encoding="UTF-8"?>
+    ```
 
 2. **根元素**
-   XML 文档必须有一个根元素，所有其他元素都嵌套在其中：  
+    XML 文档必须有一个根元素，所有其他元素都嵌套在其中：  
 
-```xml
-<root>
-    <!-- 其他内容 -->
-</root>
-```  
+    ```xml
+    <root>
+        <!-- 其他内容 -->
+    </root>
+    ```
 
 3. **标签匹配**  
-   - 所有标签必须正确闭合，且大小写敏感。  
-   - 开始标签：`<tag>`  
-   - 结束标签：`</tag>`  
+    - 所有标签必须正确闭合，且大小写敏感。  
+    - 开始标签：`<tag>`  
+    - 结束标签：`</tag>`  
 
 4. **嵌套结构**  
-   元素可以包含子元素，但不能交叉嵌套：  
+    元素可以包含子元素，但不能交叉嵌套：  
 
-```xml
-<parent>
-    <child>Content</child>
-</parent>
-```  
+    ```xml
+    <parent>
+        <child>Content</child>
+    </parent>
+    ```
 
 5. **属性**  
-   属性为元素提供额外信息，必须用引号括起来：  
+    属性为元素提供额外信息，必须用引号括起来：  
 
-```xml
-<element attribute="value">Content</element>
-```  
+    ```xml
+    <element attribute="value">Content</element>
+    ```
 
 6. **注释**  
-   注释以 `<!--` 开头，以 `-->` 结尾：  
+    注释以 `<!--` 开头，以 `-->` 结尾：  
 
-```xml
-<!-- 这是一个注释 -->
-```  
+    ```xml
+    <!-- 这是一个注释 -->
+    ```
 
 7. **特殊字符转义**  
-   特殊字符需使用实体表示：  
-   | 字符 | 实体表示 |  
-   |------|----------|  
-   | <    | `&lt;`   |  
-   | >    | `&gt;`   |  
-   | &    | `&amp;`  |  
-   | "    | `&quot;` |  
-   | '    | `&apos;` |  
+    特殊字符需使用实体表示：  
+
+    <table>
+        <thead>
+            <tr>
+                <th>字符</th>
+                <th>实体表示</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>&lt;</td>
+                <td><code>&amp;lt;</code></td>
+            </tr>
+            <tr>
+                <td>&gt;</td>
+                <td><code>&amp;gt;</code></td>
+            </tr>
+            <tr>
+                <td>&amp;</td>
+                <td><code>&amp;amp;</code></td>
+            </tr>
+            <tr>
+                <td>&quot;</td>
+                <td><code>&amp;quot;</code></td>
+            </tr>
+            <tr>
+                <td>&apos;</td>
+                <td><code>&amp;apos;</code></td>
+            </tr>
+        </tbody>
+    </table>
 
 8. **空格处理**  
-   XML 中多余的空白符会被解析器忽略，换行和缩进不会影响内容。  
+    XML 中多余的空白符会被解析器忽略，换行和缩进不会影响内容。  
 
 ##### XML命名规范  
 
@@ -132,7 +156,7 @@ XML 文档必须是“良构的”（Well-formed），即没有语法错误，�
         <notifications enabled="true"/>
     </settings>
 </config>
-```  
+```
 
 ##### 应用场景  
 
@@ -178,3 +202,16 @@ putSync(key: string, value: ValueType): void
 {% endnote %}
 
 而在需要持久化当前的用户设置时，就比如说通知开关，登录状态等轻量级设置时，我们需要手动调用`flush`或`flushSync`方法将数据写入磁盘，这样数据才能持久化。
+
+`flush`函数时异步的，和`put`函数一样，可以在参数中去写入回调函数的处理逻辑，也可以用`Promise`对象的`then`函数来去处理回调逻辑。
+`flushSync`函数时同步的，不需要回调函数。
+
+现在我们再回头来看GSKV格式。首先我们纵观整个用户首选的API参考，仅有两个异步的`flush`接口有提示无需再GSKV格式中进行调用，而与之对应的`flushSync`接口则无此提示。
+
+![3](HarmonyOSPersistent/3.png)
+
+![4](HarmonyOSPersistent/4.png)
+
+![5](HarmonyOSPersistent/5.png)
+
+所以我由此推断GSKV格式的存储模式下，所谓的其执行逻辑是在数据发生改变时自动向任务队列中添加一个异步`flush`任务，进行执行。
