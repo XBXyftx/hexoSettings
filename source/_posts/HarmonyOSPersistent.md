@@ -141,7 +141,7 @@ XML（可扩展标记语言，全称 **eXtensible Markup Language**）是一种�
 
 ##### 良好格式要求  
 
-XML 文档必须是“良构的”（Well-formed），即没有语法错误，否则解析失败。  
+XML 文档必须是"良构的"（Well-formed），即没有语法错误，否则解析失败。  
 
 ##### 示例代码  
 
@@ -1077,6 +1077,8 @@ export class PreferencesUtil {
 
 ### 关系型数据库的对象化模型
 
+#### SpringBoot与MyBatis
+
 首先我们要先思考一下，对于一个关系型数据库，我们需要去对其进行哪些核心操作呢？咱们来用`Springboot`和`MyBatis`来模拟一下。
 
 ```yml
@@ -1240,8 +1242,230 @@ OK，理解了这些之后，我们来类比着理解鸿蒙开发中的关系型
 
 ![9](HarmonyOSPersistent/9.png)
 
-#### [RdbPredicates](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-data-relationalstore#rdbpredicates)
+#### RdbPredicates
 
 ![10](HarmonyOSPersistent/10.png)
 
+**RdbPredicates（关系型数据库谓词）**是鸿蒙关系型数据库中用于构建查询条件的核心工具类。
 
+##### 什么是谓词？
+
+在数据库查询中，**谓词（Predicates）**是用来描述查询条件的逻辑表达式，它用来判断某个条件是否为真。简单来说，谓词就是我们在SQL语句中常见的WHERE子句中的条件判断：
+
+```sql
+-- 这里的 "age > 18" 就是一个谓词
+SELECT * FROM users WHERE age > 18;
+
+-- "name = 'XBXyftx'" 也是一个谓词  
+SELECT * FROM users WHERE name = 'XBXyftx';
+
+-- 复合谓词：多个条件组合
+SELECT * FROM users WHERE age > 18 AND city = '北京';
+```
+
+每个谓词都会对数据库中的每一行数据进行判断，返回true或false，只有返回true的数据行才会被包含在查询结果中。
+
+##### RdbPredicates的核心优势
+
+在鸿蒙的关系型数据库中，`RdbPredicates`提供了一种**面向对象的方式来构建SQL查询条件**，具有以下优势：
+
+1. **类型安全**：避免SQL注入攻击，提供编译时类型检查
+2. **链式调用**：支持方法链，代码更加简洁易读  
+3. **动态构建**：可以根据业务逻辑动态添加查询条件
+4. **跨平台一致性**：与鸿蒙数据库API完全集成
+
+![11](HarmonyOSPersistent/11.png)
+
+##### 常用谓词方法
+
+RdbPredicates提供了丰富的方法来构建各种查询条件：
+
+**基础比较操作：**
+
+```typescript
+// 等于条件
+let predicates = new relationalStore.RdbPredicates("USER_TABLE");
+predicates.equalTo("name", "XBXyftx");
+
+// 不等于条件  
+predicates.notEqualTo("status", "deleted");
+
+// 大于、小于条件
+predicates.greaterThan("age", 18);
+predicates.lessThan("score", 100);
+predicates.greaterThanOrEqualTo("level", 5);
+predicates.lessThanOrEqualTo("price", 999.99);
+```
+
+**模糊查询：**
+
+```typescript
+// LIKE 模糊匹配
+predicates.like("email", "%@gmail.com");
+
+// 包含指定字符串
+predicates.contains("description", "鸿蒙");
+
+// 以指定字符串开头/结尾
+predicates.beginsWith("phone", "138");
+predicates.endsWith("filename", ".jpg");
+```
+
+**范围查询：**
+
+```typescript
+// IN 查询：在指定值集合中
+predicates.in("category", ["技术", "生活", "学习"]);
+
+// BETWEEN 查询：在指定范围内
+predicates.between("create_time", "2024-01-01", "2024-12-31");
+```
+
+**空值判断：**
+
+```typescript
+// 判断字段是否为空
+predicates.isNull("deleted_at");
+predicates.isNotNull("avatar");
+```
+
+**逻辑组合：**
+
+```typescript
+// AND 组合条件
+let predicates = new relationalStore.RdbPredicates("USER_TABLE");
+predicates.equalTo("status", "active")
+         .and()
+         .greaterThan("age", 18)
+         .and()
+         .like("email", "%@company.com");
+
+// OR 组合条件
+predicates.equalTo("role", "admin")
+         .or()
+         .equalTo("role", "manager");
+
+// 复杂组合（使用分组）
+predicates.beginWrap()
+         .equalTo("category", "VIP")
+         .or()
+         .greaterThan("points", 1000)
+         .endWrap()
+         .and()
+         .equalTo("status", "active");
+```
+
+**排序和分页：**
+
+```typescript
+// 排序
+predicates.orderByAsc("create_time");  // 升序
+predicates.orderByDesc("score");       // 降序
+
+// 分页
+predicates.limitAs(10);                // 限制返回10条记录
+predicates.offsetAs(20);               // 跳过前20条记录
+```
+
+##### 实际应用示例
+
+让我们通过一个用户管理的实际例子来理解RdbPredicates的使用：
+
+```typescript
+import { relationalStore } from '@kit.ArkData';
+
+// 示例1：查询活跃的成年用户
+function getActiveAdultUsers(): Promise<relationalStore.ResultSet> {
+  let predicates = new relationalStore.RdbPredicates("USER_TABLE");
+  
+  predicates.equalTo("status", "active")           // 状态为活跃
+           .and()
+           .greaterThanOrEqualTo("age", 18)        // 年龄大于等于18
+           .and()
+           .isNotNull("email")                     // 邮箱不为空
+           .orderByDesc("last_login_time")         // 按最后登录时间降序
+           .limitAs(50);                           // 限制50条记录
+           
+  return rdbStore.query(predicates, ["id", "name", "email", "age"]);
+}
+
+// 示例2：动态搜索用户
+function searchUsers(keyword: string, minAge?: number, city?: string): Promise<relationalStore.ResultSet> {
+  let predicates = new relationalStore.RdbPredicates("USER_TABLE");
+  
+  // 基础搜索条件：姓名或邮箱包含关键词
+  predicates.beginWrap()
+           .contains("name", keyword)
+           .or()
+           .contains("email", keyword)
+           .endWrap();
+  
+  // 动态添加年龄条件
+  if (minAge !== undefined) {
+    predicates.and().greaterThanOrEqualTo("age", minAge);
+  }
+  
+  // 动态添加城市条件
+  if (city) {
+    predicates.and().equalTo("city", city);
+  }
+  
+  // 排除已删除用户
+  predicates.and().notEqualTo("status", "deleted");
+  
+  return rdbStore.query(predicates);
+}
+
+// 示例3：复杂的业务查询 - 查找优质用户
+function getPremiumUsers(): Promise<relationalStore.ResultSet> {
+  let predicates = new relationalStore.RdbPredicates("USER_TABLE");
+  
+  // 优质用户条件：VIP用户 或者 积分大于5000的活跃用户
+  predicates.beginWrap()
+           .equalTo("membership", "VIP")
+           .or()
+           .beginWrap()
+           .greaterThan("points", 5000)
+           .and()
+           .equalTo("status", "active")
+           .endWrap()
+           .endWrap()
+           .and()
+           .greaterThan("registration_days", 30)    // 注册超过30天
+           .orderByDesc("points")                   // 按积分降序
+           .orderByDesc("last_activity_time");      // 再按最后活跃时间降序
+           
+  return rdbStore.query(predicates);
+}
+```
+
+##### RdbPredicates vs 原生SQL
+
+通过对比可以更好地理解RdbPredicates的价值：
+
+| 方面 | RdbPredicates | 原生SQL |
+|------|---------------|---------|
+| **类型安全** | ✅ 编译时检查 | ❌ 运行时才发现错误 |
+| **SQL注入** | ✅ 自动防护 | ❌ 需手动处理 |
+| **动态构建** | ✅ 支持条件式添加 | ❌ 需要字符串拼接 |
+| **代码可读性** | ✅ 链式调用，结构清晰 | ❌ 复杂SQL难以维护 |
+| **IDE支持** | ✅ 智能提示和补全 | ❌ 字符串内容无提示 |
+
+```typescript
+// RdbPredicates方式 - 类型安全、清晰易读
+let predicates = new relationalStore.RdbPredicates("USER_TABLE");
+predicates.equalTo("age", 25)
+         .and()
+         .like("name", "%张%")
+         .orderByDesc("create_time");
+
+// 等效的SQL - 容易出错，难以维护
+let sql = "SELECT * FROM USER_TABLE WHERE age = ? AND name LIKE ? ORDER BY create_time DESC";
+let args = [25, "%张%"];
+```
+
+通过RdbPredicates，我们可以用面向对象的方式构建复杂的查询条件，既保证了代码的安全性和可读性，又提供了强大的动态查询能力。这正是鸿蒙关系型数据库设计的精髓所在。
+
+{% note success flat %}
+至此我们就解决了数据查询的条件语句的映射。可以看到整个SQL语句都可以用`RdbPredicates`进行构建，一个SQL语句的谓词部分就会被封装进一个RdbPredicates对象中。在这个过程中我们就自动的防御了常规的SQL注入攻击，也是实现了SQL语句到对象属性的映射。
+{% endnote %}
