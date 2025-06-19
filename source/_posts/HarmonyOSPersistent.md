@@ -1245,6 +1245,8 @@ OK，理解了这些之后，我们来类比着理解鸿蒙开发中的关系型
 
 #### RdbPredicates
 
+![12](HarmonyOSPersistent/12.png)
+
 ![10](HarmonyOSPersistent/10.png)
 
 **RdbPredicates（关系型数据库谓词）**是鸿蒙关系型数据库中用于构建查询条件的核心工具类。
@@ -1470,3 +1472,856 @@ let args = [25, "%张%"];
 {% note success flat %}
 至此我们就解决了数据查询的条件语句的映射。可以看到整个SQL语句都可以用`RdbPredicates`进行构建，一个SQL语句的谓词部分就会被封装进一个RdbPredicates对象中。在这个过程中我们就自动的防御了常规的SQL注入攻击，也是实现了SQL语句到对象属性的映射。
 {% endnote %}
+
+#### RdbStore
+
+这就是我们用于真正执行SQL语句的功能接口了。前面的`RdbPredicates`仅仅是设置好了最后的谓语`WHERE`后面的条件，而`RdbStore`则提供了`query`、`insert`、`update`、`delete`等**异步**方法以及其对应的**同步**方法，用于执行SQL语句。我们需要将设置好的谓语与`RdbStore`进行关联，并调用相应的方法，即可完成数据库的增删改查。
+
+##### 利用executeSql初始化表格
+
+当然在这个过程之前，我们要先调用[`executeSql`](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-data-relationalstore#executesql10)函数来创建数据库，就像下面的示例一样。
+
+```ts
+const SQL_DELETE_TABLE = "DELETE FROM test WHERE name = 'zhangsan'";
+if (store != undefined) {
+  (store as relationalStore.RdbStore).executeSql(SQL_DELETE_TABLE, (err) => {
+    if (err) {
+      console.error(`ExecuteSql failed, code is ${err.code},message is ${err.message}`);
+      return;
+    }
+    console.info('Delete table done.');
+  });
+}
+```
+
+先判断是否正确的获取了数据库对象，然后执行SQL语句，如果执行成功，则打印"Delete table done."，否则打印错误信息。
+
+当然这个接口有三种参数形式，可以分为两种类型，一种是**直接执行**无返回值的SQL语句，另一种是**传参替换占位符**再执行的SQL语句。而第二种类型则可以像其他的接口一样选择直接传入箭头函数处理回调函数，可以以Promise方式处理回调函数（数据库的绝大多数接口都是这样的两种处理回调逻辑的选项，后续不再过多赘述）。
+
+下面将替换占位符的参数形式进行举例说明。
+
+```typescript
+//  executeSql(sql: string, bindArgs: Array<ValueType>, callback: AsyncCallback<void>):void
+
+const SQL_DELETE_TABLE = "DELETE FROM test WHERE name = ?";
+if (store != undefined) {
+  (store as relationalStore.RdbStore).executeSql(SQL_DELETE_TABLE, ['zhangsan'], (err) => {
+    if (err) {
+      console.error(`ExecuteSql failed, code is ${err.code},message is ${err.message}`);
+      return;
+    }
+    console.info('Delete table done.');
+  });
+}
+```
+
+这也只是很常见的一种参数替换形式，用英文`?`作为占位符随后用对应的API对参数按照顺序进行替换。这种替换方式我第一次见是出现在高级Java的大作业宠物医院项目中，用的是JavaWeb框架，再利用JDBC进行数据库的操作时用到过这种SQL语句的编写方式。
+
+```java
+if (name != null && !name.isEmpty()) {
+    try {
+        Class.forName("com.mysql.cj.jdbc.Driver");// 加载驱动
+        try (Connection connection = DriverManager.getConnection(url, user, password)) {// 连接数据库
+            String sql = "INSERT INTO pets (id,name,date,stage,details) VALUES (?, ?, ?, ?, ?)";// SQL语句
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {// 准备SQL语句
+                preparedStatement.setInt(1, id);// 设置参数
+                preparedStatement.setString(2, name);// 设置参数
+                preparedStatement.setString(3, date);// 设置参数
+                preparedStatement.setString(4, "入院");// 设置参数
+                preparedStatement.setString(5, "成功登记入院");// 设置参数
+                int rows = preparedStatement.executeUpdate();// 执行SQL语句
+                if (rows > 0) {
+                    out.println("登记成功");// 输出结果
+                } else {
+                    out.println("登记失败");
+                }
+            }
+        }
+    } catch (ClassNotFoundException | SQLException e) {
+        e.printStackTrace();// 打印异常信息
+        out.println("数据库错误，请稍后重试。");
+    }
+} else {
+    out.println("无效的输入");
+}
+```
+
+JDBC中的`PreparedStatement`对象中包含有对不同数据类型的参数替换方法如`setInt()`、`setString()`、`setDate()`等，用于将用户输入的数据绑定到SQL语句中。
+
+不过说到这里我突然想到了一个点。在`executeSql(sql: string, bindArgs: Array<ValueType>, callback: AsyncCallback<void>):void`中的`Array<ValueType>`指的是类型为联合类型的数组，而并非元组。这里确实有些奇怪但也没那么难理解。
+
+- 数组(Array)：
+  长度可变
+  元素类型一致（或者是联合类型）
+  用方括号表示：`string[]` 或 `Array<string>`
+- 元组(Tuple)：
+  长度固定
+  每个位置的元素类型可以不同
+  用方括号和具体类型表示：`[string, number, boolean]`
+
+![13](HarmonyOSPersistent/13.png)
+
+所以说联合类型虽然看起来是很多种类型，但其实其本质也只是一个类型，他的作用就是限制一个变量只能是几种类型中的一种。
+
+#### ValuesBucket
+
+在进行数据插入和更新操作时，我们需要使用**ValuesBucket**来封装要操作的数据。ValuesBucket是一个**键值对集合**，类似于Java中的HashMap，用于存储表中的数据行信息。
+
+```typescript
+import { ValuesBucket } from '@kit.ArkData';
+
+// 创建ValuesBucket对象
+const valueBucket: ValuesBucket = {
+  'name': 'XBXyftx',
+  'age': 25,
+  'email': 'xbxyftx@example.com',
+  'is_active': true
+};
+```
+
+ValuesBucket的键对应数据库表的列名，值对应要插入或更新的数据。需要注意的是，ValuesBucket中的值类型必须与表结构中定义的列类型相匹配。
+
+#### 数据插入操作
+
+```typescript
+// 同步插入
+let rowId: number = rdbStore.insertSync("USER_TABLE", valueBucket);
+console.log(`插入成功，新记录ID: ${rowId}`);
+
+// 异步插入
+rdbStore.insert("USER_TABLE", valueBucket, (err, rowId) => {
+  if (err) {
+    console.error(`插入失败: ${err.message}`);
+    return;
+  }
+  console.log(`插入成功，新记录ID: ${rowId}`);
+});
+
+// Promise方式插入
+rdbStore.insert("USER_TABLE", valueBucket)
+  .then((rowId) => {
+    console.log(`插入成功，新记录ID: ${rowId}`);
+  })
+  .catch((err) => {
+    console.error(`插入失败: ${err.message}`);
+  });
+```
+
+#### 数据更新操作
+
+```typescript
+// 构建更新条件
+let predicates = new relationalStore.RdbPredicates("USER_TABLE");
+predicates.equalTo("id", 1);
+
+// 要更新的数据
+const updateBucket: ValuesBucket = {
+  'name': 'XBXyftx_Updated',
+  'age': 26
+};
+
+// 同步更新
+let changeRows: number = rdbStore.updateSync(updateBucket, predicates);
+console.log(`更新了 ${changeRows} 条记录`);
+
+// 异步更新
+rdbStore.update(updateBucket, predicates, (err, changeRows) => {
+  if (err) {
+    console.error(`更新失败: ${err.message}`);
+    return;
+  }
+  console.log(`更新了 ${changeRows} 条记录`);
+});
+```
+
+#### 数据删除操作
+
+```typescript
+// 构建删除条件
+let predicates = new relationalStore.RdbPredicates("USER_TABLE");
+predicates.equalTo("is_active", false);
+
+// 同步删除
+let deleteRows: number = rdbStore.deleteSync(predicates);
+console.log(`删除了 ${deleteRows} 条记录`);
+
+// 异步删除
+rdbStore.delete(predicates, (err, deleteRows) => {
+  if (err) {
+    console.error(`删除失败: ${err.message}`);
+    return;
+  }
+  console.log(`删除了 ${deleteRows} 条记录`);
+});
+```
+
+#### ResultSet与数据查询
+
+在执行查询操作时，返回的结果是一个**ResultSet**对象。ResultSet是一个数据集合的游标，默认指向第-1个记录，有效的数据从0开始。
+
+```typescript
+// 执行查询
+let predicates = new relationalStore.RdbPredicates("USER_TABLE");
+predicates.greaterThan("age", 18)
+         .orderByDesc("age");
+
+// 指定要查询的列
+let columns = ["id", "name", "age", "email"];
+
+// 同步查询
+let resultSet: relationalStore.ResultSet = rdbStore.querySync(predicates, columns);
+
+// 处理查询结果
+console.log(`查询结果列名: ${resultSet.columnNames}`);
+console.log(`查询结果总数: ${resultSet.rowCount}`);
+
+// 遍历结果集
+while (resultSet.goToNextRow()) {
+  // 通过列索引获取数据
+  const id = resultSet.getLong(0);
+  const name = resultSet.getString(1);
+  const age = resultSet.getLong(2);
+  const email = resultSet.getString(3);
+  
+  // 或通过列名获取数据
+  const nameByColumn = resultSet.getString(resultSet.getColumnIndex('name'));
+  
+  console.log(`ID: ${id}, 姓名: ${name}, 年龄: ${age}, 邮箱: ${email}`);
+}
+
+// 释放ResultSet资源
+resultSet.close();
+```
+
+##### ResultSet的重要方法
+
+| 方法名 | 功能描述 |
+|--------|----------|
+| `goToFirstRow()` | 移动到第一行 |
+| `goToLastRow()` | 移动到最后一行 |
+| `goToNextRow()` | 移动到下一行 |
+| `goToPreviousRow()` | 移动到上一行 |
+| `goToRow(position)` | 移动到指定行 |
+| `getString(columnIndex)` | 获取字符串类型数据 |
+| `getLong(columnIndex)` | 获取整数类型数据 |
+| `getDouble(columnIndex)` | 获取浮点数类型数据 |
+| `getBlob(columnIndex)` | 获取二进制数据 |
+| `isColumnNull(columnIndex)` | 判断列值是否为null |
+| `close()` | 关闭结果集，释放资源 |
+
+{% note warning flat %}
+**资源管理重要提示**：ResultSet使用完毕后必须调用`close()`方法释放资源，否则可能导致内存泄漏。建议使用try-finally或try-with-resources模式确保资源正确释放。
+{% endnote %}
+
+#### 完整的数据库操作示例
+
+下面是一个完整的用户管理系统数据库操作示例：
+
+```typescript
+import { relationalStore } from '@kit.ArkData';
+import { ValuesBucket } from '@kit.ArkData';
+import { common } from '@kit.AbilityKit';
+
+class UserDatabaseManager {
+  private rdbStore: relationalStore.RdbStore | null = null;
+  private isInitialized: boolean = false;
+
+  // 初始化数据库
+  async initDatabase(context: common.UIAbilityContext): Promise<void> {
+    const STORE_CONFIG: relationalStore.StoreConfig = {
+      name: 'UserManagement.db',
+      securityLevel: relationalStore.SecurityLevel.S1,
+      encrypt: false
+    };
+
+    const SQL_CREATE_TABLE = `
+      CREATE TABLE IF NOT EXISTS USER_TABLE (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        age INTEGER,
+        email TEXT UNIQUE,
+        phone TEXT,
+        is_active BOOLEAN DEFAULT 1,
+        create_time TEXT DEFAULT CURRENT_TIMESTAMP,
+        update_time TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    try {
+      this.rdbStore = await relationalStore.getRdbStore(context, STORE_CONFIG);
+      await this.rdbStore.executeSql(SQL_CREATE_TABLE);
+      this.isInitialized = true;
+      console.log('数据库初始化成功');
+    } catch (error) {
+      console.error('数据库初始化失败:', error);
+      throw error;
+    }
+  }
+
+  // 添加用户
+  async addUser(userData: {
+    name: string,
+    age: number,
+    email: string,
+    phone?: string
+  }): Promise<number> {
+    if (!this.isInitialized || !this.rdbStore) {
+      throw new Error('数据库未初始化');
+    }
+
+    const valueBucket: ValuesBucket = {
+      'name': userData.name,
+      'age': userData.age,
+      'email': userData.email,
+      'phone': userData.phone || '',
+      'create_time': new Date().toISOString(),
+      'update_time': new Date().toISOString()
+    };
+
+    try {
+      const rowId = await this.rdbStore.insert("USER_TABLE", valueBucket);
+      console.log(`用户添加成功，ID: ${rowId}`);
+      return rowId;
+    } catch (error) {
+      console.error('添加用户失败:', error);
+      throw error;
+    }
+  }
+
+  // 根据ID查询用户
+  async getUserById(userId: number): Promise<any | null> {
+    if (!this.isInitialized || !this.rdbStore) {
+      throw new Error('数据库未初始化');
+    }
+
+    let predicates = new relationalStore.RdbPredicates("USER_TABLE");
+    predicates.equalTo("id", userId);
+
+    try {
+      let resultSet = await this.rdbStore.query(predicates);
+      
+      if (resultSet.goToFirstRow()) {
+        const user = {
+          id: resultSet.getLong(resultSet.getColumnIndex('id')),
+          name: resultSet.getString(resultSet.getColumnIndex('name')),
+          age: resultSet.getLong(resultSet.getColumnIndex('age')),
+          email: resultSet.getString(resultSet.getColumnIndex('email')),
+          phone: resultSet.getString(resultSet.getColumnIndex('phone')),
+          isActive: resultSet.getLong(resultSet.getColumnIndex('is_active')) === 1,
+          createTime: resultSet.getString(resultSet.getColumnIndex('create_time')),
+          updateTime: resultSet.getString(resultSet.getColumnIndex('update_time'))
+        };
+        
+        resultSet.close();
+        return user;
+      }
+      
+      resultSet.close();
+      return null;
+    } catch (error) {
+      console.error('查询用户失败:', error);
+      throw error;
+    }
+  }
+
+  // 更新用户信息
+  async updateUser(userId: number, updateData: {
+    name?: string,
+    age?: number,
+    email?: string,
+    phone?: string
+  }): Promise<boolean> {
+    if (!this.isInitialized || !this.rdbStore) {
+      throw new Error('数据库未初始化');
+    }
+
+    const valueBucket: ValuesBucket = {
+      ...updateData,
+      'update_time': new Date().toISOString()
+    };
+
+    let predicates = new relationalStore.RdbPredicates("USER_TABLE");
+    predicates.equalTo("id", userId);
+
+    try {
+      const changeRows = await this.rdbStore.update(valueBucket, predicates);
+      console.log(`更新了 ${changeRows} 条用户记录`);
+      return changeRows > 0;
+    } catch (error) {
+      console.error('更新用户失败:', error);
+      throw error;
+    }
+  }
+
+  // 删除用户（软删除）
+  async deleteUser(userId: number): Promise<boolean> {
+    if (!this.isInitialized || !this.rdbStore) {
+      throw new Error('数据库未初始化');
+    }
+
+    const valueBucket: ValuesBucket = {
+      'is_active': false,
+      'update_time': new Date().toISOString()
+    };
+
+    let predicates = new relationalStore.RdbPredicates("USER_TABLE");
+    predicates.equalTo("id", userId);
+
+    try {
+      const changeRows = await this.rdbStore.update(valueBucket, predicates);
+      console.log(`删除了 ${changeRows} 条用户记录`);
+      return changeRows > 0;
+    } catch (error) {
+      console.error('删除用户失败:', error);
+      throw error;
+    }
+  }
+
+  // 分页查询活跃用户
+  async getActiveUsers(page: number = 1, pageSize: number = 10): Promise<{
+    users: any[],
+    total: number,
+    hasMore: boolean
+  }> {
+    if (!this.isInitialized || !this.rdbStore) {
+      throw new Error('数据库未初始化');
+    }
+
+    // 查询总数
+    let countPredicates = new relationalStore.RdbPredicates("USER_TABLE");
+    countPredicates.equalTo("is_active", true);
+    
+    let countResultSet = await this.rdbStore.query(countPredicates, ["COUNT(*) as total"]);
+    let total = 0;
+    if (countResultSet.goToFirstRow()) {
+      total = countResultSet.getLong(0);
+    }
+    countResultSet.close();
+
+    // 分页查询
+    let predicates = new relationalStore.RdbPredicates("USER_TABLE");
+    predicates.equalTo("is_active", true)
+             .orderByDesc("create_time")
+             .limitAs(pageSize)
+             .offsetAs((page - 1) * pageSize);
+
+    try {
+      let resultSet = await this.rdbStore.query(predicates);
+      const users: any[] = [];
+
+      while (resultSet.goToNextRow()) {
+        users.push({
+          id: resultSet.getLong(resultSet.getColumnIndex('id')),
+          name: resultSet.getString(resultSet.getColumnIndex('name')),
+          age: resultSet.getLong(resultSet.getColumnIndex('age')),
+          email: resultSet.getString(resultSet.getColumnIndex('email')),
+          phone: resultSet.getString(resultSet.getColumnIndex('phone')),
+          createTime: resultSet.getString(resultSet.getColumnIndex('create_time'))
+        });
+      }
+
+      resultSet.close();
+
+      return {
+        users: users,
+        total: total,
+        hasMore: page * pageSize < total
+      };
+    } catch (error) {
+      console.error('查询活跃用户失败:', error);
+      throw error;
+    }
+  }
+
+  // 资源释放
+  async closeDatabase(): Promise<void> {
+    if (this.rdbStore) {
+      // 注意：RelationalStore通常由系统管理，不需要手动关闭
+      // 但可以设置为null表示不再使用
+      this.rdbStore = null;
+      this.isInitialized = false;
+      console.log('数据库连接已释放');
+    }
+  }
+}
+
+// 使用示例
+export async function databaseExample(context: common.UIAbilityContext) {
+  const userDB = new UserDatabaseManager();
+  
+  try {
+    // 初始化数据库
+    await userDB.initDatabase(context);
+    
+    // 添加用户
+    const userId = await userDB.addUser({
+      name: 'XBXyftx',
+      age: 25,
+      email: 'xbxyftx@example.com',
+      phone: '13800138000'
+    });
+    
+    // 查询用户
+    const user = await userDB.getUserById(userId);
+    console.log('查询到的用户:', user);
+    
+    // 更新用户
+    await userDB.updateUser(userId, {
+      age: 26,
+      phone: '13900139000'
+    });
+    
+    // 分页查询
+    const result = await userDB.getActiveUsers(1, 10);
+    console.log('活跃用户列表:', result);
+    
+  } catch (error) {
+    console.error('数据库操作出错:', error);
+  } finally {
+    await userDB.closeDatabase();
+  }
+}
+```
+
+#### 案例关键语句解析
+
+这里我们针对这个案例中的基础重要操作进行一下讲解。
+
+```ts
+    const SQL_CREATE_TABLE = `
+      CREATE TABLE IF NOT EXISTS USER_TABLE (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        age INTEGER,
+        email TEXT UNIQUE,
+        phone TEXT,
+        is_active BOOLEAN DEFAULT 1,
+        create_time TEXT DEFAULT CURRENT_TIMESTAMP,
+        update_time TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+```
+
+```ts
+// 按照用户ID查询用户信息
+
+  if (resultSet.goToFirstRow()) {
+    const user = {
+      id: resultSet.getLong(resultSet.getColumnIndex('id')),
+      name: resultSet.getString(resultSet.getColumnIndex('name')),
+      age: resultSet.getLong(resultSet.getColumnIndex('age')),
+      email: resultSet.getString(resultSet.getColumnIndex('email')),
+      phone: resultSet.getString(resultSet.getColumnIndex('phone')),
+      isActive: resultSet.getLong(resultSet.getColumnIndex('is_active')) === 1,
+      createTime: resultSet.getString(resultSet.getColumnIndex('create_time')),
+      updateTime: resultSet.getString(resultSet.getColumnIndex('update_time'))
+    };
+    
+    resultSet.close();
+    return user;
+  }
+```
+
+首先在通过ID查询用户信息的函数中，我们可以看到在建库建表的SQL语句中，我们将用户ID设置为了主键`PRIMARY KEY`所以，数据库中并不会存在相同的用户ID，我们所查询到的结果数据集也仅会有一行。因此，我们仅需要调用`goToFirstRow`方法去去取出那一行的数据即可，并不需要去执行遍历操作。
+
+```ts
+//  分页查询活跃用户
+
+  while (resultSet.goToNextRow()) {
+    users.push({
+      id: resultSet.getLong(resultSet.getColumnIndex('id')),
+      name: resultSet.getString(resultSet.getColumnIndex('name')),
+      age: resultSet.getLong(resultSet.getColumnIndex('age')),
+      email: resultSet.getString(resultSet.getColumnIndex('email')),
+      phone: resultSet.getString(resultSet.getColumnIndex('phone')),
+      createTime: resultSet.getString(resultSet.getColumnIndex('create_time'))
+    });
+  }
+```
+
+而查询活跃用户我们很显然会获得**0到n条结果组成的结果集**，我们的存储方式就需要由对象转化为对象数组，同时也需要对结果集进行遍历操作，利用`while`循环进行遍历，将结果集转化为对象数组，并返回。
+
+### 关系型数据库的最佳实践
+
+#### 1. 数据库设计原则
+
+- **合理的表结构设计**：遵循第三范式，避免数据冗余
+- **适当的索引策略**：为经常查询的字段创建索引，但避免过度索引
+- **数据类型优化**：选择合适的数据类型，节省存储空间
+
+#### 2. 性能优化策略
+
+- **批量操作**：使用事务批量处理多个操作，提高性能
+- **连接池管理**：合理管理数据库连接，避免频繁创建和销毁
+- **查询优化**：优化SQL查询语句，避免全表扫描
+
+#### 3. 安全性考虑
+
+- **参数化查询**：使用RdbPredicates避免SQL注入
+- **数据加密**：敏感数据可以在应用层进行加密处理
+- **权限控制**：合理设置数据库访问权限
+
+通过以上的详细介绍，我们可以看到鸿蒙关系型数据库提供了完整的数据操作能力，通过面向对象的API设计，大大简化了数据库操作的复杂度，同时保证了类型安全和防SQL注入等安全特性。
+
+### 关系型数据库小结
+
+至此我们大致将鸿蒙的关系型数据的主要功能以及操作方式都进行了讲解，同时也与SpringBoot进行类别讲解，能够理解数据模型到实例对象的映射关系是用好关系型数据库的必要条件。当然华为也给出了很多可以直接执行SQL语句的API，但我认为既然有封装好的，更高效更安全的方法，那我们为什么不用呢？若非是业务有着特殊的需求需要定制SQL语句，否则我认为都无需使用那些直接执行SQL语句的API。当然这也只是我的个人见解，大家有不同的观点欢迎在评论区讨论。
+
+## 向量数据库
+
+向量数据库是API18新增的一种数据库，到现在其实ArkData中的[应用数据持久化概述](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/app-data-persistence-overview)文档依旧没有收录这种数据库，在API参考上也仅仅是共用了[关系型数据库](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-data-relationalstore)的API，并没有自己单独的API。
+
+我对这方面也确实不是很懂使用就先借助AI的力量学习以下了。
+
+### 向量数据库的基本概念（以下内容为AI生成）
+
+#### 什么是向量？
+
+在数据库语境下，**向量（Vector）**是一个由多个数值组成的数组，这些数值通常表示某个对象的特征。例如：
+
+```typescript
+// 一个128维的图像特征向量
+const imageVector: number[] = [0.1, 0.5, -0.3, 0.8, ..., 0.2];
+
+// 一个256维的文本语义向量
+const textVector: number[] = [0.4, -0.1, 0.7, 0.2, ..., -0.5];
+```
+
+这些向量通常来源于：
+- **机器学习模型**：如CNN提取的图像特征、BERT生成的文本向量
+- **人工设计特征**：如颜色直方图、音频频谱特征
+- **用户行为数据**：如购买偏好、浏览历史的数值化表示
+
+#### 向量相似性搜索原理
+
+向量数据库的核心在于**相似性搜索**，其基本原理是：
+
+1. **距离计算**：通过数学公式计算向量间的"距离"
+2. **相似性判断**：距离越近的向量被认为越相似
+3. **结果排序**：按相似度从高到低返回结果
+
+常用的相似性度量方法：
+
+| 方法 | 公式特点 | 适用场景 |
+|------|----------|----------|
+| **欧几里得距离** | 计算向量在空间中的直线距离 | 图像特征、地理位置 |
+| **余弦相似度** | 计算向量夹角的余弦值 | 文本语义、推荐系统 |
+| **曼哈顿距离** | 计算各维度差值的绝对值之和 | 路径规划、特征匹配 |
+
+#### 与传统数据库的区别
+
+| 特性 | 传统数据库 | 向量数据库 |
+|------|------------|------------|
+| **查询方式** | 精确匹配（WHERE id=1） | 相似性搜索（找最相似的10个） |
+| **数据结构** | 结构化数据（表格） | 高维数值向量 |
+| **索引策略** | B树、哈希索引 | 向量空间索引（HNSW、IVF） |
+| **应用场景** | 事务处理、数据管理 | AI应用、推荐系统、内容搜索 |
+
+#### 向量数据库的优势
+
+根据[华为官方文档](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/data-persistence-by-vector-store)，鸿蒙向量数据库具有以下优势：
+
+1. **高性能搜索**：针对向量相似性搜索进行了专门优化
+2. **大规模支持**：能够处理百万甚至千万级别的向量数据
+3. **多算法支持**：提供多种相似性计算算法
+4. **实时更新**：支持向量数据的实时插入、更新和删除
+
+#### 典型应用场景
+
+**图像识别与搜索**
+
+```typescript
+// 存储图像特征向量
+const imageFeature = extractFeatureFromImage(imageFile); // [0.1, 0.5, ...]
+await vectorDB.insert("image_001", imageFeature, {fileName: "cat.jpg", tags: ["动物", "宠物"]});
+
+// 以图搜图
+const queryFeature = extractFeatureFromImage(queryImage);
+const similarImages = await vectorDB.search(queryFeature, {topK: 5});
+```
+
+**文本语义搜索**
+
+```typescript
+// 存储文档向量
+const docVector = textEmbeddingModel.encode("鸿蒙应用开发教程");
+await vectorDB.insert("doc_001", docVector, {title: "鸿蒙开发指南"});
+
+// 语义搜索
+const queryVector = textEmbeddingModel.encode("HarmonyOS编程");
+const relatedDocs = await vectorDB.search(queryVector, {topK: 10});
+```
+
+**推荐系统**
+
+```typescript
+// 用户偏好向量化
+const userPreference = [0.8, 0.2, 0.1, ...]; // 基于历史行为生成
+const recommendItems = await vectorDB.search(userPreference, {
+  topK: 20,
+  filter: {category: "electronics"} // 可结合传统过滤条件
+});
+```
+
+向量数据库为AI时代的应用提供了强大的数据基础设施，使得"以向量为中心"的智能搜索和推荐成为可能。在鸿蒙生态中，它将为构建更智能的应用体验提供重要支撑。
+
+### 向量数据库的实际应用
+
+虽然向量数据库是一个相对较新的特性，但在实际开发中已经有了一些应用模式：
+
+```typescript
+import { relationalStore } from '@kit.ArkData';
+
+// 向量数据库实际上是关系型数据库的扩展
+// 通过特殊的向量列类型来存储向量数据
+const SQL_CREATE_VECTOR_TABLE = `
+  CREATE TABLE IF NOT EXISTS VECTOR_STORE (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    vector_id TEXT UNIQUE NOT NULL,
+    vector_data BLOB NOT NULL,  -- 存储序列化的向量数据
+    metadata TEXT,              -- 存储JSON格式的元数据
+    create_time TEXT DEFAULT CURRENT_TIMESTAMP
+  )
+`;
+
+// 向量搜索的实现思路
+class SimpleVectorStore {
+  private rdbStore: relationalStore.RdbStore;
+  
+  constructor(rdbStore: relationalStore.RdbStore) {
+    this.rdbStore = rdbStore;
+  }
+  
+  // 插入向量数据
+  async insertVector(vectorId: string, vector: number[], metadata?: any) {
+    const vectorBlob = this.serializeVector(vector);
+    const valueBucket = {
+      vector_id: vectorId,
+      vector_data: vectorBlob,
+      metadata: metadata ? JSON.stringify(metadata) : null
+    };
+    
+    return await this.rdbStore.insert('VECTOR_STORE', valueBucket);
+  }
+  
+  // 简单的向量序列化（实际应用中需要更高效的方法）
+  private serializeVector(vector: number[]): Uint8Array {
+    const buffer = new ArrayBuffer(vector.length * 4);
+    const view = new Float32Array(buffer);
+    for (let i = 0; i < vector.length; i++) {
+      view[i] = vector[i];
+    }
+    return new Uint8Array(buffer);
+  }
+  
+  // 向量反序列化
+  private deserializeVector(blob: Uint8Array): number[] {
+    const view = new Float32Array(blob.buffer);
+    return Array.from(view);
+  }
+  
+  // 计算余弦相似度
+  private cosineSimilarity(a: number[], b: number[]): number {
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+    
+    for (let i = 0; i < a.length; i++) {
+      dotProduct += a[i] * b[i];
+      normA += a[i] * a[i];
+      normB += b[i] * b[i];
+    }
+    
+    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+  }
+  
+  // 简单的向量搜索实现（生产环境需要更高效的算法）
+  async searchSimilar(queryVector: number[], topK: number = 5) {
+    const predicates = new relationalStore.RdbPredicates('VECTOR_STORE');
+    const resultSet = await this.rdbStore.query(predicates);
+    
+    const candidates: Array<{similarity: number, data: any}> = [];
+    
+    while (resultSet.goToNextRow()) {
+      const vectorBlob = resultSet.getBlob(resultSet.getColumnIndex('vector_data'));
+      const storedVector = this.deserializeVector(vectorBlob);
+      const similarity = this.cosineSimilarity(queryVector, storedVector);
+      
+      candidates.push({
+        similarity,
+        data: {
+          id: resultSet.getString(resultSet.getColumnIndex('vector_id')),
+          metadata: JSON.parse(resultSet.getString(resultSet.getColumnIndex('metadata')) || '{}')
+        }
+      });
+    }
+    
+    resultSet.close();
+    
+    // 按相似度排序并返回前topK个结果
+    return candidates
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, topK)
+      .map(item => ({...item.data, similarity: item.similarity}));
+  }
+}
+```
+
+{% note info flat %}
+**注意**：以上示例仅为演示向量数据库的基本原理，实际的向量数据库会使用更复杂的索引结构（如HNSW、LSH等）来提高搜索效率，并且华为的向量数据库实现会有专门优化的API。
+{% endnote %}
+
+### 向量数据库小结
+
+向量数据库作为AI时代的重要基础设施，在鸿蒙生态中扮演着越来越重要的角色。虽然目前还是相对较新的特性，但其在图像搜索、语义检索、推荐系统等场景中的应用前景广阔。
+
+**主要特点**：
+
+- 专为高维向量数据设计
+- 支持相似性搜索而非精确匹配
+- 针对AI应用场景优化
+- 与传统数据库形成互补
+
+**使用建议**：
+
+- 适合处理AI模型生成的特征向量
+- 在需要相似性搜索的场景中使用
+- 结合传统数据库使用，发挥各自优势
+- 关注官方文档更新，掌握最新API
+
+## 结语
+
+到这里的话就算是写完了，这篇文章的写作过程也算是有些曲折了，本来是在期末前两周的时候在图书馆复习时偶然兴起开始翻看起文档，加上之前子安也问过我有没有用过鸿蒙的数据库，我就想着说去研究一下数据库这方面的文档，毕竟我们大二下也是有数据库这门课，期末考试也要考，没准就一起复习复习了。但后来写了个开头之后就意识到我的时间其实并不充裕了，我需要分出大量的时间给那个该死的统计分析，剩余的时间我还得去背毛概和刷两套计算机组成原理的题，而且在大致浏览了以下文档之后发现与我的期末考试范围并没有什么关系，除了少得可怜的SQL语句部分以外可以说是P关系没有了。所以这篇文章的更新就暂时搁置了。
+
+现在期末考完了，成绩也都不错，也就有时间去把这篇文章给完成了，就像是公告所说的一样。
+
+![14](HarmonyOSPersistent/14.png)
+
+后面也许会写一篇关于SSE模式的前端渲染优化方案的文章，敬请期待吧。
+
+随后就请出我们的Cursor老祖给我们进行一下总结吧。
+
+### 技术选型建议
+
+| 数据量 | 复杂度 | 推荐方案 | 适用场景 |
+|--------|--------|----------|----------|
+| < 2KB | 简单 | PersistenceV2 | UI状态持久化 |
+| < 50MB | 简单 | 用户首选项 | 配置信息、用户偏好 |
+| 任意 | 简单 | KV-Store | 键值对数据、缓存 |
+| 任意 | 复杂 | RelationalStore | 结构化数据、复杂查询 |
+| 任意 | 向量计算 | 向量数据库 | AI应用、相似性搜索 |
+
+### 开发建议
+
+1. **根据数据特性选择合适的存储方案**
+2. **重视数据安全和类型安全**
+3. **合理设计数据结构和索引策略**
+4. **做好资源管理和异常处理**
+5. **关注性能优化和最佳实践**
+6. **关注新技术发展，特别是AI相关的数据存储需求**
+
+还是那句话，让我们拼尽全力的在这世界上留下抓痕吧！
+
+![15](HarmonyOSPersistent/15.jpg)
+
+喵呜~！
