@@ -240,6 +240,47 @@ html nav#nav #toggle-menu {
     width: calc(100% + 48px);
     color: white!important;
 }
+
+/* 修复手机端目录显示问题 */
+@media (max-width: 900px) {
+    #card-toc {
+        position: fixed !important;
+        right: 55px !important;
+        bottom: 30px !important;
+        z-index: 99999 !important;
+        max-width: 380px !important;
+        max-height: calc(100% - 60px) !important;
+        width: calc(100% - 80px) !important;
+        transition: transform 0.3s ease-in-out !important;
+        transform: scale(0) !important;
+        transform-origin: right bottom !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        display: block !important;
+    }
+    
+    #card-toc.open {
+        transform: scale(1) !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        display: block !important;
+    }
+    
+    #card-toc .toc-content {
+        max-height: calc(100vh - 140px) !important;
+        position: relative !important;
+        z-index: 2 !important;
+    }
+    
+    /* 确保手机端目录按钮可见 */
+    #mobile-toc-button {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+}
+
 #aside-content #card-toc .toc-content::before {
     content: '';
     position: absolute;
@@ -1075,12 +1116,12 @@ html body #recent-posts.waterfall-masonry .waterfall-item .article-meta .tags {
         margin: 0 !important;
         padding: 0 !important;
         position: relative !important;
-        overflow-x: hidden !important;
+        overflow-x: visible !important;
     }
     
     /* 确保容器不会超出屏幕 */
     body {
-        overflow-x: hidden !important;
+        overflow-x: visible !important;
     }
     
     /* 修复可能的flexbox布局问题 */

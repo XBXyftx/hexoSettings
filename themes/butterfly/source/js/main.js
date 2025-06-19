@@ -836,21 +836,129 @@ document.addEventListener('DOMContentLoaded', () => {
       $htmlDom.toggle('hide-aside')
     },
     'mobile-toc-button': (p, item) => { // Show mobile toc
-      const tocEle = document.getElementById('card-toc')
-      tocEle.style.transition = 'transform 0.3s ease-in-out'
-
-      const tocEleHeight = tocEle.clientHeight
-      const btData = item.getBoundingClientRect()
-
-      const tocEleBottom = window.innerHeight - btData.bottom - 30
-      if (tocEleHeight > tocEleBottom) {
-        tocEle.style.transformOrigin = `right ${tocEleHeight - tocEleBottom - btData.height / 2}px`
+      console.log('=== Mobile TOC Button Clicked ===');
+      console.log('Event parameters:', { p, item });
+      console.log('Window width:', window.innerWidth);
+      
+      // 🚀 终极解决方案：强制创建全新的目录元素
+      // 移除所有现有的目录相关元素
+      const existingTocs = document.querySelectorAll('#card-toc, #emergency-toc-display, #super-test-element, #force-new-toc');
+      existingTocs.forEach(el => el.remove());
+      console.log('🗑️ Removed all existing TOC elements');
+      
+      // 获取原始目录内容 - 支持多种选择器
+      let originalToc = document.querySelector('.toc');
+      let tocContent = '';
+      
+      if (!originalToc) {
+        // 尝试其他可能的选择器
+        originalToc = document.querySelector('#card-toc .toc-content') ||
+                     document.querySelector('.toc-content') ||
+                     document.querySelector('#toc') ||
+                     document.querySelector('.post-toc') ||
+                     document.querySelector('[data-toc]');
+        console.log('🔍 Trying alternative TOC selectors:', originalToc);
       }
-
-      tocEle.classList.toggle('open')
-      tocEle.addEventListener('transitionend', () => {
-        tocEle.style.cssText = ''
-      }, { once: true })
+      
+      if (originalToc && originalToc.innerHTML.trim()) {
+        tocContent = originalToc.innerHTML;
+        console.log('📄 Found TOC content, length:', tocContent.length);
+      } else {
+        // 如果还是没有找到，尝试从标题生成目录
+        console.log('🔧 No existing TOC found, generating from headings...');
+        const headings = document.querySelectorAll('.post-content h1, .post-content h2, .post-content h3, .post-content h4, .post-content h5, .post-content h6, article h1, article h2, article h3, article h4, article h5, article h6, .content h1, .content h2, .content h3, .content h4, .content h5, .content h6');
+        
+        if (headings.length > 0) {
+          tocContent = '<div class="toc-generated">';
+          headings.forEach((heading, index) => {
+            const level = heading.tagName.toLowerCase();
+            const id = heading.id || `heading-${index}`;
+            const text = heading.textContent.trim();
+            const indent = '  '.repeat(parseInt(level.charAt(1)) - 1);
+            
+            // 如果标题没有id，添加一个
+            if (!heading.id) {
+              heading.id = id;
+            }
+            
+            tocContent += `${indent}<a href="#${id}" class="toc-link toc-link-${level}">${text}</a><br>`;
+          });
+          tocContent += '</div>';
+          console.log('✅ Generated TOC from', headings.length, 'headings');
+        } else {
+          // 最后的备用方案：显示一个说明
+          tocContent = `
+            <div style="color: #ccc; text-align: center; padding: 20px;">
+              <p>📋 当前页面没有检测到标题</p>
+              <p>无法生成目录</p>
+              <p style="font-size: 12px; margin-top: 10px;">
+                可能的原因：<br>
+                • 文章内容中没有使用标题标签<br>
+                • 标题结构不规范<br>
+                • 页面还未完全加载
+              </p>
+            </div>
+          `;
+          console.log('⚠️ No headings found, showing fallback message');
+        }
+      }
+      
+      console.log('📄 Final TOC content length:', tocContent.length);
+      
+      // 创建全新的强制目录元素
+      const newTocElement = document.createElement('div');
+      newTocElement.id = 'force-new-toc';
+      newTocElement.innerHTML = `
+        <div style="
+          position: fixed !important;
+          top: 50px !important;
+          right: 20px !important;
+          width: 300px !important;
+          height: 400px !important;
+          background: rgba(0, 0, 0, 0.9) !important;
+          border: 3px solid #00ff00 !important;
+          border-radius: 10px !important;
+          z-index: 999999 !important;
+          color: white !important;
+          padding: 15px !important;
+          font-size: 14px !important;
+          overflow-y: auto !important;
+          box-shadow: 0 0 20px rgba(0, 255, 0, 0.5) !important;
+        ">
+          <div style="text-align: center; color: #00ff00; font-weight: bold; margin-bottom: 10px;">
+            📋 强制目录显示
+          </div>
+          <div style="border-top: 1px solid #333; padding-top: 10px;">
+            ${tocContent}
+          </div>
+          <div style="
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            cursor: pointer;
+            color: #ff0000;
+            font-weight: bold;
+            font-size: 18px;
+          " onclick="this.parentElement.parentElement.remove()">
+            ✕
+          </div>
+        </div>
+      `;
+      
+      // 强制添加到body
+      document.body.appendChild(newTocElement);
+      console.log('🎯 Force-created new TOC element and appended to body');
+      
+      // 确保样式生效
+      setTimeout(() => {
+        const createdElement = document.getElementById('force-new-toc');
+        if (createdElement) {
+          console.log('✅ New TOC element successfully created and visible');
+          console.log('Element dimensions:', createdElement.getBoundingClientRect());
+        } else {
+          console.error('❌ Failed to create new TOC element');
+        }
+      }, 100);
     },
     'chat-btn': () => { // Show chat
       window.chatBtnFn()
@@ -861,9 +969,25 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   document.getElementById('rightside').addEventListener('click', e => {
+    console.log('🎯 Rightside clicked:', e.target);
+    console.log('🎯 Event details:', {
+      target: e.target,
+      currentTarget: e.currentTarget,
+      type: e.type,
+      clientX: e.clientX,
+      clientY: e.clientY
+    });
+    
     const $target = e.target.closest('[id]')
+    console.log('🎯 Closest target with ID:', $target);
+    console.log('🎯 Target ID:', $target?.id);
+    
     if ($target && rightSideFn[$target.id]) {
+      console.log('✅ Found handler for:', $target.id);
       rightSideFn[$target.id](e.currentTarget, $target)
+    } else {
+      console.log('❌ No handler found for target:', $target?.id);
+      console.log('❌ Available handlers:', Object.keys(rightSideFn));
     }
   })
 
@@ -1168,6 +1292,63 @@ document.addEventListener('DOMContentLoaded', () => {
     forPostFn()
     GLOBAL_CONFIG_SITE.pageType !== 'shuoshuo' && btf.switchComments(document)
     openMobileMenu()
+    
+    // 初始化移动端目录状态
+    initMobileToc()
+  }
+
+  // 初始化移动端目录
+  const initMobileToc = () => {
+    console.log('🚀 Initializing Mobile TOC...');
+    const tocEle = document.getElementById('card-toc')
+    const mobileTocButton = document.getElementById('mobile-toc-button')
+    const rightside = document.getElementById('rightside')
+    
+    console.log('🔍 Elements check:');
+    console.log('- TOC element:', tocEle);
+    console.log('- Mobile TOC button:', mobileTocButton);
+    console.log('- Rightside container:', rightside);
+    
+    if (!tocEle) {
+      console.log('❌ No TOC element found, skipping mobile TOC init');
+      return;
+    }
+    
+    // 在移动端确保目录初始状态正确
+    if (window.innerWidth <= 900) {
+      console.log('📱 Mobile detected, setting up mobile TOC...');
+      tocEle.style.position = 'fixed'
+      tocEle.style.right = '55px'
+      tocEle.style.bottom = '30px'
+      tocEle.style.zIndex = '99999'  // 大幅提高z-index
+      tocEle.style.maxWidth = '380px'
+      tocEle.style.maxHeight = 'calc(100% - 60px)'
+      tocEle.style.width = 'calc(100% - 80px)'
+      tocEle.style.transformOrigin = 'right bottom'
+      tocEle.style.transition = 'transform 0.3s ease-in-out'
+      tocEle.style.visibility = 'visible'
+      tocEle.style.opacity = '1'
+      tocEle.style.display = 'block'
+      
+      // 强制重置为关闭状态，避免状态不一致
+      tocEle.classList.remove('open')
+      tocEle.style.transform = 'scale(0)'
+      console.log('🔄 Reset to closed state');
+      
+      console.log('✅ Mobile TOC styles applied');
+    }
+    
+    // 确保mobile-toc-button在移动端可见
+    if (mobileTocButton && window.innerWidth <= 900) {
+      console.log('📱 Setting up mobile TOC button...');
+      mobileTocButton.style.display = 'block'
+      mobileTocButton.style.visibility = 'visible'
+      mobileTocButton.style.opacity = '1'
+      mobileTocButton.style.pointerEvents = 'auto'
+      console.log('✅ Mobile TOC button configured');
+    }
+    
+    console.log('🏁 Mobile TOC initialization complete');
   }
 
   btf.addGlobalFn('pjaxComplete', refreshFn, 'refreshFn')
