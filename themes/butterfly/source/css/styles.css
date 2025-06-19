@@ -300,7 +300,7 @@ html nav#nav #toggle-menu {
     background-size: cover;
     background-position: top;
     background-repeat: no-repeat;
-    opacity: 0.5;
+    opacity: 0.8;
     z-index: -1;
     pointer-events: none; /* 确保不阻挡点击事件 */
 }
