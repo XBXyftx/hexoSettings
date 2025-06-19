@@ -241,43 +241,51 @@ html nav#nav #toggle-menu {
     color: white!important;
 }
 
-/* 修复手机端目录显示问题 */
+/* 移动端目录 - 直接使用电脑版侧边栏目录 */
 @media (max-width: 900px) {
-    #card-toc {
+    /* 移动端时将侧边栏目录移动到固定位置 */
+    #aside-content #card-toc {
         position: fixed !important;
-        right: 55px !important;
-        bottom: 30px !important;
+        right: 20px !important;
+        bottom: 80px !important;
+        top: auto !important;
+        left: auto !important;
         z-index: 99999 !important;
-        max-width: 380px !important;
-        max-height: calc(100% - 60px) !important;
-        width: calc(100% - 80px) !important;
-        transition: transform 0.3s ease-in-out !important;
+        width: 280px !important;
+        max-width: 280px !important;
+        max-height: 60vh !important;
         transform: scale(0) !important;
         transform-origin: right bottom !important;
+        opacity: 0 !important;
+        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out !important;
         visibility: visible !important;
-        opacity: 1 !important;
         display: block !important;
     }
     
-    #card-toc.open {
+    /* 显示状态 */
+    #aside-content #card-toc.open {
         transform: scale(1) !important;
-        visibility: visible !important;
         opacity: 1 !important;
-        display: block !important;
     }
     
-    #card-toc .toc-content {
-        max-height: calc(100vh - 140px) !important;
-        position: relative !important;
-        z-index: 2 !important;
+    /* 确保目录内容可滚动 */
+    #aside-content #card-toc .toc-content {
+        max-height: 50vh !important;
+        overflow-y: auto !important;
     }
     
-    /* 确保手机端目录按钮可见 */
+    /* 确保移动端目录按钮显示 */
     #mobile-toc-button {
         display: block !important;
         visibility: visible !important;
         opacity: 1 !important;
-        pointer-events: auto !important;
+    }
+}
+
+/* 电脑端隐藏移动端目录按钮 */
+@media (min-width: 901px) {
+    #mobile-toc-button {
+        display: none !important;
     }
 }
 
