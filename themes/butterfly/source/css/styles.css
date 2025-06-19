@@ -300,7 +300,7 @@ html nav#nav #toggle-menu {
     background-size: cover;
     background-position: top;
     background-repeat: no-repeat;
-    opacity: 0.8;
+    opacity: 0.6;
     z-index: -1;
     pointer-events: none; /* 确保不阻挡点击事件 */
 }
@@ -1192,4 +1192,25 @@ html body #recent-posts.waterfall-masonry .waterfall-item .article-meta .tags {
     display: flex;
     border-radius: 2em;
     box-shadow: 4px 4px 4px #00000c5e;
+}
+
+/* 自定义目录链接颜色 */
+:root {
+    --toc-link-color: #ffffff !important; /* 蓝色，你可以改成任何你喜欢的颜色 */
+}
+
+/* 也可以直接指定目录链接的颜色 */
+#aside-content #card-toc .toc-content .toc .toc-link {
+    color: #ffffff !important; /* 备用方案，确保颜色生效 */
+}
+
+/* 鼠标悬停时的颜色
+#aside-content #card-toc .toc-content .toc .toc-link:hover {
+    color: #ff0055 !important; /* 悬停时变成粉色 */
+}*/
+
+/* 当前激活项的颜色 */
+#aside-content #card-toc .toc-content .toc .toc-link.active {
+    color: #00ff88 !important; /* 激活时变成绿色 */
+    background-color: rgba(0, 255, 136, 0.1) !important; /* 添加背景色 */
 }
