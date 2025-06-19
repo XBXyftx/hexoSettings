@@ -9,6 +9,7 @@ tags:
   - 数据库
   - Java
 description: 本文将会对比鸿蒙开发的几种数据持久化方式（持续更新ing）
+top: 14
 cover: /img/ArticleTopImgs/persistentTopImg.png
 post_copyright:
 copyright_author: XBXyftx
