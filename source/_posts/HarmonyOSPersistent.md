@@ -1079,6 +1079,22 @@ export class PreferencesUtil {
 
 首先我们要先思考一下，对于一个关系型数据库，我们需要去对其进行哪些核心操作呢？咱们来用`Springboot`和`MyBatis`来模拟一下。
 
+```yml
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/order_system?useUnicode=true&characterEncoding=utf8&useSSL=true
+    username: root
+    password: **********
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      connection-test-query: SELECT 1
+```
+
+首先在配置文件中设置要连接的数据库的配置信息，指定要连接的目标数据库的url、用户名、密码等设置。
+
 ```XML
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
@@ -1210,3 +1226,12 @@ public interface UserMapper {
 所谓的用面向对象思想来操作数据库，从这个注册用户函数以及用户登录函数就能很容易的理解。我们将从请求中获取的数据封装进一个对象中，通过对关键字段的查询来进行用户是否存在的判断，`UserDTO`是一个数据传输对象，用于封装用户注册时提交的数据。在插入用户的时候我们就无需去在函数中写SQL语句来进行写入，而是直接将需要插入的值封装进一个`User`对象中，通过`UserMapper`接口中的`insert`方法将数据插入到数据库中。
 
 同样的，在登录函数中，我们从数据库中查询出来的数据也是会自动被封装进一个`User`对象中，而不是几个散落的值。我们只需要按照面向对象编程的思路去调用API，对对象进行操作就可以实现对数据库的操作，而不用在函数中直接的去编写SQL语句。
+
+总结一下总共分为以下四步：
+
+- 首先要指定需要操作的数据库
+- 随后通过`Mapper`映射来拉出所需操作的接口
+- 将获取到的数据或是需要写入的数据封装为`Entity`实例类的实例化对象进行数据操作
+- 最后针对不同的事务类型封装不同的功能函数
+
+OK，理解了这些之后，我们来类比着理解鸿蒙开发中的关系型数据库。我们首先要
