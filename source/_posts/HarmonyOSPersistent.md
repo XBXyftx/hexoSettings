@@ -7,6 +7,7 @@ tags:
   - V2
   - 用户首选项
   - 数据库
+  - Java
 description: 本文将会对比鸿蒙开发的几种数据持久化方式（持续更新ing）
 cover: /img/ArticleTopImgs/persistentTopImg.png
 post_copyright:
@@ -1076,4 +1077,136 @@ export class PreferencesUtil {
 
 ### 关系型数据库的对象化模型
 
-首先我们要先思考一下，对于一个关系型数据库，我们需要去对其进行哪些核心操作呢？
+首先我们要先思考一下，对于一个关系型数据库，我们需要去对其进行哪些核心操作呢？咱们来用`Springboot`和`MyBatis`来模拟一下。
+
+```XML
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.xbxyftx.ordersystembackend.mapper.UserMapper">
+    <resultMap id="BaseResultMap" type="org.xbxyftx.ordersystembackend.entity.User">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT * FROM users WHERE id = #{id}
+    </select>
+
+    <select id="findByUsername" resultMap="BaseResultMap">
+        SELECT * FROM users WHERE username = #{username}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO users (username, password, created_at)
+        VALUES (#{username}, #{password}, NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE users
+        SET password = #{password}
+        WHERE id = #{id}
+    </update>
+</mapper> 
+```
+
+```java
+// User.java
+package org.xbxyftx.ordersystembackend.entity;
+
+import java.time.LocalDateTime;
+
+public class User {
+    // 用户ID
+    private Long id;
+    // 用户名
+    private String username;
+    // 密码
+    private String password;
+    // 创建时间
+    private LocalDateTime createdAt;
+
+    // 获取用户ID
+    public Long getId() { return id; }
+    // 设置用户ID
+    public void setId(Long id) { this.id = id; }
+    
+    // 获取用户名
+    public String getUsername() { return username; }
+    // 设置用户名
+    public void setUsername(String username) { this.username = username; }
+    
+    // 获取密码
+    public String getPassword() { return password; }
+    // 设置密码
+    public void setPassword(String password) { this.password = password; }
+    
+    // 获取创建时间
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    // 设置创建时间
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+}
+```
+
+```java
+package org.xbxyftx.ordersystembackend.mapper;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.xbxyftx.ordersystembackend.entity.User;
+
+@Mapper
+public interface UserMapper {
+    // 根据id查询用户
+    User findById(@Param("id") Long id);
+    // 根据用户名查询用户
+    User findByUsername(@Param("username") String username);
+    // 插入用户
+    int insert(User user);
+    // 更新用户
+    int update(User user);
+}
+```
+
+这里我引用了前一阵子写的一个点餐系统的后端代码，其中我们的数据库中有一个`User`实体，其具有`id`、`username`、`password`和`created_at`四个属性。在`UserMapper.xml`文件中我们将对数据库进行**查找**、**插入**以及**更新**操作的SQL语句及其对应的参数进行了映射与封装。
+
+利用`mapper`标签将其映射到了`UserMapper`接口中，这样我们就可以通过`UserMapper`接口进行数据库的操作了，调用该接口传入对应参数就可以执行XML文件中所封装好的SQL语句，来对数据库进行操作。而与此同时，我们还利用`resultMap`标签**将数据库中的数据映射到实体类**中，这样我们就可以在Java代码中直接获取到数据库中的数据了。
+
+```java
+  // 注册用户
+  @Override
+  public User register(UserDTO userDTO) {
+      // 检查用户名是否已存在
+      if (userMapper.findByUsername(userDTO.getUsername()) != null) {
+          throw new BusinessException("用户名已存在");
+      }
+      // 创建用户
+      User user = new User();
+      user.setUsername(userDTO.getUsername());
+      // 对密码进行加密
+      user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+      
+      // 插入用户
+      userMapper.insert(user);
+      return user;
+  }
+  // 用户登录
+  @Override
+  public User login(String username, String password) {
+      // 根据用户名查询用户
+      User user = userMapper.findByUsername(username);
+      if (user == null) {
+          throw new BusinessException("用户不存在");
+      }
+      // 比较密码是否匹配
+      if (!passwordEncoder.matches(password, user.getPassword())) {
+          throw new BusinessException("密码错误");
+      }
+      return user;
+  }
+```
+
+所谓的用面向对象思想来操作数据库，从这个注册用户函数以及用户登录函数就能很容易的理解。我们将从请求中获取的数据封装进一个对象中，通过对关键字段的查询来进行用户是否存在的判断，`UserDTO`是一个数据传输对象，用于封装用户注册时提交的数据。在插入用户的时候我们就无需去在函数中写SQL语句来进行写入，而是直接将需要插入的值封装进一个`User`对象中，通过`UserMapper`接口中的`insert`方法将数据插入到数据库中。
+
+同样的，在登录函数中，我们从数据库中查询出来的数据也是会自动被封装进一个`User`对象中，而不是几个散落的值。我们只需要按照面向对象编程的思路去调用API，对对象进行操作就可以实现对数据库的操作，而不用在函数中直接的去编写SQL语句。
