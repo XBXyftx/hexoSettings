@@ -1236,4 +1236,12 @@ public interface UserMapper {
 
 ![8](HarmonyOSPersistent/8.png)
 
-OK，理解了这些之后，我们来类比着理解鸿蒙开发中的关系型数据库。官方所提供的API参考首先列举出的
+OK，理解了这些之后，我们来类比着理解鸿蒙开发中的关系型数据库。官方所提供的API参考首先列举出的四种常用功能就是我们刚才所总结的四个步骤。
+
+![9](HarmonyOSPersistent/9.png)
+
+#### [RdbPredicates](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-data-relationalstore#rdbpredicates)
+
+![10](HarmonyOSPersistent/10.png)
+
+
