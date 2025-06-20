@@ -2063,9 +2063,301 @@ export async function databaseExample(context: common.UIAbilityContext) {
 
 通过以上的详细介绍，我们可以看到鸿蒙关系型数据库提供了完整的数据操作能力，通过面向对象的API设计，大大简化了数据库操作的复杂度，同时保证了类型安全和防SQL注入等安全特性。
 
+### Transaction事务对象管理
+
+所谓事务，简单来说就是一组数据库操作，要么全部执行成功，要么全部执行失败。事务是**数据恢复**的基本单位也是**并发控制**的基础单位。一个程序中可包含多个事务，也是锁机制的基本单元。
+
+在鸿蒙的关系型数据库中，事务具有以下重要特性（ACID）：
+
+1. **原子性（Atomicity）**：事务中的所有操作是一个不可分割的单位，要么全做，要么全不做
+2. **一致性（Consistency）**：事务必须使数据库从一个一致性状态变到另一个一致性状态
+3. **隔离性（Isolation）**：多个事务并发执行时，一个事务的执行不应影响其他事务
+4. **持久性（Durability）**：一旦事务提交，它对数据库的修改应该是永久性的
+
+好了好了不背书了，大家来读我的文章肯定也不是来读这种定义的，数据库的理论知识这在期末复习期间背了太多遍了就在这里列举了一下。接下来我们就开始讲一讲鸿蒙中所提供的事务管理API。
+
+### RdbStore接口的createTransaction方法
+
+`RdbStore`接口的`createTransaction`方法用于创建一个事务对象，并返回一个`Transaction`事务对象，一个关系型数据库实例**最多包含4个事务对象**。我们全部的事务管理操作都需要依赖于通过此方法所获取到的事务对象。
+
+事务对象中包含了与数据库对象相同的一众增删改查接口，在这里放一个[传送门](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-data-relationalstore#transaction14)，大家可以自行查看具体使用规则。
+
+![16](HarmonyOSPersistent/16.png)
+
+### TransactionType事务对象的类型
+
+在调用createTransaction时，我们可以通过传入参数的形式选择需要创建的事务对象类型。每种类型的事务对象具有不同的行为特征：
+
+| 名称       | 值 | 说明                                                                 |
+|------------|----|----------------------------------------------------------------------|
+| DEFERRED   | 0  | 创建一个延迟（DEFERRED）类型的事务对象，在创建时仅关闭自动提交机制，不会立即开始事务。事务会在首次执行读或写操作时才真正启动。适用于大多数常规场景，支持并发访问。 |
+| IMMEDIATE  | 1  | 创建一个即时（IMMEDIATE）类型的事务对象，在创建时即启动一个写事务。如果此时已有其他未提交的写事务，则会创建失败并返回错误码 `14800024`。适用于需要尽早获取写锁、避免后续冲突的场景。 |
+| EXCLUSIVE  | 2  | 创建一个独占（EXCLUSIVE）类型的事务对象。在 WAL 模式下与 IMMEDIATE 行为一致；但在其他日志模式下，该类型事务会阻止其他连接在事务期间读取数据库。适用于需要完全排他访问的特殊场景。 |
+
+这三种事务类型各有其适用场景和优缺点：
+
+#### 详细对比分析
+
+**DEFERRED（延迟事务）**
+- **特点**：懒加载模式，最节省资源
+- **行为**：创建时不占用锁，首次操作时才启动事务
+- **优势**：支持高并发读取，资源占用最少
+- **劣势**：可能在实际操作时才发现锁冲突
+- **适用场景**：大部分常规业务场景，多读少写的应用
+
+**IMMEDIATE（即时事务）**
+- **特点**：立即获取写锁，快速失败机制
+- **行为**：创建时就尝试获取写锁，有冲突时立即返回错误
+- **优势**：能够提前发现写锁冲突，避免后续操作浪费
+- **劣势**：创建成本较高，可能阻塞其他写操作
+- **适用场景**：需要频繁写入且要求一致性的场景
+
+**EXCLUSIVE（独占事务）**
+- **特点**：最严格的隔离级别
+- **行为**：在非WAL模式下完全阻止其他连接读取
+- **优势**：提供最强的数据一致性保证
+- **劣势**：并发性能最差，可能造成严重阻塞
+- **适用场景**：数据迁移、批量更新等需要完全隔离的操作
+
+### Transaction对象 vs RdbStore直接操作
+
+使用Transaction对象控制数据库与直接使用RdbStore有着本质的区别：
+
+#### 主要差异对比
+
+| 特性 | Transaction对象 | RdbStore直接操作 |
+|------|----------------|------------------|
+| **事务控制** | 手动控制提交/回滚 | 每个操作自动提交 |
+| **原子性** | 多个操作作为一个原子单元 | 单个操作的原子性 |
+| **一致性** | 事务内数据一致性保证 | 单操作一致性 |
+| **隔离性** | 可配置隔离级别 | 默认隔离级别 |
+| **性能** | 批量操作性能更好 | 单次操作开销较小 |
+| **错误处理** | 可回滚到事务开始状态 | 错误后无法撤销 |
+
+#### 示例代码对比
+
+**使用Transaction对象（推荐）**
+
+```typescript
+import { relationalStore } from '@kit.ArkData';
+
+// 创建不同类型的事务
+async function createTransactionExample(rdbStore: relationalStore.RdbStore) {
+  try {
+    // 1. 创建DEFERRED类型事务（默认）
+    const deferredTransaction = await rdbStore.createTransaction({
+      type: relationalStore.TransactionType.DEFERRED
+    });
+    
+    // 2. 创建IMMEDIATE类型事务
+    const immediateTransaction = await rdbStore.createTransaction({
+      type: relationalStore.TransactionType.IMMEDIATE
+    });
+    
+    // 3. 创建EXCLUSIVE类型事务
+    const exclusiveTransaction = await rdbStore.createTransaction({
+      type: relationalStore.TransactionType.EXCLUSIVE
+    });
+    
+    console.log('三种类型事务创建成功');
+  } catch (error) {
+    console.error('事务创建失败:', error);
+  }
+}
+
+// 完整的事务操作示例
+async function transactionOperationExample(rdbStore: relationalStore.RdbStore) {
+  let transaction: relationalStore.Transaction | null = null;
+  
+  try {
+    // 1. 创建事务
+    transaction = await rdbStore.createTransaction({
+      type: relationalStore.TransactionType.IMMEDIATE
+    });
+    
+    // 2. 批量插入数据
+    const users = [
+      { name: '张三', age: 25, city: '北京' },
+      { name: '李四', age: 30, city: '上海' },
+      { name: '王五', age: 28, city: '深圳' }
+    ];
+    
+    for (const user of users) {
+      const valueBucket = {
+        name: user.name,
+        age: user.age,
+        city: user.city,
+        create_time: new Date().toISOString()
+      };
+      
+      // 使用事务对象插入数据
+      await transaction.insert('user_table', valueBucket);
+    }
+    
+    // 3. 更新其中一条数据
+    const predicates = new relationalStore.RdbPredicates('user_table');
+    predicates.equalTo('name', '张三');
+    
+    const updateBucket = { age: 26 };
+    await transaction.update(updateBucket, predicates);
+    
+    // 4. 检查操作结果
+    const queryPredicates = new relationalStore.RdbPredicates('user_table');
+    const resultSet = await transaction.query(queryPredicates);
+    
+    if (resultSet.rowCount >= 3) {
+      // 满足条件，提交事务
+      await transaction.commit();
+      console.log('事务提交成功，插入了', resultSet.rowCount, '条数据');
+    } else {
+      // 不满足条件，回滚事务
+      await transaction.rollback();
+      console.log('数据不符合预期，事务已回滚');
+    }
+    
+    resultSet.close();
+    
+  } catch (error) {
+    console.error('事务执行出错:', error);
+    
+    // 发生错误时回滚事务
+    if (transaction) {
+      try {
+        await transaction.rollback();
+        console.log('事务已回滚');
+      } catch (rollbackError) {
+        console.error('回滚失败:', rollbackError);
+      }
+    }
+  } finally {
+    // 清理资源
+    if (transaction) {
+      transaction = null;
+    }
+  }
+}
+```
+
+**直接使用RdbStore操作（对比）**
+
+```typescript
+// 直接使用RdbStore的问题示例
+async function directRdbStoreExample(rdbStore: relationalStore.RdbStore) {
+  try {
+    // 问题：每个操作都是独立的，无法保证原子性
+    const users = [
+      { name: '张三', age: 25, city: '北京' },
+      { name: '李四', age: 30, city: '上海' },
+      { name: '王五', age: 28, city: '深圳' }
+    ];
+    
+    // 如果第二次插入失败，第一次插入无法回滚
+    for (const user of users) {
+      const valueBucket = {
+        name: user.name,
+        age: user.age,
+        city: user.city,
+        create_time: new Date().toISOString()
+      };
+      
+      // 每次insert都会自动提交
+      await rdbStore.insert('user_table', valueBucket);
+      // 如果这里出错，前面已插入的数据无法回滚
+    }
+    
+    // 问题：更新操作与插入操作不在同一事务中
+    const predicates = new relationalStore.RdbPredicates('user_table');
+    predicates.equalTo('name', '张三');
+    
+    const updateBucket = { age: 26 };
+    await rdbStore.update(updateBucket, predicates); // 独立事务
+    
+  } catch (error) {
+    console.error('操作失败:', error);
+    // 无法回滚之前已执行的操作
+  }
+}
+```
+
+#### 实际应用建议
+
+**什么时候使用Transaction对象：**
+
+1. **批量操作**：需要插入/更新/删除多条数据时
+2. **关联操作**：多个表的操作需要保持一致性时
+3. **复杂业务逻辑**：涉及条件判断和可能回滚的场景
+4. **性能优化**：大量数据操作时减少提交次数
+
+**什么时候直接使用RdbStore：**
+
+1. **简单查询**：单表简单查询操作
+2. **单条记录操作**：插入/更新/删除单条记录
+3. **实时性要求高**：需要立即生效的操作
+4. **轻量级操作**：不需要事务保证的场景
+
+```typescript
+// 推荐的最佳实践模式
+class UserService {
+  private rdbStore: relationalStore.RdbStore;
+  
+  constructor(rdbStore: relationalStore.RdbStore) {
+    this.rdbStore = rdbStore;
+  }
+  
+  // 复杂操作使用事务
+  async createUserWithProfile(userData: any, profileData: any) {
+    const transaction = await this.rdbStore.createTransaction({
+      type: relationalStore.TransactionType.IMMEDIATE
+    });
+    
+    try {
+      // 插入用户基本信息
+      const userId = await transaction.insert('users', userData);
+      
+      // 插入用户详细信息
+      profileData.user_id = userId;
+      await transaction.insert('user_profiles', profileData);
+      
+      // 更新统计信息
+      await transaction.executeSql(
+        'UPDATE statistics SET user_count = user_count + 1'
+      );
+      
+      await transaction.commit();
+      return userId;
+      
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
+  }
+  
+  // 简单查询直接使用RdbStore
+  async getUserById(userId: number) {
+    const predicates = new relationalStore.RdbPredicates('users');
+    predicates.equalTo('id', userId);
+    
+    return await this.rdbStore.query(predicates);
+  }
+}
+```
+
 ### 关系型数据库小结
 
 至此我们大致将鸿蒙的关系型数据的主要功能以及操作方式都进行了讲解，同时也与SpringBoot进行类别讲解，能够理解数据模型到实例对象的映射关系是用好关系型数据库的必要条件。当然华为也给出了很多可以直接执行SQL语句的API，但我认为既然有封装好的，更高效更安全的方法，那我们为什么不用呢？若非是业务有着特殊的需求需要定制SQL语句，否则我认为都无需使用那些直接执行SQL语句的API。当然这也只是我的个人见解，大家有不同的观点欢迎在评论区讨论。
+
+最后再捋一下我们的整体的逻辑思路。
+
+1. 获取/创建关系型数据库实例对象
+  通过向[relationalStore.getRdbStore](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-data-relationalstore#relationalstoregetrdbstore-1)接口传入[StoreConfig](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-data-relationalstore#storeconfig)对象来获取指定数据库的实例对象[RdbStore](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-data-relationalstore#rdbstore)。
+2. 创建数据库表
+  调用[RdbStore.executeSql](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-data-relationalstore#executesql)接口去进行数据库的建库建表，对数据库进行初始化操作。
+3. 获取事务对象
+  调用[RdbStore.createTransaction](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-data-relationalstore#createtransaction14)方法获取事务对象[Transaction](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-data-relationalstore#transaction14)
+4. 创建谓语对象增删改查数据
+  创建谓词对象[RdbPredicates](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-data-relationalstore#rdbpredicates)设置查询条件，也就是SQL语句中的WHERE子句。将编辑好的谓词对象传入事务对象或是数据库对象的增删改查操作接口执行数据库操作。
+5. 通过结果集对象获取数据
+  在执行了数据库的操作后，如果有查询结构，则会以结果集对象[ResultSet](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-data-relationalstore#resultset)在回调函数中获取。以游标移动的形式去进行数据的获取。
 
 ## 向量数据库
 
