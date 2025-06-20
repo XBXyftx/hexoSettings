@@ -6,7 +6,6 @@ tags:
   - 技术向
   - V2
   - 华为账户登录
-swiper_index: 1
 description: Account Kit的官方demo测试与华为账户登录的功能实现分析。
 cover: /img/ArticleTopImgs/AccountTopImg.png
 post_copyright:

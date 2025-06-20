@@ -2099,6 +2099,7 @@ export async function databaseExample(context: common.UIAbilityContext) {
 #### 详细对比分析
 
 **DEFERRED（延迟事务）**
+
 - **特点**：懒加载模式，最节省资源
 - **行为**：创建时不占用锁，首次操作时才启动事务
 - **优势**：支持高并发读取，资源占用最少
@@ -2106,6 +2107,7 @@ export async function databaseExample(context: common.UIAbilityContext) {
 - **适用场景**：大部分常规业务场景，多读少写的应用
 
 **IMMEDIATE（即时事务）**
+
 - **特点**：立即获取写锁，快速失败机制
 - **行为**：创建时就尝试获取写锁，有冲突时立即返回错误
 - **优势**：能够提前发现写锁冲突，避免后续操作浪费
@@ -2113,6 +2115,7 @@ export async function databaseExample(context: common.UIAbilityContext) {
 - **适用场景**：需要频繁写入且要求一致性的场景
 
 **EXCLUSIVE（独占事务）**
+
 - **特点**：最严格的隔离级别
 - **行为**：在非WAL模式下完全阻止其他连接读取
 - **优势**：提供最强的数据一致性保证

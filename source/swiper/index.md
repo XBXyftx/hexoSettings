@@ -368,12 +368,14 @@ const config = {
   imageFolderPath: '/swiper/images/',
   // 支持的图片格式
   supportedFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'],
-  loadDelay: 50, // 减少加载间隔到50ms
-  concurrentLoads: 6, // 并发加载数量
-  preloadCount: 10, // 预加载图片数量
+  loadDelay: 100, // 增加加载间隔到100ms，减少并发压力
+  concurrentLoads: 4, // 减少并发数量到4，避免浏览器限制
+  preloadCount: 5, // 减少预加载数量到5
+  imageTimeout: 8000, // 增加单图超时到8秒
+  batchTimeout: 15000, // 增加批次超时到15秒
   observerOptions: {
-    threshold: 0.15, // 增加阈值，图片更多进入视口才显示
-    rootMargin: '20px' // 减少边距，延迟显示时机
+    threshold: 0.1, // 降低阈值，更早触发显示
+    rootMargin: '50px' // 增加边距，提前加载
   }
 };
 
@@ -400,11 +402,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        // 添加额外延迟，让图片浮现更晚一些
-        setTimeout(() => {
-          entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
-        }, 200); // 200ms延迟，让浮现效果更明显
+        // 减少延迟，更快显示图片
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+        console.log(`🎬 图片进入视口并显示`);
       }
     });
   }, config.observerOptions);
@@ -564,12 +565,13 @@ document.addEventListener('DOMContentLoaded', function() {
               positionItem(item, preloadedImg);
             } else {
               console.warn(`容器宽度为0，无法定位图片: ${src}`);
-              // 使用默认布局，但仍然等待滚动显示
+              // 使用默认布局，并直接显示
               item.style.position = 'relative';
               item.style.width = '100%';
               item.style.marginBottom = '15px';
               item.classList.add('positioned');
-              // 不直接添加visible类，让Observer来控制显示
+              item.classList.add('visible'); // 直接显示，不依赖Observer
+              console.log(`🎬 图片使用默认布局并直接显示: ${filename}`);
             }
           }, 100);
         }
@@ -582,14 +584,14 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     };
 
-    // 设置超时处理（减少到3秒）
+    // 设置超时处理（增加到配置的超时时间）
     loadTimeout = setTimeout(() => {
       if (!hasLoaded) {
-        console.warn(`⏰ 图片加载超时(3s): ${src}`);
+        console.warn(`⏰ 图片加载超时(${config.imageTimeout}ms): ${src}`);
         item.style.display = 'none';
         handleLoadComplete(false);
       }
-    }, 3000);
+    }, config.imageTimeout);
 
     // 添加点击事件
     item.addEventListener('click', () => {
@@ -690,10 +692,18 @@ document.addEventListener('DOMContentLoaded', function() {
         return; // 已经可见，跳过
       }
       
-      // 使用Intersection Observer监听元素，等待滚动到时才显示
-      setTimeout(() => {
+      // 立即检查是否在视口内，如果是则直接显示
+      const rect = item.getBoundingClientRect();
+      const isInViewport = rect.top < window.innerHeight + 100 && rect.bottom > -100;
+      
+      if (isInViewport) {
+        // 在视口内，直接显示
+        item.classList.add('visible');
+        console.log(`🎬 图片 ${index} 在视口内，直接显示`);
+      } else {
+        // 不在视口内，使用Observer监听
         observer.observe(item);
-      }, index * 80); // 增加延迟时间，让浮现更晚一些
+      }
     });
   }
 
@@ -710,10 +720,18 @@ document.addEventListener('DOMContentLoaded', function() {
         return; // 已经可见，跳过
       }
       
-      // 只设置Observer监听，等待用户滚动到时才显示
-      setTimeout(() => {
+      // 立即检查是否在视口内，如果是则直接显示
+      const rect = item.getBoundingClientRect();
+      const isInViewport = rect.top < window.innerHeight + 100 && rect.bottom > -100;
+      
+      if (isInViewport) {
+        // 在视口内，直接显示
+        item.classList.add('visible');
+        console.log(`🎬 新图片 ${startIndex + index} 在视口内，直接显示`);
+      } else {
+        // 不在视口内，使用Observer监听
         observer.observe(item);
-      }, index * 80); // 增加延迟时间，让浮现更晚一些
+      }
     });
   }
 
@@ -819,25 +837,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let batchLoadedCount = 0;
     
-    // 设置批次超时机制（减少到6秒，因为并发加载更快）
+    // 设置批次超时机制
     const batchTimeout = setTimeout(() => {
       if (batchLoadedCount < batchImages.length) {
-        console.warn(`⚠️ 批次 ${currentBatch + 1} 加载超时(6s)，强制完成。已加载 ${batchLoadedCount}/${batchImages.length} 张`);
+        console.warn(`⚠️ 批次 ${currentBatch + 1} 加载超时(${config.batchTimeout}ms)，强制完成。已加载 ${batchLoadedCount}/${batchImages.length} 张`);
         
         // 强制完成当前批次
         currentBatch++;
         isLoading = false;
         
+        // 更新容器高度并触发显示动画
+        setTimeout(() => {
+          updateGridHeight();
+          triggerVisibilityAnimation();
+        }, 200);
+        
         // 继续加载下一批
         if (currentBatch * BATCH_SIZE < allImages.length) {
           setTimeout(() => {
             loadNextBatch();
-          }, 200);
+          }, 500);
         } else {
           console.log('🎉 所有图片加载完成（部分可能超时）！');
         }
       }
-    }, 6000);
+    }, config.batchTimeout);
 
     // 预加载下一批图片
     if (currentBatch * BATCH_SIZE + BATCH_SIZE < allImages.length) {
@@ -890,6 +914,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(() => {
                       updateGridHeight();
                       triggerVisibilityAnimation();
+                      
+                      // 备用机制：如果3秒后还有隐藏的图片，强制显示
+                      setTimeout(() => {
+                        const hiddenItems = grid.querySelectorAll('.waterfall-item.positioned:not(.visible)');
+                        if (hiddenItems.length > 0) {
+                          console.warn(`⚠️ 发现 ${hiddenItems.length} 个隐藏图片，强制显示`);
+                          hiddenItems.forEach(item => {
+                            item.classList.add('visible');
+                          });
+                        }
+                      }, 3000);
                     }, 100);
                   }, 50);
                 } else {
