@@ -113,21 +113,18 @@ description: "这里是你的个人简介"
 
 /* 进度指示器样式 */
 .progress-indicator {
-  position: fixed;
-  top: 50%;
-  left: 20px;
-  transform: translateY(-50%);
   background: rgba(0, 0, 0, 0.8);
   border-radius: 12px;
   padding: 15px 20px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  z-index: 1000;
   transition: all 0.3s ease;
   opacity: 0;
   font-size: 14px;
   color: rgba(255, 255, 255, 0.9);
-  min-width: 200px;
+  margin: 15px auto;
+  max-width: 400px;
+  text-align: center;
 }
 
 .progress-text {
@@ -223,23 +220,13 @@ description: "这里是你的个人简介"
   }
 
   .progress-indicator {
-    top: auto;
-    bottom: 80px;
-    left: 10px;
-    right: 10px;
-    transform: none;
-    min-width: auto;
+    margin: 10px;
     font-size: 12px;
     padding: 12px 15px;
   }
 
   .preload-indicator {
-    top: auto;
-    bottom: 140px;
-    left: 10px;
-    right: 10px;
-    transform: none;
-    text-align: center;
+    margin: 10px;
   }
 }
 
@@ -301,21 +288,19 @@ body {
 
 /* 预加载提示 */
 .preload-indicator {
-  position: fixed;
-  top: 50%;
-  left: 20px;
-  transform: translateY(-80px); /* 在进度指示器上方 */
   background: rgba(0, 0, 0, 0.8);
   color: white;
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 12px;
-  z-index: 1001;
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 10px auto;
+  max-width: 300px;
+  text-align: center;
 }
 
 .preload-indicator.visible {
@@ -336,6 +321,19 @@ body {
     <span id="cacheStatus" style="margin-left: 15px; font-size: 12px; color: rgba(255, 255, 255, 0.6);"></span>
   </div>
   
+  <!-- 进度指示器放在清除按钮和图片之间 -->
+  <div class="progress-indicator" id="progressIndicator">
+    <div class="progress-text">已加载 <span id="loadedCount">0</span> / <span id="totalCount">0</span> 张图片</div>
+    <div class="cache-text" id="cacheText" style="font-size: 12px; opacity: 0.8; margin-top: 4px;"></div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <div class="preload-indicator" id="preloadIndicator">
+    🚀 预加载中...
+  </div>
+  
   <div class="upload-area" id="uploadArea" style="display: none;">
     <div style="color: rgba(255, 255, 255, 0.7); margin-bottom: 10px;">
       📁 将图片拖拽到这里或点击选择图片
@@ -353,19 +351,6 @@ body {
   <div class="loading-indicator" id="loadingIndicator">
     <div class="loading-spinner"></div>
     <div>正在扫描图片文件...本功能为测试功能数据加载较慢请耐心等待一分钟左右</div>
-  </div>
-    
-
-  <div class="progress-indicator" id="progressIndicator" style="display: none;">
-    <div class="progress-text">已加载 <span id="loadedCount">0</span> / <span id="totalCount">0</span> 张图片</div>
-    <div class="cache-text" id="cacheText" style="font-size: 12px; opacity: 0.8; margin-top: 4px;"></div>
-    <div class="progress-bar">
-      <div class="progress-fill" id="progressFill"></div>
-    </div>
-  </div>
-
-  <div class="preload-indicator" id="preloadIndicator">
-    🚀 预加载中...
   </div>
 </div>
 
