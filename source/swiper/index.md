@@ -828,7 +828,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const img = document.createElement('img');
     img.alt = filename || `图片 ${index + 1}`;
+    img.title = filename || `图片 ${index + 1}`;
     img.loading = 'eager'; // 改为eager加载，因为我们有并发控制
+    img.setAttribute('data-fancybox', 'gallery'); // 为博客的fancybox添加属性
     
     item.appendChild(img);
 
@@ -891,6 +893,15 @@ document.addEventListener('DOMContentLoaded', function() {
               item.style.marginBottom = '15px';
               item.classList.add('positioned');
               item.classList.add('visible'); // 直接显示，不依赖Observer
+              
+              // 通知博客的图片查看器处理新添加的图片
+              const img = item.querySelector('img');
+              if (img && window.btf && window.btf.loadLightbox) {
+                setTimeout(() => {
+                  window.btf.loadLightbox([img]);
+                }, 100);
+              }
+              
               console.log(`🎬 图片使用默认布局并直接显示: ${filename}`);
             }
           }, 100);
@@ -913,10 +924,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }, config.imageTimeout);
 
-    // 添加点击事件
-    item.addEventListener('click', () => {
-      openImageModal(src, index, filename);
-    });
+    // 图片点击事件交给博客本身的图片查看器处理
 
     // 开始加载
     loadImage();
@@ -960,6 +968,14 @@ document.addEventListener('DOMContentLoaded', function() {
       // 更新列高度
       columnHeights[shortestColumn] += height + gap;
       
+      // 通知博客的图片查看器处理新添加的图片
+      const img = item.querySelector('img');
+      if (img && window.btf && window.btf.loadLightbox) {
+        setTimeout(() => {
+          window.btf.loadLightbox([img]);
+        }, 100);
+      }
+      
       console.log(`📍 定位图片: 列${shortestColumn}, 位置(${shortestColumn * (width + gap)}, ${columnHeights[shortestColumn] - height - gap}), 尺寸(${width}x${height})`);
     } else {
       console.warn('无法获取图片尺寸或宽度为0，使用默认布局');
@@ -967,6 +983,14 @@ document.addEventListener('DOMContentLoaded', function() {
       item.style.width = '100%';
       item.style.marginBottom = '15px';
       item.classList.add('positioned');
+      
+      // 通知博客的图片查看器处理新添加的图片
+      const img = item.querySelector('img');
+      if (img && window.btf && window.btf.loadLightbox) {
+        setTimeout(() => {
+          window.btf.loadLightbox([img]);
+        }, 100);
+      }
     }
   }
 
@@ -1540,113 +1564,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setInterval(updateCacheStatus, 10000);
   }
 
-  // 图片模态框
-  function openImageModal(src, index, filename) {
-    const modal = document.createElement('div');
-    modal.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.9);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    `;
-
-    const img = document.createElement('img');
-    img.src = src;
-    img.style.cssText = `
-      max-width: 90%;
-      max-height: 90%;
-      object-fit: contain;
-      border-radius: 8px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-      transform: scale(0.8);
-      transition: transform 0.3s ease;
-    `;
-
-    const closeBtn = document.createElement('div');
-    closeBtn.innerHTML = '×';
-    closeBtn.style.cssText = `
-      position: absolute;
-      top: 20px;
-      right: 30px;
-      color: white;
-      font-size: 40px;
-      cursor: pointer;
-      z-index: 10001;
-      width: 50px;
-      height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.1);
-      transition: background 0.3s ease;
-    `;
-
-    const infoBar = document.createElement('div');
-    infoBar.style.cssText = `
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      color: white;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-size: 14px;
-      backdrop-filter: blur(10px);
-    `;
-    infoBar.textContent = filename || `图片 ${index + 1}`;
-
-    closeBtn.addEventListener('mouseenter', () => {
-      closeBtn.style.background = 'rgba(255, 255, 255, 0.2)';
-    });
-
-    closeBtn.addEventListener('mouseleave', () => {
-      closeBtn.style.background = 'rgba(255, 255, 255, 0.1)';
-    });
-
-    modal.appendChild(img);
-    modal.appendChild(closeBtn);
-    modal.appendChild(infoBar);
-    document.body.appendChild(modal);
-
-    // 动画显示
-    setTimeout(() => {
-      modal.style.opacity = '1';
-      img.style.transform = 'scale(1)';
-    }, 10);
-
-    // 关闭模态框
-    const closeModal = () => {
-      modal.style.opacity = '0';
-      img.style.transform = 'scale(0.8)';
-      setTimeout(() => {
-        document.body.removeChild(modal);
-      }, 300);
-    };
-
-    closeBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal();
-    });
-
-    // ESC键关闭
-    const handleKeydown = (e) => {
-      if (e.key === 'Escape') {
-        closeModal();
-        document.removeEventListener('keydown', handleKeydown);
-      }
-    };
-    document.addEventListener('keydown', handleKeydown);
-  }
+  // 图片模态框功能已移除，使用博客本身的图片查看器
 
   // 重新布局所有图片
   function relayoutImages() {
