@@ -29,9 +29,9 @@ description: "这里是你的个人简介"
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
   border: 2px solid transparent;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   opacity: 0;
-  transform: translateY(50px) scale(0.9);
+  transform: translateY(80px) scale(0.8) rotateX(15deg);
   position: absolute;
   cursor: pointer;
   visibility: hidden; /* 初始隐藏，防止未定位时显示 */
@@ -39,7 +39,7 @@ description: "这里是你的个人简介"
 
 .waterfall-item.visible {
   opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: translateY(0) scale(1) rotateX(0deg);
   visibility: visible; /* 定位完成后显示 */
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3),
               0 0 0 2px rgba(135, 206, 250, 0.5),
@@ -329,6 +329,13 @@ body {
     📸 本功能仍为beta测试版，欢迎大家在评论区提意见
   </div>
   
+  <div style="text-align: center; margin-bottom: 15px;">
+    <button id="clearCacheBtn" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); color: rgba(255, 255, 255, 0.8); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'">
+      🗑️ 清除图片缓存
+    </button>
+    <span id="cacheStatus" style="margin-left: 15px; font-size: 12px; color: rgba(255, 255, 255, 0.6);"></span>
+  </div>
+  
   <div class="upload-area" id="uploadArea" style="display: none;">
     <div style="color: rgba(255, 255, 255, 0.7); margin-bottom: 10px;">
       📁 将图片拖拽到这里或点击选择图片
@@ -351,6 +358,7 @@ body {
 
   <div class="progress-indicator" id="progressIndicator" style="display: none;">
     <div class="progress-text">已加载 <span id="loadedCount">0</span> / <span id="totalCount">0</span> 张图片</div>
+    <div class="cache-text" id="cacheText" style="font-size: 12px; opacity: 0.8; margin-top: 4px;"></div>
     <div class="progress-bar">
       <div class="progress-fill" id="progressFill"></div>
     </div>
@@ -376,6 +384,14 @@ const config = {
   observerOptions: {
     threshold: 0.1, // 降低阈值，更早触发显示
     rootMargin: '50px' // 增加边距，提前加载
+  },
+  // 缓存配置
+  cache: {
+    dbName: 'SwiperImageCache',
+    dbVersion: 1,
+    storeName: 'images',
+    maxCacheSize: 100 * 1024 * 1024, // 100MB缓存限制
+    cacheExpiry: 7 * 24 * 60 * 60 * 1000 // 7天过期
   }
 };
 
@@ -397,18 +413,275 @@ document.addEventListener('DOMContentLoaded', function() {
   let preloadedImages = new Map(); // 预加载的图片缓存
   const getGap = () => window.innerWidth <= 480 ? 10 : (window.innerWidth <= 768 ? 12 : 15);
   const columnWidth = () => (grid.offsetWidth - getGap()) / 2; // 计算列宽
+  let imageCache = null; // IndexedDB 缓存实例
+  let cacheStats = { total: 0, cached: 0, remaining: 0 }; // 缓存统计
+
+  // IndexedDB 缓存管理器
+  class ImageCacheManager {
+    constructor() {
+      this.db = null;
+      this.ready = false;
+    }
+
+    async init() {
+      try {
+        const request = indexedDB.open(config.cache.dbName, config.cache.dbVersion);
+        
+        request.onerror = () => {
+          console.warn('IndexedDB 初始化失败，将使用内存缓存');
+          this.ready = false;
+        };
+
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+          if (!db.objectStoreNames.contains(config.cache.storeName)) {
+            const store = db.createObjectStore(config.cache.storeName, { keyPath: 'url' });
+            store.createIndex('timestamp', 'timestamp', { unique: false });
+          }
+        };
+
+        this.db = await new Promise((resolve, reject) => {
+          request.onsuccess = () => {
+            resolve(request.result);
+          };
+          request.onerror = () => reject(request.error);
+        });
+
+        this.ready = true;
+        console.log('🗄️ IndexedDB 缓存初始化成功');
+        
+        // 清理过期缓存
+        await this.cleanExpiredCache();
+        
+      } catch (error) {
+        console.warn('IndexedDB 不可用，使用内存缓存:', error);
+        this.ready = false;
+      }
+    }
+
+    async get(url) {
+      if (!this.ready || !this.db) return null;
+      
+      try {
+        const transaction = this.db.transaction([config.cache.storeName], 'readonly');
+        const store = transaction.objectStore(config.cache.storeName);
+        const request = store.get(url);
+        
+        const result = await new Promise((resolve) => {
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => resolve(null);
+        });
+
+        if (result) {
+          // 检查是否过期
+          const now = Date.now();
+          if (now - result.timestamp > config.cache.cacheExpiry) {
+            await this.delete(url);
+            return null;
+          }
+          console.log(`📦 从缓存加载图片: ${url.split('/').pop()}`);
+          return result.blob;
+        }
+        
+        return null;
+      } catch (error) {
+        console.warn('缓存读取失败:', error);
+        return null;
+      }
+    }
+
+    async set(url, blob) {
+      if (!this.ready || !this.db) return false;
+      
+      try {
+        // 检查缓存大小限制
+        await this.checkCacheSize();
+        
+        const transaction = this.db.transaction([config.cache.storeName], 'readwrite');
+        const store = transaction.objectStore(config.cache.storeName);
+        
+        const cacheItem = {
+          url: url,
+          blob: blob,
+          timestamp: Date.now(),
+          size: blob.size
+        };
+        
+        await new Promise((resolve, reject) => {
+          const request = store.put(cacheItem);
+          request.onsuccess = () => resolve();
+          request.onerror = () => reject(request.error);
+        });
+        
+        console.log(`💾 图片已缓存: ${url.split('/').pop()} (${(blob.size / 1024).toFixed(1)}KB)`);
+        return true;
+      } catch (error) {
+        console.warn('缓存写入失败:', error);
+        return false;
+      }
+    }
+
+    async delete(url) {
+      if (!this.ready || !this.db) return;
+      
+      try {
+        const transaction = this.db.transaction([config.cache.storeName], 'readwrite');
+        const store = transaction.objectStore(config.cache.storeName);
+        await new Promise((resolve) => {
+          const request = store.delete(url);
+          request.onsuccess = () => resolve();
+          request.onerror = () => resolve();
+        });
+      } catch (error) {
+        console.warn('缓存删除失败:', error);
+      }
+    }
+
+    async checkCacheSize() {
+      if (!this.ready || !this.db) return;
+      
+      try {
+        const transaction = this.db.transaction([config.cache.storeName], 'readonly');
+        const store = transaction.objectStore(config.cache.storeName);
+        const request = store.getAll();
+        
+        const items = await new Promise((resolve) => {
+          request.onsuccess = () => resolve(request.result || []);
+          request.onerror = () => resolve([]);
+        });
+
+        const totalSize = items.reduce((sum, item) => sum + (item.size || 0), 0);
+        
+        if (totalSize > config.cache.maxCacheSize) {
+          console.log(`🧹 缓存超限 (${(totalSize / 1024 / 1024).toFixed(1)}MB)，开始清理...`);
+          
+          // 按时间戳排序，删除最旧的项目
+          items.sort((a, b) => a.timestamp - b.timestamp);
+          
+          let cleanedSize = 0;
+          const targetSize = config.cache.maxCacheSize * 0.8; // 清理到80%
+          
+          for (const item of items) {
+            if (totalSize - cleanedSize <= targetSize) break;
+            
+            await this.delete(item.url);
+            cleanedSize += item.size || 0;
+          }
+          
+          console.log(`✅ 清理完成，释放 ${(cleanedSize / 1024 / 1024).toFixed(1)}MB 空间`);
+        }
+      } catch (error) {
+        console.warn('缓存大小检查失败:', error);
+      }
+    }
+
+    async cleanExpiredCache() {
+      if (!this.ready || !this.db) return;
+      
+      try {
+        const transaction = this.db.transaction([config.cache.storeName], 'readwrite');
+        const store = transaction.objectStore(config.cache.storeName);
+        const index = store.index('timestamp');
+        
+        const now = Date.now();
+        const expiredBefore = now - config.cache.cacheExpiry;
+        
+        const range = IDBKeyRange.upperBound(expiredBefore);
+        const request = index.openCursor(range);
+        
+        let cleanedCount = 0;
+        await new Promise((resolve) => {
+          request.onsuccess = (event) => {
+            const cursor = event.target.result;
+            if (cursor) {
+              cursor.delete();
+              cleanedCount++;
+              cursor.continue();
+            } else {
+              resolve();
+            }
+          };
+          request.onerror = () => resolve();
+        });
+        
+        if (cleanedCount > 0) {
+          console.log(`🧹 清理了 ${cleanedCount} 个过期缓存项`);
+        }
+      } catch (error) {
+        console.warn('过期缓存清理失败:', error);
+      }
+    }
+
+    async getCacheStats(urls) {
+      if (!this.ready || !this.db) {
+        return { total: urls.length, cached: 0, remaining: urls.length };
+      }
+      
+      try {
+        const transaction = this.db.transaction([config.cache.storeName], 'readonly');
+        const store = transaction.objectStore(config.cache.storeName);
+        
+        let cachedCount = 0;
+        const now = Date.now();
+        
+        for (const url of urls) {
+          const request = store.get(url);
+          const result = await new Promise((resolve) => {
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => resolve(null);
+          });
+          
+          if (result && (now - result.timestamp <= config.cache.cacheExpiry)) {
+            cachedCount++;
+          }
+        }
+        
+        return {
+          total: urls.length,
+          cached: cachedCount,
+          remaining: urls.length - cachedCount
+        };
+      } catch (error) {
+        console.warn('缓存统计失败:', error);
+        return { total: urls.length, cached: 0, remaining: urls.length };
+      }
+    }
+  }
 
   // 创建Intersection Observer用于监听元素进入视口
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
+      const item = entry.target;
+      
       if (entry.isIntersecting) {
-        // 减少延迟，更快显示图片
-        entry.target.classList.add('visible');
-        observer.unobserve(entry.target);
-        console.log(`🎬 图片进入视口并显示`);
+        // 进入视口，添加浮现动画
+        if (!item.classList.contains('visible')) {
+          // 随机延迟，让图片逐个浮现
+          const delay = Math.random() * 300 + 50; // 50-350ms 随机延迟
+          
+          setTimeout(() => {
+            item.classList.add('visible');
+            console.log(`🎬 图片浮现显示，延迟: ${delay.toFixed(0)}ms`);
+          }, delay);
+        }
+      } else {
+        // 离开视口，重置状态准备下次动画
+        if (item.classList.contains('visible')) {
+          // 检查是否完全离开视口
+          const rect = item.getBoundingClientRect();
+          const isCompletelyOut = rect.bottom < -50 || rect.top > window.innerHeight + 50;
+          
+          if (isCompletelyOut) {
+            item.classList.remove('visible');
+            console.log(`👻 图片离开视口，重置状态`);
+          }
+        }
       }
     });
-  }, config.observerOptions);
+  }, {
+    threshold: 0.1,
+    rootMargin: '100px' // 增加触发区域，提前开始动画
+  });
 
   // 尝试自动读取本地图片文件夹
   async function loadLocalImages() {
@@ -465,22 +738,89 @@ document.addEventListener('DOMContentLoaded', function() {
     return validImages.length > 0 ? validImages : null;
   }
 
-  // 预加载图片
-  function preloadImage(src) {
-    return new Promise((resolve, reject) => {
-      if (preloadedImages.has(src)) {
-        resolve(preloadedImages.get(src));
-        return;
+  // 数组随机打乱函数
+  function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
+  // 带缓存的图片预加载
+  async function preloadImageWithCache(src) {
+    if (preloadedImages.has(src)) {
+      return preloadedImages.get(src);
+    }
+
+    try {
+      // 首先尝试从缓存获取
+      if (imageCache && imageCache.ready) {
+        const cachedBlob = await imageCache.get(src);
+        if (cachedBlob) {
+          const img = new Image();
+          const objectUrl = URL.createObjectURL(cachedBlob);
+          
+          return new Promise((resolve, reject) => {
+            img.onload = () => {
+              // 不要立即释放 objectUrl，因为图片可能还在使用
+              img.setAttribute('data-object-url', objectUrl);
+              preloadedImages.set(src, img);
+              resolve(img);
+            };
+            img.onerror = () => {
+              URL.revokeObjectURL(objectUrl);
+              reject(new Error(`Cached image load failed: ${src}`));
+            };
+            img.src = objectUrl;
+          });
+        }
       }
 
+      // 缓存中没有，从网络加载
+      const response = await fetch(src);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      
+      // 保存到缓存
+      if (imageCache && imageCache.ready) {
+        await imageCache.set(src, blob);
+      }
+
+      // 创建图片对象
       const img = new Image();
-      img.onload = () => {
-        preloadedImages.set(src, img);
-        resolve(img);
-      };
-      img.onerror = reject;
-      img.src = src;
-    });
+      const objectUrl = URL.createObjectURL(blob);
+      
+      return new Promise((resolve, reject) => {
+        img.onload = () => {
+          img.setAttribute('data-object-url', objectUrl);
+          preloadedImages.set(src, img);
+          resolve(img);
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error(`Network image load failed: ${src}`));
+        };
+        img.src = objectUrl;
+      });
+
+    } catch (error) {
+      console.warn(`图片预加载失败: ${src}`, error);
+      throw error;
+    }
+  }
+
+  // 清理对象URL（在图片不再需要时调用）
+  function cleanupImageUrl(img) {
+    const objectUrl = img.getAttribute('data-object-url');
+    if (objectUrl && objectUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(objectUrl);
+      img.removeAttribute('data-object-url');
+    }
   }
 
   // 并发加载管理器
@@ -542,18 +882,19 @@ document.addEventListener('DOMContentLoaded', function() {
       try {
         let preloadedImg;
         
-        // 尝试使用预加载的图片
-        if (preloadedImages.has(src)) {
-          preloadedImg = preloadedImages.get(src);
-          console.log(`🚀 使用预加载图片 ${index + 1}`);
+        // 使用带缓存的预加载
+        preloadedImg = await preloadImageWithCache(src);
+        const cacheStatus = preloadedImg.getAttribute('data-object-url') ? '(缓存)' : '(网络)';
+        console.log(`📥 加载图片 ${index + 1} ${cacheStatus}: ${filename}`);
+        
+        // 设置图片源（如果使用缓存，src 已经是 blob URL）
+        if (preloadedImg.getAttribute('data-object-url')) {
+          img.src = preloadedImg.src;
         } else {
-          // 如果没有预加载，直接加载
-          preloadedImg = await preloadImage(src);
-          console.log(`📥 直接加载图片 ${index + 1}`);
+          img.src = src;
         }
         
-        // 设置图片源
-        img.src = src;
+        // 图片源已在上面设置
         
         // 确保容器有宽度再进行定位
         if (grid.offsetWidth > 0) {
@@ -692,18 +1033,9 @@ document.addEventListener('DOMContentLoaded', function() {
         return; // 已经可见，跳过
       }
       
-      // 立即检查是否在视口内，如果是则直接显示
-      const rect = item.getBoundingClientRect();
-      const isInViewport = rect.top < window.innerHeight + 100 && rect.bottom > -100;
-      
-      if (isInViewport) {
-        // 在视口内，直接显示
-        item.classList.add('visible');
-        console.log(`🎬 图片 ${index} 在视口内，直接显示`);
-      } else {
-        // 不在视口内，使用Observer监听
-        observer.observe(item);
-      }
+      // 为所有图片设置Observer监听，让它们都有浮现动画
+      observer.observe(item);
+      console.log(`👀 设置监听: 图片 ${index}`);
     });
   }
 
@@ -720,24 +1052,19 @@ document.addEventListener('DOMContentLoaded', function() {
         return; // 已经可见，跳过
       }
       
-      // 立即检查是否在视口内，如果是则直接显示
-      const rect = item.getBoundingClientRect();
-      const isInViewport = rect.top < window.innerHeight + 100 && rect.bottom > -100;
-      
-      if (isInViewport) {
-        // 在视口内，直接显示
-        item.classList.add('visible');
-        console.log(`🎬 新图片 ${startIndex + index} 在视口内，直接显示`);
-      } else {
-        // 不在视口内，使用Observer监听
-        observer.observe(item);
-      }
+      // 为所有新图片设置Observer监听，让它们都有浮现动画
+      observer.observe(item);
+      console.log(`👀 设置新图片监听: 索引 ${startIndex + index}`);
     });
   }
 
-  // 分批加载图片（优化版）
-  function loadImages(imageList) {
-    allImages = imageList;
+  // 分批加载图片（优化版 + 随机化 + 缓存）
+  async function loadImages(imageList) {
+    // 随机打乱图片顺序
+    const randomizedImages = shuffleArray(imageList);
+    console.log(`🎲 图片列表已随机打乱: ${randomizedImages.length} 张图片`);
+    
+    allImages = randomizedImages;
     currentBatch = 0;
     loadedCount = 0;
     activeLoads = 0;
@@ -745,22 +1072,34 @@ document.addEventListener('DOMContentLoaded', function() {
     grid.innerHTML = ''; // 清空现有内容
     resetLayout(); // 重置布局
 
-    if (imageList.length === 0) {
+    if (randomizedImages.length === 0) {
       showEmptyState();
       hideLoadingIndicator();
       return;
     }
 
-    console.log(`🚀 开始加载 ${imageList.length} 张图片，并发数: ${config.concurrentLoads}`);
+    // 获取缓存统计
+    if (imageCache && imageCache.ready) {
+      cacheStats = await imageCache.getCacheStats(randomizedImages);
+      console.log(`📊 缓存统计: ${cacheStats.cached}/${cacheStats.total} 张图片已缓存，需要加载 ${cacheStats.remaining} 张`);
+      
+      // 更新加载提示
+      const loadingText = loadingIndicator.querySelector('div:last-child');
+      if (loadingText) {
+        loadingText.textContent = `正在加载图片...已缓存 ${cacheStats.cached} 张，需下载 ${cacheStats.remaining} 张`;
+      }
+    }
+
+    console.log(`🚀 开始加载 ${randomizedImages.length} 张图片，并发数: ${config.concurrentLoads}`);
 
     // 显示进度指示器（当图片数量大于1批时）
-    if (imageList.length > BATCH_SIZE) {
+    if (randomizedImages.length > BATCH_SIZE) {
       showProgressIndicator();
       updateProgress();
     }
 
     // 预加载前几张图片
-    preloadInitialImages(imageList);
+    preloadInitialImages(randomizedImages);
 
     // 加载第一批图片
     loadNextBatch();
@@ -781,7 +1120,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let completedCount = 0;
     const preloadPromises = preloadList.map(async (src, index) => {
       try {
-        await preloadImage(src);
+        await preloadImageWithCache(src);
         completedCount++;
         console.log(`✅ 预加载完成: 图片 ${index + 1}`);
         
@@ -871,7 +1210,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       console.log(`🔄 预加载下一批的前 ${nextBatchImages.length} 张图片`);
       nextBatchImages.forEach(src => {
-        preloadImage(src).catch(() => {}); // 静默处理预加载错误
+        preloadImageWithCache(src).catch(() => {}); // 静默处理预加载错误
       });
     }
     
@@ -1009,12 +1348,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadedCountSpan = document.getElementById('loadedCount');
     const totalCountSpan = document.getElementById('totalCount');
     const progressFill = document.getElementById('progressFill');
+    const cacheText = document.getElementById('cacheText');
     
     if (loadedCountSpan) loadedCountSpan.textContent = loadedCount;
     if (totalCountSpan) totalCountSpan.textContent = totalCount;
     
     const percentage = totalCount > 0 ? (loadedCount / totalCount) * 100 : 0;
     if (progressFill) progressFill.style.width = percentage + '%';
+    
+    // 更新缓存信息
+    if (cacheText && cacheStats.total > 0) {
+      const cachePercentage = ((cacheStats.cached / cacheStats.total) * 100).toFixed(1);
+      cacheText.textContent = `💾 ${cacheStats.cached} 张已缓存 (${cachePercentage}%) | 🌐 ${cacheStats.remaining} 张需下载`;
+    }
     
     // 输出详细的进度信息
     console.log(`📊 进度更新: ${loadedCount}/${totalCount} (${percentage.toFixed(1)}%)`);
@@ -1112,6 +1458,100 @@ document.addEventListener('DOMContentLoaded', function() {
       uploadArea.classList.remove('dragover');
       handleFiles(e.dataTransfer.files);
     });
+  }
+
+  // 设置缓存控制功能
+  function setupCacheControls() {
+    const clearCacheBtn = document.getElementById('clearCacheBtn');
+    const cacheStatus = document.getElementById('cacheStatus');
+
+    // 更新缓存状态显示
+    const updateCacheStatus = async () => {
+      if (imageCache && imageCache.ready && allImages.length > 0) {
+        const stats = await imageCache.getCacheStats(allImages);
+        const cacheSize = await getCacheSize();
+        cacheStatus.textContent = `${stats.cached}/${stats.total} 张已缓存 (${cacheSize})`;
+      } else {
+        cacheStatus.textContent = '缓存未初始化';
+      }
+    };
+
+    // 获取缓存大小
+    const getCacheSize = async () => {
+      if (!imageCache || !imageCache.ready || !imageCache.db) return '0KB';
+      
+      try {
+        const transaction = imageCache.db.transaction([config.cache.storeName], 'readonly');
+        const store = transaction.objectStore(config.cache.storeName);
+        const request = store.getAll();
+        
+        const items = await new Promise((resolve) => {
+          request.onsuccess = () => resolve(request.result || []);
+          request.onerror = () => resolve([]);
+        });
+
+        const totalSize = items.reduce((sum, item) => sum + (item.size || 0), 0);
+        
+        if (totalSize < 1024) return `${totalSize}B`;
+        if (totalSize < 1024 * 1024) return `${(totalSize / 1024).toFixed(1)}KB`;
+        return `${(totalSize / 1024 / 1024).toFixed(1)}MB`;
+      } catch (error) {
+        return '未知';
+      }
+    };
+
+    // 清除缓存按钮事件
+    clearCacheBtn.addEventListener('click', async () => {
+      if (!imageCache || !imageCache.ready) {
+        alert('缓存系统未初始化');
+        return;
+      }
+
+      const confirmed = confirm('确定要清除所有图片缓存吗？这将删除本地存储的所有图片数据。');
+      if (!confirmed) return;
+
+      try {
+        clearCacheBtn.textContent = '🔄 清除中...';
+        clearCacheBtn.disabled = true;
+
+        // 删除数据库
+        const deleteRequest = indexedDB.deleteDatabase(config.cache.dbName);
+        await new Promise((resolve, reject) => {
+          deleteRequest.onsuccess = () => resolve();
+          deleteRequest.onerror = () => reject(deleteRequest.error);
+          deleteRequest.onblocked = () => {
+            console.warn('数据库删除被阻塞，尝试强制清理');
+            resolve();
+          };
+        });
+
+        // 清理内存缓存
+        preloadedImages.forEach((img) => {
+          cleanupImageUrl(img);
+        });
+        preloadedImages.clear();
+
+        // 重新初始化缓存系统
+        imageCache = new ImageCacheManager();
+        await imageCache.init();
+
+        alert('缓存清除成功！页面将刷新以应用更改。');
+        location.reload();
+
+      } catch (error) {
+        console.error('清除缓存失败:', error);
+        alert('清除缓存失败: ' + error.message);
+      } finally {
+        clearCacheBtn.textContent = '🗑️ 清除图片缓存';
+        clearCacheBtn.disabled = false;
+      }
+    });
+
+    // 初始化时更新状态
+    setTimeout(updateCacheStatus, 1000);
+    
+    // 定期更新缓存状态
+    setInterval(updateCacheStatus, 10000);
   }
 
   // 图片模态框
@@ -1353,7 +1793,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 初始化
   async function initialize() {
+    // 初始化缓存系统
+    imageCache = new ImageCacheManager();
+    await imageCache.init();
+    
     setupFileUpload();
+    setupCacheControls();
 
     // 窗口大小变化时重新布局
     let resizeTimeout;
@@ -1362,12 +1807,21 @@ document.addEventListener('DOMContentLoaded', function() {
       resizeTimeout = setTimeout(relayoutImages, 300);
     });
 
+    // 页面卸载时清理资源
+    window.addEventListener('beforeunload', () => {
+      // 清理所有对象 URL
+      preloadedImages.forEach((img) => {
+        cleanupImageUrl(img);
+      });
+      preloadedImages.clear();
+    });
+
     // 尝试加载本地图片
     const localImages = await loadLocalImages();
     
     if (localImages && localImages.length > 0) {
       console.log('找到本地图片:', localImages.length, '张');
-      loadImages(localImages);
+      await loadImages(localImages); // 注意这里改为 await
       
       // 启动加载监控
       startLoadingMonitor();
