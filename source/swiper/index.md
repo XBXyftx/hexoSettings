@@ -646,26 +646,20 @@ document.addEventListener('DOMContentLoaded', function() {
           
           setTimeout(() => {
             item.classList.add('visible');
-            console.log(`🎬 图片浮现显示，延迟: ${delay.toFixed(0)}ms`);
+            console.log(`🎬 图片进入视口浮现显示，延迟: ${delay.toFixed(0)}ms`);
           }, delay);
         }
       } else {
-        // 离开视口，重置状态准备下次动画
+        // 离开视口，立即隐藏等待下次浮现动画
         if (item.classList.contains('visible')) {
-          // 检查是否完全离开视口
-          const rect = item.getBoundingClientRect();
-          const isCompletelyOut = rect.bottom < -50 || rect.top > window.innerHeight + 50;
-          
-          if (isCompletelyOut) {
-            item.classList.remove('visible');
-            console.log(`👻 图片离开视口，重置状态`);
-          }
+          item.classList.remove('visible');
+          console.log(`👻 图片离开视口，隐藏等待下次浮现`);
         }
       }
     });
   }, {
-    threshold: 0.1,
-    rootMargin: '100px' // 增加触发区域，提前开始动画
+    threshold: 0.1, // 当图片10%可见时触发
+    rootMargin: '50px' // 提前50px开始动画
   });
 
   // 尝试自动读取本地图片文件夹
@@ -1013,14 +1007,15 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log(`🎬 设置可见性监听，共 ${items.length} 个已定位的图片`);
     
     items.forEach((item, index) => {
-      // 检查图片是否已经可见
-      if (item.classList.contains('visible')) {
-        return; // 已经可见，跳过
-      }
+      // 先移除之前的监听，避免重复
+      observer.unobserve(item);
+      
+      // 重置图片状态，所有图片都需要重新触发动画
+      item.classList.remove('visible');
       
       // 为所有图片设置Observer监听，让它们都有浮现动画
       observer.observe(item);
-      console.log(`👀 设置监听: 图片 ${index}`);
+      console.log(`👀 重新设置监听: 图片 ${index}`);
     });
   }
 
@@ -1032,10 +1027,11 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log(`🎬 设置新图片监听，从索引 ${startIndex} 开始，共 ${newItems.length} 个新图片`);
     
     newItems.forEach((item, index) => {
-      // 检查图片是否已经可见
-      if (item.classList.contains('visible')) {
-        return; // 已经可见，跳过
-      }
+      // 先移除之前的监听，避免重复
+      observer.unobserve(item);
+      
+      // 确保新图片初始状态为隐藏
+      item.classList.remove('visible');
       
       // 为所有新图片设置Observer监听，让它们都有浮现动画
       observer.observe(item);
@@ -1239,13 +1235,18 @@ document.addEventListener('DOMContentLoaded', function() {
                       updateGridHeight();
                       triggerVisibilityAnimation();
                       
-                      // 备用机制：如果3秒后还有隐藏的图片，强制显示
+                      // 备用机制：如果3秒后还有隐藏的图片，检查是否在视口内
                       setTimeout(() => {
                         const hiddenItems = grid.querySelectorAll('.waterfall-item.positioned:not(.visible)');
                         if (hiddenItems.length > 0) {
-                          console.warn(`⚠️ 发现 ${hiddenItems.length} 个隐藏图片，强制显示`);
+                          console.log(`📊 发现 ${hiddenItems.length} 个隐藏图片，检查是否在视口内`);
                           hiddenItems.forEach(item => {
-                            item.classList.add('visible');
+                            const rect = item.getBoundingClientRect();
+                            const isInViewport = rect.top < window.innerHeight && rect.bottom > 0;
+                            if (isInViewport) {
+                              console.warn(`⚠️ 视口内图片未显示，强制显示`);
+                              item.classList.add('visible');
+                            }
                           });
                         }
                       }, 3000);
@@ -1652,9 +1653,10 @@ document.addEventListener('DOMContentLoaded', function() {
     resetLayout();
     const items = grid.querySelectorAll('.waterfall-item');
     
-    // 先隐藏所有图片
+    // 先隐藏所有图片并移除监听
     items.forEach(item => {
-      item.classList.remove('positioned');
+      item.classList.remove('positioned', 'visible');
+      observer.unobserve(item);
     });
     
     // 重新定位
@@ -1763,7 +1765,7 @@ document.addEventListener('DOMContentLoaded', function() {
                   }
                 });
               } else {
-                console.log(`✅ Observer工作正常，图片将在滚动到时显示`);
+                console.log(`✅ Observer工作正常，${finalHiddenCount} 个图片在视口外等待滚动显示`);
               }
             }
           }, 3000);
