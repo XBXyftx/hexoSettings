@@ -74,7 +74,7 @@ description: "这里是你的个人简介"
             <img src="hsd3.jpg" alt="hsd" class="tech-image">
             <img src="hsd1.jpg" alt="hsd" class="tech-image">
         </div>
-                <div class="tech-card">
+        <div class="tech-card">
             <div class="card-header">
                 <h2>作为花粉俱乐部宣传部部长</h2>
             </div>
@@ -90,6 +90,16 @@ description: "这里是你的个人简介"
             <img src="hf5.jpg" alt="hsd" class="tech-image">
             <img src="hf8.jpg" alt="hsd" class="tech-image">
             <img src="hf9.jpg" alt="hsd" class="tech-image">
+        </div>
+        <div class="tech-card">
+            <div class="card-header">
+                <h2>作为一名AIcoder</h2>
+            </div>
+            <div class="tech-description">
+                深度使用过Vscode、Trae、Cursor，也用深度体验了扣子、硅基流动、ollama等常用AI应用搭建工具。对于如何让AI作为一个合格我员工为你工作有着一定的理解与经验。
+            </div>
+            <img src="AIcoder1.png" alt="AIcoder" class="tech-image">
+            <img src="AIcoder2.png" alt="AIcoder" class="tech-image">
         </div>
         <div class="about-section">
             <div class="section-header">
