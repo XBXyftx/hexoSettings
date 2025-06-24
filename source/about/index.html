@@ -536,7 +536,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.5rem;
+            gap: 1.5rem;
             padding: 1.5rem;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 16px;
@@ -555,9 +555,16 @@
             font-weight: 600;
         }
 
+        .social-link:hover,
+        .social-link:focus,
+        .social-link:active {
+            text-decoration: none !important;
+        }
+
         .social-link.github:hover {
             background: rgba(255, 255, 255, 0.1);
             transform: translateY(-5px);
+            text-decoration: none !important;
         }
 
         .social-link.github:hover i {
@@ -567,6 +574,7 @@
         .social-link.email:hover {
             background: rgba(74, 125, 190, 0.2);
             transform: translateY(-5px);
+            text-decoration: none !important;
         }
 
         .social-link.email:hover i {
@@ -576,6 +584,7 @@
         .social-link.wechat:hover {
             background: rgba(123, 179, 66, 0.2);
             transform: translateY(-5px);
+            text-decoration: none !important;
         }
 
         .social-link.wechat:hover i {
