@@ -21,6 +21,10 @@ div
   if globalPageType === 'home'
     script(src=url_for('/js/waterfall.js'))
 
+  // 文章打字机效果 - 只在文章页面加载
+  if globalPageType === 'post'
+    script(src=url_for('/js/typewriter-effect.js'))
+
   .js-pjax
     if needLoadCountJs
       != partial("includes/third-party/card-post-count/index", {}, { cache: true })

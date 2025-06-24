@@ -51,6 +51,10 @@ if (theme.pwa && theme.pwa.enable)
 link(rel='stylesheet', href=url_for(theme.asset.main_css))
 link(rel='stylesheet', href=url_for(theme.asset.fontawesome))
 
+//- 文章打字机效果CSS - 只在文章页面加载
+if globalPageType === 'post'  
+  link(rel='stylesheet', href=url_for('/css/typewriter-effect.css'))
+
 if (theme.snackbar && theme.snackbar.enable)
   link(rel='stylesheet', href=url_for(theme.asset.snackbar_css) media="print" onload="this.media='all'")
 
