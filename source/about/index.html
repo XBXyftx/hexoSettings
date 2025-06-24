@@ -142,7 +142,7 @@
             backdrop-filter: blur(20px);
             transition: all 0.4s ease;
             position: relative;
-            min-height: 400px;
+            min-height: 500px;
         }
 
         .card::before {
@@ -222,12 +222,50 @@
             margin-bottom: 2rem;
         }
 
+        /* 轮播容器样式 */
+        .carousel-container {
+            position: relative;
+            width: 100%;
+            min-height: 280px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .carousel-container:hover {
+            transform: scale(1.02);
+            box-shadow: 0 12px 40px rgba(74, 144, 226, 0.3);
+        }
+
+        .carousel-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out;
+        }
+
+        .carousel-slide.active {
+            opacity: 1;
+        }
+
+        .carousel-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 16px;
+        }
+
         /* 图片样式 */
         .card-image {
             width: 100%;
+            min-height: 280px;
             border-radius: 16px;
             transition: all 0.3s ease;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            object-fit: cover;
         }
 
         .card-image:hover {
@@ -249,6 +287,7 @@
 
         .grid-image {
             width: 100%;
+            min-height: 120px;
             border-radius: 12px;
             transition: all 0.3s ease;
             aspect-ratio: 1;
@@ -268,6 +307,7 @@
 
         .gallery-main {
             width: 100%;
+            min-height: 300px;
             border-radius: 16px;
             aspect-ratio: 16/10;
             object-fit: cover;
@@ -281,6 +321,7 @@
 
         .thumb {
             width: 100%;
+            min-height: 60px;
             border-radius: 8px;
             aspect-ratio: 1;
             object-fit: cover;
@@ -421,8 +462,10 @@
 
         .ai-image {
             width: 100%;
+            min-height: 250px;
             border-radius: 16px;
             transition: all 0.3s ease;
+            object-fit: cover;
         }
 
         .ai-image:hover {
@@ -683,10 +726,16 @@
                         </div>
                     </div>
                     <div class="card-images">
-                        <img src="HXY.jpg" alt="鸿蒙技术栈" class="card-image">
-                        <div class="image-grid">
-                            <img src="professional.jpg" alt="专业认证" class="grid-image">
-                            <img src="hdd.jpg" alt="开发认证" class="grid-image">
+                        <div class="carousel-container" data-carousel="harmony">
+                            <div class="carousel-slide active">
+                                <img src="HXY.jpg" alt="鸿蒙技术栈">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="professional.jpg" alt="专业认证">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="hdd.jpg" alt="开发认证">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -695,8 +744,14 @@
             <div class="card-row">
                 <div class="card card-right">
                     <div class="card-images">
-                        <img src="WYY.png" alt="网易云项目" class="card-image">
-                        <img src="LLK.png" alt="连连看项目" class="card-image">
+                        <div class="carousel-container" data-carousel="frontend">
+                            <div class="carousel-slide active">
+                                <img src="WYY.png" alt="网易云项目">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="LLK.png" alt="连连看项目">
+                            </div>
+                        </div>
                     </div>
                     <div class="card-content">
                         <div class="card-header">
@@ -734,10 +789,16 @@
                         </div>
                     </div>
                     <div class="card-images">
-                        <div class="image-grid-3">
-                            <img src="maker1.jpg" alt="创客活动1" class="grid-image">
-                            <img src="maker2.jpg" alt="创客活动2" class="grid-image">
-                            <img src="maker3.jpg" alt="创客活动3" class="grid-image">
+                        <div class="carousel-container" data-carousel="maker">
+                            <div class="carousel-slide active">
+                                <img src="maker1.jpg" alt="创客活动1">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="maker2.jpg" alt="创客活动2">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="maker3.jpg" alt="创客活动3">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -746,14 +807,24 @@
             <div class="card-row">
                 <div class="card card-right">
                     <div class="card-images">
-                        <div class="image-gallery">
-                            <img src="hsd6.jpg" alt="HSD活动1" class="gallery-main">
-                            <div class="gallery-thumbs">
-                                <img src="hsd5.jpg" alt="HSD活动2" class="thumb">
-                                <img src="hsd4.jpg" alt="HSD活动3" class="thumb">
-                                <img src="hsd2.jpg" alt="HSD活动4" class="thumb">
-                                <img src="hsd3.jpg" alt="HSD活动5" class="thumb">
-                                <img src="hsd1.jpg" alt="HSD活动6" class="thumb">
+                        <div class="carousel-container" data-carousel="hsd">
+                            <div class="carousel-slide active">
+                                <img src="hsd6.jpg" alt="HSD活动1">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="hsd5.jpg" alt="HSD活动2">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="hsd4.jpg" alt="HSD活动3">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="hsd2.jpg" alt="HSD活动4">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="hsd3.jpg" alt="HSD活动5">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="hsd1.jpg" alt="HSD活动6">
                             </div>
                         </div>
                     </div>
@@ -796,16 +867,34 @@
                         </div>
                     </div>
                     <div class="card-images">
-                        <div class="masonry-grid">
-                            <img src="hf7.jpg" alt="花粉活动1" class="masonry-item">
-                            <img src="hf6.jpg" alt="花粉活动2" class="masonry-item">
-                            <img src="hf1.jpg" alt="花粉活动3" class="masonry-item">
-                            <img src="hf2.jpg" alt="花粉活动4" class="masonry-item">
-                            <img src="hf3.jpg" alt="花粉活动5" class="masonry-item">
-                            <img src="hf4.jpg" alt="花粉活动6" class="masonry-item">
-                            <img src="hf5.jpg" alt="花粉活动7" class="masonry-item">
-                            <img src="hf8.jpg" alt="花粉活动8" class="masonry-item">
-                            <img src="hf9.jpg" alt="花粉活动9" class="masonry-item">
+                        <div class="carousel-container" data-carousel="huafen">
+                            <div class="carousel-slide active">
+                                <img src="hf7.jpg" alt="花粉活动1">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="hf6.jpg" alt="花粉活动2">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="hf1.jpg" alt="花粉活动3">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="hf2.jpg" alt="花粉活动4">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="hf3.jpg" alt="花粉活动5">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="hf4.jpg" alt="花粉活动6">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="hf5.jpg" alt="花粉活动7">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="hf8.jpg" alt="花粉活动8">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="hf9.jpg" alt="花粉活动9">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -814,9 +903,13 @@
             <div class="card-row">
                 <div class="card card-right">
                     <div class="card-images">
-                        <div class="ai-showcase">
-                            <img src="AIcoder1.png" alt="AI编程工具1" class="ai-image">
-                            <img src="AIcoder2.png" alt="AI编程工具2" class="ai-image">
+                        <div class="carousel-container" data-carousel="ai">
+                            <div class="carousel-slide active">
+                                <img src="AIcoder1.png" alt="AI编程工具1">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="AIcoder2.png" alt="AI编程工具2">
+                            </div>
                         </div>
                     </div>
                     <div class="card-content">
@@ -874,6 +967,30 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // 轮播功能
+            function initCarousel() {
+                const carousels = document.querySelectorAll('.carousel-container');
+                
+                carousels.forEach((carousel, index) => {
+                    const slides = carousel.querySelectorAll('.carousel-slide');
+                    let currentSlide = 0;
+                    
+                    function nextSlide() {
+                        slides[currentSlide].classList.remove('active');
+                        currentSlide = (currentSlide + 1) % slides.length;
+                        slides[currentSlide].classList.add('active');
+                    }
+                    
+                    // 每个轮播使用不同的延迟时间，避免所有图片同时切换
+                    const delay = index * 400; // 每个轮播错开400ms
+                    setTimeout(() => {
+                        setInterval(nextSlide, 2000); // 每2秒切换一次
+                    }, delay);
+                });
+            }
+            
+            initCarousel();
+            
             // 图片懒加载和动画
             const images = document.querySelectorAll('img');
             const imageObserver = new IntersectionObserver((entries, observer) => {
@@ -898,26 +1015,7 @@
                 imageObserver.observe(img);
             });
             
-            // 缩略图点击切换主图
-            const galleries = document.querySelectorAll('.image-gallery');
-            galleries.forEach(gallery => {
-                const mainImg = gallery.querySelector('.gallery-main');
-                const thumbs = gallery.querySelectorAll('.thumb');
-                
-                thumbs.forEach(thumb => {
-                    thumb.addEventListener('click', () => {
-                        const newSrc = thumb.src;
-                        const oldSrc = mainImg.src;
-                        
-                        mainImg.style.opacity = '0.5';
-                        setTimeout(() => {
-                            mainImg.src = newSrc;
-                            thumb.src = oldSrc;
-                            mainImg.style.opacity = '1';
-                        }, 150);
-                    });
-                });
-            });
+
             
             // 卡片hover效果增强
             const cards = document.querySelectorAll('.card');
