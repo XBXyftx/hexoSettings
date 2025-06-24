@@ -9,6 +9,7 @@ tags:
   - 数据库
   - Java
 description: 本文将会对比鸿蒙开发的几种数据持久化方式（持续更新ing）
+typewriter: 📱 深入探索鸿蒙应用开发的核心技能：数据持久化！本文详细对比了五种主流的数据存储方案，包括用户首选项(Preferences)、PersistenceV2、键值型数据库、关系型数据库和向量数据库。从存储容量、性能表现到应用场景，全方位解析各种方案的优缺点。特别详细介绍了XML和GSKV两种存储格式的区别，帮助开发者根据项目需求选择最合适的数据持久化方案，构建高效稳定的鸿蒙应用。
 top: 14
 cover: /img/ArticleTopImgs/persistentTopImg.png
 post_copyright:

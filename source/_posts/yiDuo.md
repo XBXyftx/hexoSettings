@@ -8,6 +8,7 @@ tags:
   - 一次开发多端部署
 cover: /img/ArticleTopImgs/yiduoTopImg.png
 description: 一多能力的学习笔记
+typewriter: 🌟 探索鸿蒙系统的杀手锏功能——一次开发多端部署！本文深入解析了鸿蒙"一多"能力的核心理念与技术实现。从安卓开发的设备碎片化痛点出发，详细介绍了鸿蒙如何通过自适应布局和响应式布局解决跨设备适配难题。涵盖拉伸、均分、占比、缩放等七种自适应能力，以及断点、栅格、媒体查询等响应式技术。通过实际代码示例演示不同屏幕尺寸下的UI自动适配效果，帮助开发者掌握一套代码适配全设备的开发技巧。
 swiper_index: 4
 post_copyright:
 copyright_author: XBXyftx

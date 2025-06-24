@@ -6,6 +6,7 @@ tags:
   - hexo博客搭建
 cover: /img/ArticleTopImgs/HelloWorld.png
 description: 欢迎来到XBXyftx的博客!Hello World!
+typewriter: 🌟 Hello World！欢迎来到我的数字世界！这是博客的第一篇文章，记录了网站搭建成功的激动时刻。从最初的构想到遇到各种技术难题，再到最终成功上线，这个过程充满了挑战与收获。博客不仅是技术笔记的载体，更是生活记录的平台。在这里，我将分享开发经验、项目心得、学习感悟以及大学生活的点点滴滴。希望这个小小的数字空间能够见证我的成长轨迹，也能为其他人提供一些有价值的内容。
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

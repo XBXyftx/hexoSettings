@@ -11,6 +11,7 @@ tags:
   - 智能体
 top: 15
 description: 鸿小易，你的鸿蒙开发好帮手。
+typewriter: 🤖 打造专属鸿蒙开发AI助手的完整指南！本文记录了"鸿小易"智能体应用的完整开发历程，这是一个专门回答鸿蒙开发问题的AI应用。从项目构思到最终实现，详细介绍了基于扣子平台的智能体工作流搭建、鸿蒙端开发架构设计、SSE流式传输技术实现等核心技术。通过三层工程结构、一多适配、打字机效果等技术创新，展现了现代AI应用开发的完整技术栈，为鸿蒙开发者提供了宝贵的实战经验和技术参考。
 cover: /img/ArticleTopImgs/hxyTopImg.png
 post_copyright:
 copyright_author: XBXyftx

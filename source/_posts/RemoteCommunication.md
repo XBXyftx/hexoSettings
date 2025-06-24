@@ -6,6 +6,7 @@ tags:
   - 技术向
   - 远场通信
 description: 本文将介绍鸿蒙远场通信服务
+typewriter: 📡 鸿蒙网络通信技术的深度解析！本文对比分析了HarmonyOS中两大网络请求框架的差异与应用场景。深入探讨了传统Network Kit的局限性，包括无法设置基地址、缺乏拦截器机制、无法捕获详细跟踪信息等问题。同时详细介绍了Remote Communication Kit的优势特性，如基地址配置、请求拦截器、状态监听等高级功能。通过实际项目开发经验，为开发者提供了网络架构选择的实用指导，帮助开发者在不同场景下选择最适合的网络通信解决方案。
 swiper_index: 2
 cover: /img/ArticleTopImgs/RCPTopImg.png
 post_copyright:

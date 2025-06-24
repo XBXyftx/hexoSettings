@@ -8,6 +8,7 @@ tags:
   - V2
 cover: /img/ArticleTopImgs/MSTTopImg.png
 description: 面试通项目开发笔记2（暂时停更）
+typewriter: 📱 面试通项目开发的延续篇章！本文承接第一篇开发笔记，继续记录面试通项目的深入开发过程。回顾了前期工具类封装、首页组件构建、Axios请求重构等重要进展。详细介绍了组件拆分思路、网络请求优化、拦截器配置等技术细节。虽然项目暂时停更，但展现了鸿蒙应用开发的完整思路和技术栈应用。为后续开发者提供了宝贵的项目开发经验和技术参考。
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

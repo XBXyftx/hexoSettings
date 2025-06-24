@@ -7,6 +7,7 @@ tags:
   - 国内直连
 cover: /img/ArticleTopImgs/DirectTopImg.png
 description: 本文将介绍如何利用hexo+netlify+github搭建一个国内直连的博客，并且解决国内访问速度问题。
+typewriter: 🌐 破解国内博客访问难题的完美解决方案！本文详细记录了作者在探索Hexo博客国内直连过程中的各种尝试与挫折，最终找到了成功的技术路径。从GitHub Pages的访问限制到GiteePages停服，从华为云AGC到21云盒子的各种坑，作者一路踩雷后发现了Netlify+域名解析的低成本方案。通过详细的配置教程，让读者能够以极低成本（仅需域名费用）实现博客的国内高速稳定访问，彻底解决科学上网的困扰，为国内用户提供流畅的博客访问体验。
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

@@ -6,6 +6,7 @@ tags:
   - 技术向
 cover: /img/ArticleTopImgs/DuoDianNaoTopImg.png
 description: 多电脑同步更新hexo的方式
+typewriter: 🔄 解决博客更新的多设备难题！本文详细介绍了如何实现Hexo博客在多台电脑间的同步更新。通过分析Hexo框架的工作原理，说明了为什么需要单独备份源文件的重要性。提供了从原电脑文件准备到新电脑环境搭建的完整解决方案，包括文件结构说明、git管理方式、环境配置步骤等。让博主们能够在任何设备上自由地编写和发布文章，真正实现随时随地的博客创作自由。
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

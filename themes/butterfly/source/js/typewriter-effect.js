@@ -65,7 +65,7 @@
       const cursor = typewriterContainer.querySelector('.post-typewriter-cursor');
       
       // 开始打字机效果
-      const typewriter = new TypeWriter(typewriterTextElement, typewriterText, 80);
+      const typewriter = new TypeWriter(typewriterTextElement, typewriterText, 20);
       
       // 先显示容器
       typewriterContainer.style.opacity = '0';
@@ -122,10 +122,10 @@
     // 等待页面就绪
     await waitForPageReady();
     
-    // 延迟2秒后开始打字机效果
+    // 延迟1秒后开始打字机效果
     setTimeout(() => {
       initTypewriterEffect();
-    }, 2000);
+    }, 1000);
   }
 
   // 支持PJAX

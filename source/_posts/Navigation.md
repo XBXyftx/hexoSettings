@@ -7,6 +7,7 @@ tags:
   - V2
 cover: /img/ArticleTopImgs/NavTopImg.png
 description: 本文将介绍Navigation与NavDestination的使用方法。
+typewriter: 🧭 探索鸿蒙导航系统的精华指南！本文深入解析了HarmonyOS中Navigation与NavDestination组件的核心用法，这是实现现代移动应用流畅导航的关键技术。从组件的基本概念到一机多态的自适应布局，详细对比了与Router的优势差异。涵盖了RouterMap路由表配置、NavPathStack页面栈管理等核心概念，并提供了完整的代码示例。无论是手机的单栏展示还是平板的分栏模式，都能通过本文掌握专业的导航开发技巧，为鸿蒙应用带来更优雅的用户体验。
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

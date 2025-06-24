@@ -7,6 +7,7 @@ tags:
   - 项目
   - V2
 description: 面试通项目开发笔记
+typewriter: 💼 从零开始构建完整的鸿蒙应用——面试通！本文记录了作者第一个完整鸿蒙项目的开发历程。涵盖了项目架构设计、工具类封装、UI组件开发等完整开发流程。详细介绍了hilog日志系统、沉浸式效果、状态栏控制等技术实现。项目包含鸿蒙和前端面试题库、真实面试经验分享、开发单词工具、面试录音等实用功能。通过实际项目开发，展现了鸿蒙应用开发的最佳实践和技术深度。
 cover: /img/ArticleTopImgs/MSTTopImg.png
 post_copyright:
 copyright_author: XBXyftx

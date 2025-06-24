@@ -6,6 +6,7 @@ tags:
   - 主题美化
 cover:  /img/ArticleTopImgs/ButterTopImg.jpg
 description: 博客搭建教程
+typewriter: 🦋 从零开始打造属于自己的精美博客！本文提供了Hexo结合Butterfly主题的完整搭建与美化教程。从环境配置、主题安装到深度定制，涵盖了博客搭建的每一个步骤。详细介绍了主题配置、个性化定制、SEO优化、评论系统集成等关键技术点。通过图文并茂的教程和实用技巧分享，帮助读者快速搭建出功能完善、界面美观的个人博客，开启属于自己的网络写作之旅。
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

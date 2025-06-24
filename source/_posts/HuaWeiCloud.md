@@ -8,6 +8,7 @@ tags:
   - Linux
   - Ubuntu
 description: 我终于是有自己的服务器并成功部署啦！
+typewriter: 🚀 迈向专业博客部署的重要一步！本文记录了作者从免费部署方案向自主服务器部署的升级历程。详细介绍了使用华为云Flexus云服务L实例搭建博客的完整流程，包括Ubuntu系统配置、宝塔面板安装、Git Hook自动部署等核心技术。通过一步步的实战教程，解决了校园网访问不稳定、苹果设备兼容性等之前方案的痛点。文章提供了完整的配置代码和常见问题的解决方案，帮助读者实现高稳定性、高速度的博客访问体验，是博客部署进阶的实用指南。
 cover: /img/ArticleTopImgs/HuaWeiCloudTopImg.png
 post_copyright:
 copyright_author: XBXyftx
