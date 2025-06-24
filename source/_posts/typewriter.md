@@ -44,97 +44,157 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ### 创建JavaScript文件
 
-首先，我们需要创建打字机效果的核心JavaScript文件。在主题目录下创建文件：
+首先，我们需要创建打字机效果的核心JavaScript文件。在主题目录下创建文件：`typewriter-effect.js`
 
 ```javascript
 // themes/butterfly/source/js/typewriter-effect.js
 
-// 打字机效果配置
-const TYPEWRITER_CONFIG = {
-  typeSpeed: 80,        // 打字速度（毫秒）
-  startDelay: 2000,     // 开始延迟时间（毫秒）
-  cursorChar: '|',      // 光标字符
-  fadeInDuration: 500   // 淡入动画时长
-};
+// 文章打字机效果
+(function() {
+  // 打字机效果类
+  class TypeWriter {
+    constructor(element, text, speed = 50) {
+      this.element = element;
+      this.text = text;
+      this.speed = speed;
+      this.index = 0;
+    }
 
-// 打字机效果主函数
-function initTypewriter() {
-  // 检查是否为文章页面
-  if (!document.querySelector('.post-content')) {
-    return;
-  }
-
-  // 获取typewriter内容
-  const typewriterText = window.GLOBAL_CONFIG_SITE?.typewriter;
-  if (!typewriterText || typewriterText.trim() === '') {
-    return;
-  }
-
-  // 等待页面加载动画结束
-  setTimeout(() => {
-    createTypewriterContainer(typewriterText);
-  }, TYPEWRITER_CONFIG.startDelay);
-}
-
-// 创建打字机容器
-function createTypewriterContainer(text) {
-  const postContent = document.querySelector('.post-content');
-  if (!postContent) return;
-
-  // 创建打字机容器
-  const container = document.createElement('div');
-  container.className = 'typewriter-container';
-  container.innerHTML = `
-    <div class="typewriter-wrapper">
-      <div class="typewriter-text">
-        <span id="typewriter-content"></span>
-        <span class="typewriter-cursor">${TYPEWRITER_CONFIG.cursorChar}</span>
-      </div>
-    </div>
-  `;
-
-  // 插入到文章内容前面
-  postContent.insertBefore(container, postContent.firstChild);
-
-  // 启动打字机动画
-  startTyping(text, document.getElementById('typewriter-content'));
-}
-
-// 打字机动画函数
-function startTyping(text, element) {
-  let currentIndex = 0;
-  
-  function typeNextCharacter() {
-    if (currentIndex < text.length) {
-      element.textContent += text.charAt(currentIndex);
-      currentIndex++;
-      setTimeout(typeNextCharacter, TYPEWRITER_CONFIG.typeSpeed);
-    } else {
-      // 打字完成后停止光标闪烁一会儿
-      setTimeout(() => {
-        const cursor = document.querySelector('.typewriter-cursor');
-        if (cursor) {
-          cursor.style.animation = 'typewriter-blink 1s infinite';
-        }
-      }, 1000);
+    // 开始打字
+    start() {
+      return new Promise((resolve) => {
+        const timer = setInterval(() => {
+          if (this.index < this.text.length) {
+            this.element.textContent += this.text.charAt(this.index);
+            this.index++;
+          } else {
+            clearInterval(timer);
+            resolve();
+          }
+        }, this.speed);
+      });
     }
   }
 
-  typeNextCharacter();
-}
+  // 初始化打字机效果
+  function initTypewriterEffect() {
+    // 只在文章页面执行
+    if (!document.querySelector('#post')) return;
+    
+    // 获取文章的打字机专用字段
+    let typewriterText = '';
+    
+    // 从全局配置中获取 typewriter 字段
+    if (window.GLOBAL_CONFIG_SITE && window.GLOBAL_CONFIG_SITE.typewriter) {
+      typewriterText = window.GLOBAL_CONFIG_SITE.typewriter;
+    }
+    
+    // 如果没有设置typewriter字段，则不显示打字机效果
+    if (!typewriterText || typewriterText.trim() === '') return;
 
-// 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', initTypewriter);
+    // 创建打字机容器
+    const typewriterContainer = document.createElement('div');
+    typewriterContainer.className = 'post-typewriter-container';
+    typewriterContainer.innerHTML = `
+      <div class="post-typewriter-header">
+        <i class="fas fa-robot"></i>
+        <span class="post-typewriter-title">AI总结</span>
+      </div>
+      <div class="post-typewriter-content">
+        <div class="post-typewriter-icon">
+          <i class="fas fa-quote-left"></i>
+        </div>
+        <div class="post-typewriter-text"></div>
+        <div class="post-typewriter-cursor">|</div>
+      </div>
+    `;
 
-// PJAX支持
-if (typeof pjax !== 'undefined') {
-  document.addEventListener('pjax:complete', initTypewriter);
-}
+    // 找到文章内容容器并插入打字机容器
+    const articleContainer = document.querySelector('#article-container');
+    if (articleContainer) {
+      // 插入到文章内容的最前面
+      articleContainer.insertBefore(typewriterContainer, articleContainer.firstChild);
+      
+      // 获取打字机文本元素
+      const typewriterTextElement = typewriterContainer.querySelector('.post-typewriter-text');
+      const cursor = typewriterContainer.querySelector('.post-typewriter-cursor');
+      
+      // 开始打字机效果
+      const typewriter = new TypeWriter(typewriterTextElement, typewriterText, 20);
+      
+      // 先显示容器
+      typewriterContainer.style.opacity = '0';
+      typewriterContainer.style.transform = 'translateY(20px)';
+      
+      // 淡入动画
+      setTimeout(() => {
+        typewriterContainer.style.transition = 'all 0.5s ease-out';
+        typewriterContainer.style.opacity = '1';
+        typewriterContainer.style.transform = 'translateY(0)';
+        
+        // 开始打字
+        setTimeout(() => {
+          typewriter.start().then(() => {
+            // 打字完成后让光标闪烁
+            cursor.style.animation = 'typewriter-cursor-blink 1s infinite';
+          });
+        }, 300);
+      }, 100);
+    }
+  }
 
-// 对于使用Turbo或其他路由库的情况
-if (typeof Turbo !== 'undefined') {
-  document.addEventListener('turbo:load', initTypewriter);
-}
+  // 等待页面加载完成和加载动画结束
+  function waitForPageReady() {
+    return new Promise((resolve) => {
+      // 检查是否有预加载器
+      const preloader = document.querySelector('#loading-box');
+      
+      if (preloader) {
+        // 监听预加载器的消失
+        const checkPreloader = () => {
+          if (preloader.style.display === 'none' || 
+              preloader.style.opacity === '0' || 
+              !document.body.contains(preloader)) {
+            resolve();
+          } else {
+            setTimeout(checkPreloader, 100);
+          }
+        };
+        checkPreloader();
+      } else {
+        // 没有预加载器，直接等待DOM完全加载
+        if (document.readyState === 'complete') {
+          resolve();
+        } else {
+          window.addEventListener('load', resolve);
+        }
+      }
+    });
+  }
+
+  // 主函数
+  async function main() {
+    // 等待页面就绪
+    await waitForPageReady();
+    
+    // 延迟1秒后开始打字机效果
+    setTimeout(() => {
+      initTypewriterEffect();
+    }, 1000);
+  }
+
+  // 支持PJAX
+  if (typeof window.pjax !== 'undefined') {
+    document.addEventListener('pjax:complete', main);
+  }
+  
+  // 页面加载时执行
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', main);
+  } else {
+    main();
+  }
+})(); 
 ```
 
 这个JavaScript文件实现了以下功能：
@@ -143,6 +203,100 @@ if (typeof Turbo !== 'undefined') {
 - **内容获取**：从配置中获取typewriter字段的内容
 - **延迟执行**：等待页面加载完成后再开始动画
 - **兼容性**：支持PJAX等单页应用路由
+
+#### 代码解析
+
+接下来我们来讲一讲这段代码。
+
+首先我们要知道JS脚本中的一个用法，`IIFE（Immediately Invoked Function Expression，立即调用函数表达式）`。
+
+可以看到我们整体的功能函数都是被包裹在一个小括号里面的，这代表着内部的代码会被封装在一个独立的作用域内，且该代码段会被立即调用。作用域的好处就在于，任何变量被定义后仅仅会在该作用域内的合法范围内可见。保障该脚本在运行时不会因为和某些全局变量发生冲突，保护全局环境，避免污染。这通常应用于独立功能模块的编写，像是在hexo博客中引入自定义脚本时就非常合适。因为hexo博客框架本身有一套非常完善的运行逻辑，我们进行自定义时只不过是在“主机”上接入的“外设”，“外设”有自己的运行逻辑，仅仅需要与“主机”进行一些数据交换就可以保障整机的正常运作而无需考虑主机中的环境。
+
+而为了封装打字机效果的相关设置项，我们需要利用面向对象的编程思想，将这些数据以及启动函数封装为一个类，并定义一些属性和方法。
+
+```javascript
+// 打字机效果类
+  class TypeWriter {
+    constructor(element, text, speed = 50) {
+      this.element = element;
+      this.text = text;
+      this.speed = speed;
+      this.index = 0;
+    }
+
+    // 开始打字
+    start() {
+      return new Promise((resolve) => {
+        const timer = setInterval(() => {
+          if (this.index < this.text.length) {
+            this.element.textContent += this.text.charAt(this.index);
+            this.index++;
+          } else {
+            clearInterval(timer);
+            resolve();
+          }
+        }, this.speed);
+      });
+    }
+  }
+```
+
+这个类定义了一个打字机效果，它接收三个参数：element（打字机效果的容器元素），text（要打的字符串），speed（打字速度）。speed无关于目标显示位置以及显示内容，仅仅是一个常量，所以我们可以将其设置一个默认值。而对于目标字符串和容器组件，则是刚需与目标网页的具体内容相关。随后为了方便管理我们就将其返回值封装为一个Promise对象以便于后续的异步编程。
+
+之后由于我们的打字机效果是要开始在加载之后了，但加载结束到加载动画开屏还有一小段的延迟，为了能更准确的去设置开始打字机效果的开始时间，我们需要设置一个工具函数用于监听页面加载动画的结束。
+
+```javascript
+  // 等待页面加载完成和加载动画结束
+  function waitForPageReady() {
+    return new Promise((resolve) => {
+      // 检查是否有预加载器
+      const preloader = document.querySelector('#loading-box');
+      
+      if (preloader) {
+        // 监听预加载器的消失
+        const checkPreloader = () => {
+          if (preloader.style.display === 'none' || 
+              preloader.style.opacity === '0' || 
+              !document.body.contains(preloader)) {
+            resolve();
+          } else {
+            setTimeout(checkPreloader, 100);
+          }
+        };
+        checkPreloader();
+      } else {
+        // 没有预加载器，直接等待DOM完全加载
+        if (document.readyState === 'complete') {
+          resolve();
+        } else {
+          window.addEventListener('load', resolve);
+        }
+      }
+    });
+  }
+```
+
+这里利用了`Promise`对象的解决机制来对加载状态进行监听与打字机脚本的进程控制，同时会分情况判断是否已经加载完成，这主要是因为我的加载动画中设定了加载动画的预加载超时保护，在加载超过十秒后就会自动开屏先展示已经加载的内容在去继续加载剩余部分。
+
+首先我们先来补充一个关于[Promise](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Promise)对象的知识点。
+
+每个Promise对象都只有三种状态，且同一时间只能处于一种状态，且只能被改变一次。
+
+- 待定（pending）：初始状态，既没有被兑现，也没有被拒绝。
+- 已兑现（fulfilled）：意味着操作成功完成。
+- 已拒绝（rejected）：意味着操作失败。
+
+在待定状态不会触发任何回调函数，而在已兑现状态会调用`then`回调函数，在已拒绝状态会调用`catch`回调函数。由此我们就可以在检测到加载确实结束后利用改变Promise对象的状态，触发回调函数的方式来告知打字机脚本的进程。
+
+![2](typewriter/2.png)
+
+如果检测到加载完成，则将Promise对象状态改为已兑现，并触发已兑现回调函数。首先检测一下有没有预加载器，如果有则等待预加载器结束，如果没有则等待DOM加载完成。
+
+{% note success flat %}
+这里的逻辑可能有些反直觉，为什么在检测到有加载动画时就等待加载动画结束就更改Promise对象的状态，而不是等待到底DOM加载完成再更改状态？之前不也提到了有超时保护机制的存在吗？
+
+这其实是出于用户体验的角度考虑，在用户等待了较长时间之后很有可能向下反动的比较快，急切的像向下看到自己想看的内容，从而忽略掉了前面的打字机效果。
+{% endnote %}
 
 ### 创建CSS样式文件
 
