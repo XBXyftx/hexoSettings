@@ -2,7 +2,7 @@
 
 ## 功能说明
 
-这个功能为 Hexo 博客的 Butterfly 主题添加了文章页面的打字机效果，能够在文章内容的最前方以打字机动画的形式展示文章的简介描述（description 字段）。
+这个功能为 Hexo 博客的 Butterfly 主题添加了文章页面的打字机效果，能够在文章内容的最前方以打字机动画的形式展示专门设置的打字机文本（typewriter 字段）。
 
 ## 功能特性
 
@@ -16,7 +16,7 @@
 ## 工作原理
 
 1. **页面检测**：只在文章页面（`#post` 元素存在）执行
-2. **内容获取**：从页面的 `meta[name="description"]` 标签获取文章简介
+2. **内容获取**：从页面的全局配置中获取文章的 `typewriter` 字段
 3. **加载等待**：等待页面加载动画结束，然后延迟 2 秒
 4. **动态插入**：在文章内容容器（`#article-container`）的最前方插入打字机容器
 5. **打字动画**：以每个字符 80ms 的速度展示打字效果
@@ -33,7 +33,8 @@ themes/butterfly/
 │       └── typewriter-effect.css   # 打字机效果样式
 └── layout/includes/
     ├── head.pug                    # 已修改：添加 CSS 引用
-    └── additional-js.pug           # 已修改：添加 JS 引用
+    ├── additional-js.pug           # 已修改：添加 JS 引用
+    └── head/config_site.pug        # 已修改：添加 typewriter 字段配置
 ```
 
 ## 样式适配
@@ -76,12 +77,13 @@ themes/butterfly/
 
 ## 使用方法
 
-1. **确保文章有 description 字段**
+1. **在文章中添加 typewriter 字段**
    在文章的 Front Matter 中添加：
    ```yaml
    ---
    title: 文章标题
-   description: 这里是文章的简介描述，会显示在打字机效果中
+   description: 这里是文章的正常简介描述
+   typewriter: 这里是专门给打字机效果显示的文字内容
    ---
    ```
 
@@ -93,7 +95,7 @@ themes/butterfly/
    ```
 
 3. **访问文章页面**
-   进入任何一篇有 description 的文章，等待 2 秒后即可看到打字机效果
+   进入任何一篇有 `typewriter` 字段的文章，等待 2 秒后即可看到打字机效果
 
 ## 自定义配置
 
@@ -121,15 +123,16 @@ setTimeout(() => {
 
 ## 注意事项
 
-1. **需要 description 字段**：如果文章没有 description，打字机效果不会显示
+1. **需要 typewriter 字段**：如果文章没有 `typewriter` 字段，打字机效果不会显示
 2. **FontAwesome 依赖**：使用了 `fas fa-quote-left` 图标，需要确保主题加载了 FontAwesome
 3. **浏览器兼容性**：使用了 ES6+ 语法，需要现代浏览器支持
 4. **PJAX 兼容**：已经处理了 PJAX 的兼容性问题
+5. **字段独立性**：`typewriter` 字段与 `description` 字段完全独立，互不影响
 
 ## 故障排除
 
 1. **打字机效果不显示**
-   - 检查文章是否有 description 字段
+   - 检查文章是否有 `typewriter` 字段
    - 检查浏览器控制台是否有 JavaScript 错误
    - 确认文件路径正确
 

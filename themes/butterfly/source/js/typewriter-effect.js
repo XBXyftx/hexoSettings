@@ -30,12 +30,16 @@
     // 只在文章页面执行
     if (!document.querySelector('#post')) return;
     
-    // 获取文章的description
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (!metaDescription) return;
+    // 获取文章的打字机专用字段
+    let typewriterText = '';
     
-    const description = metaDescription.getAttribute('content');
-    if (!description || description.trim() === '') return;
+    // 从全局配置中获取 typewriter 字段
+    if (window.GLOBAL_CONFIG_SITE && window.GLOBAL_CONFIG_SITE.typewriter) {
+      typewriterText = window.GLOBAL_CONFIG_SITE.typewriter;
+    }
+    
+    // 如果没有设置typewriter字段，则不显示打字机效果
+    if (!typewriterText || typewriterText.trim() === '') return;
 
     // 创建打字机容器
     const typewriterContainer = document.createElement('div');
@@ -57,11 +61,11 @@
       articleContainer.insertBefore(typewriterContainer, articleContainer.firstChild);
       
       // 获取打字机文本元素
-      const typewriterText = typewriterContainer.querySelector('.post-typewriter-text');
+      const typewriterTextElement = typewriterContainer.querySelector('.post-typewriter-text');
       const cursor = typewriterContainer.querySelector('.post-typewriter-cursor');
       
       // 开始打字机效果
-      const typewriter = new TypeWriter(typewriterText, description, 80);
+      const typewriter = new TypeWriter(typewriterTextElement, typewriterText, 80);
       
       // 先显示容器
       typewriterContainer.style.opacity = '0';
