@@ -45,6 +45,10 @@
     const typewriterContainer = document.createElement('div');
     typewriterContainer.className = 'post-typewriter-container';
     typewriterContainer.innerHTML = `
+      <div class="post-typewriter-header">
+        <i class="fas fa-robot"></i>
+        <span class="post-typewriter-title">AI总结</span>
+      </div>
       <div class="post-typewriter-content">
         <div class="post-typewriter-icon">
           <i class="fas fa-quote-left"></i>

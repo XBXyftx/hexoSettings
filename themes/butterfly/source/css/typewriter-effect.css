@@ -15,6 +15,30 @@
   box-shadow: 0 8px 32px rgba(255, 255, 255, 0.05);
 }
 
+/* 标题样式 */
+.post-typewriter-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 1;
+}
+
+.post-typewriter-header i {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 18px;
+}
+
+.post-typewriter-title {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
 .post-typewriter-container::before {
   content: '';
   position: absolute;
@@ -93,6 +117,19 @@
     border-radius: 10px;
   }
   
+  .post-typewriter-header {
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+  }
+  
+  .post-typewriter-header i {
+    font-size: 17px;
+  }
+  
+  .post-typewriter-title {
+    font-size: 15px;
+  }
+  
   .post-typewriter-content {
     gap: 12px;
   }
@@ -117,6 +154,19 @@
     margin: 15px 0 20px 0;
     padding: 15px;
     border-radius: 8px;
+  }
+  
+  .post-typewriter-header {
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+  }
+  
+  .post-typewriter-header i {
+    font-size: 16px;
+  }
+  
+  .post-typewriter-title {
+    font-size: 14px;
   }
   
   .post-typewriter-content {
@@ -152,6 +202,19 @@
     border-radius: 6px;
   }
   
+  .post-typewriter-header {
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+  }
+  
+  .post-typewriter-header i {
+    font-size: 15px;
+  }
+  
+  .post-typewriter-title {
+    font-size: 13px;
+  }
+  
   .post-typewriter-content {
     gap: 8px;
   }
@@ -175,6 +238,19 @@
   .post-typewriter-container {
     margin: 10px 0 15px 0;
     padding: 10px;
+  }
+  
+  .post-typewriter-header {
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+  }
+  
+  .post-typewriter-header i {
+    font-size: 14px;
+  }
+  
+  .post-typewriter-title {
+    font-size: 12px;
   }
   
   .post-typewriter-content {
