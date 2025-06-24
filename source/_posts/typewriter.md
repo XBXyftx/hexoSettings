@@ -46,6 +46,8 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 首先，我们需要创建打字机效果的核心JavaScript文件。在主题目录下创建文件：`typewriter-effect.js`
 
+我先把完整代码放在这里随后再进行逐步解析原理。
+
 ```javascript
 // themes/butterfly/source/js/typewriter-effect.js
 
@@ -297,6 +299,79 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 这其实是出于用户体验的角度考虑，在用户等待了较长时间之后很有可能向下反动的比较快，急切的像向下看到自己想看的内容，从而忽略掉了前面的打字机效果。
 {% endnote %}
+
+随后就是我们的核心功能函数了`initTypewriterEffect`。
+
+```javascript
+  // 初始化打字机效果
+  function initTypewriterEffect() {
+    // 只在文章页面执行
+    if (!document.querySelector('#post')) return;
+    
+    // 获取文章的打字机专用字段
+    let typewriterText = '';
+    
+    // 从全局配置中获取 typewriter 字段
+    if (window.GLOBAL_CONFIG_SITE && window.GLOBAL_CONFIG_SITE.typewriter) {
+      typewriterText = window.GLOBAL_CONFIG_SITE.typewriter;
+    }
+    
+    // 如果没有设置typewriter字段，则不显示打字机效果
+    if (!typewriterText || typewriterText.trim() === '') return;
+
+    // 创建打字机容器
+    const typewriterContainer = document.createElement('div');
+    typewriterContainer.className = 'post-typewriter-container';
+    typewriterContainer.innerHTML = `
+      <div class="post-typewriter-header">
+        <i class="fas fa-robot"></i>
+        <span class="post-typewriter-title">AI总结</span>
+      </div>
+      <div class="post-typewriter-content">
+        <div class="post-typewriter-icon">
+          <i class="fas fa-quote-left"></i>
+        </div>
+        <div class="post-typewriter-text"></div>
+        <div class="post-typewriter-cursor">|</div>
+      </div>
+    `;
+
+    // 找到文章内容容器并插入打字机容器
+    const articleContainer = document.querySelector('#article-container');
+    if (articleContainer) {
+      // 插入到文章内容的最前面
+      articleContainer.insertBefore(typewriterContainer, articleContainer.firstChild);
+      
+      // 获取打字机文本元素
+      const typewriterTextElement = typewriterContainer.querySelector('.post-typewriter-text');
+      const cursor = typewriterContainer.querySelector('.post-typewriter-cursor');
+      
+      // 开始打字机效果
+      const typewriter = new TypeWriter(typewriterTextElement, typewriterText, 20);
+      
+      // 先显示容器
+      typewriterContainer.style.opacity = '0';
+      typewriterContainer.style.transform = 'translateY(20px)';
+      
+      // 淡入动画
+      setTimeout(() => {
+        typewriterContainer.style.transition = 'all 0.5s ease-out';
+        typewriterContainer.style.opacity = '1';
+        typewriterContainer.style.transform = 'translateY(0)';
+        
+        // 开始打字
+        setTimeout(() => {
+          typewriter.start().then(() => {
+            // 打字完成后让光标闪烁
+            cursor.style.animation = 'typewriter-cursor-blink 1s infinite';
+          });
+        }, 300);
+      }, 100);
+    }
+  }
+```
+
+这段里面也没什特殊的，主要就是对HTML文件的定位以及将生成的目标容器插入到文章页面的最上部而已。比较重要的可能也就是`cursor.style.animation = 'typewriter-cursor-blink 1s infinite';`这一行了，将JS与CSS进行关联，并设置光标闪烁的动画。这里先按下不表，在后面的步骤中会详细介绍。
 
 ### 创建CSS样式文件
 
