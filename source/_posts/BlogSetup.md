@@ -398,3 +398,300 @@ hexo以其海量且优质的主题而闻名于世，有相当多的主题板式�
 当然也可以先`hexo cl && hexo g && hexo s`看看效果，然后`hexo d`部署到你的仓库中。
 
 这样你就成功获得了**博客DIY创意部分的10分**。当然了得看你自定义的内容数量，如果只改了个背景图片那分数必然比还修改了站点配置文件、导航栏、侧边栏、文章样式、评论系统、社交图标等等的要低。这个大家自己权衡，毕竟最后是按总分排名名额有限。
+
+### 博客内容
+
+> 本级小标题将会占据总评分数中`博客内容质量`模块中的20分
+
+博客内容是博客的灵魂，也是博客是否受欢迎的关键。一个好的博客内容应该具有以下特点：
+
+1. **原创性**：博客内容应该具有原创性，避免抄袭和复制粘贴。原创的内容更能体现博客主人的个人观点和思考，也能更好地吸引读者。
+2. **深度**：博客内容应该具有一定的深度，能够深入探讨某个话题，提供有价值的信息和观点。深度的内容更能吸引读者的注意力，提高博客的权威性和可信度。
+3. **实用性**：博客内容应该具有实用性，能够解决读者的问题或者提供实用的建议和技巧。实用的内容更能帮助读者解决问题，提高博客的价值。
+4. **多样性**：博客内容应该具有多样性，涵盖多个领域和主题。多样化的内容更能满足读者的需求，提高博客的吸引力和影响力。
+
+当然新生训练营期间肯定是不会要求大家直接产出一篇有质量有深度的文章的，但如果能写出来那绝对是大加分。
+
+在`config.yml`文件中将`post_asset_folder: true`启用，这样在新建文章时，hexo会自动创建一个与文章同名的文件夹，用于存放文章相关的图片、代码等资源。
+
+首先执行命令
+
+```bash
+hexo new post "文章标题"
+```
+
+hexo会自动帮你生成一个新的md文件，你只需要打开这个文件，然后按照markdown语法写文章即可。
+
+关于md的格式语法你可以直接参考[markdown语法](/MarkdownPreview/)，我也提供了一个在线编辑器来供你学习MD语法。当然各个主题也有各个主题的外挂标签语法，建议大家自行查找。此处用Butterfly主题为例。
+
+- **Note (Bootstrap Callout)**
+
+  {% tabs test4 %}
+  <!-- tab simple 样式 -->
+  {% note simple %}
+  默认 提示块标签
+  {% endnote %}
+
+  {% note default simple %}
+  default 提示块标签
+  {% endnote %}
+
+  {% note primary simple %}
+  primary 提示块标签
+  {% endnote %}
+
+  {% note success simple %}
+  success 提示块标签
+  {% endnote %}
+
+  {% note info simple %}
+  info 提示块标签
+  {% endnote %}
+
+  {% note warning simple %}
+  warning 提示块标签
+  {% endnote %}
+
+  {% note danger simple %}
+  danger 提示块标签
+  {% endnote %}
+
+  ```md
+  {% note simple %}
+  默认 提示块标签
+  {% endnote %}
+
+  {% note default simple %}
+  default 提示块标签
+  {% endnote %}
+
+  {% note primary simple %}
+  primary 提示块标签
+  {% endnote %}
+
+  {% note success simple %}
+  success 提示块标签
+  {% endnote %}
+
+  {% note info simple %}
+  info 提示块标签
+  {% endnote %}
+
+  {% note warning simple %}
+  warning 提示块标签
+  {% endnote %}
+
+  {% note danger simple %}
+  danger 提示块标签
+  {% endnote %}
+  ```
+  <!-- endtab -->
+
+  <!-- tab modern 样式 -->
+  {% note modern %}
+  默认 提示块标签
+  {% endnote %}
+
+  {% note default modern %}
+  default 提示块标签
+  {% endnote %}
+
+  {% note primary modern %}
+  primary 提示块标签
+  {% endnote %}
+
+  {% note success modern %}
+  success 提示块标签
+  {% endnote %}
+
+  {% note info modern %}
+  info 提示块标签
+  {% endnote %}
+
+  {% note warning modern %}
+  warning 提示块标签
+  {% endnote %}
+
+  {% note danger modern %}
+  danger 提示块标签
+  {% endnote %}
+
+  ```md
+  {% note modern %}
+  默认 提示块标签
+  {% endnote %}
+
+  {% note default modern %}
+  default 提示块标签
+  {% endnote %}
+
+  {% note primary modern %}
+  primary 提示块标签
+  {% endnote %}
+
+  {% note success modern %}
+  success 提示块标签
+  {% endnote %}
+
+  {% note info modern %}
+  info 提示块标签
+  {% endnote %}
+  ```
+  <!-- endtab -->
+
+  <!-- tab flat 样式 -->
+  {% note flat %}
+  默认 提示块标签
+  {% endnote %}
+
+  {% note default flat %}
+  default 提示块标签
+  {% endnote %}
+
+  {% note primary flat %}
+  primary 提示块标签
+  {% endnote %}
+
+  {% note success flat %}
+  success 提示块标签
+  {% endnote %}
+
+  {% note info flat %}
+  info 提示块标签
+  {% endnote %}
+
+  {% note warning flat %}
+  warning 提示块标签
+  {% endnote %}
+
+  {% note danger flat %}
+  danger 提示块标签
+  {% endnote %}
+
+  ```md
+  {% note flat %}
+  默认 提示块标签
+  {% endnote %}
+
+  {% note default flat %}
+  default 提示块标签
+  {% endnote %}
+
+  {% note primary flat %}
+  primary 提示块标签
+  {% endnote %}
+
+  {% note success flat %}
+  success 提示块标签
+  {% endnote %}
+
+  {% note info flat %}
+  info 提示块标签
+  {% endnote %}
+  ```
+  <!-- endtab -->
+
+  <!-- tab disabled 样式 -->
+  {% note disabled %}
+  默认 提示块标签
+  {% endnote %}
+
+  {% note default disabled %}
+  default 提示块标签
+  {% endnote %}
+
+  {% note primary disabled %}
+  primary 提示块标签
+  {% endnote %}
+
+  {% note success disabled %}
+  success 提示块标签
+  {% endnote %}
+
+  {% note info disabled %}
+  info 提示块标签
+  {% endnote %}
+
+  {% note warning disabled %}
+  warning 提示块标签
+  {% endnote %}
+
+  {% note danger disabled %}
+  danger 提示块标签
+  {% endnote %}
+
+  ```md
+  {% note disabled %}
+  默认 提示块标签
+  {% endnote %}
+
+  {% note default disabled %}
+  default 提示块标签
+  {% endnote %}
+
+  {% note primary disabled %}
+  primary 提示块标签
+  {% endnote %}
+
+  {% note success disabled %}
+  success 提示块标签
+  {% endnote %}
+
+  {% note info disabled %}
+  info 提示块标签
+  {% endnote %}
+  ```
+  <!-- endtab -->
+
+  {% endtabs %}
+
+- **label**
+
+  ```md
+  臣亮言：{% label 先帝 %}创业未半，而{% label 中道崩殂 blue %}。今天下三分，{% label 益州疲敝 pink %}，此诚{% label 危急存亡之秋 red %}也！然衞之臣，不懈于内；{% label 忠志之士 purple %}，忘身于外者，盖追先帝之殊遇，欲报之于陛下也。诚宜开张圣听，以光先帝遗德，恢弘志士之气；不宜妄自薄，引喻失义，以塞忠谏之路也。
+  宫中、府中，俱为一体；陟罚臧否，不宜异同。若有{% label 作奸 orange %}、{% label 犯科 green %}，及为忠善者，宜付有司，论其刑赏，以昭陛下平明之治；不宜偏私，使内外异法也。
+  ```
+
+  臣亮言：{% label 先帝 %}创业未半，而{% label 中道崩殂 blue %}。今天下三分，{% label 益州疲敝 pink %}，此诚{% label 危急存亡之秋 red %}也！然侍衞之臣，不懈于内；{% label 忠志之士 purple %}，忘身于外者，盖追先帝之殊遇，欲报之于陛下也。诚宜开张圣听，以光先帝遗德，恢弘志士之气；不宜妄自菲薄，引喻失义，以塞忠谏之路也。
+  宫中、府中，俱为一体；陟罚臧否，不宜异同。若有{% label 作奸 orange %}、{% label 犯科 green %}，及为忠善者，宜付有司，论其刑赏，以昭陛下平明之治；不宜偏私，使内外异法也。
+
+- **tag-hide**
+
+  ```md
+  {% hideToggle Butterfly安装方法 %}
+  在你的博客根目录里
+  git clone -b master https://github.com/jerryc127/hexo-theme-butterfly.git themes/Butterfly
+  如果想要安装比较新的dev分支，可以
+  git clone -b dev https://github.com/jerryc127/hexo-theme-butterfly.git themes/Butterfly
+  {% endhideToggle %}
+  ```
+
+  {% hideToggle Butterfly安装方法 %}
+  在你的博客根目录里
+  git clone -b master https://github.com/jerryc127/hexo-theme-butterfly.git themes/Butterfly
+  如果想要安装比较新的dev分支，可以
+  git clone -b dev https://github.com/jerryc127/hexo-theme-butterfly.git themes/Butterfly
+  {% endhideToggle %}
+
+- **Button**
+  
+  ```md
+  {% btn 'https://xbxyftx.top/',aqcoder,far fa-hand-point-right,larger %}
+  {% btn 'https://xbxyftx.top/',aqcoder,far fa-hand-point-right,blue larger %}
+  {% btn 'https://xbxyftx.top/',aqcoder,far fa-hand-point-right,pink larger %}
+  {% btn 'https://xbxyftx.top/',aqcoder,far fa-hand-point-right,red larger %}
+  {% btn 'https://xbxyftx.top/',aqcoder,far fa-hand-point-right,purple larger %}
+  {% btn 'https://xbxyftx.top/',aqcoder,far fa-hand-point-right,orange larger %}
+  {% btn 'https://xbxyftx.top/',aqcoder,far fa-hand-point-right,green larger %}
+  ```
+
+  {% btn 'https://xbxyftx.top/',aqcoder,far fa-hand-point-right,larger %}
+  {% btn 'https://xbxyftx.top/',aqcoder,far fa-hand-point-right,blue larger %}
+  {% btn 'https://xbxyftx.top/',aqcoder,far fa-hand-point-right,pink larger %}
+  {% btn 'https://xbxyftx.top/',aqcoder,far fa-hand-point-right,red larger %}
+  {% btn 'https://xbxyftx.top/',aqcoder,far fa-hand-point-right,purple larger %}
+  {% btn 'https://xbxyftx.top/',aqcoder,far fa-hand-point-right,orange larger %}
+  {% btn 'https://xbxyftx.top/',aqcoder,far fa-hand-point-right,green larger %}
+
+还有很多很多的外挂标签类型，你甚至可以直接写html代码来去实现自定义效果，不过这就是比较高阶的技巧了。
+
