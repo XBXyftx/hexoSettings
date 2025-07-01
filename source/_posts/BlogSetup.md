@@ -265,3 +265,82 @@ ssh-keygen -t rsa -C "XXXXXXXXX@XXX.com"            #邮箱和上面一样
 ```
 
 在执行这个命令时会遇到要设置密码，设置秘钥保存路径等选项，如果你想更安全一点或者更方便管理一点就改一下，但我这里**不推荐**，因为改完你很容易忘了放哪以及密码是什么，后续可能会遇到很多麻烦。直接一直点回车直到生成一个奇怪的图案你就成功了。
+
+![1751334737436.png](https://bu.dusays.com/2025/07/01/68633f563c828.png)
+
+然后在你的github添加秘钥，点击右上角头像，选择settings，然后选择SSH and GPG keys，点击New SSH key，将生成的公钥复制到Key中，Title可以随便写。
+
+![1751334828497.png](https://bu.dusays.com/2025/07/01/68633fb1873cb.png)
+
+```bash
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_rsa
+```
+
+执行以上命令激活本地的ssh代理并添加秘钥中的私钥。
+
+随后就可以测试一下你是否成功的添加了你的ssh秘钥，输入以下命令进行测试。
+
+```bash
+ssh -T git@github.com
+```
+
+如果成功添加秘钥，命令行中会显示类似`Hi username! You've successfully authenticated, but GitHub does not provide shell access.`的提示信息。
+
+运行以下命令，确保 Git 使用了正确的 SSH 密钥：
+
+```bash
+git config --global core.sshCommand "ssh -i ~/.ssh/id_rsa"
+```
+
+到这一步的话还有可能出现以下问题
+
+```bash
+$ ssh -T git@github.com
+The authenticity of host 'github.com (20.205.243.166)' can't be established.
+ED25519 key fingerprint is SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])?
+Host key verification failed.
+```
+
+这个有可能是因为SSH 客户端未信任 GitHub 的主机密钥
+
+```bash
+touch ~/.ssh/known_hosts
+chmod 644 ~/.ssh/known_hosts
+ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+```
+
+执行以上命令将GitHub的密钥添加到known_hosts文件中，再次执行`ssh -T git@github.com` 应该就不会出现上面的问题了。
+
+#### 部署博客
+
+在博客根目录的git中执行以下命令：
+
+```bash
+npm install hexo-deployer-git --save
+```
+
+安装hexo的自动部署插件。
+
+随后我们打开hexo 的配置文件`_config.yml`修改`deploy`位置的配置。
+
+```yml
+deploy:
+  type: git
+  repo: 你仓库的ssh路径，复制！！！不要手打！！！
+  branch: main
+```
+
+随后！hexo 三连！！！
+
+```bash
+hexo cl && hexo g && hexo d
+```
+
+其含义就是先清除之前生成的静态文件，然后重新生成新的静态文件，最后将生成的静态文件推送到你的仓库中。
+
+推送完成后，稍等片刻（一般几分钟内），就可以通过你的用户名.github.io访问你的个人博客了。如果遇到访问问题，可以检查仓库设置、域名解析（如果有自定义域名）以及文件推送是否完整等情况。如果访问到了，那么恭喜你，你已经完成了博客的部署，获得了`完成度`所占的40分中的20分。后面的提交也是将这个博客的域名评论在下方评论区即可。
+
+![1751336273819.png](https://bu.dusays.com/2025/07/01/68634556746b8.png)
