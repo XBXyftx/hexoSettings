@@ -237,3 +237,31 @@ hexo g && hexo s
 ### 部署你的博客
 
 #### 创建 GitHub 仓库
+
+登录到你的 GitHub 账号，在 GitHub 页面右上角点击“+”号，在弹出的下拉菜单中选择“New repository”。在创建仓库页面，填写以下信息：
+
+- 仓库名称：建议命名为`username.github.io`，这里的`username`是你在 GitHub 注册的账号用户名。这个命名方式是 GitHub Pages 的特殊要求，用于识别和部署个人网站或博客。
+- 仓库描述（可选）：可以简要描述一下这个仓库的用途，比如“我的个人博客仓库”。
+- 仓库类型：选择`Public`（公开）保证博客能够被任何人访问和浏览。
+
+填写完成后，点击“Create repository”按钮完成仓库创建。
+
+{% note danger flat %}
+这里填写的仓库名是最重要的！！！一定是你github的用户名开头！最好去`复制黏贴`！！！
+
+![1751333295942.png](https://bu.dusays.com/2025/07/01/686339b3cb4b8.png)
+
+> 这三个红圈一定要一样，而且仓库一定是`public`公开的！！！
+{% endnote %}
+
+#### 绑定ssh秘钥
+
+由于github现在已经**不支持使用账号密码**的形式进行代码推送了，所以我们不能直接使用http请求的形式来进行博客文件的部署。因此我们需要生成SSH的公私密钥对，通过非对称加密的形式来实现身份的校验和数据传输。
+
+```bash
+git config --global user.name "XXXX"                #XXXX换成自己的名字或者在GitHub上显示的昵称 
+git config --global user.email "XXXXXXXXX@XXX.com"  #"XXXXXXXXX@XXX.com" 换成注册GitHub时使用的电子邮箱  
+ssh-keygen -t rsa -C "XXXXXXXXX@XXX.com"            #邮箱和上面一样
+```
+
+在执行这个命令时会遇到要设置密码，设置秘钥保存路径等选项，如果你想更安全一点或者更方便管理一点就改一下，但我这里**不推荐**，因为改完你很容易忘了放哪以及密码是什么，后续可能会遇到很多麻烦。直接一直点回车直到生成一个奇怪的图案你就成功了。
