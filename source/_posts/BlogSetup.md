@@ -356,10 +356,43 @@ hexo以其海量且优质的主题而闻名于世，有相当多的主题板式�
 {% endnote %}
 
 {% hideToggle 主题推荐 %}
-在你的博客根目錄裏
 
 [Hexo 10款好看的主题｜新手建站必备！](https://blog.lixiaomu.fun/posts/43857/)
 
 {% endhideToggle %}
 
 每个主题都有其独特的特色和适用场景，建议大家根据自己的喜好和需求进行选择。
+
+这一部分小小的留个空，因为各个主题都有详细的使用文档，毕竟谁家开发者也不希望自己辛辛苦苦半天的成功别人不会用，所以具体怎么更换交给大家自行探索咯。
+
+> 也是不希望大家最后都用同一种主题，趋同化后就很没意思了，会丧失个性的。
+
+### 主题美化
+
+每个主题都会有其自己的配置文件，配置文件里你可以自由的修改主题样式，每个配置文件都有详细的注释，看不懂英文就去翻译！
+
+这里也给大家放一些主题的美化教程供大家参考，这一部分也是网上教程资料最多的部分，我们就不重复造轮子了。
+
+{% hideToggle 主题美化教程合集 %}
+
+[基于 Hexo 从零开始搭建个人博客（五）](https://fe32.top/articles/hexo1605/)
+
+[Butterfly 博客主题搭建系列：美化魔改教程](https://blog.aqcoder.cn/posts/b20a/)
+
+[next主题美化——背景图片、动画](https://www.snowmoon.top/2021/02/21/SnowMoon%E3%81%AE%E5%9F%BA%E7%A1%80%E6%95%99%E7%A8%8B-next%E4%B8%BB%E9%A2%98%E7%BE%8E%E5%8C%96/)
+
+[【Blog】深度美化和定制Hexo和NexT方法](https://geminilight.cn/2020/08/16/ST%20-%20%E8%BD%AF%E4%BB%B6%E5%B7%A5%E5%85%B7/st-hexo-next-custom/)
+
+[【Hexo】Fluid主题美化](https://mrna16.github.io/2024/11/14/%E3%80%90Hexo%E3%80%91Fluid%E4%B8%BB%E9%A2%98%E7%BE%8E%E5%8C%96/)
+
+[【手把手系列2】 Fluid 主题配置教程](https://youlan-lan.github.io/2021/06/07/Hexo%20%E4%B8%BB%E9%A2%98%E4%B9%8B%20Fluid/)
+
+[Volantis 主题个性化修改合集](https://inkss.cn/post/610620a9/)
+
+[Volantis: 主题配置 - Volantis](https://volantis.js.org/v5/theme-settings/)
+
+{% endhideToggle %}
+
+自定义之后再次hexo三连即可去你的域名访问看看新效果了。
+
+当然也可以先`hexo cl && hexo g && hexo s`看看效果，然后`hexo d`部署到你的仓库中。
