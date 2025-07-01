@@ -695,3 +695,111 @@ hexo会自动帮你生成一个新的md文件，你只需要打开这个文件�
 
 还有很多很多的外挂标签类型，你甚至可以直接写html代码来去实现自定义效果，不过这就是比较高阶的技巧了。
 
+- **自定义HTML组件**
+
+  除了使用主题提供的外挂标签，我们还可以直接编写HTML代码来实现更加个性化的效果。以下是一个技能进度条的例子：
+
+  ```html
+  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 15px; margin: 20px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+    <h3 style="color: white; margin-bottom: 15px; text-align: center;">🚀 我的技能树</h3>
+    
+    <div style="margin-bottom: 15px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+        <span style="color: white; font-weight: bold;">💻 前端开发</span>
+        <span style="color: #ffd700; font-size: 14px;">85%</span>
+      </div>
+      <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+        <div style="background: linear-gradient(90deg, #ffd700, #ffed4e); height: 100%; width: 85%; transition: width 0.3s ease;"></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 15px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+        <span style="color: white; font-weight: bold;">🎨 UI设计</span>
+        <span style="color: #4ecdc4; font-size: 14px;">70%</span>
+      </div>
+      <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+        <div style="background: linear-gradient(90deg, #4ecdc4, #44a08d); height: 100%; width: 70%; transition: width 0.3s ease;"></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 15px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+        <span style="color: white; font-weight: bold;">⚙️ 后端开发</span>
+        <span style="color: #ff6b6b; font-size: 14px;">60%</span>
+      </div>
+      <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+        <div style="background: linear-gradient(90deg, #ff6b6b, #ee5a52); height: 100%; width: 60%; transition: width 0.3s ease;"></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 0;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+        <span style="color: white; font-weight: bold;">📱 移动开发</span>
+        <span style="color: #a8e6cf; font-size: 14px;">45%</span>
+      </div>
+      <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+        <div style="background: linear-gradient(90deg, #a8e6cf, #88d8a3); height: 100%; width: 45%; transition: width 0.3s ease;"></div>
+      </div>
+    </div>
+  </div>
+  ```
+
+  效果展示：
+
+  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 15px; margin: 20px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+    <h3 style="color: white; margin-bottom: 15px; text-align: center;">🚀 我的技能树</h3>
+    
+    <div style="margin-bottom: 15px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+        <span style="color: white; font-weight: bold;">💻 前端开发</span>
+        <span style="color: #ffd700; font-size: 14px;">85%</span>
+      </div>
+      <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+        <div style="background: linear-gradient(90deg, #ffd700, #ffed4e); height: 100%; width: 85%; transition: width 0.3s ease;"></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 15px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+        <span style="color: white; font-weight: bold;">🎨 UI设计</span>
+        <span style="color: #4ecdc4; font-size: 14px;">70%</span>
+      </div>
+      <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+        <div style="background: linear-gradient(90deg, #4ecdc4, #44a08d); height: 100%; width: 70%; transition: width 0.3s ease;"></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 15px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+        <span style="color: white; font-weight: bold;">⚙️ 后端开发</span>
+        <span style="color: #ff6b6b; font-size: 14px;">60%</span>
+      </div>
+      <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+        <div style="background: linear-gradient(90deg, #ff6b6b, #ee5a52); height: 100%; width: 60%; transition: width 0.3s ease;"></div>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 0;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+        <span style="color: white; font-weight: bold;">📱 移动开发</span>
+        <span style="color: #a8e6cf; font-size: 14px;">45%</span>
+      </div>
+      <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+        <div style="background: linear-gradient(90deg, #a8e6cf, #88d8a3); height: 100%; width: 45%; transition: width 0.3s ease;"></div>
+      </div>
+    </div>
+  </div>
+
+  {% note success flat %}
+  💡 **HTML技巧小贴士**：
+  - 使用`linear-gradient`创建渐变背景
+  - 利用`flexbox`布局实现响应式设计
+  - 添加`transition`属性实现平滑动画效果
+  - 使用`rgba`颜色实现半透明效果
+  - 合理运用`box-shadow`增加立体感
+  {% endnote %}
+
+  这样的自定义组件可以让你的博客更加个性化和专业。你可以根据自己的需求修改颜色、内容和样式，创造出独一无二的视觉效果！
+
+用这种方法你甚至可以自己创建框架中并不存在的页面就像我的博客一样。
