@@ -425,6 +425,10 @@ hexo会自动帮你生成一个新的md文件，你只需要打开这个文件�
 
 关于md的格式语法你可以直接参考[markdown语法](/MarkdownPreview/)，我也提供了一个在线编辑器来供你学习MD语法。当然各个主题也有各个主题的外挂标签语法，建议大家自行查找。此处用Butterfly主题为例。
 
+{% note danger flat %}
+以下演示的外挂标签仅能用于Butterfly主题，其他主题请自行查找，否则会出现渲染错误或编译异常等问题！！！
+{% endnote %}
+
 - **Note (Bootstrap Callout)**
 
   {% tabs test4 %}

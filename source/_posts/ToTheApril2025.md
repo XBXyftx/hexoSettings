@@ -26,6 +26,190 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ![活着](ToTheApril2025/14.jpg)
 
+## 主时间轴
+
+{% timeline 2023,green %}
+
+<!-- timeline 09-10 -->
+通过面试正式加入创客空间
+<!-- endtimeline -->
+
+<!-- timeline 09-20 -->
+2023创客空间新生见面会
+<!-- endtimeline -->
+
+<!-- timeline 09-27 -->
+git gitee github活动，正式掌握科学上网，开启全球视野
+<!-- endtimeline -->
+
+<!-- timeline 10-17 -->
+2048游戏编程活动
+<!-- endtimeline -->
+
+<!-- timeline 10-27 -->
+骏哥获得字节实习offer
+<!-- endtimeline -->
+
+<!-- timeline 11-01 -->
+鸿蒙北向开发活动，至此与鸿蒙结缘
+<!-- endtimeline -->
+
+<!-- timeline 11-04 -->
+第二届开放原子基金会OpenHarmony技术大会
+<!-- endtimeline -->
+
+<!-- timeline 11-22 -->
+机器深度学习活动
+<!-- endtimeline -->
+
+<!-- timeline 12-14 -->
+学期总结活动，正式成为预备役负责人
+<!-- endtimeline -->
+
+{% endtimeline %}
+{% timeline 2024,green %}
+
+<!-- timeline 03-05 -->
+鸿蒙短信认证服务活动，正式决心学鸿蒙
+<!-- endtimeline -->
+
+<!-- timeline 03-20 -->
+春耕校源行，与孙博辰相识
+<!-- endtimeline -->
+
+<!-- timeline 03-23 -->
+骏哥线上实习分享会
+<!-- endtimeline -->
+
+<!-- timeline 03-28 -->
+王老师微算活动
+<!-- endtimeline -->
+
+<!-- timeline 04-25 -->
+婷姐hexo博客搭建活动，本站的起源
+<!-- endtimeline -->
+
+<!-- timeline 05-11 -->
+鲲鹏昇腾开发者大会
+<!-- endtimeline -->
+
+<!-- timeline 05-29 -->
+社团嘉年华
+<!-- endtimeline -->
+
+<!-- timeline 06-02 -->
+创客空间官网启动负责人内测
+<!-- endtimeline -->
+
+<!-- timeline 06-17 -->
+前端技术实践小学期开始，与刘老师相识
+<!-- endtimeline -->
+
+<!-- timeline 06-23 -->
+创客负责人团队团建，正式成为创客空间负责人
+<!-- endtimeline -->
+
+<!-- timeline 06-24 -->
+创客空间社团官网正式上线运营[创客空间官网](http://bistumaker.cn/)
+<!-- endtimeline -->
+
+<!-- timeline 07-01 -->
+军训开始
+<!-- endtimeline -->
+
+<!-- timeline 07-03 -->
+花粉俱乐部音频沙龙
+<!-- endtimeline -->
+
+<!-- timeline 07-28 -->
+创客空间2024正式群成立
+<!-- endtimeline -->
+
+<!-- timeline 07-29 -->
+北研所花粉探享之旅
+<!-- endtimeline -->
+
+<!-- timeline 09-10 -->
+408小圆桌走上正轨，开启小课堂模式
+<!-- endtimeline -->
+
+<!-- timeline 09-11 -->
+北信科HSD正式开始招新，百团大战启动
+<!-- endtimeline -->
+
+<!-- timeline 09-19 -->
+创客空间2024新生见面会
+<!-- endtimeline -->
+
+<!-- timeline 09-25 -->
+git gitee github(二周目)
+<!-- endtimeline -->
+
+<!-- timeline 10-08 -->
+鸿蒙入门活动
+<!-- endtimeline -->
+
+<!-- timeline 10-22 -->
+花粉见面会，正式成为花粉俱乐部宣传部部长
+<!-- endtimeline -->
+
+<!-- timeline 10-23 -->
+鸿蒙地图应用开发活动（HSD预热）
+<!-- endtimeline -->
+
+<!-- timeline 11-14 -->
+扫雷活动
+<!-- endtimeline -->
+
+<!-- timeline 11-16 -->
+豆包MarsCode产品发布会
+<!-- endtimeline -->
+
+<!-- timeline 12-06 -->
+永恒之蓝复刻活动
+<!-- endtimeline -->
+
+<!-- timeline 12-18 -->
+学期总结活动24级预备役团队组建
+<!-- endtimeline -->
+
+{% endtimeline %}
+{% timeline 2025,green %}
+
+<!-- timeline 01-24 -->
+本站正式落成
+<!-- endtimeline -->
+
+<!-- timeline 03-12 -->
+hexo博客搭建（二周目）
+<!-- endtimeline -->
+
+<!-- timeline 03-27 -->
+鸿蒙+DeepSeek活动（HSD正式活动）
+<!-- endtimeline -->
+
+<!-- timeline 03-28 -->
+三年一亿创客路活动
+<!-- endtimeline -->
+
+<!-- timeline 04-30 -->
+408封禁
+<!-- endtimeline -->
+
+<!-- timeline 05-14 -->
+手搓AI-Agent活动
+<!-- endtimeline -->
+
+<!-- timeline 05-19 -->
+北研所活动
+<!-- endtimeline -->
+
+<!-- timeline 05-21 -->
+ICP备案，GitHub应用，孤独摇滚放映会
+<!-- endtimeline -->
+
+{% endtimeline %}
+
 ## 大一上
 
 上大学之前，我属于是从未独自离家超过10KM的那种，家里人也都是很担心的我能不能适应大学的生活。谁也没预料到，哪怕是我自身至今还没太想明白我为什么能如此顺利的适应大学生活，同时还能有如此之大的蜕变。感觉上大学之后的每一天我都在发生着巨大的变化，我也说不清楚这种感觉，只能说是每天都是能量满满的感觉。
