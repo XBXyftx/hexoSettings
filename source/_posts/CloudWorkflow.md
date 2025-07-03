@@ -6,7 +6,7 @@ tags:
   - 云工作流
   - hexo博客搭建
 description: 通过很长一段时间的迭代，最终推出了一套借助于github codeSpace的全终端云工作流。
-typewriter: 🚀 告别沉重的笔记本电脑，拥抱云端编程的自由！GitHub CodeSpace让你在任何设备上都能享受完整的开发体验。
+typewriter: 🚀 告别沉重的笔记本电脑，拥抱云端编程的自由！GitHub CodeSpace让你在任何设备上都能享受完整的开发体验。使用网页版VScode来获得更轻便快捷的博客编写体验。
 cover: /img/ArticleTopImgs/cloudWorkflawTopImg.png
 post_copyright:
 copyright_author: XBXyftx
@@ -74,6 +74,18 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 同时也是这台云主机和本地毕竟是两个代码仓库，所以就会出现一个人的分支合并以及非线性代码版本了，乐。
 
 ![7](CloudWorkflow/2.jpg)
+
+## 网页版VScode
+
+在使用了很长一段时间的github codeSpace之后我实在是忍受不了它每次启动的极致缓慢以及时不时爆出的CPU高负荷警报，我仅仅是想用平板去写博客，推送以及部署并非刚需，虽然codeSpace可以给你几乎与本地VScode一样的体验，但它的启动速度以及稳定性还是无法满足我的需求。如果我开启四核模式的codeSpace则又会导致我的免费额度消耗过快，就是其实我到现在还是没太理解更新之后的codeSpace的免费额度是怎么计算的，但秉持着白嫖的心态我还是决定去另寻他法。
+
+于是想起了在之前和codeSpace一同刷到的好东西，网页版VScode。然后我就试了一试，果然是可以直接用登陆的方式同步设置以及从GitHub拉取仓库的。而且由于许多的插件并不能用，使用我们就可以很快的启动并开始博客的编写。
+
+![1751569065394.png](https://bu.dusays.com/2025/07/04/6866d2ae6afeb.png)
+
+![1751569094665.png](https://bu.dusays.com/2025/07/04/6866d2c8dde34.png)
+
+不过代价就是不能用命令行，不过这合理的功能简化对于我这种只是为了写博客的人来说是完美的，所以最终我决定用网页版VScode来写博客，从而实现全云端博客工作流！
 
 ## 结语
 
