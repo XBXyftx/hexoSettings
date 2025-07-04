@@ -10,7 +10,7 @@ tags:
   - CSS
 description: 讲解如何在butterfly主题中添加一个有相关配置项的入场文字弹窗
 typewriter: 🎉 给你的博客添加温馨的"见面礼"！本文将详细教你实现一个智能入场弹窗系统，让每位访客都能收到专属的欢迎问候。从配置文件设计到JavaScript核心逻辑，从CSS响应式布局到window对象深度解析，涵盖完整的技术实现路径。支持页面特定内容、节日特殊祝福、移动端完美适配，打造真正有温度的用户体验。采用模块化架构，配置与逻辑分离，让个性化定制变得轻而易举。跟着教程一步步操作，轻松为你的博客增添人情味，让每次访问都充满惊喜！✨ 
-cover: /img/ArticleTopImgs/TypeWriteTopImg.png
+cover: https://bu.dusays.com/2025/07/04/686795125c127.png
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
