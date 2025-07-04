@@ -67,24 +67,29 @@ disable_top_img: false
 
 # If the banner of page not setting, it will show the default_top_img
 # default_top_img: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/3ab3f845b7cb3ba0d297ff616ca8df6.jpg
-default_top_img: /img/topImg86.jpg
+# default_top_img: /img/topImg86.jpg
+default_top_img: https://bu.dusays.com/2025/07/04/686787f462e79.jpg
 
 # The banner image of index page
-index_img: /img/bg2.png
+# index_img: /img/bg2.png
+index_img: https://bu.dusays.com/2025/07/04/686787ce02253.png
 
 # The banner image of archive page
 archive_img: /img/archiveTopImg.png
 
 # Note: tag page, not tags page
-tag_img: /img/tagTopImg.png
+# tag_img: /img/tagTopImg.png
+tag_img: https://bu.dusays.com/2025/07/04/68678823bcf65.png
 
 # The banner image of tag page, you can set the banner image for each tag
 # Format:
 #  - tag name: xxxxx
-tag_per_img: /img/tagTopImg.png
+# tag_per_img: /img/tagTopImg.png
+tag_per_img: https://bu.dusays.com/2025/07/04/68678823bcf65.png
 
 # Note: category page, not categories page
-category_img: /img/categorieTopImg.png
+# category_img: /img/categorieTopImg.png
+category_img: https://bu.dusays.com/2025/07/04/68678853b2b04.png
 
 # The banner image of category page, you can set the banner image for each category
 # Format:
@@ -96,7 +101,8 @@ footer_img: /img/footerBg.png
 
 # Website Background
 # Can set it to color or image url
-background: /img/bg1.png #bg1.png 是02，bg2.png是豆包的机械工厂
+# background: /img/bg1.png #bg1.png 是02，bg2.png是豆包的机械工厂
+background: https://bu.dusays.com/2025/07/04/6867890f5d403.png
 # background: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/bgImg.png
 cover:
   # Disable the cover or not
