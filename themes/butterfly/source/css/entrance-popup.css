@@ -5,7 +5,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 9999;
+  z-index: 10001; /* 确保在最上层，高于其他元素 */
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -24,8 +24,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(2px);
+  background: transparent;
+  /* 完全透明，不影响主要内容阅读 */
 }
 
 .popup-content {
@@ -36,11 +36,12 @@
   min-width: 280px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
   overflow: hidden;
   transform: translateY(-20px);
   transition: transform 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  z-index: 10000; /* 确保弹窗在最上层 */
 }
 
 .entrance-popup.show .popup-content {

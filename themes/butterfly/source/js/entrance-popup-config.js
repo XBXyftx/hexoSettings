@@ -12,7 +12,6 @@ window.EntrancePopupConfig = {
     '技术改变生活，代码创造未来！',
     '每一次学习都是成长的开始！',
     '在这里，我们一起分享知识与经验！',
-    '欢迎加入我们的技术交流社区！',
     '保持好奇心，持续学习，不断进步！',
     '代码如诗，逻辑如画，享受编程的乐趣！',
     '感谢您的到来，让我们一起学习成长！',
@@ -28,8 +27,8 @@ window.EntrancePopupConfig = {
     showOnEveryPage: true,   // 是否在每个页面都显示
     animationDelay: 500,     // 页面加载后延迟显示时间（毫秒）
     enableEscapeClose: true, // 是否允许按ESC键关闭
-    enableOverlayClose: false, // 是否允许点击遮罩层关闭
-    title: '温馨提示',       // 弹窗标题
+    enableOverlayClose: false, // 不启用遮罩层点击关闭，避免干扰
+    title: 'XBXyftx：',       // 弹窗标题
   },
 
   // 特定页面配置（可选）
