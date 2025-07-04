@@ -16,6 +16,16 @@ html(lang=config.language data-theme=theme.display_mode class=htmlClassHideAside
     if theme.background
       #web_bg(style=getBgPath(theme.background))
 
+    //- 入场弹窗
+    #entrance-popup.entrance-popup
+      .popup-content
+        .popup-header
+          span.popup-title 温馨提示
+          span.popup-close ×
+        .popup-body
+          .popup-text
+      .popup-overlay
+
     !=partial('includes/sidebar', {}, {cache: true})
 
     #body-wrap(class=pageType)

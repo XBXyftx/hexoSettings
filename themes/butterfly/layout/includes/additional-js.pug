@@ -25,6 +25,10 @@ div
   if globalPageType === 'post'
     script(src=url_for('/js/typewriter-effect.js'))
 
+  // 入场弹窗功能
+  script(src=url_for('/js/entrance-popup-config.js'))
+  script(src=url_for('/js/entrance-popup.js'))
+
   .js-pjax
     if needLoadCountJs
       != partial("includes/third-party/card-post-count/index", {}, { cache: true })
