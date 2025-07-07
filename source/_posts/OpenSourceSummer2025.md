@@ -93,11 +93,191 @@ NowInOpenHarmony
 
 #### TodayOpenHarmony项目分析
 
-我们重点来看其资讯获取以及展示的形式，这是重点。整体采用了十分标准的`MVVM`架构，通过`ViewModel`来获取数据，然后通过`Model`来存储数据，最后通过`View`来展示数据。而数据获取的方式则是通过`web组件`来实现的，通过`web组件`来展示现成的网页。其`ViewModel`的核心代码如下：
+我们重点来看其资讯获取以及展示的形式，这是重点。整体采用了十分标准的`MVVM`架构，通过`ViewModel`来获取数据，然后通过`Model`来存储数据，最后通过`View`来展示数据。而数据获取的方式则是通过`web组件`来实现的，通过`web组件`来展示现成的网页。其数据来源部分的核心代码如下：
+
 
 ```ts
+export const NewsListData: NewsItem[] = [
+  new NewsItem({
+    id: 1,
+    type: '新闻',
+    title: '基于OpenHarmony的团结引擎应用开发赛',
+    subtitle: '促进万物互联产业的繁荣发展',
+    image: $r('app.media.edu'),
+    timestamp: '2024-03-11',
+    views: 22500,
+    link: 'https://www.openharmony.cn/unityEngine/illustrate',
+    isLiked: false,
+    likeCount: 806,
+    isBookmarked: false,
+    isExpanded: false,
+    readTime: 5,
+    commentCount: 0,
+    shareCount: 0,
+    tags: ['开发大赛', '物联网'],
+    categoryId: 0
+  }),
 
+  new NewsItem({
+    id: 2,
+    type: '新闻',
+    title: '开源鸿蒙开发者大会2025',
+    subtitle: '展示开源鸿蒙操作系统的技术革新',
+    image: $r('app.media.New'),
+    timestamp: '2025-05-24',
+    views: 23500,
+    link: 'https://www.openharmony.cn/developer2025',
+    isLiked: false,
+    likeCount: 7000,
+    isBookmarked: false,
+    isExpanded: false,
+    readTime: 10,
+    commentCount: 0,  // 补充缺失字段
+    shareCount: 0,    // 补充缺失字段
+    tags:['HarmonyOS'],         // 补充默认值
+    categoryId: 0,
+  }),
+
+  new NewsItem({
+    id: 3,
+    type: '活动',
+    title: '解决方案学生挑战赛',
+    subtitle: '线上',
+    image: $r('app.media.student2'),
+    timestamp: '2022-06-08',
+    views: 2560,
+    link: 'https://www.openharmony.cn/growthPlan/',
+    isLiked: false,
+    likeCount: 2560,
+    isBookmarked: false,
+    isExpanded: false,
+    readTime: 15,
+    tags: ['大赛', 'openharmony'],
+    commentCount: 0,  // 补充缺失字段
+    shareCount: 0,    // 补充缺失字段
+    categoryId: 1,
+  }),
+  new NewsItem({
+    id: 4,
+    type: '活动',
+    title: 'OpenHarmony技术大会',
+    subtitle: '上海世博中心',
+    image: $r('app.media.study'),
+    views: 2200,
+    likeCount: 4560,
+    isLiked: false,
+    timestamp: '2024-10-12',
+    link: 'https://www.openharmony.cn/technology/',
+    isBookmarked: false,
+    readTime: 5,
+    commentCount: 0,
+    shareCount: 0,
+    tags: ['大会', 'openharmony'],
+    isExpanded: false,
+    categoryId: 1,
+  }),
+  new LiveNewsItem({
+    id: 5,
+    type: '直播',
+    title: '创新赛赋能直播',
+    subtitle: '如何开发APP',
+    author: '王工程师',
+    views: 33500,
+    isLiving: true,
+    image: $r('app.media.lives'),
+    timestamp: '03-16 20:00',
+    link: 'https://www.bilibili.com/video/BV18G411i7bR/?spm_id_from=333.999.0.0&vd_source=791e4b558742fd98bce5bd7f4a0d2120',
+    tags: ['直播视频', 'openharmony'],
+    categoryId: 2,
+    isLiked: false,
+    isBookmarked: false,
+    isExpanded: false,
+    likeCount: 0,
+    readTime: 0,
+    commentCount: 0,
+    shareCount: 0
+  }),
+
+  new BlogPostItem({
+    id: 6,
+    type: '博客',
+    title: '分布式菜单创建点餐神器',
+    subtitle: '节省顾客时间',
+    author: '张工程师',
+    content: '本文详细讲解如何利用分布式能力...',
+    image: $r('app.media.bo'),
+    views: 27500,
+    likeCount: 3000,
+    isLiked: false,
+    timestamp: '2022-02-16',
+    link: 'https://mp.weixin.qq.com/s/WHN75mnzJ0NtbAwySlEDJw',
+    isBookmarked: false,
+    readTime: 15,
+    commentCount: 12,
+    shareCount: 0,
+    tags: ['文章', '应用'],
+    isExpanded: false,
+    categoryId: 3,
+  }),
+
+  new NewsItem({
+    id: 7,
+    type: '新闻',
+    title: '第二届创新应用挑战赛',
+    subtitle: '技术交锋创意迸发',
+    image: $r('app.media.sai'),
+    views: 2370,
+    likeCount: 479,
+    isLiked: false,
+    timestamp: '2024-10-21',
+    link:'https://www.openharmony.cn/innovationcompete/compete',
+    isBookmarked: false,
+    readTime: 15,
+    commentCount: 0,
+    shareCount: 0,
+    tags: ['大赛'],
+    isExpanded: false,
+    categoryId: 0,
+  }),
+];
+```
+
+enm，没错它使用的是静态常量数据，并没有进行任何的数据获取，所以对我们的项目参考价值不大，然后我们再来看一看他是怎么展示的资讯。
+
+```ts
+// WebView容器
+Web({
+  src: this.url,
+  controller: this.controller
+})
+  .width('100%')
+  .height('100%')
+  .onPageBegin(() => {
+    this.isLoading = true;
+  })
+  .onPageEnd(() => {
+    this.isLoading = false;
+  })
+  .onErrorReceive((err) => {
+    console.error('[ERROR] 网页加载失败:', JSON.stringify(err));
+    prompt.showToast({ message: '加载失败，请检查网络或网址' });
+  })
+```
+
+它仅仅是将数据中的网页链接给到了web组件，然后通过web组件来展示网页，我们的项目会收集很多网页的信息，若是仅仅是将网页链接给到web组件而不是通过统一的数据格式来进行展示的话，我们整体的UI一致性以及美观度都会差一大截，所以我们需要将爬取的数据进行统一化的格式处理。
+
+所以总体看下来这个项目对当前的项目参考意义不大。
 
 ### 资讯内容传递的格式
 
+上文提到了直接才用展示网页的形式并不可取，所以我们就需要选择一种数据格式来进行前后端数据的传递。
+
+#### 明确需求
+
+首先我们需要明确一下需求，对于当前项目我们首先需要用爬虫爬取各个论坛的资讯内容，这些博文内容都是图文混排，同时可能包含有视频，所以我们的数据格式需要在传递文本之外还需要传递图片以及视频的链接。
+
+我首先想到的就是我的Markdown格式，因为我的博客以及鸿小易还有其他一些项目使用的都是Markdown格式，且Markdown支持原生的图片链接格式，但问题在于Markdown格式中没有原生的视频格式。
+
 ### 资讯的渲染形式
+
+## 方案设计与可行性验证
