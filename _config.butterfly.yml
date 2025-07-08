@@ -33,15 +33,29 @@ menu:
   秘密基地: /coffer/ || fa-solid fa-key
   关于我: /about/ || fas fa-heart
 
-# Code Blocks (代码块相关)
 # --------------------------------------
-highlight_theme: darker # darker / pale night / light / ocean / false
-highlight_height_limit: false
-code_word_wrap: true
-highlight_copy: true
-highlight_lang: true
-highlight_shrink: false
-highlight_fullpage: true
+# 代碼塊設置
+# --------------------------------------
+
+code_blocks:
+  # 代碼塊主題: darker / pale night / light / ocean / false
+  theme: darker
+  # 是否使用 Mac 風格
+  macStyle: true
+  # 代碼塊高度限制（單位: px）
+  height_limit: 400
+  # 是否自動換行
+  word_wrap: true
+
+  # 工具欄
+  # 是否顯示複製按鈕
+  copy: true
+  # 是否顯示語言標籤
+  language: true
+  # true: 收縮代碼塊 | false: 展開代碼塊 | none: 展開代碼塊並隱藏按鈕
+  shrink: false
+  # 是否顯示全屏顯示代碼塊按鈕
+  fullpage: true
 
 
 # Social media links

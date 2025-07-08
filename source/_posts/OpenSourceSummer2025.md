@@ -276,8 +276,1045 @@ Web({
 
 首先我们需要明确一下需求，对于当前项目我们首先需要用爬虫爬取各个论坛的资讯内容，这些博文内容都是图文混排，同时可能包含有视频，所以我们的数据格式需要在传递文本之外还需要传递图片以及视频的链接。
 
-我首先想到的就是我的Markdown格式，因为我的博客以及鸿小易还有其他一些项目使用的都是Markdown格式，且Markdown支持原生的图片链接格式，但问题在于Markdown格式中没有原生的视频格式。
+我首先想到的就是我的Markdown格式，因为我的博客以及鸿小易还有其他一些项目使用的都是Markdown格式，且Markdown支持原生的图片链接格式，但问题在于Markdown格式中没有原生的视频格式。只能使用内挂HTML标签的形式去进行视频的上传。我并不确定在使用OpenHarmony三方库进行md渲染时会不会出现问题，所以暂时作为备案。
+
+![1751960773950.png](https://bu.dusays.com/2025/07/08/686ccccad10e7.png)
+
+随后就是当下最常用的json格式。json格式我可以采用两种形式，一种是将爬取的HTML文件直接作为一整个字段进行传输然后使用web组件进行渲染确实可以。不过这个方案需要注意整体UI界面的一致性，这一点可能需要针对不同的网站获取到的数据进行定制化的处理。因为各个网站的文章内容部分很有可能会插入一些其他的样式，链接标签等，同时又因为鸿蒙中的Web组件并没有提供很多的属性来通过ArkTS直接调整、改变HTML的结构以及样式，所以我们需要在后端就完成对HTML的格式化处理，这样在鸿蒙中直接展示的时候就不会出现样式错乱的问题。
+
+![1751961129379.png](https://bu.dusays.com/2025/07/08/686cce2e7dcc0.png)
+
+还有一种方式就是用`type`字段以及`value`字段来进行当前数据类型的区分，可以设置一个枚举类型规定三种数据类型，分别是`text`、`image`、`video`，然后根据不同的类型来决定`value`字段的值该被渲染为什么样的组件，通过这样的对象数组形式，利用循环渲染成文本、视频、图片组件。这样既可以传递文章的内容也可以正确的传递文章的结构。先暂时采用这种方式，并进行可行性验证。
 
 ### 资讯的渲染形式
 
 ## 方案设计与可行性验证
+
+### 咨询信息获取
+
+首先我们要针对不同的网站编写不同的爬虫，所以我们首先要确认目标网站。
+
+首先是OpenHarmony的官网，官网提供有很多的相关资讯，大多是以微信公众号的形式展现的，整体格式比较规整，我们先来进行爬取的尝试。
+
+![1751974181082.png](https://bu.dusays.com/2025/07/08/686d0149b1aa2.png)
+
+我找到了OpenHarmony官网的咨询页面，虽然咨询本身是很容易爬取的，但是要是想要自动爬取整个咨询页面的全部文章，我们就需要先获取到咨询页面的全部文章链接，然后针对每个链接进行爬取，最后将爬取到的数据整合到一起，所以我们需要先获取到咨询页面的全部文章链接。
+
+![1751974351946.png](https://bu.dusays.com/2025/07/08/686d01d4c0807.png)
+
+找到目标点击结构，对其进行分析。但在展开其单个文章卡片的全部结构之后并没有找到`<a>`标签，所以我们不能直接去爬取`<a>`标签中所指向的目标链接，这是典型的SPA（单页应用）架构。
+
+![1751974611565.png](https://bu.dusays.com/2025/07/08/686d02d5afee0.png)
+
+随后我改变了策略，转而模拟用户的点击行为并检测URL的变化以及检测网络请求，从网络请求的API的响应中获取URL。
+
+```py
+# openHarmony官网爬虫
+import requests
+from bs4 import BeautifulSoup
+import json
+import re
+import time
+from urllib.parse import urljoin, urlparse
+import hashlib
+
+# 尝试导入Selenium，如果失败则使用备用方案
+try:
+    from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    from selenium.common.exceptions import TimeoutException, NoSuchElementException
+    SELENIUM_AVAILABLE = True
+    print("Selenium已安装，将使用JavaScript渲染功能")
+except ImportError:
+    SELENIUM_AVAILABLE = False
+    print("Selenium未安装，将使用普通HTTP请求模式")
+
+class OpenHarmonyCrawler:
+    def __init__(self):
+        self.base_url = "https://www.openharmony.cn"
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        })
+
+        # 设置Chrome浏览器选项（仅在Selenium可用时）
+        if SELENIUM_AVAILABLE:
+            self.chrome_options = Options()
+            self.chrome_options.add_argument('--headless')  # 无头模式
+            self.chrome_options.add_argument('--no-sandbox')
+            self.chrome_options.add_argument('--disable-dev-shm-usage')
+            self.chrome_options.add_argument('--disable-gpu')
+            self.chrome_options.add_argument('--window-size=1920,1080')
+            self.chrome_options.add_argument(f'--user-agent={self.session.headers["User-Agent"]}')
+        else:
+            self.chrome_options = None
+
+        self.driver = None
+
+    def init_driver(self):
+        """初始化浏览器驱动"""
+        if not SELENIUM_AVAILABLE:
+            print("Selenium不可用，跳过浏览器驱动初始化")
+            return False
+
+        try:
+            self.driver = webdriver.Chrome(options=self.chrome_options)
+            print("浏览器驱动初始化成功")
+            return True
+        except Exception as e:
+            print(f"浏览器驱动初始化失败: {e}")
+            print("请确保已安装Chrome浏览器和ChromeDriver")
+            return False
+
+    def close_driver(self):
+        """关闭浏览器驱动"""
+        if self.driver:
+            self.driver.quit()
+            self.driver = None
+            print("浏览器驱动已关闭")
+
+    def get_page_content(self, url):
+        """获取页面内容"""
+        try:
+            response = self.session.get(url, timeout=10)
+            response.raise_for_status()
+            response.encoding = 'utf-8'
+            return response.text
+        except Exception as e:
+            print(f"获取页面失败: {url}, 错误: {e}")
+            return None
+
+    def get_page_content_with_js(self, url, wait_element_class=None, timeout=10):
+        """使用Selenium获取JavaScript渲染后的页面内容"""
+        if not SELENIUM_AVAILABLE or not self.driver:
+            return None
+
+        try:
+            self.driver.get(url)
+
+            # 等待特定元素加载完成
+            if wait_element_class:
+                wait = WebDriverWait(self.driver, timeout)
+                wait.until(EC.presence_of_element_located((By.CLASS_NAME, wait_element_class)))
+            else:
+                time.sleep(3)  # 默认等待3秒
+
+            return self.driver.page_source
+        except TimeoutException:
+            print(f"页面加载超时: {url}")
+            return None
+        except Exception as e:
+            print(f"获取页面失败: {url}, 错误: {e}")
+            return None
+
+    def verify_url_exists(self, url):
+        """验证URL是否存在"""
+        try:
+            response = self.session.head(url, timeout=5)
+            return response.status_code == 200
+        except:
+            return False
+
+    def extract_articles_from_data_attributes(self, soup):
+        """从data属性中提取文章信息"""
+        articles = []
+        print("尝试从data属性提取文章信息...")
+
+        # 查找包含data-v属性的content-item
+        content_items = soup.find_all('li', class_='content-item')
+
+        for i, item in enumerate(content_items):
+            try:
+                # 查找文章标题
+                title_elem = item.find(class_='item-title')
+                title = title_elem.get_text().strip() if title_elem else f"文章{i+1}"
+
+                # 查找日期
+                date_elem = item.find(class_='item-time')
+                date = date_elem.get_text().strip() if date_elem else ""
+
+                # 查找描述
+                desc_elem = item.find(class_='item-info')
+                description = desc_elem.get_text().strip() if desc_elem else ""
+
+                print(f"找到文章: {title} - {date}")
+
+                # 尝试从元素属性中提取ID
+                article_id = None
+
+                # 检查data属性
+                for attr_name, attr_value in item.attrs.items():
+                    if 'id' in attr_name.lower() or 'key' in attr_name.lower():
+                        article_id = str(attr_value)
+                        break
+
+                # 如果没找到ID，尝试从文本内容中提取
+                if not article_id:
+                    # 使用标题和日期生成一个唯一标识
+                    content_hash = hashlib.md5((title + date).encode()).hexdigest()[:8]
+                    article_id = content_hash
+
+                # 构造可能的文章URL（基于常见的URL模式）
+                possible_urls = [
+                    f"{self.base_url}/newsDetail?id={article_id}",
+                    f"{self.base_url}/newsDetail/{article_id}",
+                    f"{self.base_url}/news/detail/{article_id}",
+                    f"{self.base_url}/article/{article_id}",
+                    f"{self.base_url}/newList?id=3&articleId={article_id}",
+                ]
+
+                articles.append({
+                    'title': title,
+                    'date': date,
+                    'description': description,
+                    'possible_urls': possible_urls
+                })
+
+            except Exception as e:
+                print(f"处理第{i+1}个文章项失败: {e}")
+
+        return articles
+
+    def extract_article_links(self, news_list_url):
+        """从资讯列表页面提取文章链接"""
+        # 首先尝试使用Selenium获取动态内容
+        content = self.get_page_content_with_js(news_list_url, timeout=15)
+        if not content:
+            print("Selenium获取失败，尝试使用requests")
+            content = self.get_page_content(news_list_url)
+            if not content:
+                return []
+
+        soup = BeautifulSoup(content, 'html.parser')
+        article_links = []
+
+        # 保存页面内容到文件以便调试
+        with open('debug_page_js.html', 'w', encoding='utf-8') as f:
+            f.write(content)
+        print("JavaScript渲染后的页面内容已保存到 debug_page_js.html")
+
+        print("正在查找文章链接...")
+
+        # 新增：尝试从data属性提取文章信息
+        articles_data = self.extract_articles_from_data_attributes(soup)
+        if articles_data:
+            print(f"从页面结构中提取到 {len(articles_data)} 个文章信息")
+            # 先尝试验证这些URL是否有效
+            for article in articles_data:
+                for url in article['possible_urls']:
+                    if self.verify_url_exists(url):
+                        article_links.append(url)
+                        print(f"验证有效URL: {url}")
+                        break
+
+        # 如果还是没找到，使用Selenium处理JavaScript点击事件
+        if not article_links and self.driver:
+            print("使用Selenium处理JavaScript导航...")
+            try:
+                # 等待页面完全加载
+                time.sleep(5)
+
+                # 查找content-item元素
+                content_items = self.driver.find_elements(By.CLASS_NAME, "content-item")
+                print(f"找到 {len(content_items)} 个content-item元素")
+
+                for i, item in enumerate(content_items[:5]):  # 限制处理前5个
+                    try:
+                        print(f"处理第 {i+1} 个content-item...")
+
+                        # 获取当前URL作为基准
+                        original_url = self.driver.current_url
+
+                        # 滚动到元素可见
+                        self.driver.execute_script("arguments[0].scrollIntoView(true);", item)
+                        time.sleep(1)
+
+                        # 点击元素
+                        item.click()
+                        time.sleep(3)  # 等待页面跳转
+
+                        # 检查是否跳转到新页面
+                        new_url = self.driver.current_url
+                        if new_url != original_url:
+                            print(f"  + 成功跳转到: {new_url}")
+                            article_links.append(new_url)
+
+                            # 返回列表页
+                            self.driver.back()
+                            time.sleep(3)
+                        else:
+                            print(f"  - 点击无效，URL未改变")
+
+                    except Exception as e:
+                        print(f"  - 处理第 {i+1} 个元素失败: {e}")
+                        # 如果出错，尝试返回列表页
+                        try:
+                            self.driver.get(news_list_url)
+                            time.sleep(3)
+                        except:
+                            pass
+
+                if article_links:
+                    print(f"通过点击事件找到 {len(article_links)} 个链接")
+
+            except Exception as e:
+                print(f"Selenium点击处理失败: {e}")
+
+        # 如果仍然没找到，尝试查找所有链接
+        if not article_links:
+            print("最后尝试：查找所有链接...")
+            all_links = soup.find_all('a', href=True)
+            print(f"页面共有 {len(all_links)} 个链接")
+
+            for link in all_links:
+                href = link.get('href')
+                link_text = link.get_text().strip()
+
+                # 检查链接文本是否像新闻标题
+                if href and link_text and len(link_text) > 5:
+                    # 检查是否为相对链接或包含新闻相关关键词
+                    if (href.startswith('/') or
+                            any(keyword in href.lower() for keyword in ['news', 'article', 'detail']) or
+                            any(keyword in link_text for keyword in ['新闻', '资讯', '动态', '公告', '发布'])):
+
+                        full_url = urljoin(self.base_url, href)
+                        article_links.append(full_url)
+                        print(f"  + 找到疑似新闻链接: {full_url} - {link_text[:50]}")
+
+        # 去重并过滤
+        if article_links:
+            unique_links = []
+            seen = set()
+            for link in article_links:
+                if link not in seen and not any(exclude in link for exclude in ['javascript:', 'mailto:', '#']):
+                    unique_links.append(link)
+                    seen.add(link)
+
+            print(f"去重后共有 {len(unique_links)} 个文章链接")
+            return unique_links[:10]  # 最多返回10个链接
+
+        print("未找到任何文章链接")
+        return []
+
+    def parse_article_content(self, article_url):
+        """解析单个文章页面的内容"""
+        content = self.get_page_content(article_url)
+        if not content:
+            return []
+
+        soup = BeautifulSoup(content, 'html.parser')
+        result_data = []
+
+        # 根据页面结构寻找文章主体内容容器
+        article_container = (
+                soup.find(id='js_content') or  # 主要的文章内容容器
+                soup.find(class_='rich_media_content') or  # 富媒体内容容器
+                soup.find(id='page-content') or  # 页面内容容器
+                soup.find(class_='rich_media_area_primary') or  # 主要媒体区域
+                soup.find(class_=re.compile(r'article|content|detail', re.I)) or
+                soup.find('article') or
+                soup.find(id=re.compile(r'article|content|detail', re.I))
+        )
+
+        if not article_container:
+            # 如果没找到专门的容器，尝试查找包含文章内容的其他容器
+            article_container = soup.find('body')
+
+        if article_container:
+            # 遍历容器中的所有元素
+            for element in article_container.find_all(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'img', 'video']):
+
+                # 处理文本内容
+                if element.name in ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div']:
+                    text = element.get_text().strip()
+                    if text and len(text) > 10:  # 过滤掉太短的文本
+                        result_data.append({
+                            "type": "text",
+                            "value": text
+                        })
+
+                # 处理图片
+                elif element.name == 'img':
+                    img_src = element.get('src')
+                    if img_src:
+                        # 构造完整的图片URL
+                        img_url = urljoin(self.base_url, img_src)
+                        result_data.append({
+                            "type": "image",
+                            "value": img_url
+                        })
+
+                # 处理视频
+                elif element.name == 'video':
+                    video_src = element.get('src')
+                    if video_src:
+                        video_url = urljoin(self.base_url, video_src)
+                        result_data.append({
+                            "type": "video",
+                            "value": video_url
+                        })
+                    # 检查video标签内的source元素
+                    source_elements = element.find_all('source')
+                    for source in source_elements:
+                        video_src = source.get('src')
+                        if video_src:
+                            video_url = urljoin(self.base_url, video_src)
+                            result_data.append({
+                                "type": "video",
+                                "value": video_url
+                            })
+
+        return result_data
+
+    def crawl_openharmony_news(self):
+        """爬取OpenHarmony资讯内容"""
+        news_list_url = "https://www.openharmony.cn/newList?id=3"
+        print(f"开始爬取资讯列表页面: {news_list_url}")
+
+        # 初始化浏览器驱动
+        if not self.init_driver():
+            print("无法初始化浏览器驱动，将使用普通requests方式")
+
+        try:
+            # 获取文章链接
+            article_links = self.extract_article_links(news_list_url)
+
+            if not article_links:
+                print("未找到任何文章链接")
+                return []
+
+            print(f"共找到 {len(article_links)} 篇文章")
+
+            all_articles_data = []
+
+            # 爬取每篇文章的内容
+            for i, article_url in enumerate(article_links[:3]):  # 限制爬取前3篇文章，避免过度请求
+                print(f"\n正在爬取第 {i+1} 篇文章: {article_url}")
+
+                article_data = self.parse_article_content(article_url)
+
+                if article_data:
+                    article_info = {
+                        "url": article_url,
+                        "content": article_data
+                    }
+                    all_articles_data.append(article_info)
+                    print(f"成功解析文章，共 {len(article_data)} 个内容块")
+                else:
+                    print("文章内容解析失败")
+
+                # 添加延迟避免请求过快
+                time.sleep(1)
+
+            # 输出JSON结果
+            print("\n" + "="*50)
+            print("爬取结果JSON:")
+            print("="*50)
+
+            json_output = json.dumps(all_articles_data, ensure_ascii=False, indent=2)
+            print(json_output)
+
+            return all_articles_data
+
+        finally:
+            # 确保关闭浏览器驱动
+            self.close_driver()
+
+def main():
+    """主函数"""
+    print("OpenHarmony官网新闻爬虫启动...")
+    print("注意：此脚本需要安装以下依赖:")
+    print("  pip install requests beautifulsoup4 selenium")
+    print("  同时需要安装Chrome浏览器和ChromeDriver")
+    print("如果没有安装，将自动回退到普通HTTP请求模式")
+    print("-" * 50)
+
+    crawler = OpenHarmonyCrawler()
+    try:
+        results = crawler.crawl_openharmony_news()
+        if results:
+            print(f"\n爬取完成，共处理 {len(results)} 篇文章")
+        else:
+            print("\n爬取完成，但未找到任何文章")
+    except Exception as e:
+        print(f"爬取过程中出现错误: {e}")
+        import traceback
+        traceback.print_exc()
+    finally:
+        # 确保清理资源
+        if hasattr(crawler, 'driver') and crawler.driver:
+            crawler.close_driver()
+
+if __name__ == "__main__":
+    main()
+```
+
+```python
+D:\Anaconda\python.exe D:\HarmonyAppS\NowInOpenHarmony\ostest_integration_test\scenario\NowInOpenHarmony\Server\OpenHarmonypy.py 
+Selenium已安装，将使用JavaScript渲染功能
+OpenHarmony官网新闻爬虫启动...
+注意：此脚本需要安装以下依赖:
+  pip install requests beautifulsoup4 selenium
+  同时需要安装Chrome浏览器和ChromeDriver
+如果没有安装，将自动回退到普通HTTP请求模式
+--------------------------------------------------
+开始爬取资讯列表页面: https://www.openharmony.cn/newList?id=3
+浏览器驱动初始化成功
+JavaScript渲染后的页面内容已保存到 debug_page_js.html
+正在查找文章链接...
+尝试从data属性提取文章信息...
+找到文章: 对话OpenHarmony开源先锋：如何用代码革新终端生态 - 2025.02.28
+找到文章: 12强终极PK！第二届OpenHarmony创新应用挑战赛引爆开源热潮 - 2025.02.24
+找到文章: 第二届OpenHarmony创新应用挑战赛决赛路演队伍揭晓 - 2025.02.20
+找到文章: OpenHarmony社区2024年度运营报告发布，致谢每一位生态共建者！ - 2025.02.11
+找到文章: 开源鸿蒙社区恭祝全体开发者2025新年快乐，新春大吉！ - 2025.01.29
+找到文章: 共绘2025年开源新蓝图，OpenHarmony社区项目管理委员会年度工作会议在深圳成功举办 - 2025.01.27
+找到文章: 对话OpenHarmony开源先锋：如何用代码革新终端生态 - 2025.02.28
+找到文章: 12强终极PK！第二届OpenHarmony创新应用挑战赛引爆开源热潮 - 2025.02.24
+找到文章: 第二届OpenHarmony创新应用挑战赛决赛路演队伍揭晓 - 2025.02.20
+找到文章: OpenHarmony社区2024年度运营报告发布，致谢每一位生态共建者！ - 2025.02.11
+找到文章: 开源鸿蒙社区恭祝全体开发者2025新年快乐，新春大吉！ - 2025.01.29
+找到文章: 共绘2025年开源新蓝图，OpenHarmony社区项目管理委员会年度工作会议在深圳成功举办 - 2025.01.27
+从页面结构中提取到 12 个文章信息
+验证有效URL: https://www.openharmony.cn/newsDetail?id=6ffe8bf2
+验证有效URL: https://www.openharmony.cn/newsDetail?id=4846eac5
+验证有效URL: https://www.openharmony.cn/newsDetail?id=6cba5071
+验证有效URL: https://www.openharmony.cn/newsDetail?id=6f5b68a4
+验证有效URL: https://www.openharmony.cn/newsDetail?id=059ed888
+验证有效URL: https://www.openharmony.cn/newsDetail?id=4683d67c
+验证有效URL: https://www.openharmony.cn/newsDetail?id=6ffe8bf2
+验证有效URL: https://www.openharmony.cn/newsDetail?id=4846eac5
+验证有效URL: https://www.openharmony.cn/newsDetail?id=6cba5071
+验证有效URL: https://www.openharmony.cn/newsDetail?id=6f5b68a4
+验证有效URL: https://www.openharmony.cn/newsDetail?id=059ed888
+验证有效URL: https://www.openharmony.cn/newsDetail?id=4683d67c
+去重后共有 6 个文章链接
+共找到 6 篇文章
+
+正在爬取第 1 篇文章: https://www.openharmony.cn/newsDetail?id=6ffe8bf2
+文章内容解析失败
+
+正在爬取第 2 篇文章: https://www.openharmony.cn/newsDetail?id=4846eac5
+文章内容解析失败
+
+正在爬取第 3 篇文章: https://www.openharmony.cn/newsDetail?id=6cba5071
+文章内容解析失败
+
+==================================================
+爬取结果JSON:
+==================================================
+[]
+浏览器驱动已关闭
+
+爬取完成，但未找到任何文章
+
+进程已结束，退出代码为 0
+```
+
+这一版的效果并不好，爬到了一些URL，但在访问之后都是404页面，所以需要进一步改进。
+
+这主要是因为URL中的ID并非真实ID为了解决这个问题我再次对浏览器的网络请求进行抓包分析。
+
+![1751976824948.png](https://bu.dusays.com/2025/07/08/686d0b7d8248c.png)
+
+```js
+{
+    "code": 0,
+    "msg": "成功",
+    "pageSize": 6,
+    "pageNum": 1,
+    "totalPage": 68,
+    "totalNum": 407,
+    "data": [
+        {
+            "id": 1533,
+            "type": 3,
+            "title": "对话OpenHarmony开源先锋：如何用代码革新终端生态",
+            "source": null,
+            "content": "2025年2月23日，由开放原子开源基金会主办的第二届OpenHarmony创新应用挑战赛决赛路演在北京圆满结束，作为第二届开放原子大赛的重要赛项之一，本届赛事汇聚全球418支团队，产出超过110个创新作品，集中展示了OpenHarmony在应用与游戏开发领域的前沿成果。",
+            "textDetails": null,
+            "backgroundImage": "https://images.openharmony.cn/%E5%86%85%E5%AE%B9%E5%B0%81%E9%9D%A2/%E8%B5%84%E8%AE%AF/%E6%B4%BB%E5%8A%A8%E5%9B%9E%E9%A1%BE.png",
+            "url": "https://mp.weixin.qq.com/s/cHsMzPTmoYec-_VL6VllBQ",
+            "advertiseImage": null,
+            "advertiseUrl": null,
+            "startTime": "2025.02.28",
+            "endTime": null,
+            "label": 0,
+            "recommend": 0,
+            "likesCount": 0,
+            "shareCount": 0,
+            "browseCount": 692,
+            "skip": "0"
+        },
+        {
+            "id": 1532,
+            "type": 3,
+            "title": "12强终极PK！第二届OpenHarmony创新应用挑战赛引爆开源热潮",
+            "source": null,
+            "content": "在智能化与万物互联的浪潮中，科技的每一次突破都可能颠覆未来格局。2024年10月21日，由开放原子开源基金会主办，OpenHarmony项目群工作委员会、厦门雅基软件有限公司联合承办的第二届OpenHarmony创新应用挑战赛正式启动。",
+            "textDetails": null,
+            "backgroundImage": "https://images.openharmony.cn/%E5%86%85%E5%AE%B9%E5%B0%81%E9%9D%A2/%E8%B5%84%E8%AE%AF/%E6%B4%BB%E5%8A%A8%E5%9B%9E%E9%A1%BE.png",
+            "url": "https://mp.weixin.qq.com/s/2EeeruCTcZEq1qbydrgsKw",
+            "advertiseImage": null,
+            "advertiseUrl": null,
+            "startTime": "2025.02.24",
+            "endTime": null,
+            "label": 0,
+            "recommend": 0,
+            "likesCount": 0,
+            "shareCount": 0,
+            "browseCount": 366,
+            "skip": "0"
+        },
+        {
+            "id": 1531,
+            "type": 3,
+            "title": "第二届OpenHarmony创新应用挑战赛决赛路演队伍揭晓",
+            "source": null,
+            "content": "第二届OpenHarmony创新应用挑战赛决赛路演队伍揭晓",
+            "textDetails": null,
+            "backgroundImage": "https://images.openharmony.cn/%E5%86%85%E5%AE%B9%E5%B0%81%E9%9D%A2/%E8%B5%84%E8%AE%AF/%E6%B4%BB%E5%8A%A8%E5%9B%9E%E9%A1%BE.png",
+            "url": "https://mp.weixin.qq.com/s/scsUs8XKUMWp_kelThSetA",
+            "advertiseImage": null,
+            "advertiseUrl": null,
+            "startTime": "2025.02.20",
+            "endTime": null,
+            "label": 0,
+            "recommend": 0,
+            "likesCount": 0,
+            "shareCount": 0,
+            "browseCount": 166,
+            "skip": "0"
+        },
+        {
+            "id": 1530,
+            "type": 3,
+            "title": "OpenHarmony社区2024年度运营报告发布，致谢每一位生态共建者！",
+            "source": null,
+            "content": "OpenHarmony社区2024年度运营报告发布！",
+            "textDetails": null,
+            "backgroundImage": "https://images.openharmony.cn/%E5%86%85%E5%AE%B9%E5%B0%81%E9%9D%A2/%E8%B5%84%E8%AE%AF/%E6%B4%BB%E5%8A%A8%E5%9B%9E%E9%A1%BE.png",
+            "url": "https://mp.weixin.qq.com/s/njNirZfZFhwztz9zNnuc-A",
+            "advertiseImage": null,
+            "advertiseUrl": null,
+            "startTime": "2025.02.11",
+            "endTime": null,
+            "label": 0,
+            "recommend": 0,
+            "likesCount": 0,
+            "shareCount": 0,
+            "browseCount": 121,
+            "skip": "0"
+        },
+        {
+            "id": 1528,
+            "type": 3,
+            "title": "开源鸿蒙社区恭祝全体开发者2025新年快乐，新春大吉！",
+            "source": null,
+            "content": "恭祝全体开发者2025新年快乐，新春大吉！",
+            "textDetails": null,
+            "backgroundImage": "https://images.openharmony.cn/%E5%86%85%E5%AE%B9%E5%B0%81%E9%9D%A2/%E8%B5%84%E8%AE%AF/%E6%B4%BB%E5%8A%A8%E5%9B%9E%E9%A1%BE.png",
+            "url": "https://mp.weixin.qq.com/s/fVn6brUk2EnPbUcc3pLeCA",
+            "advertiseImage": null,
+            "advertiseUrl": null,
+            "startTime": "2025.01.29",
+            "endTime": null,
+            "label": 0,
+            "recommend": 0,
+            "likesCount": 0,
+            "shareCount": 0,
+            "browseCount": 62,
+            "skip": "0"
+        },
+        {
+            "id": 1527,
+            "type": 3,
+            "title": "共绘2025年开源新蓝图，OpenHarmony社区项目管理委员会年度工作会议在深圳成功举办",
+            "source": null,
+            "content": "2025年1月12日上午，OpenHarmony社区项目管理委员会（PMC）（以下简称“PMC”）年度工作会议在深圳召开。本次会议全面总结了2024年PMC的工作及成果，以及明确了2025年PMC工作方向和重点工作，为OpenHarmony社区在2025年持续快速发展及繁荣打下厚实基础。",
+            "textDetails": null,
+            "backgroundImage": "https://images.openharmony.cn/%E5%86%85%E5%AE%B9%E5%B0%81%E9%9D%A2/%E8%B5%84%E8%AE%AF/%E6%B4%BB%E5%8A%A8%E5%9B%9E%E9%A1%BE.png",
+            "url": "https://mp.weixin.qq.com/s/0q1ThRgDGocGMWp1ufHHrA",
+            "advertiseImage": null,
+            "advertiseUrl": null,
+            "startTime": "2025.01.27",
+            "endTime": null,
+            "label": 0,
+            "recommend": 0,
+            "likesCount": 0,
+            "shareCount": 0,
+            "browseCount": 103,
+            "skip": "0"
+        }
+    ]
+}
+```
+
+获取这个对象数组之后我们就可以转变思路，先去访问`https://www.openharmony.cn/newList?id=3`这个网址去点击任意一个content-item后，通过网络监测获取最新响应数据，然后解析json获取目标URL，最后再访问这个URL获取最新内容。
+
+```python
+import requests
+from bs4 import BeautifulSoup
+import json
+import re
+import time
+from urllib.parse import urljoin
+
+class OpenHarmonyCrawler:
+    def __init__(self):
+        self.base_url = "https://www.openharmony.cn"
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        })
+
+    def get_page_content(self, url):
+        try:
+            response = self.session.get(url, timeout=10)
+            response.raise_for_status()
+            response.encoding = 'utf-8'
+            return response.text
+        except Exception as e:
+            print(f"获取页面失败: {url}, 错误: {e}")
+            return None
+
+    def parse_article_content(self, article_url):
+        content = self.get_page_content(article_url)
+        if not content:
+            return []
+        soup = BeautifulSoup(content, 'html.parser')
+        result_data = []
+        article_container = (
+            soup.find(id='js_content') or
+            soup.find(class_='rich_media_content') or
+            soup.find(id='page-content') or
+            soup.find(class_='rich_media_area_primary') or
+            soup.find(class_=re.compile(r'article|content|detail', re.I)) or
+            soup.find('article') or
+            soup.find(id=re.compile(r'article|content|detail', re.I))
+        )
+        if not article_container:
+            article_container = soup.find('body')
+        if article_container:
+            for element in article_container.find_all(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'img', 'video']):
+                if element.name in ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div']:
+                    text = element.get_text().strip()
+                    if text and len(text) > 10:
+                        result_data.append({"type": "text", "value": text})
+                elif element.name == 'img':
+                    img_src = element.get('src')
+                    if img_src:
+                        img_url = urljoin(self.base_url, img_src)
+                        result_data.append({"type": "image", "value": img_url})
+                elif element.name == 'video':
+                    video_src = element.get('src')
+                    if video_src:
+                        video_url = urljoin(self.base_url, video_src)
+                        result_data.append({"type": "video", "value": video_url})
+                    for source in element.find_all('source'):
+                        video_src = source.get('src')
+                        if video_src:
+                            video_url = urljoin(self.base_url, video_src)
+                            result_data.append({"type": "video", "value": video_url})
+        return result_data
+
+    def crawl_openharmony_news(self):
+        api_url = f"{self.base_url}/backend/knowledge/secondaryPage/queryBatch?type=3&pageNum=1&pageSize=6"
+        print(f"请求API: {api_url}")
+        try:
+            resp = self.session.get(api_url, timeout=10)
+            resp.raise_for_status()
+            data = resp.json().get("data", [])
+        except Exception as e:
+            print(f"API请求失败: {e}")
+            return []
+        all_articles_data = []
+        for i, item in enumerate(data):
+            title = item.get("title", "")
+            date = item.get("startTime", "")
+            article_url = item.get("url")
+            if not article_url:
+                print(f"第{i+1}条新闻没有url字段，跳过")
+                continue
+            print(f"\n正在爬取第 {i+1} 篇文章: {title} | {article_url}")
+            article_data = self.parse_article_content(article_url)
+            if article_data:
+                article_info = {
+                    "title": title,
+                    "date": date,
+                    "url": article_url,
+                    "content": article_data
+                }
+                all_articles_data.append(article_info)
+                print(f"成功解析文章，共 {len(article_data)} 个内容块")
+            else:
+                print("文章内容解析失败")
+            time.sleep(1)
+        print("\n" + "="*50)
+        print("爬取结果JSON:")
+        print("="*50)
+        json_output = json.dumps(all_articles_data, ensure_ascii=False, indent=2)
+        print(json_output)
+        return all_articles_data
+
+def main():
+    print("OpenHarmony官网新闻爬虫启动...")
+    print("注意：此脚本需要安装以下依赖:")
+    print("  pip install requests beautifulsoup4")
+    print("-" * 50)
+    crawler = OpenHarmonyCrawler()
+    try:
+        results = crawler.crawl_openharmony_news()
+        if results:
+            print(f"\n爬取完成，共处理 {len(results)} 篇文章")
+        else:
+            print("\n爬取完成，但未找到任何文章")
+    except Exception as e:
+        print(f"爬取过程中出现错误: {e}")
+        import traceback
+        traceback.print_exc()
+
+if __name__ == "__main__":
+    main()
+```
+
+```json
+OpenHarmony官网新闻爬虫启动...
+注意：此脚本需要安装以下依赖:
+  pip install requests beautifulsoup4
+--------------------------------------------------
+请求API: https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=3&pageNum=1&pageSize=6
+
+正在爬取第 1 篇文章: 对话OpenHarmony开源先锋：如何用代码革新终端生态 | https://mp.weixin.qq.com/s/cHsMzPTmoYec-_VL6VllBQ
+成功解析文章，共 21 个内容块
+
+正在爬取第 2 篇文章: 12强终极PK！第二届OpenHarmony创新应用挑战赛引爆开源热潮 | https://mp.weixin.qq.com/s/2EeeruCTcZEq1qbydrgsKw
+文章内容解析失败
+
+正在爬取第 3 篇文章: 第二届OpenHarmony创新应用挑战赛决赛路演队伍揭晓 | https://mp.weixin.qq.com/s/scsUs8XKUMWp_kelThSetA
+文章内容解析失败
+
+正在爬取第 4 篇文章: OpenHarmony社区2024年度运营报告发布，致谢每一位生态共建者！ | https://mp.weixin.qq.com/s/njNirZfZFhwztz9zNnuc-A
+文章内容解析失败
+
+正在爬取第 5 篇文章: 开源鸿蒙社区恭祝全体开发者2025新年快乐，新春大吉！ | https://mp.weixin.qq.com/s/fVn6brUk2EnPbUcc3pLeCA
+文章内容解析失败
+
+正在爬取第 6 篇文章: 共绘2025年开源新蓝图，OpenHarmony社区项目管理委员会年度工作会议在深圳成功举办 | https://mp.weixin.qq.com/s/0q1ThRgDGocGMWp1ufHHrA
+成功解析文章，共 27 个内容块
+
+==================================================
+爬取结果JSON:
+==================================================
+[
+  {
+    "title": "对话OpenHarmony开源先锋：如何用代码革新终端生态",
+    "date": "2025.02.28",
+    "url": "https://mp.weixin.qq.com/s/cHsMzPTmoYec-_VL6VllBQ",
+    "content": [
+      {
+        "type": "text",
+        "value": "2025年2月23日，由开放原子开源基金会主办的第二届OpenHarmony创新应用挑战赛决赛路演在北京圆满结束，作为第二届开放原子大赛的重要赛项之一，本届赛事汇聚全球418支团队，产出超过110个创新作品，集中展示了OpenHarmony在应用与游戏开发领域的前沿成果。这些凝聚智慧与协作的参赛作品，不仅在技术层面实现了多项突破，更在商业化应用层面验证了开源生态的无限潜力。赛事不仅彰显了开发者群体的创新活力，也凸显了OpenHarmony作为技术底座的重要价值，为开源技术生态发展注入革新的力量。"
+      },
+      {
+        "type": "text",
+        "value": "当代码与创意在OpenHarmony的数字沃土中生根发芽，我们不禁期待，这些开发者如何用实践诠释开源精神？他们的探索历程又蕴藏着怎样的创新思维？让我们跟随优秀团队，解开技术突破与生态协同的共生密码。"
+      },
+      {
+        "type": "text",
+        "value": "OpenHarmony创新应用赛题：让书柜学会“思考”"
+      },
+      {
+        "type": "text",
+        "value": "由“新大陆自动识别”团队开发的《智能书导》项目，是基于开源操作系统 OpenHarmony打造的图书馆管理应用，通过融合RFID 技术，实现图书馆管理流程的高效优化。团队开发该方案的初衷是帮助图书馆高效地完成图书借阅、查询等工作，减轻管理员负担，同时希望将技术推广至物流、商超、工厂等更多场景，拓展应用范围。"
+      },
+      {
+        "type": "text",
+        "value": "《智能书导》项目通过技术融合创新，深度整合OpenHarmony系统的分布式能力与RFID自动识别技术，利用前者实现图书信息的高效共享，借助后者完成图书的自动识别与数据交互。功能上，该项目集成了快速借还书、精准定位等核心功能，以及今日推荐等辅助功能，全面满足图书馆管理与读者服务需求。应用程序适配OpenHarmony 4.1 Release和5.0.2.50系统，可在多种设备上流畅运行，项目所用硬件也已通过兼容性测评，确保软硬件的无缝集成与高效协同。"
+      },
+      {
+        "type": "text",
+        "value": "《智能书导》的开发者徐金生表示：“未来团队将把项目核心代码贡献至OpenHarmony主干代码库，推动各模块与性能的提升。同时，计划进一步优化技术瓶颈，拓展项目对更多设备的适配能力。”"
+      },
+      {
+        "type": "text",
+        "value": "OpenHarmony创新应用赛题：用技术魔法规划繁琐旅行"
+      },
+      {
+        "type": "text",
+        "value": "由“领先风暴队”开发的《出行妈妈》项目，主要是为了解决旅行者在行程规划繁琐、信息整合困难以及个性化需求难以满足三大方面的痛点，提供省时省力的完美行程定制解决方案。该项目填补了OpenHarmony在旅游规划领域的空白，深度融合OpenHarmony 5.0.0 Release特性与旅游出行需求，提供 “规划+路线+玩法” 的一站式服务，支持出行规划记录与最佳路线推荐，为用户打造智能化旅行体验。"
+      },
+      {
+        "type": "text",
+        "value": "通过bindSheet绑定半模态组件，利用emitter实现跨组件通信，支持拖拽排序、原生时间组件及API12服务卡片的实时同步，并结合Flex+Scroll弹性布局适配动态界面，《出行妈妈》以技术魔法将复杂的旅行“任务”化繁为简。未来，团队将持续优化作品，计划引入分布式数据管理、AI驱动的个性化规划定制以及社区交互等功能，进一步提升用户体验。"
+      },
+      {
+        "type": "text",
+        "value": "在开发过程中，团队撰写了20余篇技术博客并发布至开源社区，其中多篇登上社区头条。后续，团队计划将项目中的自定义组件，如城市选择、时间选择和日历等，贡献至OpenHarmony主干代码库。作为一支年轻团队，参赛过程不仅显著提升了协作能力，也为团队积累了宝贵的实践经验。"
+      },
+      {
+        "type": "text",
+        "value": "Cocos游戏创新应用赛题：从孩童幻想到次世代飞行器"
+      },
+      {
+        "type": "text",
+        "value": "“gamemcu”团队打造的《星际穿越》项目，是一款高画质次世代模拟飞行游戏。玩家通过电视屏幕，即可见证掌心玩具蜕变为可操控的星际战舰，在动态的星云间完成飞行模拟。提到游戏背景，开发者陈炫烨说道：“灵感源于我的儿子，因为我经常能看到我儿子拿着玩具进行飞行模拟，于是我就把他的想象变成了一款游戏。”"
+      },
+      {
+        "type": "text",
+        "value": "《星际穿越》的核心优势在于其卓越的游戏渲染与镜头模拟技术。团队通过自定义高清渲染管线、重构PBR材质系统、高品质后期处理以及多边形GPU粒子系统等多项技术方案，精准还原环境光照，真实模拟人手抓取物体的触感，最终呈现出令人惊艳的飞船驾驶模拟体验。"
+      },
+      {
+        "type": "text",
+        "value": "此前，基于Cocos开发的游戏多以风格化为主，而团队勇于突破，首次尝试了次世代效果。未来，团队将通过教程、技术指引等开源方式，帮助更多开发者了解项目，降低开发门槛。希望这个源于父子温情的太空幻想，能够激发更多开发者对次世代游戏的创作热情。"
+      },
+      {
+        "type": "text",
+        "value": "Cocos游戏创新应用赛题：因为热爱，所以存在"
+      },
+      {
+        "type": "text",
+        "value": "由“路妖姬”团队开发的《引力线流星》项目，是一款宇宙题材的沙盒生存游戏。玩家将操控流浪地球，在复杂的宇宙引力环境中探索生存，建造飞船单位，并与外星文明展开资源争夺。"
+      },
+      {
+        "type": "text",
+        "value": "项目的核心优势在于对引力模拟的前沿探索，填补了OpenHarmony在游戏领域的空白。游戏采用2D物理系统精准模拟星球间的引力相互作用与轨道运动，为玩家打造高度拟真的宇宙物理环境与沉浸式体验。"
+      },
+      {
+        "type": "text",
+        "value": "作为携《引力线流星》项目首次参赛的开发者，刘瑞表示，赛事让他深入了解了如何参与社区开源，并与社区成员共同探讨技术，结识了众多志同道合的伙伴，为未来高效合作奠定了基础。同时，他呼吁更多开发者关注OpenHarmony及游戏开发领域，助力开源生态形成更强的“引力效应”。"
+      },
+      {
+        "type": "text",
+        "value": "融汇创新力量 共筑开源未来"
+      },
+      {
+        "type": "text",
+        "value": "第二届OpenHarmony创新应用挑战赛不仅是一次智慧与创新的较量，更是一场开源精神的深度实践。赛事联动产业、前沿科技与优秀人才，推动了OpenHarmony与Cocos的生态深度融合与发展，为开发者提供了施展才华的舞台，更助力开源技术加速落地。在这场融合创意与探索的盛宴中，优秀团队以实力塑造未来，终将推动创新从竞技场走向产业星辰大海。"
+      },
+      {
+        "type": "text",
+        "value": "未来，OpenHarmony社区将持续拓展应用边界，携手全球开发者共创数字时代的新范式，助力开源生态迈向更加繁荣、智能、可持续的新时代。"
+      }
+    ]
+  },
+  {
+    "title": "共绘2025年开源新蓝图，OpenHarmony社区项目管理委员会年度工作会议在深圳成功举办",
+    "date": "2025.01.27",
+    "url": "https://mp.weixin.qq.com/s/0q1ThRgDGocGMWp1ufHHrA",
+    "content": [
+      {
+        "type": "text",
+        "value": "2025年1月12日上午，OpenHarmony社区项目管理委员会（PMC）（以下简称“PMC”）年度工作会议在深圳召开。本次会议全面总结了2024年PMC的工作及成果，以及明确了2025年PMC工作方向和重点工作，为OpenHarmony社区在2025年持续快速发展及繁荣打下厚实基础。"
+      },
+      {
+        "type": "text",
+        "value": "会议伊始，PMC主席任革林为本次会议致辞。他表示，PMC在过去一年里工作成果不断，尤其是社区发布了具有里程碑意义的OpenHarmony 5.0 Release版本，该版本在系统能力完备度和稳定性方面取得显著提升，全面实现对伙伴产品的规模化海量商用的支撑。同时，任革林也指出社区明年工作方向：强化版本规划，积极推动社区走出海外。当前社区版本不仅要完善技术底座对更多品类设备的支撑能力，还要勇于探索国际社区建设路径。此外，PMC主席任革林鼓励PMC成员及各SIG领导成员积极参与国际交流，发展海外开发人员，提升社区的国际影响力。"
+      },
+      {
+        "type": "text",
+        "value": "OpenHarmony社区项目管理委员会主席任革林"
+      },
+      {
+        "type": "text",
+        "value": "随后，PMC代表董金光对2024年PMC工作进行总结。他表示，过去一年社区共建成果丰硕，底座开发者人数达8100+，开发者结构日趋多元，社区健康度和活跃度持续提升。OpenHarmony社区5.0 Release版本有效赋能成员单位产品商用，同时SIG组在内容产出和活动组织方面仍需发力。2025年PMC工作重点为版本与产品规划、社区共建、技术攻关和出海等关键战略领域。"
+      },
+      {
+        "type": "text",
+        "value": "OpenHarmony社区项目管理委员会代表董金光"
+      },
+      {
+        "type": "text",
+        "value": "在SIG新建申请环节，卫星通信技术专家胡光明提出了北斗SIG的建设构想。他指出，北斗SIG将围绕北斗导航系统的核心能力，推动北斗导航系统与OpenHarmony的融合，打造高精度定位、短报文通信等特色应用。北斗SIG的工作重点是通过技术标准的制定和开发板的集成，以此填补OpenHarmony在导航定位授时方面的空白，推动应急救援、交通物流、大众服务等垂直行业的应用开发。在未来，北斗SIG将致力于建立开源鸿蒙的北斗开发平台，通过与高校、科研机构合作，培养更多基于OpenHarmony的北斗导航领域的专业人才，为社区拓展行业伙伴提供有力支持。"
+      },
+      {
+        "type": "text",
+        "value": "卫星通信技术专家胡光明"
+      },
+      {
+        "type": "text",
+        "value": "中移（杭州）信息技术有限公司家庭IoT产品部副总经理施超介绍了家庭网关（Gateway）SIG的规划。他指出，家庭网关SIG将聚焦家庭网关和路由器设备，弥补设备能力方面的不足，推动互联互通标准的建立，并通过开源合作加速行业标准化进程。施超提到，中国移动每年新增1.6亿台智能家庭硬件设备，然而这些设备普遍存在底座、芯片、应用以及服务缺乏统一性的问题。家庭网关SIG将致力于解决这些问题，通过OpenHarmony技术框架，实现家庭网络设备的统一管理。会上，PMC主席任革林补充表示，家庭网关（Gateway）SIG的成立将推动基于OpenHarmony的路由器安全能力进一步提升。在未来，家庭网关（Gateway）SIG将与芯片厂商合作，通过优化设备的内核架构，降低内存和CPU占用，提升设备性能。"
+      },
+      {
+        "type": "text",
+        "value": "中国移动（杭州）信息技术有限公司家庭IoT产品部副总经理施超"
+      },
+      {
+        "type": "text",
+        "value": "深圳鸿信智联数字科技有限公司CEO张兆生提出了Watch SIG的建设方案。他指出，随着智能手表市场的快速发展，Watch SIG 将致力于构建手表领域的技术标准体系，研发配套开发工具，推动手表应用生态走向繁荣。张兆生提到，手表产业的复杂性要求SIG在芯片、OS和应用之间建立紧密的协同关系。Watch SIG将围绕表盘设计、应用开发工具和北向应用接口标准化展开工作，推动手表设备的快速开发和商用。他表示，Watch SIG计划在2025年达成500万支手表的出货目标，并通过与方案商和品牌商的深度合作，加速手表生态的成熟。"
+      },
+      {
+        "type": "text",
+        "value": "深圳鸿信智联数字科技有限公司CEO张兆生"
+      },
+      {
+        "type": "text",
+        "value": "华为终端有限公司应用场景化解决方案专家张泰介绍了应用开发场景套件SIG的规划。他指出，应用开发场景套件SIG将围绕应用开发中的关键场景，提供开源库、Sample代码及开发指南，降低开发难度，并计划在2025年推出高性能组件库和多设备适配解决方案。张泰提到，当前开发者在应用开发中面临诸多挑战，如不同设备适配难度高、性能调优复杂等问题。应用开发场景套件SIG将通过提供标准化的开发组件和工具，帮助开发者快速上手并提升开发效率。他还表示，应用开发场景套件SIG将与众多头部生态伙伴合作，推动场景化开发套件的广泛应用。"
+      },
+      {
+        "type": "text",
+        "value": "华为终端有限公司应用场景化解决方案专家张泰"
+      },
+      {
+        "type": "text",
+        "value": "图形SIG、PMC图形领域代表黄然在工作报告中指出，图形SIG持续在图形架构、性能工具研发等方面投入，Smartperf已经成为OpenHarmony性能调试的关键工具。接下来，图形SIG将聚焦统一渲染、SceneBoard等核心技术深化应用与推广，积极推进与国际标准接轨，全力打造开源图形课程，携手社区伙伴提升图形技术竞争力，赋能带UI设备创新发展。游戏SIG着重强化三方库建设、优化工具与引擎协同、深化与团结引擎合作，为游戏开发者营造优质环境。开源图形驱动SIG全力支持OpenGL API、突破多GPU环境使能技术，助力图形处理能力跃升，满足多样化设备需求。针对统一渲染与分离渲染技术路线选择，经会上充分讨论，社区达成并行推进共识，兼顾不同设备性能，确保技术平稳演进。"
+      },
+      {
+        "type": "text",
+        "value": "图形SIG、PMC图形领域代表黄然"
+      },
+      {
+        "type": "text",
+        "value": "智能建筑SIG组长，西安建筑科技大学信控学院院党委书记、教授、博士生导师于军琪在工作报告中汇报了智能建筑SIG的工作进展。他指出，将紧密围绕智能建筑行业需求，全力打造施工现场安全监控与能源负荷管理两大价值场景，成功研发系列核心算法模块。后续计划加速应用移植与创新合作，有力推动OpenHarmony在智能建筑领域落地生根，助力建筑行业智能化转型，提升建筑安全与能源效率，践行绿色节能发展理念。"
+      },
+      {
+        "type": "text",
+        "value": "智能建筑SIG组长、西安建筑科技大学信控学院院党委书记、教授、博士生导师于军琪"
+      },
+      {
+        "type": "text",
+        "value": "开发板SIG组长，江苏润和软件股份有限公司副总裁刘洋在工作报告中对开发板SIG的工作进行了总结。他指出，尽管开发板SIG取得了一定的商用成果，但在开源工作中仍存在不足。为此，开发板SIG制定了2025年工作规划，将明确聚焦于L2标杆平台建设，引入新平台以优化选型；同时，大力加强南向开源工作，提升开源质量和规模；积极拓展海外合作，吸引国际企业参与。此外，开发板SIG还将发起招募行动，诚邀各界携手解决开发板从具备可用性向具备易用性迈进的关键难题，筑牢OpenHarmony硬件基础。"
+      },
+      {
+        "type": "text",
+        "value": "开发板SIG组长、江苏润和软件股份有限公司副总裁刘洋"
+      },
+      {
+        "type": "text",
+        "value": "QT SIG组长、成都中科合迅科技有限公司技术总监蔡万苍在工作报告中分享了QT SIG的工作进展。他全面总结了2024年适配成果与问题，在多项模块适配取得进展的同时，部分关键版本适配仍在攻坚。2025年规划稳步推进版本升级与持续演进，积极应对QT与OpenHarmony框架融合挑战，如渲染线程优化等问题。加强与应用厂家合作，推动QT框架在社区商用与开源协同发展，提升应用开发框架稳定性与兼容性。"
+      },
+      {
+        "type": "text",
+        "value": "QT SIG组长、成都中科合迅科技有限公司技术总监蔡万苍"
+      },
+      {
+        "type": "text",
+        "value": "会议期间，与会者积极互动，各抒己见，为社区发展建言献策。开放原子开源基金会技术监督委员会（TOC）主席谭中意、华为终端软件OpenHarmony使能部部长章晓峰、OpenHarmony项目群工作委员会执行总监陶铭、OpenHarmony PMC主席任革林等充分肯定PMC 2024年各项工作成果，并强调SIG运作对社区成功的关键作用，建议进一步加强SIG考核与协同合作，鼓励技术创新与国际交流，全力提升OpenHarmony社区影响力与竞争力，携手共创开源鸿蒙美好未来。"
+      },
+      {
+        "type": "text",
+        "value": "开放原子开源基金会技术监督委员会（TOC）主席谭中意"
+      },
+      {
+        "type": "text",
+        "value": "华为终端软件OpenHarmony使能部部长章晓峰"
+      },
+      {
+        "type": "text",
+        "value": "OpenHarmony项目群工作委员会执行总监陶铭"
+      },
+      {
+        "type": "text",
+        "value": "会议还表决通过了黄然、李锋和赵鹏分别担任PMC图形领域、规划领域和版本管理领域委员。同时，会议还通过了Crossplatformui SIG成员调整的建议，同意潘锦玲担任该SIG组长。"
+      },
+      {
+        "type": "text",
+        "value": "本次OpenHarmony社区PMC年度工作会议在热烈氛围中圆满落幕，通过全面总结经验、深入剖析问题、精心规划未来，为PMC发展明确方向。PMC将汇聚各方力量，推动OpenHarmony在全球开源生态中稳健前行，持续拓展应用边界，实现技术与生态协同创新发展，开启开源操作系统发展新征程。"
+      }
+    ]
+  }
+]
+```
