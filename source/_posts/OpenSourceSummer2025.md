@@ -292,6 +292,8 @@ Web({
 
 ### 咨询信息获取
 
+#### OpenHarmony官网资讯
+
 首先我们要针对不同的网站编写不同的爬虫，所以我们首先要确认目标网站。
 
 首先是OpenHarmony的官网，官网提供有很多的相关资讯，大多是以微信公众号的形式展现的，整体格式比较规整，我们先来进行爬取的尝试。
@@ -1318,3 +1320,210 @@ OpenHarmony官网新闻爬虫启动...
   }
 ]
 ```
+
+这套方案对于爬取的成功率以及内容的解析，成功率都大幅提升，但仍然存在两个问题。
+
+首先一点就是在爬取目标网站的链接时仍然有无效URL导致无法访问的问题，还有就是爬取的URL数量不足，导致爬取的内容不够丰富，这一点是因为当前代码并没有包含模仿用户点击所有的文章卡片导致的获取数量不足。另外一点就是在于其生成的json格式文件中仅有`text`的type类型并没有将图片以及视频的type类型包含进去，这一点在后续的代码中会进行修改。
+
+所以首先要去模仿用户点击全部的ul中的li才能获取全部的，链接，在点击完全部卡片之后再去将链接去重，将去重之后的结果进行逐一访问。
+
+![1752049237718.png](https://bu.dusays.com/2025/07/09/686e265929f85.png)
+
+在获取内容时也要注意要将img的src字段在其懒加载结束之后也读取到json中将type字段的值写成image，同时value字段填写爬取到的src值。
+
+首先对于分页遍历，去重以及有效性验证的代码片段如下：
+
+```python
+def get_all_article_urls(self):
+    all_urls = set()
+    page_num = 1
+    page_size = 20  # 可适当加大
+    while True:
+        api_url = f"{self.base_url}/backend/knowledge/secondaryPage/queryBatch?type=3&pageNum={page_num}&pageSize={page_size}"
+        print(f"请求API: {api_url}")
+        try:
+            resp = self.session.get(api_url, timeout=10)
+            resp.raise_for_status()
+            data = resp.json().get("data", [])
+        except Exception as e:
+            print(f"API请求失败: {e}")
+            break
+        if not data:
+            break
+        for item in data:
+            url = item.get("url")
+            if url:
+                all_urls.add(url)
+        page_num += 1
+        time.sleep(0.5)  # 防止请求过快
+    print(f"共获取到{len(all_urls)}条原始url，开始去重和有效性校验...")
+    valid_urls = []
+    for url in all_urls:
+        try:
+            r = self.session.head(url, timeout=5)
+            if r.status_code == 200:
+                valid_urls.append(url)
+        except:
+            continue
+    print(f"有效url数量: {len(valid_urls)}")
+    return valid_urls
+```
+
+所谓的验证有效性就是通过访问url的head请求，如果返回的状态码是200则说明该url是有效的，否则就是无效的。
+
+对于获取内容以及将内容写入json文件的代码片段如下：
+
+```python
+def parse_article_content(self, article_url):
+    content = self.get_page_content(article_url)
+    if not content:
+        return []
+    soup = BeautifulSoup(content, 'html.parser')
+    result_data = []
+    article_container = (
+        soup.find(id='js_content') or
+        soup.find(class_='rich_media_content') or
+        soup.find(id='page-content') or
+        soup.find(class_='rich_media_area_primary') or
+        soup.find(class_=re.compile(r'article|content|detail', re.I)) or
+        soup.find('article') or
+        soup.find(id=re.compile(r'article|content|detail', re.I))
+    )
+    if not article_container:
+        article_container = soup.find('body')
+    if article_container:
+        for element in article_container.find_all(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'img', 'video']):
+            if element.name in ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div']:
+                text = element.get_text().strip()
+                if text and len(text) > 10:
+                    result_data.append({"type": "text", "value": text})
+            elif element.name == 'img':
+                img_src = element.get('data-src') or element.get('data-original') or element.get('src')
+                if img_src:
+                    img_url = urljoin(self.base_url, img_src)
+                    result_data.append({"type": "image", "value": img_url})
+            elif element.name == 'video':
+                video_src = element.get('src')
+                if video_src:
+                    video_url = urljoin(self.base_url, video_src)
+                    result_data.append({"type": "video", "value": video_url})
+                for source in element.find_all('source'):
+                    video_src = source.get('src')
+                    if video_src:
+                        video_url = urljoin(self.base_url, video_src)
+                        result_data.append({"type": "video", "value": video_url})
+    return result_data
+```
+
+在上述代码中，我们首先通过`get_page_content`方法获取文章内容，然后使用BeautifulSoup解析HTML。接着，我们查找文章的主要内容容器，如果找不到，则使用整个页面作为容器。然后，我们遍历容器中的所有元素，根据元素的类型（如`p`、`h1`、`h2`、`h3`、`h4`、`h5`、`h6`、`div`、`img`、`video`）提取相应的文本或URL，并将其添加到结果列表中。最后，我们返回结果列表。
+
+在修改了代码并将上述算法函数进行参数微调以及适配合并进主函数的流程中后再次执行代码，进行测试。
+
+![1752050837041.png](https://bu.dusays.com/2025/07/09/686e2c9736003.png)
+
+![1752050683416.png](https://bu.dusays.com/2025/07/09/686e2bfe7bb88.png)
+
+可以看到这次正确的爬取了全部的链接并且成功解析了绝大部分的链接，并且将图片以及视频的链接也成功爬取到了json文件中。
+
+#### 后端项目框架构建
+
+在完成了最基础的爬虫功能可行性测试之后我们就先构架一个完整的web服务框架来进行后续的web服务功能可行性验证。
+
+我们选择采用FastAPI框架来构建我们的web服务框架，FastAPI是一个现代、快速（高性能）的Web框架，用于构建APIs，基于标准Python类型提示。
+
+```text
+Server/
+├── api/                           # API接口模块
+│   ├── __init__.py               # 包初始化文件
+│   └── news.py                   # 新闻相关API接口
+├── core/                          # 核心功能模块
+│   ├── __init__.py               # 包初始化文件
+│   ├── config.py                 # 配置管理
+│   ├── database.py               # 数据库操作
+│   ├── logging_config.py         # 日志配置
+│   └── scheduler.py              # 定时任务调度
+├── models/                        # 数据模型
+│   ├── __init__.py               # 包初始化文件
+│   └── news.py                   # 新闻数据模型
+├── services/                      # 服务层
+│   ├── __init__.py               # 包初始化文件
+│   └── openharmony_crawler.py    # OpenHarmony爬虫服务
+├── logs/                          # 日志文件目录
+│   ├── openharmony_api_20250709.log  # 应用日志
+│   └── error_20250709.log        # 错误日志
+├── __pycache__/                   # Python缓存文件
+├── .gitignore                     # Git忽略文件
+├── Dockerfile                     # Docker镜像配置
+├── docker-compose.yml             # Docker Compose配置
+├── main.py                        # 主应用入口
+├── openharmony_news.db            # SQLite数据库文件
+├── README.md                      # 项目说明文档
+├── requirements.txt               # Python依赖包
+└── run.py                         # 应用启动脚本
+```
+
+- 核心文件
+| 文件 | 主要作用 |
+|------|----------|
+| `main.py` | **主应用入口**，FastAPI应用配置，中间件设置，路由注册 |
+| `run.py` | **启动脚本**，配置服务启动参数，提供便捷启动方式 |
+| `requirements.txt` | **依赖管理**，列出所有Python包及其版本 |
+
+- API接口层
+| 文件 | 主要作用 |
+|------|----------|
+| `api/news.py` | **新闻API接口**，提供新闻列表、详情、爬取等接口 |
+
+- 核心功能层
+| 文件 | 主要作用 |
+|------|----------|
+| `core/config.py` | **配置管理**，应用配置、环境变量处理 |
+| `core/database.py` | **数据库操作**，SQLite连接、表结构、CRUD操作 |
+| `core/logging_config.py` | **日志配置**，日志格式、文件轮转、级别设置 |
+| `core/scheduler.py` | **定时任务**，APScheduler配置、爬虫任务调度 |
+
+- 数据模型层
+| 文件 | 主要作用 |
+|------|----------|
+| `models/news.py` | **数据模型**，Pydantic模型定义，API响应格式 |
+
+- 服务层
+| 文件 | 主要作用 |
+|------|----------|
+| `services/openharmony_crawler.py` | **爬虫服务**，OpenHarmony官网数据采集 |
+
+- 部署配置
+| 文件 | 主要作用 |
+|------|----------|
+| `Dockerfile` | **Docker镜像**，容器化部署配置 |
+| `docker-compose.yml` | **容器编排**，多服务部署配置 |
+| `.gitignore` | **版本控制**，Git忽略文件配置 |
+
+### 文档和日志
+
+| 文件 | 主要作用 |
+|------|----------|
+| `README.md` | **项目文档**，使用说明、API文档 |
+| `logs/` | **日志文件**，应用运行日志和错误日志 |
+| `openharmony_news.db` | **数据库文件**，SQLite数据存储 |
+
+---
+
+接下来我们使用cmd进行接口测试。
+
+```bash
+C:\Users\ASUS>   curl http://localhost:8001/health
+{"status":"healthy","timestamp":1752076452.5490837,"version":"1.0.0"}
+```
+
+首先测试的是提前预留的健康检查接口，可以看到返回了健康检查状态。是正常的。随后我们再去检测一下爬虫数据获取接口。
+
+![1752077085669.png](https://bu.dusays.com/2025/07/10/686e931fce2d1.png)
+
+请求之后没有任何反应，所以我打开后台进行日志的查看，发现日志是正常工作的，所以说明请求正常发送了，仅仅是因为我为了不过高频率的请求而被封禁IP而设置了少量间隔，整体的爬取速度很慢，所以才短时间内没有响应，在五分钟左后后我获得了数据。
+
+![1752077973683.png](https://bu.dusays.com/2025/07/10/686e96990526d.png)
+
+不过这也提醒我了，需要设置一个缓存机制，每一小时或是其他时长的间隔进行爬取，每次请求直接返回缓存好的数据，这样就不用再额外等待现场爬取数据了，当然也有可能有人就是想要刷新获取最新的数据，所以我们可以在前端的UI界面加一行提示符来提示用户我们的资讯更新间隔，并设计一个按钮专门用来获取现爬取的最新数据。
+
+ok今天先测试到这里了。
