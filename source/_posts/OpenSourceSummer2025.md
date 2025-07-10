@@ -2120,3 +2120,5 @@ class CSDNOpenHarmonyCrawler:
 - 浏览器会自动执行页面中的所有 JavaScript，渲染出完整的资讯列表。
 - 用 BeautifulSoup 解析渲染后的 HTML，提取 `div.list-item` 下的资讯标题、链接和摘要。
 - 最终获取到的内容与浏览器 F12 看到的内容一致，**解决了动态网页无法直接爬取的问题**。
+
+明天继续解决详细文章内容爬取的问题。
