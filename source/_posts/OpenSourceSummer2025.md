@@ -1757,3 +1757,366 @@ INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
 ![1752139864861.png](https://bu.dusays.com/2025/07/10/686f885d1b05c.png)
 
 在写上面这段分析时刚好也等到了下一次更新，我在此期间再次请求了新闻列表接口，发现正常获取了数据，说明主子线程已经成功分离。（我才发现之前请求时少了个正斜杠……汗流浃背了）
+
+到这里的话整体的架构就已经搭建出来了，我就可以继续收集更多的数据源了。
+
+#### CSDN平台
+
+首先还是先去观察CSDN目标网页的网页结构，去观察其是如何进行页面跳转的，这将决定我们用什么手段去获取目标资讯页面的跳转URL。先是确认一下基地址。和OpenHarmony官网不同的点在于OpenHarmony官网是直接就有资讯页面的，而且是按照时间顺序排列的，我们直接自上而下的遍历就可以很自然的按照顺序去获取到我们所需要的资讯链接。但CSDN是一个全技术栈的程序员技术网站，我们只能输入关键词进行搜索，所以我要先将`OpenHarmony`输入搜索框并勾选好最新选项，我们才能按照时间顺序获取到按时间顺序排布的全部的资讯链接。
+
+![1752153112189.png](https://bu.dusays.com/2025/07/10/686fbc1e064af.png)
+
+```bash
+https://so.csdn.net/so/search?spm=1000.2115.3001.4498&q=openHarmony&t=all&u=&s=new
+```
+
+此前我也在多篇博文中解析过URL中的一些常见参数，这里就在简单说一下吧。第一个参数`spm`虽然没有官方的解释不过我们还是能通过字段命名和值来猜个大概，它的含义应该是用于统计和追踪页面的来源、流量等信息，其数值是 CSDN 系统内部定义的编码，具体的分段数值（1000.2115.3001.4498）对应着网站内部的不同页面层级、模块或推广渠道等，对于普通用户来说，这个参数更多是网站后台用于数据分析和管理的标识，没有直接的实际使用意义。第二个参数`q`是 “query” 的缩写，代表搜索的关键词，这里表示用户搜索的内容是 “openHarmony”。第三个参数`t`代表搜索的内容类型，“all” 表示搜索全部类型的内容，在 CSDN 中，内容类型可能包括博客、问答、下载、资讯等，选择 “all” 即不限制内容类型进行搜索。第四个参数`u`可能与用户（user）相关，这里参数值为空，可能表示当前搜索没有限定特定用户发布的内容，即搜索范围是整个 CSDN 平台内符合关键词的内容，而非某个用户名下的内容。第五个参数`s`代表排序方式，“new” 表示按照内容的发布时间从新到旧进行排序，即搜索结果中，最新发布的与 “openHarmony” 相关的内容会排在较前面的位置，这也是在我勾选了最新之后出现的参数值所以还是比较确定的。
+
+确认了基地址后就来分析我们的目标资源地址藏在了哪里。
+
+![1752153958404.png](https://bu.dusays.com/2025/07/10/686fbf6a96048.png)
+
+哇这个页面结构是真规整啊，我先展开每一个目标list-item查看其是否包含有我们的目标链接。
+
+![1752156369968.png](https://bu.dusays.com/2025/07/10/686fc8d8cd004.png)
+
+明文a标签，这可太美好了，我们直接取用其中的herf字段就可以作为资讯链接了，真是太美妙了。
+
+```python
+    def crawl(self):
+        articles = []
+        url = self.BASE_URL
+        print(f"请求: {url} ...")
+        resp = requests.get(url, headers=self.HEADERS, timeout=10)
+        if resp.status_code != 200:
+            print(f"请求失败: {resp.status_code}")
+            return articles
+        soup = BeautifulSoup(resp.text, "html.parser")
+        for item in soup.select("div.list-item"):
+            a_tag = item.select_one("a")
+            title_tag = item.select_one("a.block-title")
+            summary_tag = item.select_one(".search-detail")
+            if a_tag and title_tag:
+                articles.append({
+                    "title": title_tag.get_text(strip=True),
+                    "url": a_tag.get("href"),
+                    "summary": summary_tag.get_text(strip=True) if summary_tag else ""
+                })
+        print(f"共获取到{len(articles)}篇文章")
+        time.sleep(self.delay + random.random())
+        return articles
+```
+
+将当前爬虫代码仅作为一个单独的文件进行测试，设置独立的main函数而不是直接接入主服务流程，在测试无误后再接入主服务流程，这样能保证在调试过程中不会影响到主服务流程的运行。接下来进行测试。
+
+```text
+请求: https://so.csdn.net/so/search?spm=1000.2115.3001.4501&q=openHarmony&t=&u=&s=new ...
+共获取到0篇文章
+共获取到0篇文章：
+
+进程已结束，退出代码为 0
+```
+
+果然失败了，每多少第一次就成功的。先冷静的分析一下原因。
+
+首先我考虑到的就是URL错误或失效，毕竟其中还包含了一些我们并不能确定的参数，于是我决定进行跳转进行测试。
+
+![1752165651408.png](https://bu.dusays.com/2025/07/11/686fed1711bdd.png)
+
+跳转之后显示成功，但还不能掉以轻心，我决定用CMD进行请求测试。
+
+```bash
+C:\Users\ASUS>curl https://so.csdn.net/so/search?spm=1000.2115.3001.4501&q=openHarmony&t=&u=&s=new
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="referrer" content="always"><meta name="report" content='{"spm":"1018.2226","disabled":"true"}'><meta name="csdn-baidu-search" content='{"keyword":""}'><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0;"><link rel="icon" href="https://csdnimg.cn/public/favicon.ico"><title></title><script src="https://g.csdnimg.cn/lib/jquery/3.7.1/jquery.min.js"></script><script src="https://g.csdnimg.cn/common/csdn-report/report.js"></script><script src="https://g.csdnimg.cn/baidu-search/1.0.12/baidu-search.js"></script><script>var CFG = {
+        API_URL: '//so.csdn.net/so/',
+        js_insert_first: true,
+        js_insert_count: 0
+      }</script><style>.hiddenToolbar {
+        display: none !important;
+      }</style><link href="https://csdnimg.cn/release/searchv2-fe/css/chunk-507d1eda.d0e4a7f0.css" rel="prefetch"><link href="https://csdnimg.cn/release/searchv2-fe/css/chunk-ef13ade6.b7f2a69e.css" rel="prefetch"><link href="https://csdnimg.cn/release/searchv2-fe/js/chunk-507d1eda.f1d6c6e7.js" rel="prefetch"><link href="https://csdnimg.cn/release/searchv2-fe/js/chunk-ef13ade6.fb45640e.js" rel="prefetch"><link href="https://csdnimg.cn/release/searchv2-fe/css/element-ui.6b92dc4c.css" rel="preload" as="style"><link href="https://csdnimg.cn/release/searchv2-fe/css/highlight.9276efd2.css" rel="preload" as="style"><link href="https://csdnimg.cn/release/searchv2-fe/css/index.183186f5.css" rel="preload" as="style"><link href="https://csdnimg.cn/release/searchv2-fe/js/element-ui.25bb7d6a.js" rel="preload" as="script"><link href="https://csdnimg.cn/release/searchv2-fe/js/highlight.6f38c3f5.js" rel="preload" as="script"><link href="https://csdnimg.cn/release/searchv2-fe/js/index.b1794c4a.js" rel="preload" as="script"><link href="https://csdnimg.cn/release/searchv2-fe/css/element-ui.6b92dc4c.css" rel="stylesheet"><link href="https://csdnimg.cn/release/searchv2-fe/css/highlight.9276efd2.css" rel="stylesheet"><link href="https://csdnimg.cn/release/searchv2-fe/css/index.183186f5.css" rel="stylesheet">    <script src="/cdn_cgi_bs_captcha/static/js/waf_captcha_embedded_bs.js"></script>
+</head><body style="position: relative;"><noscript><strong>We're sorry but search-fe-v2 doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript><div id="app"></div><script src="https://g.csdnimg.cn/common/csdn-login-box/csdn-login-box.js"></script><script src="https://g.csdnimg.cn/user-ordercart/3.0.1/user-ordercart.js"></script><script src="https://g.csdnimg.cn/lib/qrcode/1.0.0/qrcode.min.js"></script><script src="https://g.csdnimg.cn/user-ordertip/5.0.5_so_v2/user-ordertip.js"></script><script>const header = document.createElement('script')
+      header.type = 'text/javascript'
+      header.prod = 'so'
+      header.skin = 'black'
+      header.domain = '//so.csdn.net/so/'
+      if (
+        location.pathname.includes('/chat') ||
+        location.pathname.includes('/so/ai') ||
+        location.pathname.includes('/so/ask')
+      ) {
+        // PC端显示C知道自己的toolbar
+        if (
+          navigator.userAgent.match(/(iPhone|iPod|Android|ios|iOS|iPad|Backerry|WebOS|Symbian|Windows Phone|Phone)/i)
+        ) {
+          header.src = '//csdnimg.cn/public/common/toolbar/js/m_toolbar-2.1.2.js'
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href = '//csdnimg.cn/public/common/toolbar/content_toolbar_css/m_toolbar-1.1.1.css'
+          document.head.appendChild(link)
+          // 兼容app
+          if (document.cookie.includes('CSDN-APP') || /csdn/i.test(window.navigator.userAgent)) {
+            document.body.className = 'csdn-app'
+          }
+        }
+      } else {
+        header.src = 'https://g.csdnimg.cn/common/csdn-toolbar/csdn-toolbar.js'
+      }
+      document.body.appendChild(header)</script><script>;(function() {
+        const isTest = location.host.indexOf('loc') > -1 || location.href.indexOf('cknow-lib-env=test') > -1
+        const SCRIPTS_PRELOAD = {
+          AI_SEARCH_CARD: {
+            LOADED: false,
+            SRC: isTest
+              ? 'https://g.csdnimg.cn/aisearch/web-card/ai-search-card.js'
+              : 'https://csdnimg.cn/release/aisearch/web-card/ai-search-card.js'
+          }
+        }
+
+        const loadScript = function(name) {
+          if (SCRIPTS_PRELOAD[name]) {
+            const aiCardContentScript = document.createElement('script')
+            aiCardContentScript.type = 'text/javascript'
+            aiCardContentScript.onload = function() {
+              SCRIPTS_PRELOAD[name].LOADED = true
+              window.dispatchEvent(new CustomEvent(name + '.LOADED'))
+            }
+            aiCardContentScript.src = SCRIPTS_PRELOAD[name].SRC
+            document.body.appendChild(aiCardContentScript)
+          }
+        }
+
+        window.SCRIPTS_ONLOAD = function(name, callback) {
+          if (SCRIPTS_PRELOAD[name].LOADED) {
+            callback()
+          } else {
+            window.addEventListener(name + '.LOADED', callback)
+          }
+        }
+
+        loadScript('AI_SEARCH_CARD')
+      })()</script><script>if (!!window.ActiveXObject || 'ActiveXObject' in window) {
+        if (!/msie [6|7|8|9]/i.test(navigator.userAgent)) {
+          if (!window.upgrade) {
+            window.upgrade = true
+            let s = document.createElement('script')
+            s.src = 'https://g.csdnimg.cn/browser_upgrade/1.0.2/browser_upgrade.js'
+            let x = document.getElementsByTagName('script')[0]
+            x.parentNode.insertBefore(s, x)
+          }
+        }
+      }</script><script>window.onload = function() {
+        if (window.csdn && typeof window.csdn.configuration_tool_parameterv === 'function') {
+          window.csdn.configuration_tool_parameterv({
+            need_change_function: function(flag) {
+              let c_toolbar = $('#csdn-toolbar')
+              let s_toolbar = $('.so-toolbar')
+              let advert = $('#csdn-toolbar .toolbar-advert')
+              if (flag === 'fixed') {
+                if (advert.length) advert.hide()
+                s_toolbar.addClass('fixed').css('top', '0px')
+                c_toolbar.addClass('hiddenToolbar')
+              } else if (flag === 'noFixed') {
+                if (advert.length) advert.show()
+                s_toolbar.removeClass('fixed')
+                c_toolbar.removeClass('hiddenToolbar')
+              }
+            }
+          })
+        }
+      }</script><script src="//g.csdnimg.cn/fixed-sidebar/1.1.6/fixed-sidebar.js"></script><script src="//g.csdnimg.cn/user-tooltip/2.4/user-tooltip.js"></script><script src="https://csdnimg.cn/release/searchv2-fe/js/element-ui.25bb7d6a.js"></script><script src="https://csdnimg.cn/release/searchv2-fe/js/highlight.6f38c3f5.js"></script><script src="https://csdnimg.cn/release/searchv2-fe/js/index.b1794c4a.js"></script><script src="https://csdnimg.cn/release/searchv2-fe/js/chunk-vendors.b533e482.js"></script></body></html>'q' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+'t' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+'u' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+'s' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+```
+
+enm,测试的时候后续的参数都被判定为一个cmd命令中的参数了，而不是URL的一部分。为了防止被系统误判，我们用双引号包裹再试一次。
+
+```bash
+C:\Users\ASUS>curl "https://so.csdn.net/so/search?spm=1000.2115.3001.4501&q=openHarmony&t=&u=&s=new"
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="referrer" content="always"><meta name="report" content='{"spm":"1018.2226","disabled":"true"}'><meta name="csdn-baidu-search" content='{"keyword":""}'><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0;"><link rel="icon" href="https://csdnimg.cn/public/favicon.ico"><title></title><script src="https://g.csdnimg.cn/lib/jquery/3.7.1/jquery.min.js"></script><script src="https://g.csdnimg.cn/common/csdn-report/report.js"></script><script src="https://g.csdnimg.cn/baidu-search/1.0.12/baidu-search.js"></script><script>var CFG = {
+        API_URL: '//so.csdn.net/so/',
+        js_insert_first: true,
+        js_insert_count: 0
+      }</script><style>.hiddenToolbar {
+        display: none !important;
+      }</style><link href="https://csdnimg.cn/release/searchv2-fe/css/chunk-507d1eda.d0e4a7f0.css" rel="prefetch"><link href="https://csdnimg.cn/release/searchv2-fe/css/chunk-ef13ade6.b7f2a69e.css" rel="prefetch"><link href="https://csdnimg.cn/release/searchv2-fe/js/chunk-507d1eda.f1d6c6e7.js" rel="prefetch"><link href="https://csdnimg.cn/release/searchv2-fe/js/chunk-ef13ade6.fb45640e.js" rel="prefetch"><link href="https://csdnimg.cn/release/searchv2-fe/css/element-ui.6b92dc4c.css" rel="preload" as="style"><link href="https://csdnimg.cn/release/searchv2-fe/css/highlight.9276efd2.css" rel="preload" as="style"><link href="https://csdnimg.cn/release/searchv2-fe/css/index.183186f5.css" rel="preload" as="style"><link href="https://csdnimg.cn/release/searchv2-fe/js/element-ui.25bb7d6a.js" rel="preload" as="script"><link href="https://csdnimg.cn/release/searchv2-fe/js/highlight.6f38c3f5.js" rel="preload" as="script"><link href="https://csdnimg.cn/release/searchv2-fe/js/index.b1794c4a.js" rel="preload" as="script"><link href="https://csdnimg.cn/release/searchv2-fe/css/element-ui.6b92dc4c.css" rel="stylesheet"><link href="https://csdnimg.cn/release/searchv2-fe/css/highlight.9276efd2.css" rel="stylesheet"><link href="https://csdnimg.cn/release/searchv2-fe/css/index.183186f5.css" rel="stylesheet">    <script src="/cdn_cgi_bs_captcha/static/js/waf_captcha_embedded_bs.js"></script>
+</head><body style="position: relative;"><noscript><strong>We're sorry but search-fe-v2 doesn't work properly without JavaScript enabled. Please enable it to continue.</strong></noscript><div id="app"></div><script src="https://g.csdnimg.cn/common/csdn-login-box/csdn-login-box.js"></script><script src="https://g.csdnimg.cn/user-ordercart/3.0.1/user-ordercart.js"></script><script src="https://g.csdnimg.cn/lib/qrcode/1.0.0/qrcode.min.js"></script><script src="https://g.csdnimg.cn/user-ordertip/5.0.5_so_v2/user-ordertip.js"></script><script>const header = document.createElement('script')
+      header.type = 'text/javascript'
+      header.prod = 'so'
+      header.skin = 'black'
+      header.domain = '//so.csdn.net/so/'
+      if (
+        location.pathname.includes('/chat') ||
+        location.pathname.includes('/so/ai') ||
+        location.pathname.includes('/so/ask')
+      ) {
+        // PC端显示C知道自己的toolbar
+        if (
+          navigator.userAgent.match(/(iPhone|iPod|Android|ios|iOS|iPad|Backerry|WebOS|Symbian|Windows Phone|Phone)/i)
+        ) {
+          header.src = '//csdnimg.cn/public/common/toolbar/js/m_toolbar-2.1.2.js'
+          const link = document.createElement('link')
+          link.rel = 'stylesheet'
+          link.href = '//csdnimg.cn/public/common/toolbar/content_toolbar_css/m_toolbar-1.1.1.css'
+          document.head.appendChild(link)
+          // 兼容app
+          if (document.cookie.includes('CSDN-APP') || /csdn/i.test(window.navigator.userAgent)) {
+            document.body.className = 'csdn-app'
+          }
+        }
+      } else {
+        header.src = 'https://g.csdnimg.cn/common/csdn-toolbar/csdn-toolbar.js'
+      }
+      document.body.appendChild(header)</script><script>;(function() {
+        const isTest = location.host.indexOf('loc') > -1 || location.href.indexOf('cknow-lib-env=test') > -1
+        const SCRIPTS_PRELOAD = {
+          AI_SEARCH_CARD: {
+            LOADED: false,
+            SRC: isTest
+              ? 'https://g.csdnimg.cn/aisearch/web-card/ai-search-card.js'
+              : 'https://csdnimg.cn/release/aisearch/web-card/ai-search-card.js'
+          }
+        }
+
+        const loadScript = function(name) {
+          if (SCRIPTS_PRELOAD[name]) {
+            const aiCardContentScript = document.createElement('script')
+            aiCardContentScript.type = 'text/javascript'
+            aiCardContentScript.onload = function() {
+              SCRIPTS_PRELOAD[name].LOADED = true
+              window.dispatchEvent(new CustomEvent(name + '.LOADED'))
+            }
+            aiCardContentScript.src = SCRIPTS_PRELOAD[name].SRC
+            document.body.appendChild(aiCardContentScript)
+          }
+        }
+
+        window.SCRIPTS_ONLOAD = function(name, callback) {
+          if (SCRIPTS_PRELOAD[name].LOADED) {
+            callback()
+          } else {
+            window.addEventListener(name + '.LOADED', callback)
+          }
+        }
+
+        loadScript('AI_SEARCH_CARD')
+      })()</script><script>if (!!window.ActiveXObject || 'ActiveXObject' in window) {
+        if (!/msie [6|7|8|9]/i.test(navigator.userAgent)) {
+          if (!window.upgrade) {
+            window.upgrade = true
+            let s = document.createElement('script')
+            s.src = 'https://g.csdnimg.cn/browser_upgrade/1.0.2/browser_upgrade.js'
+            let x = document.getElementsByTagName('script')[0]
+            x.parentNode.insertBefore(s, x)
+          }
+        }
+      }</script><script>window.onload = function() {
+        if (window.csdn && typeof window.csdn.configuration_tool_parameterv === 'function') {
+          window.csdn.configuration_tool_parameterv({
+            need_change_function: function(flag) {
+              let c_toolbar = $('#csdn-toolbar')
+              let s_toolbar = $('.so-toolbar')
+              let advert = $('#csdn-toolbar .toolbar-advert')
+              if (flag === 'fixed') {
+                if (advert.length) advert.hide()
+                s_toolbar.addClass('fixed').css('top', '0px')
+                c_toolbar.addClass('hiddenToolbar')
+              } else if (flag === 'noFixed') {
+                if (advert.length) advert.show()
+                s_toolbar.removeClass('fixed')
+                c_toolbar.removeClass('hiddenToolbar')
+              }
+            }
+          })
+        }
+      }</script><script src="//g.csdnimg.cn/fixed-sidebar/1.1.6/fixed-sidebar.js"></script><script src="//g.csdnimg.cn/user-tooltip/2.4/user-tooltip.js"></script><script src="https://csdnimg.cn/release/searchv2-fe/js/element-ui.25bb7d6a.js"></script><script src="https://csdnimg.cn/release/searchv2-fe/js/highlight.6f38c3f5.js"></script><script src="https://csdnimg.cn/release/searchv2-fe/js/index.b1794c4a.js"></script><script src="https://csdnimg.cn/release/searchv2-fe/js/chunk-vendors.b533e482.js"></script></body></html>
+```
+
+可以看到，成功了。但仔细一看，获取到的页面内容很少，而且和我们使用浏览器开发者工具所看到的页面结构并不一样，没看到此前所看到的list以及其包含的list-item。这说明其页面内容是在加载后依据于设备类型进行动态生成的，属于是动态网页类型，而非静态网页。之前的OpenHarmony官网的资讯在更新了之后并不需要依赖搜索这种API来间接进行页面信息获取，所以属于是静态网页，可以直接分析结构进行信息的获取。
+
+为了应对这种情况我们就需要使用所谓的“有头爬虫”。
+
+---
+
+1. 什么是“有头爬虫”？
+
+  在爬取网页数据时，网页大致分为两类：**静态网页**和**动态网页**。  
+
+  - **静态网页**：页面内容直接写在 HTML 里，用 requests、curl 等工具请求后就能直接看到完整内容，解析 HTML 即可提取数据。
+  - **动态网页**：页面初始 HTML 只有骨架，真正的内容是通过 JavaScript 动态渲染出来的。只有浏览器加载并执行 JS 后，内容才会显示在页面上。
+
+  对于动态网页，传统的 requests、curl 等“无头爬虫”无法获取到渲染后的内容。这时就需要用到**“有头爬虫”**（也叫“浏览器爬虫”）。
+
+2. 有头爬虫的原理
+
+  “有头爬虫”本质上是**自动化驱动真实浏览器**（如 Chrome、Edge、Firefox），模拟人类用户的操作流程。它会：
+
+  - 打开浏览器窗口
+  - 访问目标网页
+  - 等待页面和 JS 脚本加载、执行
+  - 获取渲染后的完整页面内容（包括 JS 动态生成的内容）
+  - 解析并提取所需数据
+
+常用的有头爬虫工具有 Selenium、Playwright、Puppeteer 等。
+
+3. “有头爬虫”与“无头爬虫”的区别
+
+  | 类型         | 能力                  | 适用场景           |
+  |--------------|-----------------------|--------------------|
+  | 无头爬虫     | 只请求静态HTML        | 静态网页           |
+  | 有头爬虫     | 执行JS、渲染动态内容  | 动态网页、反爬较强 |
+
+---
+
+在本项目中，我们使用了 **Selenium + Chrome** 作为有头爬虫的实现方案。  
+核心流程如下：
+
+```python
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from bs4 import BeautifulSoup
+import time
+
+class CSDNOpenHarmonyCrawler:
+    BASE_URL = "https://so.csdn.net/so/search?spm=1000.2115.3001.4501&q=openHarmony&t=&u=&s=new"
+
+    def __init__(self, delay=1.5):
+        self.delay = delay
+
+    def crawl(self):
+        articles = []
+        options = Options()
+        options.add_argument('--headless')  # 无界面模式，后台运行
+        options.add_argument('--disable-gpu')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--window-size=1920,1080')
+        driver = webdriver.Chrome(options=options)
+        try:
+            driver.get(self.BASE_URL)
+            time.sleep(self.delay)  # 等待JS渲染
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+            for item in soup.select("div.list-item"):
+                a_tag = item.select_one("a")
+                title_tag = item.select_one("a.block-title")
+                summary_tag = item.select_one(".search-detail")
+                if a_tag and title_tag:
+                    articles.append({
+                        "title": title_tag.get_text(strip=True),
+                        "url": a_tag.get("href"),
+                        "summary": summary_tag.get_text(strip=True) if summary_tag else ""
+                    })
+        finally:
+            driver.quit()
+        return articles
+```
+
+**解释：**
+
+- 通过 Selenium 启动一个无头 Chrome 浏览器，访问 CSDN 搜索页面。
+- 浏览器会自动执行页面中的所有 JavaScript，渲染出完整的资讯列表。
+- 用 BeautifulSoup 解析渲染后的 HTML，提取 `div.list-item` 下的资讯标题、链接和摘要。
+- 最终获取到的内容与浏览器 F12 看到的内容一致，**解决了动态网页无法直接爬取的问题**。
