@@ -1533,3 +1533,227 @@ C:\Users\ASUS>   curl http://localhost:8001/health
 不过这也提醒我了，需要设置一个缓存机制，每一小时或是其他时长的间隔进行爬取，每次请求直接返回缓存好的数据，这样就不用再额外等待现场爬取数据了，当然也有可能有人就是想要刷新获取最新的数据，所以我们可以在前端的UI界面加一行提示符来提示用户我们的资讯更新间隔，并设计一个按钮专门用来获取现爬取的最新数据。
 
 ok今天先测试到这里了。
+
+#### 数据缓存与更新机制
+
+现在我们需要添加一个缓存机制，就是当服务程序开始运行的时候先执行一遍爬取数据，在开机第一次爬取时将服务状态设置成准备中，然后将爬取的数据暂存，每隔半个小时再次进行一次数据爬取，爬取时接收到请求仍使用上一次储存的数据，在爬取完成后替换新的数据。替换数据的过程也要将服务状态设置为准备中。这样在编写前端逻辑时我们就可以先通过服务状态接口来进行判断是否可以获取新数据如果可以就获取当前缓存数据，否则则提示用户稍后再试。
+
+虽然我的预期如此，但是在首次进行调试的时候还是发现了问题。
+
+![1752133476018.png](https://bu.dusays.com/2025/07/10/686f6f67d2020.png)
+
+在服务器启动后优先执行了数据的爬取并没有直接启动服务，导致长达六七分钟的时间我们的任何API都没办法被请求，这是因为当前代码的执行顺序FastAPI框架必须等待数据爬取结束后才完成服务的启动。不过先不急着停止本次服务，先等待下一次自动数据更新是否成功。
+
+![1752134878048.png](https://bu.dusays.com/2025/07/10/686f74e27280f.png)
+
+可以看到在时间到了半小时的间隔之后数据的重新爬取确实是正常的触发了，但问题在于我再次请求服务端状态接口时是迟迟没有响应
+
+![1752134942432.png](https://bu.dusays.com/2025/07/10/686f7522714eb.png)
+
+我的推测是整个后端服务为单线程，在爬取数据时就会阻塞当前线程，虽然请求成功发送了，服务端也正常接收了，但只是进入了等待队列，需要等待新的数据获取完成后才会真正的返回响应，所以既没有超时也没有响应，所以我们需要将爬取数据的过程放到一个单独的线程中去执行，这样就可以避免阻塞主线程，从而保证服务端可以正常响应请求。
+
+经过了五分钟的等待，服务端终于返回了响应。
+
+![1752135416102.png](https://bu.dusays.com/2025/07/10/686f76fcac501.png)
+
+这也证实了我的猜想，当前的服务端逻辑存在严重问题，急需修正。
+
+#### 多线程解决主线程阻塞问题
+
+本次修改主要解决了**多线程阻塞问题**和**精细状态管理**两个核心问题，实现了服务启动后立即响应请求，爬虫任务在后台执行，且只有在写入数据库时才短暂设为"准备中"的优化。
+
+---
+
+**关键代码解释**
+
+- **多线程调度器改进** (`core/scheduler.py`)
+
+  **问题**: 原始实现中爬虫任务在主线程同步执行，导致服务启动时被阻塞6-7分钟。
+
+  **解决方案**: 使用 `ThreadPoolExecutor` 将爬虫任务放到独立线程中执行。
+
+  ```python
+  class TaskScheduler:
+      def __init__(self):
+          self.scheduler = AsyncIOScheduler()
+          # 新增：线程池管理爬虫任务
+          self.thread_pool = ThreadPoolExecutor(max_workers=2, thread_name_prefix="CrawlerWorker")
+          self._setup_jobs()
+
+      def _run_crawler_in_thread(self, task_name: str):
+          """在线程中执行爬虫任务"""
+          try:
+              # 执行爬取（此时状态仍为ready，可以正常响应请求）
+              crawler = OpenHarmonyCrawler()
+              articles = crawler.crawl_openharmony_news()
+
+              # 只有在写入数据库时才设置状态为准备中
+              cache.update_cache(articles)
+
+          except Exception as e:
+              cache.set_status(ServiceStatus.ERROR, str(e))
+
+      async def initial_cache_load(self):
+          """初始缓存加载（服务启动时执行）"""
+          # 在线程池中执行爬虫任务
+          future = self.thread_pool.submit(self._run_crawler_in_thread, "初始缓存加载")
+          # 不等待完成，让任务在后台执行，服务可以立即启动
+          logger.info("初始缓存加载任务已提交到后台线程，服务可以立即响应请求")
+  ```
+
+  **关键改进**:
+
+  - 使用 `ThreadPoolExecutor` 管理爬虫任务
+  - 爬虫任务在独立线程执行，不阻塞主服务线程
+  - 服务启动后立即可以响应请求
+
+---
+
+- **精细状态管理** (`core/cache.py`)
+
+  **问题**: 原始实现中爬虫开始就设为"准备中"，整个爬虫过程都无法响应请求。
+
+  **解决方案**: 只有在写入数据库时才设为"准备中"，其他时候使用数据库内容响应。
+
+  ```python
+  class NewsCache:
+      def __init__(self):
+          self._cache: List[NewsArticle] = []
+          self._cache_lock = threading.RLock()
+          self._status = ServiceStatus.READY  # 初始状态为就绪（改进前是PREPARING）
+          self._is_updating = False  # 新增：标记是否正在更新
+
+      def set_updating(self, is_updating: bool):
+          """设置更新状态"""
+          with self._cache_lock:
+              self._is_updating = is_updating
+              if is_updating:
+                  logger.info("开始数据更新，状态设为准备中")
+                  self.set_status(ServiceStatus.PREPARING)
+              else:
+                  logger.info("数据更新完成，状态设为就绪")
+                  self.set_status(ServiceStatus.READY)
+
+      def update_cache(self, news_data: List[NewsArticle]):
+          """更新缓存数据"""
+          with self._cache_lock:
+              try:
+                  # 设置更新状态为True，状态变为准备中
+                  self.set_updating(True)
+
+                  # 更新缓存
+                  self._cache = news_data.copy()
+                  self._last_update = datetime.now().isoformat()
+                  self._update_count += 1
+
+                  # 设置更新状态为False，状态变为就绪
+                  self.set_updating(False)
+
+              except Exception as e:
+                  self.set_status(ServiceStatus.ERROR, error_msg)
+                  self._is_updating = False
+                  raise
+  ```
+
+  **关键改进**:
+  - 初始状态改为 `READY`（改进前是 `PREPARING`）
+  - 添加 `_is_updating` 标记精确控制状态
+  - 通过 `set_updating()` 方法精确控制状态变化
+  - 只有在写入数据库时才设为"准备中"
+
+---
+
+- **状态信息增强** (`core/cache.py`)
+
+  ```python
+  def get_status(self) -> Dict[str, Any]:
+      """获取服务状态"""
+      with self._cache_lock:
+          return {
+              "status": self._status.value,
+              "last_update": self._last_update,
+              "cache_count": len(self._cache),
+              "update_count": self._update_count,
+              "error_message": self._error_message,
+              "is_updating": self._is_updating  # 新增：是否正在更新
+          }
+  ```
+
+  **关键改进**:
+  - 状态信息中增加 `is_updating` 字段
+  - 客户端可以精确了解当前是否正在更新数据
+
+  ---
+
+  ### 4. **测试脚本** (`test_fine_grained_status.py`)
+
+  ```python
+  def test_fine_grained_status():
+      """测试精细状态管理"""
+      # 监控状态变化
+      for i in range(20):
+          response = requests.get(f"{base_url}/api/news/status", timeout=5)
+          status_data = response.json()
+          status = status_data['status']
+          is_updating = status_data.get('is_updating', False)
+          cache_count = status_data['cache_count']
+
+          print(f"[{timestamp}] 状态: {status} | 更新中: {is_updating} | 缓存: {cache_count} 条")
+
+          # 如果状态变为ready且有数据，说明爬虫完成
+          if status == 'ready' and cache_count > 0 and not is_updating:
+              print("🎉 爬虫任务完成！")
+              break
+  ```
+
+  **关键功能**:
+  - 实时监控状态变化
+  - 验证爬虫期间仍可获取数据
+  - 测试并发请求响应
+
+---
+
+**改进效果对比**
+
+| 方面 | 改进前 | 改进后 |
+|------|--------|--------|
+| **服务启动** | 需要等待爬虫完成（6-7分钟） | 立即启动并响应请求 |
+| **爬虫执行** | 阻塞主线程，无法响应请求 | 后台线程执行，正常响应 |
+| **状态管理** | 爬虫开始就设为准备中 | 只有写入数据库时才设为准备中 |
+| **用户体验** | 等待时间长，体验差 | 即时响应，体验佳 |
+| **并发支持** | 单线程阻塞 | 多线程并发处理 |
+
+---
+
+**改进后的服务端架构**
+
+```text
+主服务线程 (FastAPI)
+    ├── 立即响应API请求
+    ├── 使用现有缓存数据
+    └── 状态管理
+    
+后台线程池 (ThreadPoolExecutor)
+    ├── 爬虫任务执行
+    ├── 数据采集和处理
+    └── 数据库写入（短暂设为准备中）
+```
+
+这次改进彻底解决了单线程阻塞问题，实现了真正的非阻塞服务架构，同时通过精细状态管理最大化服务可用性。
+
+![1752137517924.png](https://bu.dusays.com/2025/07/10/686f7f320d774.png)
+
+此时可以看到在初次启动服务后
+
+```text
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+```
+
+先于爬虫的任务日志显示，在此期间我再次请求了 `/api/news/status`，可以看到返回的状态是 `ready`，并且缓存数量为0，说明爬虫任务还未结束，当前的数据库中并没有数据。但也可以看到我再此期间进行的请求与都正常的返回了响应，但是响应内容是空的，不可利用的，所以我们还需要进行优化。
+
+对于这个问题，首先它在实际生产环境中并不常见，因为它仅会发生在服务器初次启动时，实际的生产环境中肯定**不会经常性的开关服务器**，同时Nginx的{% label **反向代理** orange %}以及{% label **均衡负载** orange %}也会保证在服务端升级维护时是多台服务器循环重启而非全部断联，也就是所谓的{% label **滚动升级** purple %}，来保障其{% label **高可用性原则** purple %}，基本不会发生以上现象。所以我们需要再次测试一下再后续的稳定运行阶段是否能在爬虫运行时保证主线程能正常的处理请求。同时我们也需要在客户端利用数据库来存储上一次加载的数据，以防止在启动时获取的数据为空或者是获取失败，这样可以极大的提高运行的稳定性。
+
+![1752139864861.png](https://bu.dusays.com/2025/07/10/686f885d1b05c.png)
+
+在写上面这段分析时刚好也等到了下一次更新，我在此期间再次请求了新闻列表接口，发现正常获取了数据，说明主子线程已经成功分离。（我才发现之前请求时少了个正斜杠……汗流浃背了）
