@@ -7,6 +7,7 @@ tags:
   - 项目
   - 技术向
 cover:  /img/ArticleTopImgs/OpenSourceSummerTopImg.png
+top: 20
 description: 开源之夏2025项目开发笔记
 typewriter: 🦋 这篇文章将会记录我的开源之夏2025项目开发笔记，记录我参与NowInOpenHarmony项目的完整历程。在这三个月的时间里，我将深入探索鸿蒙生态系统的奥秘，从初学者到贡献者的蜕变过程。我会详细记录每一次代码提交背后的思考，每一个技术难题的攻克过程，以及与导师协作的珍贵经历。从环境搭建到功能实现，从bug调试到性能优化，从技术分享到项目总结，这里将会是我技术成长轨迹的完整呈现。我相信这段开源贡献的经历不仅会提升我的编程技能和项目管理能力，更会让我深刻理解开源精神的价值所在。这将会成为我大学期间最具意义的技术实践，也是我走向更广阔技术世界的重要里程碑。
 post_copyright:
@@ -2411,8 +2412,595 @@ struct Index {
 
 当前对于换行的处理我的想法是直接按照对象进行分段就可以，这样是当前代码的逻辑，但行内代码块注定是要单独开一个对象进行存储的这样一来我们的换行逻辑就不成立了，虽然我们可以将一行的内容全部存储到一个对象数组，将文字和行内代码，之要是同一行的就都存进一个对象数组中，这样就可以保证换行的准确性了。
 
-当然这个方案固然可以解决问题，但我们还应当考虑数据的复杂度，过于复杂的数据结构是否有存在的必要，{% label “如无必要，勿增实体” red %}。我们要明白我们的目标是什么，是让用户能看清楚，能看懂。所以我们其实可以先去找到原文章的效果去看一看行内代码的效果是不是那么重要。
+当然这个方案固然可以解决问题，但我们还应当考虑数据的复杂度，过于复杂的数据结构是否有存在的必要，{% label “如无必要，勿增实体” red %}，这个彩色是外挂标签，但这也可以看做是换了个颜色的行内代码块，这本质上没什么区别，二者外观以及功能性都是相同的，这就够了。我们要明白我们的目标是什么，是让用户能看清楚，能看懂。所以我们其实可以先去找到原文章的效果去看一看行内代码的效果是不是那么重要。
 
 ![6](OpenSourceSummer2025/6.png)
 
 这一段，有一说一，其实我在仔细看代码之前从来没有意识到过这是一个经过渲染的行内代码块，仅仅是将其当做了字体不一致的文本而已。虽然仔细看是有一圈淡淡的灰色，但对于浏览文本内容来讲并无任何区别。所以我们暂时不考虑行内代码的渲染，而是先考虑如何渲染文本。
+
+我选择先忽略掉`<code>`标签，直接通过上下级关系来去将`<code>`标签的文字内容与前后文串联起来即可。
+
+```py
+    def crawl_article_detail(self, driver, url):
+        """爬取CSDN博文详情页，提取正文内容、作者、时间等"""
+        result = {
+            "date": None,
+            "author": {},
+            "content": []
+        }
+        try:
+            driver.get(url)
+            time.sleep(self.delay + random.random())
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+            # 正文内容
+            content_blocks = []
+            content_container = soup.find(id="content_views")
+            if content_container:
+                def append_text(text):
+                    if not text:
+                        return
+                    if content_blocks and content_blocks[-1]["type"] == "text":
+                        content_blocks[-1]["value"] += text
+                    else:
+                        content_blocks.append({"type": "text", "value": text})
+
+                # 块级元素，每个生成一行
+                for elem in content_container.find_all(["p", "li", "h1", "h2", "h3", "h4", "h5", "h6", "div"], recursive=True):
+                    # 跳过空div
+                    if elem.name == "div" and not elem.get_text(strip=True):
+                        continue
+                    # 处理图片
+                    imgs = elem.find_all("img")
+                    for img in imgs:
+                        img_src = img.get("src")
+                        if img_src:
+                            content_blocks.append({"type": "image", "value": img_src})
+                    # 处理文本（包括code/strong等标签内容）
+                    text = elem.get_text(separator="", strip=True)
+                    if text:
+                        content_blocks.append({"type": "text", "value": text})
+                # 处理pre代码块
+                for pre in content_container.find_all("pre", recursive=True):
+                    code_lines = []
+                    for code_div in pre.select("div.hljs-ln-code, code"):
+                        code_line = code_div.get_text("\n", strip=False)
+                        code_lines.append(code_line)
+                    if not code_lines:
+                        code_lines = [pre.get_text("\n", strip=False)]
+                    code_text = "".join(code_lines)
+                    lang = ""
+                    code_tag = pre.find("code")
+                    if code_tag and code_tag.has_attr("class"):
+                        for c in code_tag["class"]:
+                            if c.startswith("language-"):
+                                lang = c.replace("language-", "")
+                                break
+                    md_code = f"```{lang}\n{code_text}\n```"
+                    content_blocks.append({"type": "code", "value": md_code})
+            result["content"] = content_blocks
+            # 作者信息
+            author_box = soup.select_one("a.profile-href")
+            if author_box:
+                author_name = author_box.select_one("span.profile-name")
+                author_img = author_box.select_one("img.profile-img")
+                result["author"] = {
+                    "name": author_name.get_text(strip=True) if author_name else None,
+                    "avatar": author_img.get("src") if author_img else None,
+                    "homepage": author_box.get("href")
+                }
+            # 发布时间
+            # 常见位置：meta、时间标签、正文上方
+            date_str = None
+            meta_time = soup.find("meta", {"itemprop": "datePublished"})
+            if meta_time and meta_time.get("content"):
+                date_str = meta_time["content"]
+            if not date_str:
+                # 备选方案：查找常见时间标签
+                time_tag = soup.find("span", class_="time") or soup.find("span", class_="publish-time")
+                if time_tag:
+                    date_str = time_tag.get_text(strip=True)
+            result["date"] = date_str
+        except Exception as e:
+            print(f"详情页解析失败: {url}, 错误: {e}")
+        return result
+```
+
+再次进行测试。
+
+![7](OpenSourceSummer2025/7.png)
+
+可以看到，我们的行内代码被成功的忽视并拼接到了前后的文本中，而不是被单独提取出来。
+
+但与此同时新的问题又浮现了出来。我们获取的数据中有重复的内容，这很可能是扫描了父级组件之后，又扫描了子组件，导致重复。我们需要在扫描子组件之前，先检查是否已经扫描过该组件，如果是，则跳过。
+
+```py
+processed_elements = set()
+
+def is_child_of_processed(elem):
+    """检查元素是否是已处理元素的子元素"""
+    for parent in elem.parents:
+        if parent in processed_elements:
+            return True
+    return False
+```
+
+我们新增一个集合用于存储已经存储过得元素，在获取组件文本内容之前我们要先去验证是否为已经处理过的元素的子组件，这样一来我们就可以避免重复扫描导致的重复内容。
+
+在代码全部修改完成后我们从新测试。
+
+```py
+def crawl_article_detail(self, driver, url):
+    """爬取CSDN博文详情页，提取正文内容、作者、时间等"""
+    result = {
+        "date": None,
+        "author": {},
+        "content": []
+    }
+    try:
+        driver.get(url)
+        time.sleep(self.delay + random.random())
+        soup = BeautifulSoup(driver.page_source, "html.parser")
+        # 正文内容
+        content_blocks = []
+        content_container = soup.find(id="content_views")
+        if content_container:
+            processed_elements = set()
+            
+            def is_child_of_processed(elem):
+                """检查元素是否是已处理元素的子元素"""
+                for parent in elem.parents:
+                    if parent in processed_elements:
+                        return True
+                return Fals
+            # 块级元素，每个生成一行，避免重复处理父子元素
+            for elem in content_container.find_all(["p", "li", "h1", "h2", "h3", "h4", "h5", "h6", "div"], recursive=True):
+                # 跳过空div
+                if elem.name == "div" and not elem.get_text(strip=True):
+                    continue
+                # 跳过已处理元素的子元素
+                if is_child_of_processed(elem):
+                    continue
+                # 处理图片
+                imgs = elem.find_all("img")
+                for img in imgs:
+                    img_src = img.get("src")
+                    if img_src:
+                        content_blocks.append({"type": "image", "value": img_src})
+                # 处理文本（包括code/strong等标签内容）
+                text = elem.get_text(separator="", strip=True)
+                if text:
+                    content_blocks.append({"type": "text", "value": text})
+                    processed_elements.add(elem)
+            # 处理pre代码块
+            for pre in content_container.find_all("pre", recursive=True):
+                # 跳过已被文本处理过的pre
+                if pre in processed_elements:
+                    continue
+                code_lines = []
+                for code_div in pre.select("div.hljs-ln-code, code"):
+                    code_line = code_div.get_text("\n", strip=False)
+                    code_lines.append(code_line)
+                if not code_lines:
+                    code_lines = [pre.get_text("\n", strip=False)]
+                code_text = "".join(code_lines)
+                lang = ""
+                code_tag = pre.find("code")
+                if code_tag and code_tag.has_attr("class"):
+                    for c in code_tag["class"]:
+                        if c.startswith("language-"):
+                            lang = c.replace("language-", "")
+                            break
+                md_code = f"```{lang}\n{code_text}\n```"
+                content_blocks.append({"type": "code", "value": md_code})
+        result["content"] = content_blocks
+        # 作者信息
+        author_box = soup.select_one("a.profile-href")
+        if author_box:
+            author_name = author_box.select_one("span.profile-name")
+            author_img = author_box.select_one("img.profile-img")
+            result["author"] = {
+                "name": author_name.get_text(strip=True) if author_name else None,
+                "avatar": author_img.get("src") if author_img else None,
+                "homepage": author_box.get("href")
+            }
+        # 发布时间
+        # 常见位置：meta、时间标签、正文上方
+        date_str = None
+        meta_time = soup.find("meta", {"itemprop": "datePublished"})
+        if meta_time and meta_time.get("content"):
+            date_str = meta_time["content"]
+        if not date_str:
+            # 备选方案：查找常见时间标签
+            time_tag = soup.find("span", class_="time") or soup.find("span", class_="publish-time")
+            if time_tag:
+                date_str = time_tag.get_text(strip=True)
+        result["date"] = date_str
+    except Exception as e:
+        print(f"详情页解析失败: {url}, 错误: {e}")
+    return result
+```
+
+![8](OpenSourceSummer2025/8.png)
+
+顺利的去除的重复，那么对于CSDN内容的爬取就算成功了，接下来就该去解决搜索关键词有限导致爬取目标内容不足的问题了。
+
+#### CSDN资源数量问题
+
+由于当前整体的爬虫进度就很慢了，所以我决定使用一个新的线程去获取数据，随后再将两个线程的数据按时间顺讯进行合并。
+
+---
+
+**多线程执行逻辑分析**
+
+现在让我详细分析我们的多线程爬虫实现：
+
+1. 线程配置与URL设计
+
+```python
+urls_and_keywords = [
+    {
+        "url": "https://so.csdn.net/so/search?spm=1000.2115.3001.4501&q=openHarmony&t=&u=&s=new",
+        "keyword": "openHarmony"
+    },
+    {
+        "url": "https://so.csdn.net/so/search?spm=1000.2115.3001.4501&q=%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99&t=all&u=&s=new&urw=",
+        "keyword": "开源鸿蒙"
+    }
+]
+```
+
+我们设计了两个搜索关键词：
+- **openHarmony**：英文关键词，覆盖技术文档和开发相关内容
+- **开源鸿蒙**：中文关键词，覆盖更多中文社区讨论和应用案例
+
+这样的设计可以最大化内容覆盖范围，避免单一关键词导致的内容不足问题。
+
+2. 线程工作函数设计
+
+```python
+    def crawl_worker(search_config, result_list):
+        """线程工作函数"""
+        crawler = CSDNOpenHarmonyCrawler()
+        articles = crawler.crawl(search_config["url"], search_config["keyword"])
+        result_list.append(articles)
+```
+
+每个线程独立创建爬虫实例，避免共享状态冲突。通过 `result_list` 收集各线程结果。
+
+3. 时间排序与合并逻辑
+
+关键在于我们的日期解析函数，使用正则表达式处理多种日期格式：
+
+```python
+    @staticmethod
+    def merge_and_sort_articles(articles_list):
+        """合并多个文章列表并按日期排序"""
+        merged_articles = []
+        for articles in articles_list:
+            merged_articles.extend(articles)
+        
+        # 为每篇文章添加排序用的日期对象
+        for article in merged_articles:
+            article['_sort_date'] = CSDNOpenHarmonyCrawler.extract_date_from_string(article.get('date'))
+        
+        # 按日期排序（最新的在前）
+        merged_articles.sort(key=lambda x: x['_sort_date'] or datetime.min, reverse=True)
+        
+        # 移除临时排序字段
+        for article in merged_articles:
+            article.pop('_sort_date', None)
+        
+        return merged_articles
+```
+
+这个函数能够处理CSDN可能出现的各种日期格式，确保排序的准确性。
+
+4. 完整的多线程执行流程
+
+```python
+def crawl_with_threading():
+    """使用多线程爬取两个不同关键词的内容"""
+    # 定义两个搜索URL
+    urls_and_keywords = [
+        {
+            "url": "https://so.csdn.net/so/search?spm=1000.2115.3001.4501&q=openHarmony&t=&u=&s=new",
+            "keyword": "openHarmony"
+        },
+        {
+            "url": "https://so.csdn.net/so/search?spm=1000.2115.3001.4501&q=%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99&t=all&u=&s=new&urw=",
+            "keyword": "开源鸿蒙"
+        }
+    ]
+    
+    # 存储每个线程的结果
+    results = []
+    threads = []
+    
+    def crawl_worker(search_config, result_list):
+        """线程工作函数"""
+        crawler = CSDNOpenHarmonyCrawler()
+        articles = crawler.crawl(search_config["url"], search_config["keyword"])
+        result_list.append(articles)
+    
+    # 创建并启动线程
+    for config in urls_and_keywords:
+        thread_result = []
+        thread = threading.Thread(target=crawl_worker, args=(config, thread_result))
+        threads.append(thread)
+        results.append(thread_result)
+        thread.start()
+    
+    # 等待所有线程完成
+    for thread in threads:
+        thread.join()
+    
+    # 收集所有结果
+    all_articles = []
+    for thread_result in results:
+        if thread_result:  # thread_result是列表，包含一个articles列表
+            all_articles.extend(thread_result[0])
+    
+    print(f"\n=== 所有线程完成，开始合并结果 ===")
+    print(f"总共获取到 {len(all_articles)} 篇文章")
+    
+    # 合并并按时间排序
+    sorted_articles = CSDNOpenHarmonyCrawler.merge_and_sort_articles([all_articles])
+    
+    print(f"按时间排序完成，共 {len(sorted_articles)} 篇文章")
+    
+    return sorted_articles
+```
+
+ok，开始测试。
+
+![9](OpenSourceSummer2025/9.png)
+
+可以看到，我们的两个线程在同时获取最新的数据。不过Python的多线程其实属于是"假多线程"。
+
+- 全局解释器锁（GIL）的限制
+
+Python中存在一个叫做**全局解释器锁（Global Interpreter Lock，GIL）**的机制，这是CPython解释器的一个特性。GIL确保在任何时刻只有一个线程在执行Python字节码，这意味着：
+
+1. **CPU密集型任务**：多线程并不能真正并行执行，反而可能因为线程切换的开销而变得更慢
+2. **真正的并发**：只有在遇到I/O操作（如网络请求、文件读写）时，GIL才会被释放，允许其他线程执行
+
+- 为什么我们的爬虫仍然有效？
+
+虽然Python有GIL限制，但我们的CSDN爬虫仍然能从多线程中受益，原因如下：
+
+```python
+# 在我们的爬虫中，大部分时间都花在I/O操作上：
+driver.get(search_url)              # 网络请求 - 释放GIL
+time.sleep(self.delay + random.random())  # 睡眠等待 - 释放GIL
+soup = BeautifulSoup(driver.page_source, "html.parser")  # CPU操作 - 持有GIL
+driver.get(article_url)             # 网络请求 - 释放GIL
+```
+
+**关键点**：当线程A在等待网页加载时（I/O阻塞），GIL被释放，线程B可以开始执行自己的网络请求。这样两个爬虫线程实际上是在**交替执行**，而不是真正的**并行执行**。
+
+- GIL的工作机制
+
+```python
+# 伪代码展示GIL的工作方式
+def thread_execution_with_gil():
+    # 线程A获得GIL
+    thread_a_acquires_gil()
+    
+    # 线程A执行CPU操作
+    parse_html()  # 持有GIL
+    
+    # 线程A遇到I/O操作
+    make_network_request()  # 释放GIL，进入等待状态
+    
+    # 此时线程B可以获得GIL
+    thread_b_acquires_gil()
+    
+    # 线程B执行自己的操作
+    thread_b_parse_html()  # 持有GIL
+    thread_b_make_request()  # 释放GIL
+    
+    # 当线程A的网络请求完成时，重新竞争GIL
+    thread_a_network_response_received()
+    # ... 循环往复
+```
+
+- 真正的并行替代方案
+
+如果需要真正的并行处理，Python提供了几种替代方案：
+
+{% tabs test4 %}
+<!-- tab 多进程（multiprocessing） -->
+
+```python
+from multiprocessing import Process, Queue
+
+def crawl_with_multiprocessing():
+    """使用多进程实现真正的并行爬取"""
+    queue = Queue()
+    
+    def crawl_process(search_config, result_queue):
+        crawler = CSDNOpenHarmonyCrawler()
+        articles = crawler.crawl(search_config["url"], search_config["keyword"])
+        result_queue.put(articles)
+    
+    processes = []
+    for config in urls_and_keywords:
+        p = Process(target=crawl_process, args=(config, queue))
+        processes.append(p)
+        p.start()
+    
+    # 等待所有进程完成
+    results = []
+    for p in processes:
+        results.append(queue.get())
+        p.join()
+    
+    return results
+```
+<!-- endtab -->
+
+<!-- tab 异步编程（asyncio） -->
+
+```python
+import asyncio
+import aiohttp
+
+async def async_crawl():
+    """使用异步编程实现高并发爬取"""
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        for config in urls_and_keywords:
+            task = crawl_async(session, config)
+            tasks.append(task)
+        
+        results = await asyncio.gather(*tasks)
+        return results
+```
+
+<!-- endtab -->
+{% endtabs %}
+
+- 为什么我们选择多线程？
+
+尽管存在GIL限制，我们仍然选择多线程的原因：
+
+1. **简单性**：实现简单，无需额外的进程间通信
+2. **资源效率**：比多进程消耗更少的系统资源
+3. **I/O密集特性**：我们的爬虫主要受网络I/O限制，多线程已经足够
+4. **Selenium兼容性**：Selenium WebDriver在多线程环境下工作良好
+
+Python的多线程确实受到GIL的限制，无法实现真正的CPU并行。但对于我们这种I/O密集型的网络爬虫任务，多线程仍然能够带来显著的性能提升。GIL在遇到I/O操作时会释放，允许其他线程执行，这正是我们的爬虫能够受益的原因。
+
+如果未来需要处理更加CPU密集的任务（如大量的数据处理、图像处理等），那么考虑使用多进程或异步编程会是更好的选择。但对于当前的需求，多线程已经是一个既简单又有效的解决方案。
+
+okay，回归正题，写这段的时候我们的爬虫也完成了工作让我们来看看结果。
+
+额上面的看起来都没什么问题，但是下面的几条看起来就有点怪了。
+
+```js
+  {
+    "title": "沸腾了！华为开源鸿蒙OS2.0！安卓会被淘汰吗？",
+    "url": "https://blog.csdn.net/weixin_39016100/article/details/108525946?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522cb9ab9f418f13100393baa0c8eb1aaa0%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&request_id=cb9ab9f418f13100393baa0c8eb1aaa0&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~time_text~default-29-108525946-null-null.142^v102^pc_search_result_base4&utm_term=%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99",
+    "summary": "点击上方“Github中文社区”，关注看遍Github好玩的项目大家好，我是hub哥今天鸿蒙OS开源代码公开了！！！没错！今天在华为开发者大会上，也是从9月10日起，HarmonyOS开...",
+    "search_keyword": "开源鸿蒙",
+    "date": "于 2020-09-10 20:15:41 发布",
+    "author": {
+      "name": "Github中文社区",
+      "avatar": "https://profile-avatar.csdnimg.cn/5af19c4ff58e436d83205022d2ad1234_weixin_39016100.jpg!1",
+      "homepage": "https://blog.csdn.net/weixin_39016100"
+    },
+    "content": [
+      {
+        "type": "image",
+        "value": "https://i-blog.csdnimg.cn/blog_migrate/370744e1190c99c8de088f5b7a706e3c.png"
+      },
+      {
+        "type": "image",
+        "value": "https://i-blog.csdnimg.cn/blog_migrate/fe866ad2d04f269afd112092719e594f.png"
+      },
+      {
+        "type": "image",
+        "value": "https://i-blog.csdnimg.cn/blog_migrate/609f5a565db9efa9d929c79438025217.png"
+      },
+      {
+        "type": "image",
+        "value": "https://i-blog.csdnimg.cn/blog_migrate/fb9beec5cebedf3597eacb9b1a5d0a08.png"
+      },
+      {
+        "type": "image",
+        "value": "https://i-blog.csdnimg.cn/blog_migrate/bc34bc591bd1668a15424f268781cca7.png"
+      },
+      {
+        "type": "image",
+        "value": "https://i-blog.csdnimg.cn/blog_migrate/6b2793d9781a11e15943eb9bb303119b.png"
+      },
+      {
+        "type": "image",
+        "value": "https://i-blog.csdnimg.cn/blog_migrate/6e72c3f532a58018ff9163342840315f.gif"
+      },
+      {
+        "type": "image",
+        "value": "https://csdnimg.cn/release/blogv2/dist/pc/img/runCode/icon-arrowwhite.png"
+      },
+      {
+        "type": "text",
+        "value": "点击上方“Github中文社区”，关注看遍Github好玩的项目大家好，我是hub哥今天鸿蒙OS开源代码公开了！！！没错！今天在华为开发者大会上，也是从9月10日起，HarmonyOS开源代码公开了！项目仓库已经可以看了, 目前关注2.5k。鸿蒙OSOpenHarmony是开放原子开源基金会（OpenAtom Foundation）旗下开源项目，定位是一款面向全场景的开源分布式操作系统。其实在2019年 8月9日，华为鸿蒙1.0 ，OS揭开了面纱。2019年的在华为开发者大会上, 华为首款搭载鸿蒙OS终端正式亮相！荣耀智慧屏-首款搭载华为鸿蒙系统的荣耀智慧屏 系列8月10日震撼发布今天的大会上，余承东宣布，华为鸿蒙系统已经升级至2.0版本，即HarmonyOS 2.0。此次HarmonyOS的升级，不仅仅带来了分布式能力的全面提升，还为开发者提供了完整的分布式设备与应用开发生态，全面赋能全场景智慧生态。HarmonyOS主要包含如下系统:余承东讲话得到几点信息：从今天起将面向程序员提供大屏、手表、车机的鸿蒙OS2.0的beta版本今年12月份将提供鸿蒙2.0的beta版本2021年4月将面向内存128MB-4GB终端设备开源2021年10月以后将面向4GB以上所有设备开源明年起，华为智能手机将升级支持鸿蒙2.0一些总结在鸿蒙 OS 上，他们可以用一套代码开发出兼容多终端的软件，鸿蒙 OS 能做到自动适配。对开发者来说，所有设备都同一个系统，交互更好、学习成本更低，体验更加统一。如果明年4月 搭载鸿蒙OS的手机发布，并推动手机应用开发者加入，那么配合新的开发语言，又将提供一大批岗位，其实利好开发者！大厂需要华为生态渠道，客户端岗位需求会激增。和安卓系统形成竞对的局面，从而促使android提高体验和优化性能，避免以后收费。传送门鸿蒙官网：https://www.harmonyos.com开源项目官网：https://www.openatom.org/openharmony开源代码仓库：https://openharmony.gitee.com华为开发者联盟论坛：https://developer.huawei.com/consumer投票环节最后大家来投个票吧OK！到这就是这期分享如果觉得文章有意思，请点赞在看，分享。历史原创★ 程序员大佬女装登顶GitHub 热榜，太变态了！还以为逛 PornHub呢！★18禁警告！这个工具教你涂鸦画丁丁，数据还开源了★ 强！这个GitHub官方终端命令行工具！星标10K！真是让人相见恨晚啊★ 模糊妹子图变超清！这个神器能让模糊图秒变4K高清，瞬间觉得PS也没那么香了文稿征集令来啦！点个在看呗！AI生成项目php运行"
+      },
+      {
+        "type": "code",
+        "value": "```php\nOK！到这就是这期分享\n \n \n如果觉得文章有意思，请点赞在看，分享。\n \n \n \n历史原创\n \n★ 程序员大佬女装登顶GitHub 热榜，太变态了！还以为逛 PornHub呢！★ \n18\n 禁警告！这个工具教你涂鸦画丁丁，数据还开源了★ 强！这个GitHub官方终端命令行工具！星标\n10\nK！真是让人相见恨晚啊★ 模糊妹子图变超清！这个神器能让模糊图秒变\n4\nK高清，瞬间觉得PS也没那么香了\n \n \n \n文稿征集令来啦！ \n \n \n点个在看呗！OK！到这就是这期分享  如果觉得文章有意思，请点赞在看，分享。   历史原创 ★ 程序员大佬女装登顶GitHub 热榜，太变态了！还以为逛 PornHub呢！★ \n18\n 禁警告！这个工具教你涂鸦画丁丁，数据还开源了★ 强！这个GitHub官方终端命令行工具！星标\n10\nK！真是让人相见恨晚啊★ 模糊妹子图变超清！这个神器能让模糊图秒变\n4\nK高清，瞬间觉得PS也没那么香了   文稿征集令来啦！   点个在看呗！\n```"
+      }
+    ]
+  },
+  {
+    "title": "1.OpenHarmony",
+    "url": "http://ask.csdn.net/new?word=openHarmony",
+    "summary": "OpenHarmonyOpenHarmony是开放原子开源基金会（OpenAtom Foundation）旗下开源项目，定位是一款面向全场景的开源分布式操作系统，第一个版本支持128K-128M设备上运行。 https://openharmony.gitee.comOpenHarmony...",
+    "search_keyword": "openHarmony",
+    "date": null,
+    "author": {},
+    "content": []
+  },
+  {
+    "title": "智启未来 | 拓维信息携旗下开鸿智谷受邀参加开源鸿蒙开发者大会2025",
+    "url": "https://blog.csdn.net/u011945431/article/details/148261304?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522cb9ab9f418f13100393baa0c8eb1aaa0%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&request_id=cb9ab9f418f13100393baa0c8eb1aaa0&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~time_text~default-5-148261304-null-null.142^v102^pc_search_result_base4&utm_term=%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99",
+    "summary": "大会期间，拓维信息旗下开鸿智谷基于开源鸿蒙研发的在鸿OS、在鸿控制器、在鸿实验箱、在鸿行业PC、在鸿平板和在鸿智慧园区场景等软硬件创新产品及数智化解决方案悉数亮相，吸引了大量开发者和生态客户关注。...",
+    "search_keyword": "开源鸿蒙",
+    "date": null,
+    "author": {},
+    "content": []
+  },
+  {
+    "title": "开源鸿蒙开发者大会2025交流区亮点纷呈，社区与生态伙伴共绘智能图景",
+    "url": "https://blog.csdn.net/u011945431/article/details/148260001?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522cb9ab9f418f13100393baa0c8eb1aaa0%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&request_id=cb9ab9f418f13100393baa0c8eb1aaa0&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~time_text~default-6-148260001-null-null.142^v102^pc_search_result_base4&utm_term=%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99",
+    "summary": "值得一提的是，本次大会的专题交流区首次展出了有关开源鸿蒙SIG 地图、开源鸿蒙Web SIG及W3C标准、统一互联PMC（筹）地图等丰富的信息，以及第二届中国研究生操作系统开源创新大赛开源鸿蒙赛道、开源鸿蒙人才生态...",
+    "search_keyword": "开源鸿蒙",
+    "date": null,
+    "author": {},
+    "content": []
+  },
+  {
+    "title": "深开鸿联合中软国际、粤科金融集团发布国内首个开源鸿蒙创业投资基金",
+    "url": "https://blog.csdn.net/luluningmeng1/article/details/142638398?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522cb9ab9f418f13100393baa0c8eb1aaa0%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&request_id=cb9ab9f418f13100393baa0c8eb1aaa0&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~time_text~default-12-142638398-null-null.142^v102^pc_search_result_base4&utm_term=%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99",
+    "summary": "该基金不仅将为开源鸿蒙初创企业提供早期资本支持，还将通过与地方政府、企业、高校的合作，推动更多地区的创新创业项目落地，助力区域人才和产业生态的繁荣。韦家燊表示，未来深开鸿将在全国范围内推广“服务+资本...",
+    "search_keyword": "开源鸿蒙",
+    "date": null,
+    "author": {},
+    "content": []
+  },
+  {
+    "title": "深开鸿联合深天使发布国内首个开源鸿蒙产业加速营",
+    "url": "https://blog.csdn.net/luluningmeng1/article/details/142638371?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522cb9ab9f418f13100393baa0c8eb1aaa0%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&request_id=cb9ab9f418f13100393baa0c8eb1aaa0&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~time_text~default-13-142638371-null-null.142^v102^pc_search_result_base4&utm_term=%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99",
+    "summary": "深天使开源鸿蒙产业加速营携手深开鸿及其生态合作伙伴，以“K计划”为抓手，在开源鸿蒙初创项目和企业中挖掘重点培育对象，进行深度孵化与激发潜能，助力这些团队和企业的快速成长。国内首个开源鸿蒙产业加速营发布...",
+    "search_keyword": "开源鸿蒙",
+    "date": null,
+    "author": {},
+    "content": []
+  },
+  {
+    "title": "深开鸿与深信息联合成立开源鸿蒙高等工程师学院",
+    "url": "https://blog.csdn.net/u011945431/article/details/130057959?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522cb9ab9f418f13100393baa0c8eb1aaa0%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&request_id=cb9ab9f418f13100393baa0c8eb1aaa0&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~time_text~default-25-130057959-null-null.142^v102^pc_search_result_base4&utm_term=%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99",
+    "summary": "4月8日，在深圳信息职业技术学院（简称：深信息）与华为联合举办的“培养复合型数字人才，释放数字生产力”数字人才培养高峰论坛上，深开鸿与深信息联合成立“开源鸿蒙高等工程师学院”，旨在建设开源鸿蒙人才培养...",
+    "search_keyword": "开源鸿蒙",
+    "date": null,
+    "author": {},
+    "content": []
+  },
+  {
+    "title": "华为开源操作系统鸿蒙开源地址链接",
+    "url": "http://ask.csdn.net/new?word=%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99",
+    "summary": "华为开源操作系统鸿蒙开源地址链接:  华为开发资源:https://developer.huaweicloud.com/  华为终端开发者论坛:https://developer.huawei.com/consumer/cn/forumupgrading  华为系统liteOS老地址：...",
+    "search_keyword": "开源鸿蒙",
+    "date": null,
+    "author": {},
+    "content": []
+  }
+```
+
+首先是"沸腾了！华为开源鸿蒙OS2.0！安卓会被淘汰吗？"这篇文章的文章内容顺序乱了，原文中的文本是穿插在图中间的而且比较靠前，爬取后就到后面了，暂时不清楚是什么原因。
+
+![10](OpenSourceSummer2025/10.png)
+
+还有就是后面这几篇都404了，可能是原作者删除了文章吧，明天得再加个404的检测机制。今天先这样了，累了累了。
+
+---

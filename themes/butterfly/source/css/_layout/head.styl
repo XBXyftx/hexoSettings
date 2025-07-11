@@ -286,7 +286,7 @@
 
 #nav
   position: absolute
-  top: 10px
+  top: 15px
   z-index: 90
   display: flex
   align-items: center
@@ -298,6 +298,7 @@
   transition: all .5s
 
   +maxWidth768()
+    top: 25px
     padding: 0 16px
 
   &.show
@@ -313,6 +314,9 @@
       height: 36px
       vertical-align: middle
       margin-top: 6px
+      +maxWidth768()
+        margin-top: 12px
+        top: 30px
 
     .nav-page-title
       display: none
