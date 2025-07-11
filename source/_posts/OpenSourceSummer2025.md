@@ -2636,120 +2636,120 @@ def crawl_article_detail(self, driver, url):
 
 1. 线程配置与URL设计
 
-```python
-urls_and_keywords = [
-    {
-        "url": "https://so.csdn.net/so/search?spm=1000.2115.3001.4501&q=openHarmony&t=&u=&s=new",
-        "keyword": "openHarmony"
-    },
-    {
-        "url": "https://so.csdn.net/so/search?spm=1000.2115.3001.4501&q=%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99&t=all&u=&s=new&urw=",
-        "keyword": "开源鸿蒙"
-    }
-]
-```
+  ```python
+  urls_and_keywords = [
+      {
+          "url": "https://so.csdn.net/so/search?spm=1000.2115.3001.4501&q=openHarmony&t=&u=&s=new",
+          "keyword": "openHarmony"
+      },
+      {
+          "url": "https://so.csdn.net/so/search?spm=1000.2115.3001.4501&q=%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99&t=all&u=&s=new&urw=",
+          "keyword": "开源鸿蒙"
+      }
+  ]
+  ```
 
-我们设计了两个搜索关键词：
-- **openHarmony**：英文关键词，覆盖技术文档和开发相关内容
-- **开源鸿蒙**：中文关键词，覆盖更多中文社区讨论和应用案例
+  我们设计了两个搜索关键词：
+  - **openHarmony**：英文关键词，覆盖技术文档和开发相关内容
+  - **开源鸿蒙**：中文关键词，覆盖更多中文社区讨论和应用案例
 
-这样的设计可以最大化内容覆盖范围，避免单一关键词导致的内容不足问题。
+  这样的设计可以最大化内容覆盖范围，避免单一关键词导致的内容不足问题。
 
 2. 线程工作函数设计
 
-```python
-    def crawl_worker(search_config, result_list):
-        """线程工作函数"""
-        crawler = CSDNOpenHarmonyCrawler()
-        articles = crawler.crawl(search_config["url"], search_config["keyword"])
-        result_list.append(articles)
-```
+  ```python
+      def crawl_worker(search_config, result_list):
+          """线程工作函数"""
+          crawler = CSDNOpenHarmonyCrawler()
+          articles = crawler.crawl(search_config["url"], search_config["keyword"])
+          result_list.append(articles)
+  ```
 
-每个线程独立创建爬虫实例，避免共享状态冲突。通过 `result_list` 收集各线程结果。
+  每个线程独立创建爬虫实例，避免共享状态冲突。通过 `result_list` 收集各线程结果。
 
 3. 时间排序与合并逻辑
 
-关键在于我们的日期解析函数，使用正则表达式处理多种日期格式：
+  关键在于我们的日期解析函数，使用正则表达式处理多种日期格式：
 
-```python
-    @staticmethod
-    def merge_and_sort_articles(articles_list):
-        """合并多个文章列表并按日期排序"""
-        merged_articles = []
-        for articles in articles_list:
-            merged_articles.extend(articles)
-        
-        # 为每篇文章添加排序用的日期对象
-        for article in merged_articles:
-            article['_sort_date'] = CSDNOpenHarmonyCrawler.extract_date_from_string(article.get('date'))
-        
-        # 按日期排序（最新的在前）
-        merged_articles.sort(key=lambda x: x['_sort_date'] or datetime.min, reverse=True)
-        
-        # 移除临时排序字段
-        for article in merged_articles:
-            article.pop('_sort_date', None)
-        
-        return merged_articles
-```
+  ```python
+      @staticmethod
+      def merge_and_sort_articles(articles_list):
+          """合并多个文章列表并按日期排序"""
+          merged_articles = []
+          for articles in articles_list:
+              merged_articles.extend(articles)
 
-这个函数能够处理CSDN可能出现的各种日期格式，确保排序的准确性。
+          # 为每篇文章添加排序用的日期对象
+          for article in merged_articles:
+              article['_sort_date'] = CSDNOpenHarmonyCrawler.extract_date_from_string(article.get('date'))
+
+          # 按日期排序（最新的在前）
+          merged_articles.sort(key=lambda x: x['_sort_date'] or datetime.min, reverse=True)
+
+          # 移除临时排序字段
+          for article in merged_articles:
+              article.pop('_sort_date', None)
+
+          return merged_articles
+  ```
+
+  这个函数能够处理CSDN可能出现的各种日期格式，确保排序的准确性。
 
 4. 完整的多线程执行流程
-
-```python
-def crawl_with_threading():
-    """使用多线程爬取两个不同关键词的内容"""
-    # 定义两个搜索URL
-    urls_and_keywords = [
-        {
-            "url": "https://so.csdn.net/so/search?spm=1000.2115.3001.4501&q=openHarmony&t=&u=&s=new",
-            "keyword": "openHarmony"
-        },
-        {
-            "url": "https://so.csdn.net/so/search?spm=1000.2115.3001.4501&q=%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99&t=all&u=&s=new&urw=",
-            "keyword": "开源鸿蒙"
-        }
-    ]
-    
-    # 存储每个线程的结果
-    results = []
-    threads = []
-    
-    def crawl_worker(search_config, result_list):
-        """线程工作函数"""
-        crawler = CSDNOpenHarmonyCrawler()
-        articles = crawler.crawl(search_config["url"], search_config["keyword"])
-        result_list.append(articles)
-    
-    # 创建并启动线程
-    for config in urls_and_keywords:
-        thread_result = []
-        thread = threading.Thread(target=crawl_worker, args=(config, thread_result))
-        threads.append(thread)
-        results.append(thread_result)
-        thread.start()
-    
-    # 等待所有线程完成
-    for thread in threads:
-        thread.join()
-    
-    # 收集所有结果
-    all_articles = []
-    for thread_result in results:
-        if thread_result:  # thread_result是列表，包含一个articles列表
-            all_articles.extend(thread_result[0])
-    
-    print(f"\n=== 所有线程完成，开始合并结果 ===")
-    print(f"总共获取到 {len(all_articles)} 篇文章")
-    
-    # 合并并按时间排序
-    sorted_articles = CSDNOpenHarmonyCrawler.merge_and_sort_articles([all_articles])
-    
-    print(f"按时间排序完成，共 {len(sorted_articles)} 篇文章")
-    
-    return sorted_articles
-```
+  
+  ```python
+  def crawl_with_threading():
+      """使用多线程爬取两个不同关键词的内容"""
+      # 定义两个搜索URL
+      urls_and_keywords = [
+          {
+              "url": "https://so.csdn.net/so/search?spm=1000.2115.3001.4501&q=openHarmony&t=&u=&s=new",
+              "keyword": "openHarmony"
+          },
+          {
+              "url": "https://so.csdn.net/so/search?spm=1000.2115.3001.4501&q=%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99&t=all&u=&s=new&urw=",
+              "keyword": "开源鸿蒙"
+          }
+      ]
+      
+      # 存储每个线程的结果
+      results = []
+      threads = []
+      
+      def crawl_worker(search_config, result_list):
+          """线程工作函数"""
+          crawler = CSDNOpenHarmonyCrawler()
+          articles = crawler.crawl(search_config["url"], search_config["keyword"])
+          result_list.append(articles)
+      
+      # 创建并启动线程
+      for config in urls_and_keywords:
+          thread_result = []
+          thread = threading.Thread(target=crawl_worker, args=(config, thread_result))
+          threads.append(thread)
+          results.append(thread_result)
+          thread.start()
+      
+      # 等待所有线程完成
+      for thread in threads:
+          thread.join()
+      
+      # 收集所有结果
+      all_articles = []
+      for thread_result in results:
+          if thread_result:  # thread_result是列表，包含一个articles列表
+              all_articles.extend(thread_result[0])
+      
+      print(f"\n=== 所有线程完成，开始合并结果 ===")
+      print(f"总共获取到 {len(all_articles)} 篇文章")
+      
+      # 合并并按时间排序
+      sorted_articles = CSDNOpenHarmonyCrawler.merge_and_sort_articles([all_articles])
+      
+      print(f"按时间排序完成，共 {len(sorted_articles)} 篇文章")
+      
+      return sorted_articles
+  ```
 
 ok，开始测试。
 
