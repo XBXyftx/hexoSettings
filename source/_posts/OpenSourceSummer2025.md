@@ -2134,3 +2134,285 @@ class CSDNOpenHarmonyCrawler:
 首先通过第一篇文章直接选择文章正文内容的容器就可以定位到正文然后再逐级向上找到包裹全部文章正文的极小容器，这样我们就可以通过该容器来获取到全部文章内容了。
 
 id是`content_views`，类名可以不唯一，但是id肯定是唯一的，我们再找一篇文章进行一下验证。
+
+![1752216326708.png](https://bu.dusays.com/2025/07/11/6870b308a30a4.png)
+
+ok现在我们就可以确定我们的目标文章内容就是这个容器了。开始编写爬起代码。
+
+```python
+    def crawl(self):
+        """使用Selenium获取渲染后的资讯内容，并爬取每篇文章详情页"""
+        articles = []
+        options = Options()
+        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--window-size=1920,1080')
+        driver = webdriver.Chrome(options=options)
+        try:
+            url = self.BASE_URL
+            print(f"请求: {url} ...")
+            driver.get(url)
+            time.sleep(self.delay + random.random())  # 等待JS渲染
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+            for item in soup.select("div.list-item"):
+                a_tag = item.select_one("a")
+                title_tag = item.select_one("a.block-title")
+                # 修改简介提取方式
+                summary_tag = item.select_one("p.row2")
+                if a_tag and title_tag:
+                    article_url = a_tag.get("href")
+                    article = {
+                        "title": title_tag.get_text(strip=True),
+                        "url": article_url,
+                        "summary": summary_tag.get_text(strip=True) if summary_tag else ""
+                    }
+                    # 进入详情页爬取正文、作者、时间
+                    detail = self.crawl_article_detail(driver, article_url)
+                    article.update(detail)
+                    articles.append(article)
+                    print(f"已获取: {article['title']} [{article_url}]")
+                    time.sleep(self.delay + random.random())
+            print(f"共获取到{len(articles)}篇文章")
+        finally:
+            driver.quit()
+        return articles
+
+    def crawl_article_detail(self, driver, url):
+        """爬取CSDN博文详情页，提取正文内容、作者、时间等"""
+        result = {
+            "date": None,
+            "author": {},
+            "content": []
+        }
+        try:
+            driver.get(url)
+            time.sleep(self.delay + random.random())
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+            # 正文内容
+            content_blocks = []
+            content_container = soup.find(id="content_views")
+            if content_container:
+                for elem in content_container.find_all(["p", "h1", "h2", "h3", "h4", "h5", "h6", "div", "img", "pre", "code", "ul", "ol", "li"]):
+                    if elem.name in ["p", "h1", "h2", "h3", "h4", "h5", "h6", "div", "li"]:
+                        text = elem.get_text(strip=True)
+                        if text and len(text) > 0:
+                            content_blocks.append({"type": "text", "value": text})
+                    elif elem.name == "img":
+                        img_src = elem.get("src")
+                        if img_src:
+                            content_blocks.append({"type": "image", "value": img_src})
+                    elif elem.name in ["pre", "code"]:
+                        code_text = elem.get_text("\n", strip=True)
+                        if code_text:
+                            content_blocks.append({"type": "code", "value": code_text})
+            result["content"] = content_blocks
+            # 作者信息
+            author_box = soup.select_one("a.profile-href")
+            if author_box:
+                author_name = author_box.select_one("span.profile-name")
+                author_img = author_box.select_one("img.profile-img")
+                result["author"] = {
+                    "name": author_name.get_text(strip=True) if author_name else None,
+                    "avatar": author_img.get("src") if author_img else None,
+                    "homepage": author_box.get("href")
+                }
+            # 发布时间
+            # 常见位置：meta、时间标签、正文上方
+            date_str = None
+            meta_time = soup.find("meta", {"itemprop": "datePublished"})
+            if meta_time and meta_time.get("content"):
+                date_str = meta_time["content"]
+            if not date_str:
+                # 备选方案：查找常见时间标签
+                time_tag = soup.find("span", class_="time") or soup.find("span", class_="publish-time")
+                if time_tag:
+                    date_str = time_tag.get_text(strip=True)
+            result["date"] = date_str
+        except Exception as e:
+            print(f"详情页解析失败: {url}, 错误: {e}")
+        return result
+```
+
+我对原有的资讯列表获取功能函数进行了升级，添加了简介的获取以及对文章内容函数的调用功能。
+
+开始运行测试。
+
+![1](OpenSourceSummer2025/1.png)
+
+```js
+      {
+        "type": "text",
+        "value": "​​Unity版本​​：2021.3 LTS（支持OpenHarmony 3.2+，官方推荐）；"
+      },
+      {
+        "type": "text",
+        "value": "​​OpenHarmony SDK​​：安装DevEco Studio（OpenHarmony开发工具）并配置LiteOS SDK（路径：File > Settings > SDK Manager）；"
+      },
+      {
+        "type": "code",
+        "value": "File > Settings > SDK Manager"
+      },
+      {
+        "type": "text",
+        "value": "​​交叉编译工具​​：OpenHarmony提供的ohos-gcc（版本r12p）与cmake（3.18+）；"
+      },
+      {
+        "type": "code",
+        "value": "ohos-gcc"
+      },
+      {
+        "type": "code",
+        "value": "cmake"
+      },
+      {
+        "type": "text",
+        "value": "​​调试工具​​：hdc（鸿蒙设备连接工具）、PerfTool（性能分析工具）。"
+      },
+```
+
+我们可以看到在爬取的时候还成功获取了代码块中的内容，这也是之前在爬取OpenHarmony官网资讯时所没有考虑到的，因为官网的资讯大多类似于新闻报道类型的文章并不会过多的提及技术细节，只会从整体的视角介绍讲解，而CSDN与其是完全不同的性质，所以在客户端进行渲染时我也要考虑到这一点。
+
+不过从结果来看还能发现两个问题，一个就是单一关键词的OpenHarmony资讯获取的数量还是太少了只有30篇，所以我应该想办法用多关键词进行爬取，另一个就是爬取的资讯中的代码部分处理的并不好。有一些代码块在获取后会有很奇怪的重复需要针对代码块进行特别的调优处理。这里我考虑可以将代码标签中的值用markdown格式来进行传递，在客户端解析时利用第三方markdown解析库进行解析。
+
+```js
+      {
+        "type": "code",
+        "value": "// EntryAbility.ets（OpenHarmony轻量系统）\nimport\nUIAbility\nfrom\n'@ohos.app.ability.UIAbility'\n;\nimport\nWindow\nfrom\n'@ohos.window'\n;\nexport\ndefault\nclass\nEntryAbility\nextends\nUIAbility\n{\nonCreate\n(\nwant, launchParam\n) {\nconsole\n.\nlog\n(\n'EntryAbility onCreate: 启动Unity游戏'\n);\n// 加载Unity渲染的View\nthis\n.\ncontext\n.\nsetUIContent\n(\nthis\n,\n'pages/UnityScene'\n,\nnull\n);\n}\nonDestroy\n(\n) {\nconsole\n.\nlog\n(\n'EntryAbility onDestroy: 关闭Unity'\n);\n}\nonWindowStageCreate\n(\nwindowStage: Window.WindowStage\n) {\n// 加载Unity生成的HAP包（或动态库）\nwindowStage.\nloadAbility\n(\nnew\nIntent\n.\nOperationBuilder\n()\n.\nwithAction\n(\nIntent\n.\nACTION_MAIN\n)\n.\nwithCategory\n(\nIntent\n.\nCATEGORY_LAUNCHER\n)\n.\nbuild\n()).\nthen\n(\n() =>\n{\nconsole\n.\nlog\n(\n'Unity场景加载完成'\n);\n}).\ncatch\n(\n(\nerr\n) =>\n{\nconsole\n.\nerror\n(\n'加载失败：'\n+\nJSON\n.\nstringify\n(err));\n});\n}\n}\nAI生成项目"
+      },
+      {
+        "type": "code",
+        "value": "// EntryAbility.ets（OpenHarmony轻量系统）\nimport\nUIAbility\nfrom\n'@ohos.app.ability.UIAbility'\n;\nimport\nWindow\nfrom\n'@ohos.window'\n;\nexport\ndefault\nclass\nEntryAbility\nextends\nUIAbility\n{\nonCreate\n(\nwant, launchParam\n) {\nconsole\n.\nlog\n(\n'EntryAbility onCreate: 启动Unity游戏'\n);\n// 加载Unity渲染的View\nthis\n.\ncontext\n.\nsetUIContent\n(\nthis\n,\n'pages/UnityScene'\n,\nnull\n);\n}\nonDestroy\n(\n) {\nconsole\n.\nlog\n(\n'EntryAbility onDestroy: 关闭Unity'\n);\n}\nonWindowStageCreate\n(\nwindowStage: Window.WindowStage\n) {\n// 加载Unity生成的HAP包（或动态库）\nwindowStage.\nloadAbility\n(\nnew\nIntent\n.\nOperationBuilder\n()\n.\nwithAction\n(\nIntent\n.\nACTION_MAIN\n)\n.\nwithCategory\n(\nIntent\n.\nCATEGORY_LAUNCHER\n)\n.\nbuild\n()).\nthen\n(\n() =>\n{\nconsole\n.\nlog\n(\n'Unity场景加载完成'\n);\n}).\ncatch\n(\n(\nerr\n) =>\n{\nconsole\n.\nerror\n(\n'加载失败：'\n+\nJSON\n.\nstringify\n(err));\n});\n}\n}"
+      },
+      {
+        "type": "text",
+        "value": "// EntryAbility.ets（OpenHarmony轻量系统）"
+      },
+      {
+        "type": "text",
+        "value": "// EntryAbility.ets（OpenHarmony轻量系统）"
+      },
+      {
+        "type": "text",
+        "value": "// EntryAbility.ets（OpenHarmony轻量系统）"
+      },
+```
+
+问题的具体表现就像是上面这样，所以我们需要针对代码块的结构进行优化处理
+
+#### CSDN资讯源的代码块结构专项优化
+
+![2](OpenSourceSummer2025/2.png)
+
+![3](OpenSourceSummer2025/3.png)
+
+我确实没怎么注意过这个代码块的渲染细节，这仔细一看才看明白，关键字，变量名，注释等都是不同的类名来进行的渲染。究竟怎么依据各个语言的语法来进行区分与渲染，或者说我们常用的这套Markdown渲染成HTML的逻辑又是怎么实现的？确实很有趣，后面没准会单开一篇文章来研究一下，哈哈。
+
+---
+
+来让我们回归正题。在观察了代码块的页面结构后我对代码进行了升级改造。
+
+```py
+  elif elem.name == "pre":
+      # 优化：合并整个pre下的代码行，按markdown代码块格式输出
+      code_lines = []
+      # 兼容CSDN高亮结构
+      for code_div in elem.select("div.hljs-ln-code, code"):
+          code_line = code_div.get_text("\n", strip=False)
+          code_lines.append(code_line)
+      if not code_lines:
+          # 兜底：直接取pre的全部文本
+          code_lines = [elem.get_text("\n", strip=False)]
+      code_text = "".join(code_lines)
+      # 检测语言类型
+      lang = ""
+      code_tag = elem.find("code")
+      if code_tag and code_tag.has_attr("class"):
+          for c in code_tag["class"]:
+              if c.startswith("language-"):
+                  lang = c.replace("language-", "")
+                  break
+      md_code = f"```{lang}\n{code_text}\n```"
+      content_blocks.append({"type": "code", "value": md_code})
+  elif elem.name == "code":
+      # 跳过已被pre处理的code，避免重复
+      if elem.parent and elem.parent.name == "pre":
+          continue
+      code_text = elem.get_text("\n", strip=True)
+      if code_text:
+          md_code = f"```{code_text}```"
+          content_blocks.append({"type": "code", "value": md_code})
+```
+
+核心的爬取逻辑修改就在这里了，让我们再来测试一下。
+
+在我看到我想看到的代码块之前我就发现了另一个问题，理论上讲我的代码已经去除了被pre标签包裹的code标签，但是实际上我的代码却将行内代码块也一并设置为了用` ``` ``` `代码块来进行包裹，这很显然是错误的。
+
+```js
+{
+  "type": "code",
+  "value": "```File > Settings > SDK Manager```"
+},
+{
+  "type": "text",
+  "value": "​​交叉编译工具​​：OpenHarmony提供的ohos-gcc（版本r12p）与cmake（3.18+）；"
+},
+{
+  "type": "code",
+  "value": "```ohos-gcc```"
+},
+{
+  "type": "code",
+  "value": "```cmake```"
+},
+```
+
+我们先继续检索我们所想看到的代码块对象。
+
+```js
+      {
+        "type": "code",
+        "value": "```typescript\n// EntryAbility.ets（OpenHarmony轻量系统）\nimport\n \nUIAbility\n \nfrom\n \n'@ohos.app.ability.UIAbility'\n;\nimport\n \nWindow\n \nfrom\n \n'@ohos.window'\n;\n \nexport\n \ndefault\n \nclass\n \nEntryAbility\n \nextends\n \nUIAbility\n {\n  \nonCreate\n(\nwant, launchParam\n) {\n    \nconsole\n.\nlog\n(\n'EntryAbility onCreate: 启动Unity游戏'\n);\n    \n// 加载Unity渲染的View\n    \nthis\n.\ncontext\n.\nsetUIContent\n(\nthis\n, \n'pages/UnityScene'\n, \nnull\n);\n  }\n \n  \nonDestroy\n(\n) {\n    \nconsole\n.\nlog\n(\n'EntryAbility onDestroy: 关闭Unity'\n);\n  }\n \n  \nonWindowStageCreate\n(\nwindowStage: Window.WindowStage\n) {\n    \n// 加载Unity生成的HAP包（或动态库）\n    windowStage.\nloadAbility\n(\nnew\n \nIntent\n.\nOperationBuilder\n()\n      .\nwithAction\n(\nIntent\n.\nACTION_MAIN\n)\n      .\nwithCategory\n(\nIntent\n.\nCATEGORY_LAUNCHER\n)\n      .\nbuild\n()).\nthen\n(\n() =>\n {\n      \nconsole\n.\nlog\n(\n'Unity场景加载完成'\n);\n    }).\ncatch\n(\n(\nerr\n) =>\n {\n      \nconsole\n.\nerror\n(\n'加载失败：'\n + \nJSON\n.\nstringify\n(err));\n    });\n  }\n}// EntryAbility.ets（OpenHarmony轻量系统）import\n \nUIAbility\n \nfrom\n \n'@ohos.app.ability.UIAbility'\n;import\n \nWindow\n \nfrom\n \n'@ohos.window'\n; export\n \ndefault\n \nclass\n \nEntryAbility\n \nextends\n \nUIAbility\n {  \nonCreate\n(\nwant, launchParam\n) {    \nconsole\n.\nlog\n(\n'EntryAbility onCreate: 启动Unity游戏'\n);    \n// 加载Unity渲染的View    \nthis\n.\ncontext\n.\nsetUIContent\n(\nthis\n, \n'pages/UnityScene'\n, \nnull\n);  }   \nonDestroy\n(\n) {    \nconsole\n.\nlog\n(\n'EntryAbility onDestroy: 关闭Unity'\n);  }   \nonWindowStageCreate\n(\nwindowStage: Window.WindowStage\n) {    \n// 加载Unity生成的HAP包（或动态库）    windowStage.\nloadAbility\n(\nnew\n \nIntent\n.\nOperationBuilder\n()      .\nwithAction\n(\nIntent\n.\nACTION_MAIN\n)      .\nwithCategory\n(\nIntent\n.\nCATEGORY_LAUNCHER\n)      .\nbuild\n()).\nthen\n(\n() =>\n {      \nconsole\n.\nlog\n(\n'Unity场景加载完成'\n);    }).\ncatch\n(\n(\nerr\n) =>\n {      \nconsole\n.\nerror\n(\n'加载失败：'\n + \nJSON\n.\nstringify\n(err));    });  }}\n```"
+      },
+```
+
+这一大段这么看咱们也不知道格式对不对我就直接利用三方插件进行一下渲染测试。
+
+```bash
+ohpm i @lidary/markdown
+```
+
+![4](OpenSourceSummer2025/4.png)
+
+```ts
+import { MarkdownV2 } from '@lidary/markdown';
+@Entry
+@ComponentV2
+struct Index {
+  @Local message: string = "```typescript\n// EntryAbility.ets（OpenHarmony轻量系统）\nimport\n \nUIAbility\n \nfrom\n \n'@ohos.app.ability.UIAbility'\n;\nimport\n \nWindow\n \nfrom\n \n'@ohos.window'\n;\n \nexport\n \ndefault\n \nclass\n \nEntryAbility\n \nextends\n \nUIAbility\n {\n  \nonCreate\n(\nwant, launchParam\n) {\n    \nconsole\n.\nlog\n(\n'EntryAbility onCreate: 启动Unity游戏'\n);\n    \n// 加载Unity渲染的View\n    \nthis\n.\ncontext\n.\nsetUIContent\n(\nthis\n, \n'pages/UnityScene'\n, \nnull\n);\n  }\n \n  \nonDestroy\n(\n) {\n    \nconsole\n.\nlog\n(\n'EntryAbility onDestroy: 关闭Unity'\n);\n  }\n \n  \nonWindowStageCreate\n(\nwindowStage: Window.WindowStage\n) {\n    \n// 加载Unity生成的HAP包（或动态库）\n    windowStage.\nloadAbility\n(\nnew\n \nIntent\n.\nOperationBuilder\n()\n      .\nwithAction\n(\nIntent\n.\nACTION_MAIN\n)\n      .\nwithCategory\n(\nIntent\n.\nCATEGORY_LAUNCHER\n)\n      .\nbuild\n()).\nthen\n(\n() =>\n {\n      \nconsole\n.\nlog\n(\n'Unity场景加载完成'\n);\n    }).\ncatch\n(\n(\nerr\n) =>\n {\n      \nconsole\n.\nerror\n(\n'加载失败：'\n + \nJSON\n.\nstringify\n(err));\n    });\n  }\n}// EntryAbility.ets（OpenHarmony轻量系统）import\n \nUIAbility\n \nfrom\n \n'@ohos.app.ability.UIAbility'\n;import\n \nWindow\n \nfrom\n \n'@ohos.window'\n; export\n \ndefault\n \nclass\n \nEntryAbility\n \nextends\n \nUIAbility\n {  \nonCreate\n(\nwant, launchParam\n) {    \nconsole\n.\nlog\n(\n'EntryAbility onCreate: 启动Unity游戏'\n);    \n// 加载Unity渲染的View    \nthis\n.\ncontext\n.\nsetUIContent\n(\nthis\n, \n'pages/UnityScene'\n, \nnull\n);  }   \nonDestroy\n(\n) {    \nconsole\n.\nlog\n(\n'EntryAbility onDestroy: 关闭Unity'\n);  }   \nonWindowStageCreate\n(\nwindowStage: Window.WindowStage\n) {    \n// 加载Unity生成的HAP包（或动态库）    windowStage.\nloadAbility\n(\nnew\n \nIntent\n.\nOperationBuilder\n()      .\nwithAction\n(\nIntent\n.\nACTION_MAIN\n)      .\nwithCategory\n(\nIntent\n.\nCATEGORY_LAUNCHER\n)      .\nbuild\n()).\nthen\n(\n() =>\n {      \nconsole\n.\nlog\n(\n'Unity场景加载完成'\n);    }).\ncatch\n(\n(\nerr\n) =>\n {      \nconsole\n.\nerror\n(\n'加载失败：'\n + \nJSON\n.\nstringify\n(err));    });  }}\n```";
+
+  build() {
+    Scroll(){
+      MarkdownV2({
+        content:this.message
+      })
+    }
+    .height('100%')
+    .width('100%')
+  }
+}
+```
+
+让我们来进行一下渲染测试。
+
+![5](OpenSourceSummer2025/5.png)
+
+果然，这些换行符都是异常的换行符，我们还是得重新进行代码逻辑的编写。
+
+当前对于换行的处理我的想法是直接按照对象进行分段就可以，这样是当前代码的逻辑，但行内代码块注定是要单独开一个对象进行存储的这样一来我们的换行逻辑就不成立了，虽然我们可以将一行的内容全部存储到一个对象数组，将文字和行内代码，之要是同一行的就都存进一个对象数组中，这样就可以保证换行的准确性了。
+
+当然这个方案固然可以解决问题，但我们还应当考虑数据的复杂度，过于复杂的数据结构是否有存在的必要，{% label “如无必要，勿增实体” red %}。我们要明白我们的目标是什么，是让用户能看清楚，能看懂。所以我们其实可以先去找到原文章的效果去看一看行内代码的效果是不是那么重要。
+
+![6](OpenSourceSummer2025/6.png)
+
+这一段，有一说一，其实我在仔细看代码之前从来没有意识到过这是一个经过渲染的行内代码块，仅仅是将其当做了字体不一致的文本而已。虽然仔细看是有一圈淡淡的灰色，但对于浏览文本内容来讲并无任何区别。所以我们暂时不考虑行内代码的渲染，而是先考虑如何渲染文本。
