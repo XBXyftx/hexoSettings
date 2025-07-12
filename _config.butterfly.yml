@@ -19,19 +19,21 @@ nav:
 # Menu 目錄
 menu:
   首页: / || fas fa-home
-  归档: /archives/ || fas fa-archive
-  标签: /tags/ || fas fa-tags
+  文库||fas fa-list:
+    归档: /archives/ || fas fa-archive
+    标签: /tags/ || fas fa-tags
+    秘密基地: /coffer/ || fa-solid fa-key
   # 目录: /categories/ || fas fa-folder-open
   # 列表||fas fa-list:
   #   音乐: /music/ || fas fa-music
   #   电影: /movies/ || fas fa-video
-  友情链接: /link/ || fas fa-link
+  Myself||fa-solid fa-i:
+    友情链接: /link/ || fas fa-link
+    昨日重现: /swiper/ || fa-solid fa-star-of-david
+    关于我: /about/ || fas fa-heart
   留言板: /comments/ || fa-solid fa-comment
-  昨日重现: /swiper/ || fa-solid fa-star-of-david
   连连看: /LianlianKan/ || fa-solid fa-gamepad
   MD在线编辑器: /MarkdownPreview/ || fa-solid fa-file-code
-  秘密基地: /coffer/ || fa-solid fa-key
-  关于我: /about/ || fas fa-heart
 
 # --------------------------------------
 # 代碼塊設置
