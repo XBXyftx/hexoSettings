@@ -65,19 +65,19 @@ NowInOpenHarmony
 {% timeline 2025,green %}
 
 <!-- timeline 07-07 -->
-7.7至7.13完成可行性验证以及方案设计
+7.7至7.13完成可行性验证以及方案设计（已经于7.13完成阶段进度汇报）√
 <!-- endtimeline -->
 
 <!-- timeline 07-14 -->
-7.14至7.27完成完成后端开发
+7.14至7.27完成完成后端开发（进行中）
 <!-- endtimeline -->
 
 <!-- timeline 07-28 -->
-7.28至8.24完成鸿蒙端开发
+7.28至8.24完成鸿蒙端开发（待完成）
 <!-- endtimeline -->
 
 <!-- timeline 08-24 -->
-8.24至结项完成最终调优与报告撰写
+8.24至结项完成最终调优与报告撰写（待完成）
 <!-- endtimeline -->
 
 {% endtimeline %}
@@ -2696,7 +2696,7 @@ def crawl_article_detail(self, driver, url):
   这个函数能够处理CSDN可能出现的各种日期格式，确保排序的准确性。
 
 4. 完整的多线程执行流程
-  
+
   ```python
   def crawl_with_threading():
       """使用多线程爬取两个不同关键词的内容"""
@@ -2711,17 +2711,17 @@ def crawl_article_detail(self, driver, url):
               "keyword": "开源鸿蒙"
           }
       ]
-      
+
       # 存储每个线程的结果
       results = []
       threads = []
-      
+
       def crawl_worker(search_config, result_list):
           """线程工作函数"""
           crawler = CSDNOpenHarmonyCrawler()
           articles = crawler.crawl(search_config["url"], search_config["keyword"])
           result_list.append(articles)
-      
+
       # 创建并启动线程
       for config in urls_and_keywords:
           thread_result = []
@@ -2729,25 +2729,25 @@ def crawl_article_detail(self, driver, url):
           threads.append(thread)
           results.append(thread_result)
           thread.start()
-      
+
       # 等待所有线程完成
       for thread in threads:
           thread.join()
-      
+
       # 收集所有结果
       all_articles = []
       for thread_result in results:
           if thread_result:  # thread_result是列表，包含一个articles列表
               all_articles.extend(thread_result[0])
-      
+
       print(f"\n=== 所有线程完成，开始合并结果 ===")
       print(f"总共获取到 {len(all_articles)} 篇文章")
-      
+
       # 合并并按时间排序
       sorted_articles = CSDNOpenHarmonyCrawler.merge_and_sort_articles([all_articles])
-      
+
       print(f"按时间排序完成，共 {len(sorted_articles)} 篇文章")
-      
+
       return sorted_articles
   ```
 
@@ -3004,3 +3004,325 @@ okay，回归正题，写这段的时候我们的爬虫也完成了工作让我�
 还有就是后面这几篇都404了，可能是原作者删除了文章吧，明天得再加个404的检测机制。今天先这样了，累了累了。
 
 ---
+
+### 可行性验证阶段汇报
+
+在经过了一周的开发后也算是有了点眉目，本来在选择项目时我就十分担心，因为爬虫这东西之前也做过几次，各个网站的网站结构还有加载、渲染方式都不尽相同，在官网的项目简介上也并没有标明该用什么手段去获取资讯信息，只说了让我们去聚合。我是真的没有头绪，毕竟我也是没有系统行的学习过爬虫或者说是后端技术来着。更何况开源协会的大家都将开源之夏视作是一个很牛逼的开源项目经历，现在看来确实是有些魅化了，只有在实际上手后才能祛魅。行动是缓解焦虑做好的办法。我在和老师汇报的前一晚也是紧张的直冒汗，不过在实际汇报时也是冷静的将我自己所做的尝试以及当前的进度和解决方案都助理列举了出来。虽然我将老师所所说的线上交流误解成了微信聊天，所以直接就给老师发消息了，下次还是汇总成一个文件来进行汇报吧，（尴尬死了）。不过整体的方案还是得到了认可，我也就可以继续进行开发调试了。
+
+{% note success flat %}
+在实际开发中发现问题，思考对策，解决问题，在发现新问题，才能真正的提升能力，一味地读文档，看教程永远是学不会的，计划书写得再好也看不到真正隐藏的问题。
+{% endnote %}
+
+## 后端正式开发阶段
+
+虽说到这个章节我们才开始正式的后端开发，但实际上在可行性验证阶段，我们就已经完成了很多后端开发阶段的事了，我们只需要继续按照我们的思路进行开发即可。
+
+### 信息源爬虫完善
+
+#### CSDN爬虫的404防御机制
+
+上面在可行性验证阶段，我们最后截止到了发现爬取的内容中包含了404的页面，接下来我们就来进行一下404页面的检测与防御机制。
+
+首先还是观察一下404页面。
+
+！[11](OpenSourceSummer2025/11.png)
+
+可以看到404页面都会存在一个new_404的侧边栏，我们只需要检测在跳转后的目标页面是否存在这个侧边栏就可以判断是否是404页面了。
+
+```py
+  try:
+      driver.get(url)
+      time.sleep(self.delay + random.random())
+      soup = BeautifulSoup(driver.page_source, "html.parser")
+      # 404检测
+      if soup.find("div", class_="new_404"):
+          print(f"页面404或已被删除: {url}")
+          return None
+      # 正文内容
+```
+
+我们直接处理正文内容之前去进行404侧边栏的检测即可，如果没有就返回一个空值就可以了。
+
+再次进行测试。
+
+```js
+=== 所有线程完成，开始合并结果 ===
+总共获取到 60 篇文章
+按时间排序完成，共 60 篇文章
+
+=== 最终结果统计 ===
+OpenHarmony 文章数: 30
+开源鸿蒙 文章数: 30
+总文章数: 60
+[
+  {
+    "title": "开源鸿蒙4.0 RK3566开发板配置",
+    "url": "https://download.csdn.net/download/caimouse/88979392?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522ff96528c115517d0ea0d052aaf5e7e96%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&request_id=ff96528c115517d0ea0d052aaf5e7e96&biz_id=1&utm_medium=distribute.pc_search_result.none-task-download-2~all~time_text~default-16-88979392-null-null.142^v102^pc_search_result_base9&utm_term=%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99",
+    "summary": "",
+    "search_keyword": "开源鸿蒙",
+    "date": "2024-09-15",
+    "author": {},
+    "content": []
+  },
+  {
+    "title": "OpenHarmony移植：Unity游戏适配开源鸿蒙小型设备",
+    "url": "https://blog.csdn.net/m0_59315734/article/details/148615480?ops_request_misc=%257B%2522request%255Fid%2522%253A%25225776fbf6d1ad8ca886ab0e4a760bdb64%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&request_id=5776fbf6d1ad8ca886ab0e4a760bdb64&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~time_text~default-1-148615480-null-null.142^v102^pc_search_result_base2&utm_term=openHarmony",
+    "summary": "将Unity游戏适配到OpenHarmony小型设备，核心在于​​资源优化、系统API对接与性能调优​​。通过本文的实践，开发者可掌握从环境配置到最终发布的完整流程，应对小型设备的资源限制与系统差异。未来，随着...",
+    "search_keyword": "openHarmony",
+    "date": null,
+    "author": {},
+    "content": []
+  },
+  {
+    "title": "第三章 iTop3588平台移植OpenHarmony-4.0-Release",
+    "url": "https://blog.csdn.net/jixufan/article/details/147256785?ops_request_misc=%257B%2522request%255Fid%2522%253A%25225776fbf6d1ad8ca886ab0e4a760bdb64%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&request_id=5776fbf6d1ad8ca886ab0e4a760bdb64&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~time_text~default-2-147256785-null-null.142^v102^pc_search_result_base2&utm_term=openHarmony",
+    "summary": "本文档旨在为小伙伴们快速在iTop3588开发平台上移植OpenHarmony4.0 Release版本标准系统提供技术指导，为小伙伴们在不同平台中移植OpenHarmony系统提供思路。采用从dayu210平台复制替换的方式，快速在 iTOP-3588...",
+    "search_keyword": "openHarmony",
+    "date": null,
+    "author": {},
+    "content": []
+  },
+```
+
+又出现了新的问题，的确是没有404页面了但是还是内容却都异常为空。enm，让我们来分析一下，首先我是没有改动之前的爬虫代码的同样的文章却爬不出来（？）
+
+遇事不决先加日志！！！
+
+加入更多debug信息，加入更多的判断，看看是哪一步出了问题。
+
+```bash
+[openHarmony] 已获取: 如何编译OpenHarmonySDK API [https://blog.csdn.net/maniuT/article/details/139843235?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522eeee35897e2f50b78de4166161201e81%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&request_id=eeee35897e2f50b78de4166161201e81&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~time_text~default-9-139843235-null-null.142^v102^pc_search_result_base1&utm_term=openHarmony]
+[openHarmony] 内容块数量: 0
+DEBUG: content_views容器存在: False
+DEBUG: content_views为空，尝试备用方法
+DEBUG: 未找到任何备用容器
+[openHarmony] 已获取: Baumer工业相机堡盟工业相机如何联合OpenHarmony框架开发连接USB相机（OpenHarmony） [https://blog.csdn.net/xianzuzhicai/article/details/138343924?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522eeee35897e2f50b78de4166161201e81%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&request_id=eeee35897e2f50b78de4166161201e81&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~time_text~default-10-138343924-null-null.142^v102^pc_search_result_base1&utm_term=openHarmony]
+[openHarmony] 内容块数量: 0
+DEBUG: content_views容器存在: False
+DEBUG: content_views为空，尝试备用方法
+DEBUG: 未找到任何备用容器
+[开源鸿蒙] 已获取: 软通动力子公司鸿湖万联重磅发布SwanLinkOS 5，擘画开源鸿蒙AI PC新篇章 [https://blog.csdn.net/isoftstone_HOS/article/details/141856542?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522db64b9f6682e28a5ac17597c2687bced%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&request_id=db64b9f6682e28a5ac17597c2687bced&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~time_text~default-11-141856542-null-null.142^v102^pc_search_result_base3&utm_term=%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99]
+[开源鸿蒙] 内容块数量: 0
+DEBUG: content_views容器存在: True
+DEBUG: 找到元素数量: 52
+[openHarmony] 已获取: OpenHarmony实战：配置OpenHarmony下载、编译代码环境 [https://blog.csdn.net/m0_64420071/article/details/137159551?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522eeee35897e2f50b78de4166161201e81%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&request_id=eeee35897e2f50b78de4166161201e81&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~time_text~default-11-137159551-null-null.142^v102^pc_search_result_base1&utm_term=openHarmony]
+[openHarmony] 内容块数量: 42
+DEBUG: content_views容器存在: True
+DEBUG: 找到元素数量: 14
+```
+
+嘶？有很多文章的目标容器是找不到的？？？难道是我们最初在寻找目标文章容器时就出现了问题？？
+
+![12](OpenSourceSummer2025/12.png)
+
+原来是因为有的文章结构不一样啊，那没事了，我们只需要从新修改一下爬取逻辑就好了
+
+```py
+  # 如果content_views不存在，尝试其他方法
+  if not content_blocks:
+      print(f"DEBUG: content_views为空，尝试备用方法")
+      # 支持多class的CSS选择器
+      possible_selectors = [
+          "div#content_views",
+          "div.article_content.article-content.clearfix",
+          "div.article_content",
+          "div.article-content",
+          "div.blog-content-box",
+          "div.article-content-box",
+          "div.content",
+          "article",
+          "div[data-article-content]",
+          "div.markdown_views",
+          "div.htmledit_views"
+      ]
+      article_content = None
+      for selector in possible_selectors:
+          container = soup.select_one(selector)
+          if container:
+              article_content = container
+              print(f"DEBUG: 找到备用容器: {selector}")
+              break
+      if article_content:
+          all_text = article_content.get_text(separator="\n", strip=True)
+          if all_text:
+              result["content"] = [{"type": "text", "value": all_text}]
+              print(f"DEBUG: 备用方法提取到文本长度: {len(all_text)}")
+          else:
+              print(f"DEBUG: 备用容器存在但文本为空")
+      else:
+          print(f"DEBUG: 未找到任何备用容器")
+```
+
+从这里我们也可以看出，同一个网站也可能因为代际更迭的原因导致原来的文章渲染逻辑发生改变，所以爬虫也需要不断更新以适应新的环境，这也就是所谓运维需要做的工作之一。
+
+在仔细的看了看CSDN的文章内容结构发现还是有太多奇怪的情况了，我决定先暂时加一个过滤器，将空内容过滤将，先完成再优化。
+
+---
+
+7.15嗓子疼加小低烧休息了一天，让我们回来继续吧。
+
+---
+
+```py
+    @staticmethod
+    def merge_and_sort_articles(articles_list):
+        """合并多个文章列表并按日期排序，过滤掉不完整的文章"""
+        merged_articles = []
+        for articles in articles_list:
+            merged_articles.extend(articles)
+        
+        print(f"DEBUG: 合并前文章总数: {len(merged_articles)}")
+        
+        # 过滤掉不完整的文章（date、author、content 任何一个为空）
+        def is_article_complete(article):
+            """检查文章是否完整"""
+            # 检查 date 是否为空
+            date_empty = not article.get('date')
+            
+            # 检查 author 是否为空
+            author = article.get('author', {})
+            author_empty = not author or not author.get('name')
+            
+            # 检查 content 是否为空
+            content = article.get('content', [])
+            content_empty = not content or len(content) == 0
+            
+            return not (date_empty or author_empty or content_empty)
+        
+        # 分别统计过滤原因
+        total_before = len(merged_articles)
+        date_empty_count = sum(1 for a in merged_articles if not a.get('date'))
+        author_empty_count = sum(1 for a in merged_articles if not a.get('author') or not a.get('author', {}).get('name'))
+        content_empty_count = sum(1 for a in merged_articles if not a.get('content') or len(a.get('content', [])) == 0)
+        
+        print(f"DEBUG: 过滤统计 - 日期为空: {date_empty_count}, 作者为空: {author_empty_count}, 内容为空: {content_empty_count}")
+        
+        # 应用过滤器
+        filtered_articles = [article for article in merged_articles if is_article_complete(article)]
+        
+        print(f"DEBUG: 过滤后文章数量: {len(filtered_articles)} (移除了 {total_before - len(filtered_articles)} 篇不完整文章)")
+        
+        # 为每篇文章添加排序用的日期对象
+        for article in filtered_articles:
+            article['_sort_date'] = CSDNOpenHarmonyCrawler.extract_date_from_string(article.get('date'))
+        
+        # 按日期排序（最新的在前）
+        filtered_articles.sort(key=lambda x: x['_sort_date'] or datetime.min, reverse=True)
+        
+        # 移除临时排序字段
+        for article in filtered_articles:
+            article.pop('_sort_date', None)
+        
+        return filtered_articles
+```
+
+修改完代码之后我们再次进行测试，测试运行期间给老师编写一下可行性验证总结还有方案设计文档。
+
+```js
+=== 所有线程完成，开始合并结果 ===
+总共获取到 58 篇文章
+DEBUG: 合并前文章总数: 58
+DEBUG: 过滤统计 - 日期为空: 8, 作者为空: 8, 内容为空: 1
+DEBUG: 过滤后文章数量: 50 (移除了 8 篇不完整文章)
+按时间排序完成，共 50 篇文章
+
+=== 最终结果统计 ===
+OpenHarmony 文章数: 29
+开源鸿蒙 文章数: 21
+总文章数: 50
+[
+  {
+    "title": "开源鸿蒙北向开发: 截屏",
+    "url": "https://blog.csdn.net/qq_37059136/article/details/149205961?ops_request_misc=%257B%2522request%255Fid%2522%253A%25221c1bfd376230bf5fb1ee4e9ac236951d%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&request_id=1c1bfd376230bf5fb1ee4e9ac236951d&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~time_text~default-1-149205961-null-null.142^v102^pc_search_result_base2&utm_term=%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99",
+    "summary": "开源鸿蒙系统使用snapshot_display命令实现截屏功能，执行后生成1920x1200分辨率的JPEG格式图片，默认保存在/data/local/tmp/目录下，文件名包含时间戳。通过hdc file recv命令可将截图传输到指定目录（如Windows的F...",
+    "search_keyword": "开源鸿蒙",
+    "date": "已于 2025-07-08 20:44:17 修改",
+    "author": {
+      "name": "痕忆丶",
+      "avatar": "https://profile-avatar.csdnimg.cn/3e1dd1269622485eadacb58f950127a7_qq_37059136.jpg!1",
+      "homepage": "https://blog.csdn.net/qq_37059136"
+    },
+    "content": [
+      {
+        "type": "text",
+        "value": "截屏"
+      },
+      {
+        "type": "text",
+        "value": "开源鸿蒙系统的截屏功能为snapshot_display"
+      },
+      {
+        "type": "text",
+        "value": "使用snapshot_display命令即可截屏"
+      },
+      {
+        "type": "image",
+        "value": "https://i-blog.csdnimg.cn/direct/7987a6a2093843cbafd4d047c6cc970c.png"
+      },
+      {
+        "type": "text",
+        "value": "# snapshot_displayprocess: set filename to /data/local/tmp/snapshot_2025-07-08_20-23-17.jpegprocess: display 0: width 1920, height 1200snapshot: pixel format is: 3snapshot: convert rgba8888 to rgb888 successfully."
+      },
+      {
+        "type": "text",
+        "value": "success: snapshot display 0 , write to /data/local/tmp/snapshot_2025-07-08_20-23-17.jpeg as jpeg, width 1920, height 1200"
+      },
+      {
+        "type": "text",
+        "value": "上述表示截屏成功,且默认保存在/data/local/tmp/目录下"
+      },
+      {
+        "type": "text",
+        "value": "取出屏幕截图"
+      },
+      {
+        "type": "text",
+        "value": "hdcfile recv /data/local/tmp/snapshot_2025-07-08_20-21-20.jpeg F:\\fvmshare\\out"
+      },
+      {
+        "type": "image",
+        "value": "https://i-blog.csdnimg.cn/direct/e9adf3feb18c4fdbb4220b11f435d1ef.png"
+      },
+      {
+        "type": "text",
+        "value": "将截图取出,放到F:\\fvmshare\\out目录"
+      },
+      {
+        "type": "image",
+        "value": "https://i-blog.csdnimg.cn/direct/fd03ae46236c4fcf8cdec6855ccca4df.png"
+      }
+    ]
+  },
+  {
+    "title": "开源鸿蒙地图导航功能的集成业务过程",
+    "url": "https://blog.csdn.net/ZHUOJIANLONG/article/details/149167807?ops_request_misc=%257B%2522request%255Fid%2522%253A%25221c1bfd376230bf5fb1ee4e9ac236951d%2522%252C%2522scm%2522%253A%252220140713.130102334.pc%255Fall.%2522%257D&request_id=1c1bfd376230bf5fb1ee4e9ac236951d&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~time_text~default-2-149167807-null-null.142^v102^pc_search_result_base2&utm_term=%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99",
+    "summary": "在开源鸿蒙系统集成地图导航功能时遇到多重阻碍：尝试高德SDK因开发板兼容问题闪退；开源鸿蒙无自带地图应用包；WebView桥接方案虽可行但效果不佳。三种方案均未能完美解决导航功能落地问题，凸显开源生态配套工具的...",
+    "search_keyword": "开源鸿蒙",
+    "date": "已于 2025-07-08 11:46:14 修改",
+    "author": {
+      "name": "小卓想喂猫",
+      "avatar": "https://profile-avatar.csdnimg.cn/1e099f3d58fe41ab879e3bf3013d11eb_zhuojianlong.jpg!1",
+      "homepage": "https://blog.csdn.net/ZHUOJIANLONG"
+    },
+    "content": [
+      {
+        "type": "text",
+        "value": "开源鸿蒙集成地图导航的思路碰壁"
+      },
+      {
+        "type": "text",
+        "value": "第一种是想当然的使用高德的SDK，在华为的鸿蒙系统里面非常好用，但是业务需要迁移到开发板子上，下载了官方的实例和询问了官方的客服后，发现兼容不了，一直会闪退"
+      },
+      {
+        "type": "text",
+        "value": "第二种是调用调用系统应用做地图导航，但是开源鸿蒙内没有自带的地图应用包"
+      },
+      {
+        "type": "text",
+        "value": "第三种是直接使用webview桥接，感觉这个应该是可以实现，但是用网页的效果肯定没多好只能做到目的查询的程度，网页版不支持直接进行车载导航"
+      }
+    ]
+  },
+```
+
+ok效果也是非常的好，前面近两年的资讯都是十分顺利的爬取，文字内容以及图片内容的排布也是正确的顺序，我们的分段也是正常的，由此我们也是可以推断出

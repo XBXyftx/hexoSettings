@@ -76,15 +76,26 @@ hexo.extend.filter.register('before_generate', function() {
             date: dateMatch ? dateMatch[1] : 'null',
             tags: tagsMatch ? tagsMatch[1] : 'null',
             categories: categoriesMatch ? categoriesMatch[1] : 'null',
+            description: descriptionMatch ? descriptionMatch[1] : 'null',
             cover: coverMatch ? coverMatch[1] : 'null'
           });
           
-          // 提取文章摘要（前200个字符）
-          const excerpt = postContent
-            .replace(/[#*`\[\]]/g, '') // 移除markdown标记
-            .replace(/\r?\n+/g, ' ') // 替换换行为空格
-            .trim()
-            .substring(0, 200) + (postContent.length > 200 ? '...' : '');
+          // 获取description内容
+          const description = descriptionMatch ? descriptionMatch[1].trim().replace(/['"]/g, '') : '';
+          
+          // 提取文章摘要：优先使用description，如果为空则自动提取前200个字符
+          let excerpt;
+          if (description && description.length > 0) {
+            excerpt = description;
+            console.log('📝 使用description作为摘要:', description.substring(0, 50) + '...');
+          } else {
+            excerpt = postContent
+              .replace(/[#*`\[\]]/g, '') // 移除markdown标记
+              .replace(/\r?\n+/g, ' ') // 替换换行为空格
+              .trim()
+              .substring(0, 200) + (postContent.length > 200 ? '...' : '');
+            console.log('📝 自动提取摘要:', excerpt.substring(0, 50) + '...');
+          }
           
           // 计算实际字数（中文字符 + 英文单词）
           const calculateWordCount = (text) => {
@@ -113,7 +124,7 @@ hexo.extend.filter.register('before_generate', function() {
             date: dateMatch ? dateMatch[1].trim() : '',
             tags: tagsMatch ? tagsMatch[1].split(',').map(tag => tag.trim().replace(/['"]/g, '')) : [],
             categories: categoriesMatch ? categoriesMatch[1].split(',').map(cat => cat.trim().replace(/['"]/g, '')) : [],
-            description: descriptionMatch ? descriptionMatch[1].trim().replace(/['"]/g, '') : '',
+            description: description,
             cover: coverMatch ? coverMatch[1].trim().replace(/['"]/g, '') : '',
             excerpt: excerpt,
             wordCount: calculateWordCount(postContent),
