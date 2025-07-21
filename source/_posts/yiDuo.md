@@ -1122,7 +1122,8 @@ struct ExtensionCapabilitySample1 {
 响应式布局与自适应布局是**相辅相成**的，绝非割裂的两种能力，**要综合使用，才能达到最佳的显示效果。**
 {% endnote %}
 
-```tsimport {
+```ts
+import {
   BreakpointState,
   BreakpointSystem,
   GetBreakPointSystem,
@@ -1240,7 +1241,8 @@ struct ExtensionCapabilitySample1 {
 当然我们也可以将两部分的组件设为不对等的栅格数量，从而实现不同的布局效果。
 而`offset`属性的生效规则依旧不变，如果存在剩余空间可供偏移就会从左向右偏移可偏移的格数，像下面这个案例我们将第二个`GridCol`的栅格数量设置为6，偏移量设置为1，第一个则设为一。
 
-```Tsimport {
+```Ts
+import {
   BreakpointState,
   BreakpointSystem,
   GetBreakPointSystem,
@@ -1339,7 +1341,8 @@ struct ExtensionCapabilitySample1 {
 
 我们接下来就可以借助循环渲染来实现列表的自适应呈现了。
 
-```tsimport {
+```ts
+import {
   BreakpointState,
   BreakpointSystem,
   GetBreakPointSystem,
