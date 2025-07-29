@@ -3381,3 +3381,139 @@ ohpm i @hw-agconnect/ui-skeleton
 
 所以我尝试创建了Main页面发现不报错了，重新编译也没问题了。嘶，搞不太懂，后面再研究研究吧。
 
+#### Navigation启动页问题
+
+这个问题其实在鸿小易期间就存在，当时我在设置启动页时使用的就是`NavDestination`组件让其作为一个`Navigation`组件的一个跳转页面，但存在一个问题就是如果直接将其放在`Navigation`组件中，那么在跳转至主界面后触发系统的返回键会跳转回启动页，这很显然不合理。在鸿小易项目中我的解决方案是使用router来去进行替换跳转。但其实我现在仔细一想，好像不需要那么麻烦，我直接将主界面放在`Navigation`之中当做根页面就好了。
+
+先做一个简单的轮播图组件放在首页来去进行一下首页和默认页面的区分。
+
+![15](OpenSourceSummer2025/15.png)
+
+复制一个官网轮播图的链接过来进行一下显示测试。
+
+```ts
+import { NewsSwiperModule } from 'common'
+
+/**
+ * 首页上方轮播图组件
+ */
+@ComponentV2
+export struct NewsSwiper {
+  @Param swiperList: NewsSwiperModule [] = [
+    new NewsSwiperModule('https://images.openharmony.cn/%E9%A6%96%E9%A1%B5/banner/20240411/4.1releas%E6%89%8B%E6%9C%BA.jpg',
+      '开源生态大会'),
+    new NewsSwiperModule('https://images.openharmony.cn/%E9%A6%96%E9%A1%B5/banner/20240411/4.1releas%E6%89%8B%E6%9C%BA.jpg',
+      '开源生态大会'),
+    new NewsSwiperModule('https://images.openharmony.cn/%E9%A6%96%E9%A1%B5/banner/20240411/4.1releas%E6%89%8B%E6%9C%BA.jpg',
+      '开源生态大会')
+  ]
+
+  build() {
+    Column() {
+      Swiper(){
+        ForEach(this.swiperList,(item:NewsSwiperModule)=>{
+          Image(item.img)
+            .width('100%')
+        })
+      }
+      .curve(Curve.EaseInOut)
+      .loop(true)
+      .autoPlay(true)
+      .interval(2000)
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+```
+
+然后将主页面直接设为Navigation的子组件，这样应该就不会出现跳转至空白页面的问题了。
+
+```ts
+import { AppStorageV2 } from '@kit.ArkUI'
+import { NavDests, NAV_PATH_STUCK } from 'common'
+import { MainPage } from './nav_pages/mainPage'
+import { StarPage } from './nav_pages/startPage'
+
+
+@Entry
+@ComponentV2
+struct Main {
+  @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, NAV_PATH_STUCK,()=>new NavPathStack())!
+  @Builder
+  NavDestMap(name: string) {
+    if (name === NavDests.MAIN) {
+      Main()
+    }else if (name === NavDests.START_PAGE){
+      StarPage()
+    }
+  }
+  aboutToAppear(): void {
+    this.navPathStuck.replacePath({name:NavDests.START_PAGE})
+  }
+  build() {
+    Navigation(this.navPathStuck){
+      MainPage()
+    }
+    .backgroundColor(Color.Transparent)
+    .padding(10)
+    .navDestination(this.NavDestMap)
+    .hideTitleBar(true)
+    .hideToolBar(true)
+    .height('100%')
+    .width('100%')
+    .hideBackButton(true)
+    .titleMode(NavigationTitleMode.Mini)
+    .mode(NavigationMode.Stack)
+  }
+}
+```
+
+随后在启动页的`aboutToAppear`函数中设置设置一个延时器来模拟才能够服务器获取数据的流程。加载完成之后直接将启动页从页面栈删除就可以。
+
+```ts
+import { AppStorageV2 } from '@kit.ArkUI'
+import { NavDests, NAV_PATH_STUCK } from 'common'
+import { MainPage } from './nav_pages/mainPage'
+import { StarPage } from './nav_pages/startPage'
+
+
+@Entry
+@ComponentV2
+struct Main {
+  @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, NAV_PATH_STUCK,()=>new NavPathStack())!
+  @Builder
+  NavDestMap(name: string) {
+    if (name === NavDests.MAIN) {
+      Main()
+    }else if (name === NavDests.START_PAGE){
+      StarPage()
+    }
+  }
+  aboutToAppear(): void {
+    this.navPathStuck.replacePath({name:NavDests.START_PAGE})
+  }
+  build() {
+    Navigation(this.navPathStuck){
+      MainPage()
+    }
+    .backgroundColor(Color.Transparent)
+    .padding(10)
+    .navDestination(this.NavDestMap)
+    .hideTitleBar(true)
+    .hideToolBar(true)
+    .height('100%')
+    .width('100%')
+    .hideBackButton(true)
+    .titleMode(NavigationTitleMode.Mini)
+    .mode(NavigationMode.Stack)
+  }
+}
+```
+
+<video width="100%" controls>
+  <source src="16.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+嗯，测试结果还是很满意的。原来是我之前的思路错了。
