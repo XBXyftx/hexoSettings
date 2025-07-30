@@ -70,10 +70,12 @@ NowInOpenHarmony
 
 <!-- timeline 07-14 -->
 7.14至7.27完成完成后端开发（进行中）
+
+轮播图接口待开发
 <!-- endtimeline -->
 
 <!-- timeline 07-28 -->
-7.28至8.24完成鸿蒙端开发（待完成）
+7.28至8.24完成鸿蒙端开发（进行中）
 <!-- endtimeline -->
 
 <!-- timeline 08-24 -->
@@ -3327,6 +3329,47 @@ OpenHarmony 文章数: 29
 
 ok效果也是非常的好，前面近两年的资讯都是十分顺利的爬取，文字内容以及图片内容的排布也是正确的顺序，我们的分段也是正常的，由此我们也是可以推断出CSDN的文章结构是随着网站的升级换代而更新的，不过我们的目标是推送最新的资讯所以我们也不用太过担心。
 
+随后我们将CSDN爬虫并入主线。
+
+### CSDN爬虫的主线合并
+
+此前的主线中我们只包含了OpenHarmony官网的爬虫，所以我们现在的主要工作就是将两个爬虫获取的数据结构进行统一的规范化让两者的字段保持一致。
+
+然后我将提供最主要的四个接口：
+
+- 首页轮播图接口（待开发）
+- OpenHarmony官网资讯列表接口
+- CSDN资讯列表接口
+- 服务状态接口
+
+由于当前还没有开发首页轮播图的接口所以我本身打算加一个`promptAction`弹窗，结果意外发现在此前我用的`showToast`函数被弃用了，从API version 18开始废弃，且直接使用showToast可能导致UI上下文不明确的问题，建议使用UIContext中的getPromptAction获取PromptAction实例，再通过此实例调用替代方法showToast。
+
+![17](OpenSourceSummer2025/17.png)
+
+刚好也让我们来试一下这个新方法。
+
+```ts
+      Swiper(){
+        ForEach(this.swiperList,(item:NewsSwiperModule)=>{
+          Image(item.img)
+            .width('100%')
+            .onClick(()=>{
+              const promptAction = this.getUIContext().getPromptAction()
+              promptAction.showToast({message:'跳转原页面功能待开发'})
+            })
+        })
+      }
+      .curve(Curve.EaseInOut)
+      .loop(true)
+      .autoPlay(true)
+      .interval(2000)
+```
+
+<video width="100%" controls>
+  <source src="18.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
 ## 客户端开发
 
 ### 准备工作
@@ -3517,3 +3560,187 @@ struct Main {
 </video>
 
 嗯，测试结果还是很满意的。原来是我之前的思路错了。
+
+### API基础功能模块构建
+
+#### 网络请求工具封装
+
+首先设置一下基地址的常量。
+
+```ts
+export const SERVE_BASE_ADDRESS = 'http://localhost:8001'
+```
+
+同时安装一下axios的三方库
+
+```bash
+ohpm install @ohos/axios
+```
+
+随后在common层的`api`文件夹下封装一个axios请求实例对象。
+
+在我从原来的项目迁移封装好的请求工具类时我突然意识到一个问题就是说从UIContext中获取到的`promptAction`对象我好像得提出来作为一个全局变量否则我一直调用的都是那个被废弃的接口。
+
+通过之前鸿小易的开发经验我可以得知，直接向AppStorageV2中存入上下文对象是不可行的，我需要将其包装为一个实例对象的属性来进行存储，所以我们设置一个包装类。
+
+```ts
+/**
+ * 获取上下文对象包装类
+ */
+export class GetUIContext{
+  private _context: UIContext
+
+  public set context(value: UIContext) {
+    this._context = value
+  }
+
+  public get context(): UIContext {
+    return this._context
+  }
+
+  constructor(context: UIContext) {
+    this._context = context
+  }
+}
+```
+
+随后在页面的`onWindowStageCreate`函数中去获取UI上下文对象并存储到全局变量中。
+
+```ts
+  onWindowStageCreate(windowStage: window.WindowStage): void {
+    // Main window is created, set main page for this ability
+    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
+
+    windowStage.loadContent('pages/Index', (err) => {
+      if (err.code) {
+        hilog.error(DOMAIN, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
+        return;
+      }
+      hilog.info(DOMAIN, 'testTag', 'Succeeded in loading the content.');
+      const uiPromptAction = windowStage.getMainWindowSync().getUIContext()
+      AppStorageV2.connect(GetUIContext,GET_UICONTEXT,()=>new GetUIContext(uiPromptAction));
+      if (AppStorageV2.connect(GetUIContext, GET_UICONTEXT)!==undefined) {
+        logger.info('Get UIContext succeed')
+      }
+
+    });
+  }
+```
+
+随后封装axios的基础配置以及拦截器的数据判断
+
+```ts
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "@ohos/axios"
+import { logger } from "../../utils"
+import { AppStorageV2 } from "@kit.ArkUI"
+import { GET_UICONTEXT, SERVE_BASE_ADDRESS } from "../../constants"
+import { GetUIContext } from "../../modules/context/GetUIContext"
+
+export const AXIOS_HTTP_LOG_TAG = 'AxiosHttp:  '
+
+/**
+ * axios请求实例
+ * 配置基地址和请求超时时间
+ */
+export const axiosInstance = axios.create({
+  baseURL: SERVE_BASE_ADDRESS,
+  timeout: 10000
+})
+logger.debug('请求获取UIContext')
+const uiPromptAction = AppStorageV2.connect(GetUIContext,GET_UICONTEXT)!.context.getPromptAction()
+/**
+ * 设置响应拦截器拦截器
+ * interceptors:    拦截器
+ * response:        响应
+ * 由这个axiosInstance实例发送到请求的响应都会经过它再返回
+ */
+// 响应拦截器
+axiosInstance.interceptors.response.use((res: AxiosResponse) => {
+  if (res.status === 200) {
+    logger.warn(AXIOS_HTTP_LOG_TAG + 'Req Success' + JSON.stringify(res.data))
+    return res.data
+  }
+  logger.error(AXIOS_HTTP_LOG_TAG + 'ReqCode Error' + JSON.stringify(res.data))
+  uiPromptAction.showToast({ message: 'ReqCode Error' + JSON.stringify(res.data) })
+  return Promise.reject(res.data)
+}, (err: AxiosError) => {
+  logger.error(AXIOS_HTTP_LOG_TAG + 'Req Error' + JSON.stringify(err))
+  uiPromptAction.showToast({ message: 'Req Error' + JSON.stringify(err) })
+  return Promise.reject(err)
+})
+
+class AxiosHttp {
+  /**
+   * Axios包装过的请求函数
+   * @param config 网络请求配置项
+   * <res:响应数据类型
+   * req:请求体参数类型 - get不需要传>
+   */
+  request<res, req = Object>(config: AxiosRequestConfig<req>) {
+    logger.debug(AXIOS_HTTP_LOG_TAG + '进入AxiosHttp.request')
+    return axiosInstance<null, res, req>(config)
+  }
+}
+
+/**
+ * 包装后的axios请求，添加了拦截器直接选取res.data中的字段
+ */
+export const axiosHttp = new AxiosHttp()
+```
+
+进行测试，果然和我预想的一样出了问题。
+
+```bash
+Reason:Error
+Error name:Error
+Error message:The default creator should be function when first connect
+Stacktrace:
+SourceMap is not initialized yet 
+    at connect (/usr1/hmos_for_system/src/increment/sourcecode/foundation/arkui/ace_engine/frameworks/bridge/declarative_frontend/engine/stateMgmt.js:10862:1)
+    at connect (../../../foundation/arkui/ace_engine/frameworks/bridge/declarative_frontend/engine/jsStateManagement.js:45:1)
+    at func_main_0 (common|common|1.0.0|src/main/ets/api/http/AxiosHttp.ts:16:24)
+```
+
+动态资源共享包的编译过程很显然是在UI界面渲染之前发生的，也就代表我们获取UI上下文的代码执行发生在了我们使用弹窗之前。我们先将从全局变量中获取对象的代码注释掉试试，如果仅注释掉网络请求工具封装文件中的代码问题就消失，而且点击轮播图的弹窗依旧正常显示的话说明我的想法是正确的，问题就发生在了我们代码的执行顺序上。
+
+```ts
+logger.debug('请求获取UIContext')
+// const uiPromptAction = AppStorageV2.connect(GetUIContext,GET_UICONTEXT)!.context.getPromptAction()
+```
+
+经测试bug消失，同时点击轮播图的弹窗依旧正常显示，说明我们的想法是正确的，问题就发生在了我们代码的执行顺序上。
+
+```ts
+/**
+ * 设置响应拦截器拦截器
+ * interceptors:    拦截器
+ * response:        响应
+ * 由这个axiosInstance实例发送到请求的响应都会经过它再返回
+ */
+// 响应拦截器
+axiosInstance.interceptors.response.use((res: AxiosResponse) => {
+  const uiPromptAction = AppStorageV2.connect(GetUIContext,GET_UICONTEXT)!.context.getPromptAction()
+  if (res.status === 200) {
+    logger.warn(AXIOS_HTTP_LOG_TAG + 'Req Success' + JSON.stringify(res.data))
+    return res.data
+  }
+  logger.error(AXIOS_HTTP_LOG_TAG + 'ReqCode Error' + JSON.stringify(res.data))
+  uiPromptAction.showToast({ message: 'ReqCode Error' + JSON.stringify(res.data) })
+  return Promise.reject(res.data)
+}, (err: AxiosError) => {
+  const uiPromptAction = AppStorageV2.connect(GetUIContext,GET_UICONTEXT)!.context.getPromptAction()
+  logger.error(AXIOS_HTTP_LOG_TAG + 'Req Error' + JSON.stringify(err))
+  uiPromptAction.showToast({ message: 'Req Error' + JSON.stringify(err) })
+  return Promise.reject(err)
+})
+```
+
+我尝试将获取放入响应拦截器中看是否能解决这个问题。
+
+![19](OpenSourceSummer2025/19.jpg)
+
+问题成功解决。
+
+{% note success flat %}
+小结一下，我将从全局变量获取UIContext的代码移动进了axios的响应拦截器中，这样就不会在编译动态资源包时就直接执行这段代码，而是在UI界面构建之后由界面逻辑触发请求时才会调佣这段代码，避免了代码顺序问题。
+{% endnote %}
