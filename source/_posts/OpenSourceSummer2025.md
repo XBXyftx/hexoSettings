@@ -3370,6 +3370,479 @@ ok效果也是非常的好，前面近两年的资讯都是十分顺利的爬取
   您的浏览器不支持视频标签。
 </video>
 
+### 后端测试
+
+在测试室发现了问题。首先在请求`http://localhost:8001/api/health`时获得了了以下信息：
+
+```js
+{
+  "status": "healthy",
+  "timestamp": 1753952766.34884,
+  "version": "1.0.0",
+  "services": {
+    "cache": {
+      "status": "ready",
+      "cache_count": 385,
+      "last_update": "2025-07-31T15:25:53.290022",
+      "error_message": null
+    },
+    "news_sources": [
+      {
+        "source": "openharmony",
+        "name": "OpenHarmony官网",
+        "description": "OpenHarmony官方网站最新动态和新闻",
+        "base_url": "https://www.openharmony.cn"
+      },
+      {
+        "source": "csdn",
+        "name": "CSDN",
+        "description": "CSDN平台上关于OpenHarmony的技术文章和资讯",
+        "base_url": "https://blog.csdn.net"
+      }
+    ]
+  },
+  "endpoints": {
+    "openharmony_news": "/api/news/openharmony",
+    "csdn_news": "/api/news/csdn",
+    "all_news": "/api/news/",
+    "manual_crawl": "/api/news/crawl",
+    "service_status": "/api/news/status/info"
+  }
+}
+```
+
+随后在访问`http://localhost:8001/api/news/openharmony`时却显示获取新闻失败。
+
+```js
+{
+  "detail": "获取OpenHarmony官网新闻失败"
+}
+```
+
+随后访问`http://localhost:8001/api/news/csdn`时又没有任何的数据
+
+```js
+{
+  "articles": [],
+  "total": 0,
+  "page": 1,
+  "page_size": 20,
+  "has_next": false,
+  "has_prev": false
+}
+```
+
+随后我又尝试了获取全部新闻的接口。`http://localhost:8001/api/news/`，这倒是成功了。
+
+```js
+{
+  "articles": [
+    {
+      "id": "00d1196eb553e2e0",
+      "title": "对话OpenHarmony开源先锋：如何用代码革新终端生态",
+      "date": "2025.02.28",
+      "url": "https://mp.weixin.qq.com/s/cHsMzPTmoYec-_VL6VllBQ",
+      "content": [
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_gif/15QnXdLP7ibT0RCulIUzFZ2cGSMTZ3VHFWEttSQKAePB61zNuqdYPP41JIA6b7hph5Z02wKZ61Ch5rjl5FxLzWw/640?wx_fmt=gif&from=appmsg"
+        },
+        {
+          "type": "text",
+          "value": "2025年2月23日，由开放原子开源基金会主办的第二届OpenHarmony创新应用挑战赛决赛路演在北京圆满结束，作为第二届开放原子大赛的重要赛项之一，本届赛事汇聚全球418支团队，产出超过110个创新作品，集中展示了OpenHarmony在应用与游戏开发领域的前沿成果。这些凝聚智慧与协作的参赛作品，不仅在技术层面实现了多项突破，更在商业化应用层面验证了开源生态的无限潜力。赛事不仅彰显了开发者群体的创新活力，也凸显了OpenHarmony作为技术底座的重要价值，为开源技术生态发展注入革新的力量。"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibRnShrEU2uTRKJQbyziasm8ib3wXuDS7TicltuOnUzHt396f649ICg1WZr7mRSEMRDVX8iawxjdPZVItA/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "text",
+          "value": "当代码与创意在OpenHarmony的数字沃土中生根发芽，我们不禁期待，这些开发者如何用实践诠释开源精神？他们的探索历程又蕴藏着怎样的创新思维？让我们跟随优秀团队，解开技术突破与生态协同的共生密码。"
+        },
+        {
+          "type": "text",
+          "value": "OpenHarmony创新应用赛题：让书柜学会“思考”"
+        },
+        {
+          "type": "text",
+          "value": "由“新大陆自动识别”团队开发的《智能书导》项目，是基于开源操作系统 OpenHarmony打造的图书馆管理应用，通过融合RFID 技术，实现图书馆管理流程的高效优化。团队开发该方案的初衷是帮助图书馆高效地完成图书借阅、查询等工作，减轻管理员负担，同时希望将技术推广至物流、商超、工厂等更多场景，拓展应用范围。"
+        },
+        {
+          "type": "text",
+          "value": "《智能书导》项目通过技术融合创新，深度整合OpenHarmony系统的分布式能力与RFID自动识别技术，利用前者实现图书信息的高效共享，借助后者完成图书的自动识别与数据交互。功能上，该项目集成了快速借还书、精准定位等核心功能，以及今日推荐等辅助功能，全面满足图书馆管理与读者服务需求。应用程序适配OpenHarmony 4.1 Release和5.0.2.50系统，可在多种设备上流畅运行，项目所用硬件也已通过兼容性测评，确保软硬件的无缝集成与高效协同。"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibRnShrEU2uTRKJQbyziasm8ibOP4I1IZBc61z68ukktnxx6yDW3bALR5RnB3b4BFicTKY4ebec6tlQWw/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "text",
+          "value": "《智能书导》的开发者徐金生表示：“未来团队将把项目核心代码贡献至OpenHarmony主干代码库，推动各模块与性能的提升。同时，计划进一步优化技术瓶颈，拓展项目对更多设备的适配能力。”"
+        },
+        {
+          "type": "text",
+          "value": "OpenHarmony创新应用赛题：用技术魔法规划繁琐旅行"
+        },
+        {
+          "type": "text",
+          "value": "由“领先风暴队”开发的《出行妈妈》项目，主要是为了解决旅行者在行程规划繁琐、信息整合困难以及个性化需求难以满足三大方面的痛点，提供省时省力的完美行程定制解决方案。该项目填补了OpenHarmony在旅游规划领域的空白，深度融合OpenHarmony 5.0.0 Release特性与旅游出行需求，提供 “规划+路线+玩法” 的一站式服务，支持出行规划记录与最佳路线推荐，为用户打造智能化旅行体验。"
+        },
+        {
+          "type": "text",
+          "value": "通过bindSheet绑定半模态组件，利用emitter实现跨组件通信，支持拖拽排序、原生时间组件及API12服务卡片的实时同步，并结合Flex+Scroll弹性布局适配动态界面，《出行妈妈》以技术魔法将复杂的旅行“任务”化繁为简。未来，团队将持续优化作品，计划引入分布式数据管理、AI驱动的个性化规划定制以及社区交互等功能，进一步提升用户体验。"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibRnShrEU2uTRKJQbyziasm8ibIbuQ5PpGAGuiaUZIiaeCh4Lf1CdKm4LaPdPoWepZGVPffyYagtMDyUPg/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "text",
+          "value": "在开发过程中，团队撰写了20余篇技术博客并发布至开源社区，其中多篇登上社区头条。后续，团队计划将项目中的自定义组件，如城市选择、时间选择和日历等，贡献至OpenHarmony主干代码库。作为一支年轻团队，参赛过程不仅显著提升了协作能力，也为团队积累了宝贵的实践经验。"
+        },
+        {
+          "type": "text",
+          "value": "Cocos游戏创新应用赛题：从孩童幻想到次世代飞行器"
+        },
+        {
+          "type": "text",
+          "value": "“gamemcu”团队打造的《星际穿越》项目，是一款高画质次世代模拟飞行游戏。玩家通过电视屏幕，即可见证掌心玩具蜕变为可操控的星际战舰，在动态的星云间完成飞行模拟。提到游戏背景，开发者陈炫烨说道：“灵感源于我的儿子，因为我经常能看到我儿子拿着玩具进行飞行模拟，于是我就把他的想象变成了一款游戏。”"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibRnShrEU2uTRKJQbyziasm8ibJLdpS8G5Rxj071oyrLJZ8WIgoHMAEZSyll4l0APjrtibIlydTVXMsjw/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "text",
+          "value": "《星际穿越》的核心优势在于其卓越的游戏渲染与镜头模拟技术。团队通过自定义高清渲染管线、重构PBR材质系统、高品质后期处理以及多边形GPU粒子系统等多项技术方案，精准还原环境光照，真实模拟人手抓取物体的触感，最终呈现出令人惊艳的飞船驾驶模拟体验。"
+        },
+        {
+          "type": "text",
+          "value": "此前，基于Cocos开发的游戏多以风格化为主，而团队勇于突破，首次尝试了次世代效果。未来，团队将通过教程、技术指引等开源方式，帮助更多开发者了解项目，降低开发门槛。希望这个源于父子温情的太空幻想，能够激发更多开发者对次世代游戏的创作热情。"
+        },
+        {
+          "type": "text",
+          "value": "Cocos游戏创新应用赛题：因为热爱，所以存在"
+        },
+        {
+          "type": "text",
+          "value": "由“路妖姬”团队开发的《引力线流星》项目，是一款宇宙题材的沙盒生存游戏。玩家将操控流浪地球，在复杂的宇宙引力环境中探索生存，建造飞船单位，并与外星文明展开资源争夺。"
+        },
+        {
+          "type": "text",
+          "value": "项目的核心优势在于对引力模拟的前沿探索，填补了OpenHarmony在游戏领域的空白。游戏采用2D物理系统精准模拟星球间的引力相互作用与轨道运动，为玩家打造高度拟真的宇宙物理环境与沉浸式体验。"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibRnShrEU2uTRKJQbyziasm8ibbsIK6gNaBjpaI48OdJIhFh7GATGQtflgFvB38IYZp7aYLNsY6iaZoKw/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "text",
+          "value": "作为携《引力线流星》项目首次参赛的开发者，刘瑞表示，赛事让他深入了解了如何参与社区开源，并与社区成员共同探讨技术，结识了众多志同道合的伙伴，为未来高效合作奠定了基础。同时，他呼吁更多开发者关注OpenHarmony及游戏开发领域，助力开源生态形成更强的“引力效应”。"
+        },
+        {
+          "type": "text",
+          "value": "融汇创新力量 共筑开源未来"
+        },
+        {
+          "type": "text",
+          "value": "第二届OpenHarmony创新应用挑战赛不仅是一次智慧与创新的较量，更是一场开源精神的深度实践。赛事联动产业、前沿科技与优秀人才，推动了OpenHarmony与Cocos的生态深度融合与发展，为开发者提供了施展才华的舞台，更助力开源技术加速落地。在这场融合创意与探索的盛宴中，优秀团队以实力塑造未来，终将推动创新从竞技场走向产业星辰大海。"
+        },
+        {
+          "type": "text",
+          "value": "未来，OpenHarmony社区将持续拓展应用边界，携手全球开发者共创数字时代的新范式，助力开源生态迈向更加繁荣、智能、可持续的新时代。"
+        }
+      ],
+      "category": "官方动态",
+      "summary": "",
+      "source": "OpenHarmony",
+      "created_at": null,
+      "updated_at": null
+    },
+    {
+      "id": "5e06c277ebc52833",
+      "title": "12强终极PK！第二届OpenHarmony创新应用挑战赛引爆开源热潮",
+      "date": "2025.02.24",
+      "url": "https://mp.weixin.qq.com/s/2EeeruCTcZEq1qbydrgsKw",
+      "content": [
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_gif/15QnXdLP7ibT0RCulIUzFZ2cGSMTZ3VHFWEttSQKAePB61zNuqdYPP41JIA6b7hph5Z02wKZ61Ch5rjl5FxLzWw/640?wx_fmt=gif&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQEl1nS9dNOaQCOzJmfasMKiaoVVxxkYdzicib6Zaq5TrNL4QTausgosiaZ73DLiawkqiawcG2QYljGH8SQ/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQEl1nS9dNOaQCOzJmfasMKmHJKGmcdSl5tmeIG4j4mZ7L3nu0n5hu3UVvcibGYib23ouMWYGpVBzlQ/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQEl1nS9dNOaQCOzJmfasMK6TeDicn203fPkTTqQKBTp8NdQJTgXks14Nic2WKeiboR9Np2b5sEa8xwQ/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQEl1nS9dNOaQCOzJmfasMKrVYxoGtdzllKYXjG1DibNLVHia6atSoDKzUHqWwRnTqOMJt0WnvV1tcw/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQEl1nS9dNOaQCOzJmfasMKIyI0odwRy4Xr2j3iaYL7UUrSPdQUEgd8S0gANWqQXRHWcjic6dHiaGicYw/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQEl1nS9dNOaQCOzJmfasMK66LJ96zBOn4l3KAjxPibnOWXhdMoGUWnFfdRQNB1jj4ic8VnMdPGcQ1g/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQEl1nS9dNOaQCOzJmfasMKjIr9qTMzZgm2icNic9DANICsAFvToGVfIUicXpxIgPM1ia4AVx7qd7OU6w/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQEl1nS9dNOaQCOzJmfasMKkhHgOGV1JrNgVYeRB5R9BCOafvic9cWsgwMibiaLibe4icu6UqZfZc9eicDw/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQEl1nS9dNOaQCOzJmfasMK2MTia9Y47GbZ7XpAl4O9XJxMTZEFGShCSe8KtllXKvLdXaIpP0iczyww/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQEl1nS9dNOaQCOzJmfasMK4cbuXzzXd4aDYs3NRbNydcWa3ogSxRx25PmtOB0VBHyLXRomaJ3dRA/640?wx_fmt=jpeg&from=appmsg"
+        }
+      ],
+      "category": "官方动态",
+      "summary": "",
+      "source": "OpenHarmony",
+      "created_at": null,
+      "updated_at": null
+    },
+    {
+      "id": "a2042a2858a50164",
+      "title": "第二届OpenHarmony创新应用挑战赛决赛路演队伍揭晓",
+      "date": "2025.02.20",
+      "url": "https://mp.weixin.qq.com/s/scsUs8XKUMWp_kelThSetA",
+      "content": [
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_gif/15QnXdLP7ibT0RCulIUzFZ2cGSMTZ3VHFWEttSQKAePB61zNuqdYPP41JIA6b7hph5Z02wKZ61Ch5rjl5FxLzWw/640?wx_fmt=gif&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibTWPUlSlQlrgYv16cD7MdLyGVbH7vwicqqjQebo99Q9HGG9ribtnAvLcqKTK9JckcvrOLwuytlNs6ibw/640?wx_fmt=jpeg&from=appmsg"
+        }
+      ],
+      "category": "官方动态",
+      "summary": "",
+      "source": "OpenHarmony",
+      "created_at": null,
+      "updated_at": null
+    },
+    {
+      "id": "5114e5ff16d11bd8",
+      "title": "OpenHarmony社区2024年度运营报告发布，致谢每一位生态共建者！",
+      "date": "2025.02.11",
+      "url": "https://mp.weixin.qq.com/s/njNirZfZFhwztz9zNnuc-A",
+      "content": [
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_gif/15QnXdLP7ibT0RCulIUzFZ2cGSMTZ3VHFWEttSQKAePB61zNuqdYPP41JIA6b7hph5Z02wKZ61Ch5rjl5FxLzWw/640?wx_fmt=gif&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEnbwtoZypOib8UjEhcpZWEjGMkFlPAL5icMm9MibtzskiaicCNrpytC8GcqQ/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEqicGZvtcZ3xqClk9Idm90o1KQuqqajJS4s84wbibZ0OSYNiahYQ9Uiam8g/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEUfAzhY6hGc3409floe2AsD1xRy9ZLgTSkibxzGtecxbPAUDAfWtB3qA/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEHdosZ5bXHP3LPwrfeNRfYkJRxNTLiaG4OpEA1fjc6Ud0FjACW3NRb6Q/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lE5SrR24VGd4681lCdHwEk7etQa7cxasUPBnIWy536SwBiaC05ZeCB0Bw/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEvrmibn4fEjtgot1GdNzQQ6yBwvMDTVV67xJKS0ibAy6WNvXbA61ohygg/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEibyYuqgj0G0el5NAnVMZDVr9JqaC9WfmibY2NwoVgcqqzR3cQ86T7Oxw/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEIuWvGaVW1AsVbccv91BxJddta5cuNBjicLymbYhn1k8K3xYia8neBIPA/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEYuvkRia1Ns1icGmLjFUbnmeiauD54te6aWDgnicXfq05qEDVNkomabBGZg/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEyBgz13QMqZtfDquTyMjeiazXHZGqmr2VVAgVAKMCmvEtIeur87vh6og/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEXBHNV1fU1W7hP8lHwonVWGWicC7SQIvVIibFsaAkhbj6oHdSQybbSvEg/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEbc704wvtChnw93E30syHCUlb03p6bl3Lh2lBQoGfxrvK1PKmtN3rYg/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEsF4Wugny506jkz59DJF9vqzaBHC4JksK0vorwcia7KrBv9pm01s8t6A/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEnxbV9983xoMKSdicZjahgA4iclekibh2qg758rLRvibK2ABicr1ZIvDs1ew/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEBpLU0LQ8Oge2YwF05Xg1p3kHckC98UyT5s1KxiapibqVibozW0JX3tictQ/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lE19837Louetkvia0NIMCRR0q7ODQbeIzXFh95vfn4FJDgD6f4jtmo4wQ/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEKDcHPjshicrricqGJFtLSBibQlKmCBnRvAJnSUjaGE2KGDTspBuZad1TQ/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lETpll3OKOKXib75zc9T5YUdSf6xXYLyHicB22AmUjceoa2VcNsU76PUsg/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEP7BHKHSUcz9ABK8N3bCOl03YEFZeRsfrcwtDhWtmvA3XS4AedzyvcQ/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEdbagNibvmQXh1IGwIS78ORtMx6tyWxrYD3jH8SibyR4TvEDJG8ia6Tlicg/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEJAe6DAO8GiaYfQueePYNTefrKAksfAjfWiaJicV3cGW3lpSyx0ic6hHAqg/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lETNP43Ae6zokA8p3iaur406j5hnsx1JINHq7kuT6wQF699hW4cxnKiagg/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lE6ic596IMRNVRia3uyLhXLS4ibCpqUXCvFNH2B7TUw7ZT9bnFicmHuWog1w/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lER3sgogF4V3S7y9fk6lMfD6NQYrMR2aYYXSxngZ1PYbW7nKPqyJ2iazA/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEeCGnSx0kbMbxuXJz3Ib74vUmmKWGJHo0UaROeTSxkbVM4f5WLhFLCA/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEmPicNYGZdJfA8nqNI9b9kLQGE8wqxpX7Ju62reVhsLlia5JbhpibIh9RQ/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lErwNG1iaIzaWLxIptCfQXzH4k9LssoKJibpQZ3WSAQB9Rfn25LrHAodQQ/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEa3jwI4tQBwtGN4rhMnDavM39De1zezdCTuuWkbl2sEzzcWqtVRflPw/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEiaG63ia3YHt10DFR65RbLicGQIcSvVmDTzSyJP4Dbva7Sbn0mvfMItVfw/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lE1nUDfYAfq3AmQSOabYD8HbhChc8nJlxMyvcI32c5tpnqtyR3va5Fgg/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEQs6jV1siamc8jaH7z63f00Bfj6yNibc7Rm5G07U9CNibkIqmtHIafBTkw/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lEsQNHfDptkC0CCht9Ik6l3lyD6La1bkLVh7DEPRx9jhN1uXhstGTKAg/640?wx_fmt=jpeg&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQ8ldk4OHyMf3GPLCdTb4lE70eiaOPB7CY9QQeetZWdibPzaTvuLrYto80rJ2LfTibMC5duyA3zQCSvQ/640?wx_fmt=jpeg&from=appmsg"
+        }
+      ],
+      "category": "官方动态",
+      "summary": "",
+      "source": "OpenHarmony",
+      "created_at": null,
+      "updated_at": null
+    },
+    {
+      "id": "946a1bb32c960dfd",
+      "title": "开源鸿蒙社区恭祝全体开发者2025新年快乐，新春大吉！",
+      "date": "2025.01.29",
+      "url": "https://mp.weixin.qq.com/s/fVn6brUk2EnPbUcc3pLeCA",
+      "content": [
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_gif/15QnXdLP7ibT0RCulIUzFZ2cGSMTZ3VHFWEttSQKAePB61zNuqdYPP41JIA6b7hph5Z02wKZ61Ch5rjl5FxLzWw/640?wx_fmt=gif&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibQiarLkqywuj2ibkbZLBn4Wd21VTTD4cDyuibMTY1N0QBYGuKPWdFoAzcgzlAfufQW8H2YEdZ7FXrG1Q/640?wx_fmt=jpeg&from=appmsg"
+        }
+      ],
+      "category": "官方动态",
+      "summary": "",
+      "source": "OpenHarmony",
+      "created_at": null,
+      "updated_at": null
+    },
+    
+    {
+      "id": "2aefad8ffbbc8970",
+      "title": "精彩预告 | 2024开放原子开发者大会OpenHarmony技术分论坛等您来！",
+      "date": " 2024.12.17",
+      "url": "https://mp.weixin.qq.com/s/Bsx93rP5cj-vMgFjwIIeXg",
+      "content": [
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_gif/15QnXdLP7ibT0RCulIUzFZ2cGSMTZ3VHFWEttSQKAePB61zNuqdYPP41JIA6b7hph5Z02wKZ61Ch5rjl5FxLzWw/640?wx_fmt=gif&from=appmsg"
+        },
+        {
+          "type": "image",
+          "value": "https://mmbiz.qpic.cn/mmbiz_png/15QnXdLP7ibRTC12x0PiaKpzepz3HIA99ibl1HlPbm1xSqXNaGYAib76xOCh6GOTRVp1tmFem1cSWLkcHc3FNUHpEw/640?wx_fmt=png&from=appmsg"
+        }
+      ],
+      "category": "官方动态",
+      "summary": "",
+      "source": "OpenHarmony",
+      "created_at": null,
+      "updated_at": null
+    }
+  ],
+  "total": 385,
+  "page": 1,
+  "page_size": 20,
+  "has_next": true,
+  "has_prev": false
+}
+```
+
+中间数据太长了我删除了一大部分。
+
+看来我的两个资讯源的获取逻辑有问题。应该将两个数据源获取的数据能够分开获取才对。
+
+但是看了一圈并没有发现问题在哪就很奇怪了。
+
 ## 客户端开发
 
 ### 准备工作
@@ -3744,3 +4217,174 @@ axiosInstance.interceptors.response.use((res: AxiosResponse) => {
 {% note success flat %}
 小结一下，我将从全局变量获取UIContext的代码移动进了axios的响应拦截器中，这样就不会在编译动态资源包时就直接执行这段代码，而是在UI界面构建之后由界面逻辑触发请求时才会调佣这段代码，避免了代码顺序问题。
 {% endnote %}
+
+#### API测试
+
+我现在启动了后端服务，我们先来编写一段代码来测试一下我们的网络请求工具是否正常工作。
+
+```ts
+/**
+ * 新闻源信息接口
+ * 描述不同来源的新闻平台信息
+ */
+export interface NewsSource {
+  /** 新闻源标识（如：openharmony、csdn） */
+  source: string;
+  /** 新闻源名称（如：OpenHarmony官网、CSDN） */
+  name: string;
+  /** 新闻源描述信息 */
+  description: string;
+  /** 新闻源基础URL */
+  base_url: string;
+}
+
+/**
+ * 缓存服务状态接口
+ * 描述缓存服务的当前状态信息
+ */
+export interface CacheService {
+  /** 缓存服务状态（如：preparing、ready、error） */
+  status: string;
+  /** 缓存数量 */
+  cache_count: number;
+  /** 最后更新时间（null表示未更新过） */
+  last_update: number | null;
+  /** 错误信息（无错误时可能为null或空字符串） */
+  error_message: string;
+}
+
+/**
+ * 服务集合接口
+ * 包含系统中所有可用的服务信息
+ */
+export interface Services {
+  /** 缓存服务信息 */
+  cache: CacheService;
+  /** 新闻源列表 */
+  news_sources: NewsSource[];
+}
+
+/**
+ * 接口端点集合接口
+ * 描述系统提供的所有API接口端点
+ */
+export interface Endpoints {
+  /** OpenHarmony新闻接口 */
+  openharmony_news: string;
+  /** CSDN新闻接口 */
+  csdn_news: string;
+  /** 所有新闻聚合接口 */
+  all_news: string;
+  /** 手动爬取接口 */
+  manual_crawl: string;
+  /** 服务状态查询接口 */
+  service_status: string;
+}
+
+/**
+ * 系统状态根接口
+ * 包含整个系统的状态信息和可用接口
+ */
+export interface SystemStatus {
+  /** 系统整体状态（如：preparing、ready） */
+  status: string;
+  /** 时间戳（状态生成的时间） */
+  timestamp: number;
+  /** 系统版本号 */
+  version: string;
+  /** 系统包含的服务集合 */
+  services: Services;
+  /** 系统提供的API接口端点集合 */
+  endpoints: Endpoints;
+}
+```
+
+先定义一系列的数据接口用于承接并解析数据。随后在利用封装好的网络请求工具测试一下我们的后端服务是否正常工作以及是否能直接请求，是否会存在一些跨域问题。
+
+```ts
+import { axiosHttp } from '../http/AxiosHttp'
+import { SystemStatus } from '../../modules/server/ServerHelth'
+import { logger } from '../../utils/logger/logger'
+
+const ServerHealthAPI_TAG = 'ServerHealthAPI:'
+
+class ServerHealthAPI {
+  isServerReady(): boolean {
+    try {
+      const res = axiosHttp.request<SystemStatus>({
+        url: '/api/health',
+      })
+      logger.info(ServerHealthAPI_TAG + JSON.stringify(res))
+      return true
+    } catch (err) {
+      logger.error(ServerHealthAPI_TAG + JSON.stringify(err))
+    }
+    return false
+  }
+}
+
+export const serverHealthApi = new ServerHealthAPI()
+
+```
+
+最后再将这个函数在主页面的生命周期中去进行调用。
+
+```ts
+  aboutToAppear(): void {
+    serverHealthApi.isServerReady()
+  }
+```
+
+启动调试并观察日志输出。
+
+诶？奇怪的现象出现了。
+
+![20](OpenSourceSummer2025/20.png)
+
+请求触发了但是API中并没有成功解析到数据，但是封装的请求工具中设置的拦截器是成功捕获了响应。
+
+同时含有一个现象就是拦截器触发的时机是在API的日志打印之后，这个代码的执行顺序有问题。奥，原来是因为网络请求是异步操作，但我用的是同步变成，res是Promise对象，而不是请求后的响应数据。
+
+改一下代码。
+
+```ts
+import { axiosHttp } from '../http/AxiosHttp'
+import { SystemStatus } from '../../modules/server/ServerHelth'
+import { logger } from '../../utils/logger/logger'
+
+const ServerHealthAPI_TAG = 'ServerHealthAPI: '
+
+class ServerHealthAPI {
+  async isServerReady(): Promise<boolean> {
+    try {
+      const res = await axiosHttp.request<SystemStatus>({
+        url: '/api/health',
+      })
+      logger.info(ServerHealthAPI_TAG + JSON.stringify(res))
+      return true
+    } catch (err) {
+      logger.error(ServerHealthAPI_TAG + JSON.stringify(err))
+    }
+    return false
+  }
+}
+
+export const serverHealthApi = new ServerHealthAPI()
+
+```
+
+```ts
+  aboutToAppear(): void {
+    serverHealthApi.isServerReady().then((res:boolean)=>{
+      logger.debug(MainPage_TAG+res.valueOf())
+    })
+  }
+```
+
+再次测试
+
+![21](OpenSourceSummer2025/21.png)
+
+成功了成功了，吓死我了。还是不熟练，还得多练。
+
+随后就开始依据其他的重要API开始逐一编写数据模型以及接口类型。
