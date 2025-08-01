@@ -3843,6 +3843,113 @@ ok效果也是非常的好，前面近两年的资讯都是十分顺利的爬取
 
 但是看了一圈并没有发现问题在哪就很奇怪了。
 
+### 不分页数据获取参数
+
+我准备设置一个全部数据一次性获取的接口来简化一下后端的接口设计。
+
+```py
+logger = logging.getLogger(__name__)
+router = APIRouter(prefix="/api/news", tags=["news"])
+
+@router.get("/", response_model=NewsResponse)
+async def get_news(
+    page: int = Query(1, ge=1, description="页码"),
+    page_size: int = Query(20, ge=1, le=100, description="每页数量"),
+    category: Optional[str] = Query(None, description="新闻分类"),
+    search: Optional[str] = Query(None, description="搜索关键词"),
+    all: bool = Query(False, description="是否返回全部新闻不分页")
+):
+    """
+    获取新闻列表，支持分页、分类和搜索
+    
+    参数说明：
+    - page: 页码（当all=True时忽略）
+    - page_size: 每页数量（当all=True时忽略）
+    - category: 新闻分类过滤
+    - search: 搜索关键词
+    - all: 是否返回全部新闻不分页，为true时返回所有匹配的新闻
+    """
+    try:
+        # 从缓存获取数据
+        cache = get_news_cache()
+        cache_status = cache.get_status()
+        
+        # 检查服务状态
+        if cache_status["status"] == ServiceStatus.ERROR.value:
+            raise HTTPException(
+                status_code=503, 
+                detail=f"服务暂时不可用: {cache_status.get('error_message', '未知错误')}"
+            )
+        
+        # 如果服务正在准备中，返回提示信息
+        if cache_status["status"] == ServiceStatus.PREPARING.value:
+            return NewsResponse(
+                articles=[],
+                total=0,
+                page=page,
+                page_size=page_size,
+                has_next=False,
+                has_prev=False
+            )
+        
+        # 从缓存获取数据
+        if all:
+            # 如果要返回全部数据，设置一个很大的page_size来获取所有数据
+            result = cache.get_news(page=1, page_size=10000, 
+                                  category=category, search=search)
+            # 重新设置分页信息，表示这是全部数据
+            result.page = 1
+            result.page_size = result.total
+            result.has_next = False
+            result.has_prev = False
+        else:
+            # 正常分页逻辑
+            result = cache.get_news(page=page, page_size=page_size, 
+                                  category=category, search=search)
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"获取新闻列表失败: {e}")
+        raise HTTPException(status_code=500, detail="获取新闻列表失败")
+```
+
+保留原有的功能函数，然后新增一个全部数据获取的参数，这样就可以实现功能的拓展。
+
+### 核心接口测试
+
+理论上讲我现在的接口是支持以下几种URL的请求的我都先列在这里。
+
+```bash
+http://localhost:8001/api/news/?all=true
+http://localhost:8001/api/news/?all=true&category=官方动态
+http://localhost:8001/api/news/?all=true&search=OpenHarmony
+http://localhost:8001/api/news/?all=true&search=创新应用
+```
+
+随后等待后端服务重新启动完成我们来访问一下这些接口来进行测试验证。
+
+首先是`?all=true`
+
+<video width="100%" controls>
+  <source src="22.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+数据量太大了我就不全放在我的文章里了，观感不好。我直接放一个视频来证明数据时成功获取的。
+
+随后再来测试一下`?all=true&search=OpenHarmony`这个搜索接口。
+
+```js
+{
+  "detail": "获取新闻列表失败"
+}
+```
+
+果然这个细分来源的接口还是有问题存在，虽然暂时没有查出问题所在，但但使用一个全部资讯接口也是可以进行渲染的，所以我决定先去继续推进度。
+
 ## 客户端开发
 
 ### 准备工作
@@ -4388,3 +4495,212 @@ export const serverHealthApi = new ServerHealthAPI()
 成功了成功了，吓死我了。还是不熟练，还得多练。
 
 随后就开始依据其他的重要API开始逐一编写数据模型以及接口类型。
+
+#### 新闻API
+
+首先是数据模型的定义，核心的就是这四个，这四个足以支撑我们的页面构建需求。
+
+```ts
+/**
+ * 内容类型枚举
+ */
+export enum ContentType {
+  TEXT = "text",
+  IMAGE = "image",
+  VIDEO = "video",
+  CODE = "code"
+}
+
+/**
+ * 新闻内容块接口
+ * 定义新闻文章中单个内容块的结构
+ */
+export interface NewsContentBlock {
+  /** 内容类型 */
+  type: ContentType;
+  /** 内容值 */
+  value: string;
+}
+
+/**
+ * 新闻文章接口
+ * 定义完整新闻文章的数据结构
+ */
+export interface NewsArticle {
+  /** 文章唯一标识符（可选） */
+  id?: string | null;
+  /** 文章标题 */
+  title: string;
+  /** 发布日期 */
+  date: string;
+  /** 文章原链接 */
+  url: string;
+  /** 文章内容块数组 */
+  content: NewsContentBlock[];
+  /** 文章分类（可选） */
+  category?: string | null;
+  /** 文章摘要（可选） */
+  summary?: string | null;
+  /** 新闻来源（可选） */
+  source?: string | null;
+  /** 创建时间（可选，ISO 8601 格式） */
+  created_at?: string | null;
+  /** 更新时间（可选，ISO 8601 格式） */
+  updated_at?: string | null;
+}
+
+/**
+ * 新闻响应接口
+ * 定义分页新闻数据的响应结构
+ */
+export interface NewsResponse {
+  /** 新闻文章数组 */
+  articles: NewsArticle[];
+  /** 总文章数量 */
+  total: number;
+  /** 当前页码 */
+  page: number;
+  /** 每页文章数量 */
+  page_size: number;
+  /** 是否有下一页 */
+  has_next: boolean;
+  /** 是否有上一页 */
+  has_prev: boolean;
+}
+```
+
+ok，随后就可以开始对获取全部数据接口进行封装了。
+
+```ts
+import { NewsArticle, NewsResponse } from "../../modules/news/NewsListModules";
+import { logger } from "../../utils/logger/logger";
+import { axiosHttp } from "../http/AxiosHttp";
+const NewsListAPI_TAG = 'NewsListAPI: '
+
+export class NewsListAPI{
+  /**
+   * 获取全部新闻列表接口，在调用前请先调用isServerReady接口
+   * @returns 若是出现异常则为空正常则为全部新闻列表NewsArticle[]
+   */
+  async getAllNews(): Promise<NewsArticle[] | null>{
+    try {
+      logger.debug(NewsListAPI_TAG+'进入getAllNews')
+      const res = await axiosHttp.request<NewsResponse>({
+        url:'/api/news/?all=true'
+      })
+      logger.info(NewsListAPI_TAG+'res = '+JSON.stringify(res))
+      return res.articles
+    }catch (err){
+      logger.error(JSON.stringify(err))
+      return null
+    }
+  }
+}
+export const newsListApi = new NewsListAPI()
+```
+
+随后我们用相同的方式进行一下真机测试。
+
+```ts
+  aboutToAppear(): void {
+    let isServerReady:boolean = false
+    setTimeout(()=>{
+      logger.debug(START_PAGE_TAGE+'延时跳转')
+      this.navPathStuck.clear()
+    },2000)
+    serverHealthApi.isServerReady().then((res:boolean)=> {
+      logger.debug(START_PAGE_TAGE + res.valueOf())
+      if (res) {
+        isServerReady = true
+        logger.info(START_PAGE_TAGE+'服务端准备就绪isServerReady='+isServerReady)
+      }else {
+        isServerReady = false
+        logger.info(START_PAGE_TAGE+'服务端准备中isServerReady='+isServerReady)
+      }
+    })
+    if (isServerReady){
+      logger.debug(START_PAGE_TAGE+'尝试获取全部新闻列表')
+      newsListApi.getAllNews().then((res:NewsArticle[] | null)=>{
+        if (res === null) {
+          logger.warn(START_PAGE_TAGE+'')
+        }
+      })
+    }
+  }
+```
+
+这一段异步编程我感觉可能会有执行顺序问题，我们先测试一下看看。
+
+![22](OpenSourceSummer2025/22.png)
+
+后端请求超时？？？后端日志也确实没显示有请求访问。
+
+我立刻检查了电脑的科学上网工具，会不会是VPN导致的IP变动。但事实证明不是，我已经关闭了VPN。随后又检查了手机，也未发现异常。
+
+我思考了一段时间，又一次检查了IP地址常量，并没有问题。`198.168....`诶？等会我这是私有IP地址段并不是公网IP地址，我手机连接的是流量，并不是家里的WiFi，应该是这个问题。
+
+我切换了一下网络，测试，果然成功了。
+
+```bash
+08-01 17:47:58.207   32053-32053   A01234/com.xbx...ony/XBXLogger  pid-32053             D     AxiosHttp:  进入AxiosHttp.request
+08-01 17:47:58.239   32053-32053   A01234/com.xbx...ony/XBXLogger  com.xbxyf...nHarmony  W     AxiosHttp:  Req Success{"status":"healthy","timestamp":1754041678.1939504,"version":"1.0.0","services":{"cache":{"status":"ready","cache_count":386,"last_update":"2025-08-01T14:40:11.540102","error_message":null},"news_sources":[{"source":"openharmony","name":"OpenHarmony官网","description":"OpenHarmony官方网站最新动态和新闻","base_url":"https://www.openharmony.cn"},{"source":"csdn","name":"CSDN","description":"CSDN平台上关于OpenHarmony的技术文章和资讯","base_url":"https://blog.csdn.net"}]},"endpoints":{"openharmony_news":"/api/news/openharmony","csdn_news":"/api/news/csdn","all_news":"/api/news/","manual_crawl":"/api/news/crawl","service_status":"/api/news/status/info"}}
+08-01 17:47:58.239   32053-32053   A01234/com.xbx...ony/XBXLogger  com.xbxyf...nHarmony  I     ServerHealthAPI: {"status":"healthy","timestamp":1754041678.1939504,"version":"1.0.0","services":{"cache":{"status":"ready","cache_count":386,"last_update":"2025-08-01T14:40:11.540102","error_message":null},"news_sources":[{"source":"openharmony","name":"OpenHarmony官网","description":"OpenHarmony官方网站最新动态和新闻","base_url":"https://www.openharmony.cn"},{"source":"csdn","name":"CSDN","description":"CSDN平台上关于OpenHarmony的技术文章和资讯","base_url":"https://blog.csdn.net"}]},"endpoints":{"openharmony_news":"/api/news/openharmony","csdn_news":"/api/news/csdn","all_news":"/api/news/","manual_crawl":"/api/news/crawl","service_status":"/api/news/status/info"}}
+08-01 17:47:58.239   32053-32053   A01234/com.xbx...ony/XBXLogger  com.xbxyf...nHarmony  D     StartPage:  true
+08-01 17:47:58.239   32053-32053   A01234/com.xbx...ony/XBXLogger  com.xbxyf...nHarmony  I     StartPage:  服务端准备就绪isServerReady=true
+08-01 17:48:00.207   32053-32053   A01234/com.xbx...ony/XBXLogger  com.xbxyf...nHarmony  D     StartPage:  延时跳转
+```
+
+虽然请求成功了，但我们可以看到的确是存在顺序问题，我们的`isServerReady()`调用之后被放置到了任务队列中直接向下执行了导致判定标志变量没有正确的赋值。
+
+有两种改法，一种是直接将`getAllNews()`的调用塞到`isServerReady()`的`then`回调函数中，另一种是使用`async`和`await`来等待`isServerReady()`的返回值。
+
+很显然我们要选择后者，否则就是回调地狱的苗头了。
+
+```ts
+  uiPromptAction:PromptAction = AppStorageV2.connect(GetUIContext, GET_UICONTEXT)!.context.getPromptAction()
+  async aboutToAppear(): Promise<void> {
+    let isServerReady:boolean = false
+    setTimeout(()=>{
+      logger.debug(START_PAGE_TAGE+'延时跳转')
+      this.navPathStuck.clear()
+    },2000)
+    await serverHealthApi.isServerReady().then((res:boolean)=> {
+      logger.debug(START_PAGE_TAGE + res.valueOf())
+      if (res) {
+        isServerReady = true
+        logger.info(START_PAGE_TAGE+'服务端准备就绪isServerReady='+isServerReady)
+      }else {
+        isServerReady = false
+        logger.info(START_PAGE_TAGE+'服务端准备中isServerReady='+isServerReady)
+      }
+    })
+    if (isServerReady){
+      logger.debug(START_PAGE_TAGE+'尝试获取全部新闻列表')
+      newsListApi.getAllNews().then((res:NewsArticle[] | null)=>{
+        if (res === null) {
+          logger.warn(START_PAGE_TAGE+'')
+        }else {
+          this.uiPromptAction.showToast({message:'获取新闻列表成功',duration:2000})
+        }
+      })
+    }
+  }
+```
+
+ok，我们只需要等待服务状态检测的API顺利返回值就行，只要服务状态正常，我们就没必要再去继续堵塞线程了，让页面正常跳转就好，哪怕在开屏的两秒里没有顺利获取全部信息，毕竟实际场景可能会有信号波动，我们可以设置一个**是否加载完成的全局状态变量标志符**，来控制骨架屏的显隐。
+
+```bash
+08-01 18:01:10.463   39335-39335   A01234/com.xbx...ony/XBXLogger  pid-39335             D     AxiosHttp:  进入AxiosHttp.request
+08-01 18:01:10.522   39335-39335   A01234/com.xbx...ony/XBXLogger  com.xbxyf...nHarmony  W     AxiosHttp:  Req Success{"status":"healthy","timestamp":1754042470.472609,"version":"1.0.0","services":{"cache":{"status":"ready","cache_count":386,"last_update":"2025-08-01T14:40:11.540102","error_message":null},"news_sources":[{"source":"openharmony","name":"OpenHarmony官网","description":"OpenHarmony官方网站最新动态和新闻","base_url":"https://www.openharmony.cn"},{"source":"csdn","name":"CSDN","description":"CSDN平台上关于OpenHarmony的技术文章和资讯","base_url":"https://blog.csdn.net"}]},"endpoints":{"openharmony_news":"/api/news/openharmony","csdn_news":"/api/news/csdn","all_news":"/api/news/","manual_crawl":"/api/news/crawl","service_status":"/api/news/status/info"}}
+08-01 18:01:10.522   39335-39335   A01234/com.xbx...ony/XBXLogger  com.xbxyf...nHarmony  I     ServerHealthAPI: {"status":"healthy","timestamp":1754042470.472609,"version":"1.0.0","services":{"cache":{"status":"ready","cache_count":386,"last_update":"2025-08-01T14:40:11.540102","error_message":null},"news_sources":[{"source":"openharmony","name":"OpenHarmony官网","description":"OpenHarmony官方网站最新动态和新闻","base_url":"https://www.openharmony.cn"},{"source":"csdn","name":"CSDN","description":"CSDN平台上关于OpenHarmony的技术文章和资讯","base_url":"https://blog.csdn.net"}]},"endpoints":{"openharmony_news":"/api/news/openharmony","csdn_news":"/api/news/csdn","all_news":"/api/news/","manual_crawl":"/api/news/crawl","service_status":"/api/news/status/info"}}
+08-01 18:01:10.522   39335-39335   A01234/com.xbx...ony/XBXLogger  com.xbxyf...nHarmony  D     StartPage:  true
+08-01 18:01:10.522   39335-39335   A01234/com.xbx...ony/XBXLogger  com.xbxyf...nHarmony  I     StartPage:  服务端准备就绪isServerReady=true
+08-01 18:01:10.522   39335-39335   A01234/com.xbx...ony/XBXLogger  com.xbxyf...nHarmony  D     StartPage:  尝试获取全部新闻列表
+08-01 18:01:10.522   39335-39335   A01234/com.xbx...ony/XBXLogger  com.xbxyf...nHarmony  D     NewsListAPI: 进入getAllNews
+08-01 18:01:10.522   39335-39335   A01234/com.xbx...ony/XBXLogger  com.xbxyf...nHarmony  D     AxiosHttp:  进入AxiosHttp.request
+08-01 18:01:10.919   39335-39335   A01234/com.xbx...ony/XBXLogger  com.xbxyf...nHarmony  W     AxiosHttp:  Req Success{"articles":[{"id":"00d1196eb553e2e0","title":"对话OpenHarmony开源先锋：如何用代码革新终端生态","date":"2025.02.28","url":"https://mp.weixin.qq.com/s/cHsMzPTmoYec-_VL6VllBQ","content":[{"type":"image","value":"https://mmbiz.qpic.cn/mmbiz_gif/15QnXdLP7ibT0RCulIUzFZ2cGSMTZ3VHFWEttSQKAePB61zNuqdYPP41JIA6b7hph5Z02wKZ61Ch5rjl5FxLzWw/640?wx_fmt=gif&from=appmsg"},{"type":"text","value":"2025年2月23日，由开放原子开源基金会主办的第二届OpenHarmony创新应用挑战赛决赛路演在北京圆满结束，作为第二届开放原子大赛的重要赛项之一，本届赛事汇聚全球418支团队，产出超过110个创新作品，集中展示了OpenHarmony在应用与游戏开发领域的前沿成果。这些凝聚智慧与协作的参赛作品，不仅在技术层面实现了多项突破，更在商业化应用层面验证了开源生态的无限潜力。赛事不仅彰显了开发者群体的创新活力，也凸显了OpenHarmony作为技术底座的重要价值，为开源技术生态发展注入革新的力量。"},{"type":"image","value":"https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibRnShrEU2uTRKJQbyziasm8ib3wXuDS7TicltuOnUzHt396f649ICg1WZr7mRSEMRDVX8iawxjdPZVItA/640?wx_fmt=jpeg&from=appmsg"},{"type":"text","value":"当代码与创意在OpenHarmony的数字沃土中生根发芽，我们不禁期待，这些开发者如何用实践诠释开源精神？他们的探索历程又蕴藏着怎样的创新思维？让我们跟随优秀团队，解开技术突破与生态协同的共生密码。"},{"type":"text","value":"OpenHarmony创新应用赛题：让书柜学会“思考”"},{"type":"text","value":"由“新大陆自动识别”团队开发的《智能书导》项目，是基于开源操作系统 OpenHarmony打造的图书馆管理应用，通过融合RFID 技术，实现图书馆管理流程的高效优化。团队开发该方案的初衷是帮助图书馆高效地完成图书借阅、查询等工作，减轻管理员负担，同时希望将技术推广至物流、商超、工厂等更多场景，拓展应用范围。"},{"type":"text","value":"《智能书导》项目通过技术融合创新，深度整合OpenHarmony系统的分布式能力与RFID自动识别技术，利用前者实现图书信息的高效共享，借助后者完成图书的自动识别与数据交互。功能上，该项目集成了快速借还书、精准定位等核心功能，以及今日推荐等辅助功能，全面满足图书馆管理与读者服务需求。应用程序适配OpenHarmony 4.1 Release和5.0.2.50系统，可在多种设备上流畅运行，项目所用硬件也已通过兼容性测评，确保软硬件的无缝集成与高效协同。"},{"type":"image","value":"https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibRnShrEU2uTRKJQbyziasm8ibOP4I1IZBc61z68ukktnxx6yDW3bALR5RnB3b4BFicTKY4ebec6tlQWw/640?wx_fmt=jpeg&from=appmsg"},{"type":"text","value":"《智能书导》的开发者徐金生表示：“未来团队将把项目核心代码贡献至OpenHarmony主干代码库，推动各模块与性能的提升。同时，计划进一步优化技术瓶颈，拓展项目对更多设备的适配能力。”"},{"type":"text","value":"OpenHarmony创新应用赛题：用技术魔法规划繁琐旅行"},{"type":"text","value":"由“领先风暴队”开发的《出行妈妈》项目，主要是为了解决旅行者在行程规划繁琐、信息整合困难以及个性化需求难以满足三大方面的痛点，提供省时省力的完美行程定制解决方案。该项目填补了OpenHarmony在旅游规�
+08-01 18:01:10.936   39335-39335   A01234/com.xbx...ony/XBXLogger  com.xbxyf...nHarmony  I     NewsListAPI: res = {"articles":[{"id":"00d1196eb553e2e0","title":"对话OpenHarmony开源先锋：如何用代码革新终端生态","date":"2025.02.28","url":"https://mp.weixin.qq.com/s/cHsMzPTmoYec-_VL6VllBQ","content":[{"type":"image","value":"https://mmbiz.qpic.cn/mmbiz_gif/15QnXdLP7ibT0RCulIUzFZ2cGSMTZ3VHFWEttSQKAePB61zNuqdYPP41JIA6b7hph5Z02wKZ61Ch5rjl5FxLzWw/640?wx_fmt=gif&from=appmsg"},{"type":"text","value":"2025年2月23日，由开放原子开源基金会主办的第二届OpenHarmony创新应用挑战赛决赛路演在北京圆满结束，作为第二届开放原子大赛的重要赛项之一，本届赛事汇聚全球418支团队，产出超过110个创新作品，集中展示了OpenHarmony在应用与游戏开发领域的前沿成果。这些凝聚智慧与协作的参赛作品，不仅在技术层面实现了多项突破，更在商业化应用层面验证了开源生态的无限潜力。赛事不仅彰显了开发者群体的创新活力，也凸显了OpenHarmony作为技术底座的重要价值，为开源技术生态发展注入革新的力量。"},{"type":"image","value":"https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibRnShrEU2uTRKJQbyziasm8ib3wXuDS7TicltuOnUzHt396f649ICg1WZr7mRSEMRDVX8iawxjdPZVItA/640?wx_fmt=jpeg&from=appmsg"},{"type":"text","value":"当代码与创意在OpenHarmony的数字沃土中生根发芽，我们不禁期待，这些开发者如何用实践诠释开源精神？他们的探索历程又蕴藏着怎样的创新思维？让我们跟随优秀团队，解开技术突破与生态协同的共生密码。"},{"type":"text","value":"OpenHarmony创新应用赛题：让书柜学会“思考”"},{"type":"text","value":"由“新大陆自动识别”团队开发的《智能书导》项目，是基于开源操作系统 OpenHarmony打造的图书馆管理应用，通过融合RFID 技术，实现图书馆管理流程的高效优化。团队开发该方案的初衷是帮助图书馆高效地完成图书借阅、查询等工作，减轻管理员负担，同时希望将技术推广至物流、商超、工厂等更多场景，拓展应用范围。"},{"type":"text","value":"《智能书导》项目通过技术融合创新，深度整合OpenHarmony系统的分布式能力与RFID自动识别技术，利用前者实现图书信息的高效共享，借助后者完成图书的自动识别与数据交互。功能上，该项目集成了快速借还书、精准定位等核心功能，以及今日推荐等辅助功能，全面满足图书馆管理与读者服务需求。应用程序适配OpenHarmony 4.1 Release和5.0.2.50系统，可在多种设备上流畅运行，项目所用硬件也已通过兼容性测评，确保软硬件的无缝集成与高效协同。"},{"type":"image","value":"https://mmbiz.qpic.cn/mmbiz_jpg/15QnXdLP7ibRnShrEU2uTRKJQbyziasm8ibOP4I1IZBc61z68ukktnxx6yDW3bALR5RnB3b4BFicTKY4ebec6tlQWw/640?wx_fmt=jpeg&from=appmsg"},{"type":"text","value":"《智能书导》的开发者徐金生表示：“未来团队将把项目核心代码贡献至OpenHarmony主干代码库，推动各模块与性能的提升。同时，计划进一步优化技术瓶颈，拓展项目对更多设备的适配能力。”"},{"type":"text","value":"OpenHarmony创新应用赛题：用技术魔法规划繁琐旅行"},{"type":"text","value":"由“领先风暴队”开发的《出行妈妈》项目，主要是为了解决旅行者在行程规划繁琐、信息整合困难以及个性化需求难以满足三大方面的痛点，提供省时省力的完美行程定制解决方案。该项目填补了OpenHarmony在旅游规划�
+08-01 18:01:12.464   39335-39335   A01234/com.xbx...ony/XBXLogger  com.xbxyf...nHarmony  D     StartPage:  延时跳转
+```
+
+ok，十分顺利，这次代码的执行顺序就与我们的预期完全一致了。不过我还想到了一种解决加载速度的方式，就是将跳转操作绑定到我们加载完成的`then`回调函数中，不过这样就会导致每次进入应用的开屏时间都不一致，同时也会出现一旦加载失败应用就会卡死在开屏页面的状态。enm，还是算了吧，仔细想想市面上的APP中也没有说像我这样设计的。
