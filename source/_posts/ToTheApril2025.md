@@ -987,6 +987,8 @@ wc我那时候怎么那么烦人呢，我怎么没想到骏哥在字节实习肯
 
 凭我的一张嘴给创客说来了200+的新生，当时的我还是无比激动，因为去年仅有80人的小社团一下子变成了两百多人的校级社团，这个估摸体量完全不是一个量级的。那时我还，没有意识到人数过多意味着什么。
 
+![146](ToTheApril2025/146.jpg)
+
 在暑期招新的过程中也确实出现了一些小矛盾，22级的学姐在面试一个新生时遇到了一些和学生会有关的敏感话题，具体情况我也不太清楚当时我不在场。然后学姐就决定不通过他的面试。然后那个新生就来找我和学姐去理论。我本来是无条件支持我们的负责任的，我相信负责人的判断，但后来我和他仔细聊了聊面试的细节，发现好像是有些误会在里面，于是婷姐和那个学姐俩个人亲自给他单独开了一场面试，并解决了误会。在此之后我们也将每一场线上面试都进行了录屏存档，也警醒了我要“实事求是”。
 
 ## 大二上
@@ -1001,9 +1003,239 @@ wc我那时候怎么那么烦人呢，我怎么没想到骏哥在字节实习肯
 
 在招新面试开始后，我偶然想到叫之前暑假深入聊过的几个小登来在这见个面，线下聊一聊。首先来的就是hry，我让他在一旁去旁听后面的面试，一起看看这届新生中的能人。随后来的小登越来越多，我干脆就直接在群里邀请有空的小登都来这里玩玩，我去给他们讲一讲大学的规划和社团的活动等。
 
+![147](ToTheApril2025/147.jpg)
+
 孙妈也是闻讯赶来，我们就开始在408给一群穿着军训服的小登去讲规划，讲技术或是纯粹的聊天。那段时间真的是很愉快的时光了。我从未有过如此高涨的表达欲，我向新生毫不吝啬的讲述我过去一年的经历，去宣扬着那些可能并不成熟的观点。就这样我们也是收获了一批心腹，也基本上就是25级负责人中的这些人，还有另一部分虽然不在负责人团队，但也都在自己的领域和组织中发光发热。
 
 ### 子安常驻408
+
+随着24到25学年的开始，子安学长也是步入了大四，在本科的最后一年他决定去考研，需要找一个安静的地方去进行考研复习。当时的图书馆刚开我们决定先让它放放味再说，子安也是每天去找合适的空教室去进行自习，但很显然这很麻烦，把书山搬来搬去可不是个好方法。
+
+子安听说了我们在408的活动，在某一次我准备开讲鸿蒙之前，子安突然到来，我也是十分惊喜，就开始和子安双人合讲。讲了基础语法，讲了鸿蒙系统的优势，讲了前端开发的基础概念又开始了一些实操的小课堂，去带着大家边讲边写了一个在黑马刚学到的电子时钟效果。挺好玩的一个玩意。我在将纯黑的背景更换成了创客的logo后就被我用在了创客的新生见面会上。后面还会说。
+
+![子安](ToTheApril2025/148.jpg)
+
+![子安](ToTheApril2025/149.jpg)
+
+子安和我的讲课风格完全不一样，他觉得你只要忍着听下来去努力的理解他讲的那些概念才会有收获，我是觉得得用更多的比喻和例子才能让新生更好的去理解，所以就导致我们俩在讲的时候他会觉得我讲的太肉，我又觉得他讲完下面都是一脸懵还得我来打圆场。笑死。
+
+![子安](ToTheApril2025/150.jpg)
+
+这个钟本来只是用来认识一下Date对象的，一个从JS继承到TS再到ArkTS的经典对象，怎么都得认识一下。真的是很实用也很常见的好东西。
+
+![子安](ToTheApril2025/151.jpg)
+
+但是后面我偶然想到将他的背景换一下，于是我就去找婷姐要来了创客的logo，我本来以为是那张最经典的星河的图，后来才发现原来是有透明背景色的原图（一些露怯的回忆涌上心头了……）
+
+![子安](ToTheApril2025/152.jpg)
+
+![子安](ToTheApril2025/153.jpg)
+
+于是我又换了个星河的背景，调整了一下位置就诞生了新生见面会上的完美背景板。也是随着这次活动之后，408的日常活动开始步入正轨，以鸿蒙为主的ArkTS以及仓颉语言的教学活动接踵而至，子安也是给我和新生上了一节最难的课，至少对当时的我来说是最难的一节课——“长链接”。用仓颉写的后端，用ArkTS写的客户端，给我们去讲长链接的概念，去讲网络请求的基本原理，我相信当时在场的各位都是听得一脸懵，我也是。我也仅仅是能理清楚长连接的概念而已，他的仓颉代码我是真的看不懂，等以后我真正学了仓颉再说吧。但那算是我第一次动手实操网络请求以及网络请求模块API的使用。
+
+这里还是把仓颉部分的代码放一下吧，未来也好回来研究。不过当前的hexo框架并不支持仓颉语言的语法高亮，所以我只能先暂时将语言类型标记为与之有些形似的rust语言了，大家看的时候不要错认了。
+
+```rust
+package CJdemo4
+import CJdemo4.net.Socket4CJ
+
+main(): Int64 {
+    println("hello world")
+    Socket4CJ().startServer()
+    return 0
+
+}
+```
+
+```rust
+package CJdemo4.net
+
+import std.net.{TcpServerSocket, TcpSocket}
+import std.console.Console
+
+public class Socket4CJ {
+    var tcpServerSocket: TcpServerSocket
+    var client: TcpSocket
+    let SERVER_PORT: UInt16 = 8080
+
+    public init() {
+        this.tcpServerSocket = TcpServerSocket(bindAt: SERVER_PORT)
+        this.tcpServerSocket.bind()
+        "Bind port successfully" |> println
+        this.client = this.tcpServerSocket.accept()
+        "Connect to client successfully" |> println
+    }
+
+    public func readMsg(): Bool {
+        let buffer: Array<UInt8> = [1]
+        let len: Int64 = buffer |> this.client.read
+        if (len == 0) {
+            "Client has been closed" |> println
+            return false
+        } else {
+            // "Buffer size is ${len}" |> println
+            let msg: String = buffer |> String.fromUtf8
+            "Msg is ${msg}" |> println
+            return true
+        }
+    }
+
+    public func writeMsg(msg: String): Unit {
+        this.client.write(msg.toArray())
+    }
+
+    public func startServer(): Unit {
+        spawn {
+            while (true) {
+                let b: Bool = readMsg()
+                if (!b) {
+                    break
+                }
+            }
+        }
+        "Start dialog\n" |> Console.stdOut.write
+        while (true) {
+            try {
+                let input = Console.stdIn.readln()
+                let message = input.toString()
+                if (message != "ok") {
+                    message |> writeMsg
+                } else {
+                    break
+                }
+            } catch (e: NoneValueException) {
+                e.message |> println
+            }
+        }
+        this.client.close()
+        this.tcpServerSocket.close()
+    }
+}
+```
+
+其实现在的我把代码从github粘过来的过程也发现其实也没那么难懂，仔细看看还是看得懂的。再看看API其实就明白了。
+
+也顺便再把客户端的核心代码也粘过来吧。其实也挺容易的，只是当时对网络编程这一块确实是没什么概念就一直畏足不前才导致当时没看懂子安的代码。
+
+```ts
+import { socket } from '@kit.NetworkKit'
+import { MsgModel } from '../model/MsgModel'
+
+class SocketUtils {
+  private tcpSocket: socket.TCPSocket = socket.constructTCPSocketInstance();
+
+  init() {
+    let address: socket.NetAddress = {
+      address: '10.153.107.228',
+      port: 8080
+    }
+    let option: socket.TCPConnectOptions = {
+      address: address
+    }
+    this.tcpSocket?.connect(option)
+      .then(() => {
+        console.info('连接成功')
+        this.onMsg()
+      })
+
+  }
+
+  onMsg(): void {
+    this.tcpSocket?.on('message', (value: socket.SocketMessageInfo) => {
+      let messageView: string = ''
+      for (let i = 0; i < value.message.byteLength; ++i) {
+        let uint8Array = new Uint8Array(value.message)
+        let messages = uint8Array[i]
+        let message = String.fromCharCode(messages);
+        messageView += message;
+      }
+      console.log("on connect received:" + messageView);
+    })
+  }
+
+  send(item: MsgModel): void {
+    let option: socket.TCPSendOptions = {
+      data: JSON.stringify(item)
+    }
+    this.tcpSocket?.send(option)
+  }
+}
+
+export let socketUtils: SocketUtils = new SocketUtils();
+```
+
+```ts
+import { MsgModel } from '../model/MsgModel'
+import { socketUtils } from '../net/SocketUtils'
+
+@Entry
+@Component
+struct Index {
+  @State message: string = ''
+  @StorageLink('msgs') msgArr: Array<MsgModel> = []
+
+  aboutToAppear(): void {
+    socketUtils.init()
+  }
+
+  @Builder
+  msgBuilder(item: MsgModel) {
+    Row() {
+      Text(item.msg)
+    }
+    .width('100%')
+    .justifyContent(item.type == 0 ? FlexAlign.End : FlexAlign.Start)
+  }
+
+  build() {
+    Navigation() {
+      Column() {
+        List() {
+          ForEach(this.msgArr, (item: MsgModel) => {
+            ListItem() {
+              this.msgBuilder(item)
+            }
+          })
+        }
+        .width('100%')
+        .height('93%')
+
+        Row() {
+          TextInput({ text: this.message })
+            .width('70%')
+            .onChange((value: string) => {
+              this.message = value;
+            })
+          Button('发送')
+            .onClick(() => {
+              let msgModel: MsgModel = {
+                msg: this.message,
+                type: 0
+              };
+              this.msgArr.push(msgModel)
+              socketUtils.send(msgModel)
+              this.message = ''
+            })
+        }
+        .width('100%')
+        .height('7%')
+        .justifyContent(FlexAlign.SpaceAround)
+      }
+      .width('100%')
+      .height('100%')
+    }
+    .width('100%')
+    .height('100%')
+    .title('聊天')
+    .titleMode(NavigationTitleMode.Mini)
+    .hideBackButton(true)
+  }
+}
+```
+
+页面其实没什么，就只是一个常规的对话模式的左右布局。核心是在于请求的工具类，其中包含了一些字节码的数据格式转换处理，用到了一些常用的ArkTS内置的数据处理函数，以后可以参考一下。
+
+### 新生见面会
 
 ## 大二下
 
