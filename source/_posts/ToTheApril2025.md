@@ -1235,7 +1235,148 @@ struct Index {
 
 页面其实没什么，就只是一个常规的对话模式的左右布局。核心是在于请求的工具类，其中包含了一些字节码的数据格式转换处理，用到了一些常用的ArkTS内置的数据处理函数，以后可以参考一下。
 
+最后再塞一些那段时间最理想化的408的照片吧。
+
+![154](ToTheApril2025/154.jpg)
+
+![155](ToTheApril2025/155.jpg)
+
+![156](ToTheApril2025/156.jpg)
+
+![157](ToTheApril2025/157.jpg)
+
 ### 新生见面会
+
+在经历了暑期以及开学后总计4批次的面试，终于迎来了新生见面会，这次新生见面会本身应该是由社长出面主持，不过婷姐自称“社恐”就让我来了，不过也是正合我意。不过我也是没有怎么思考过具体该去怎么举办，就仅仅是延续了上次见面会的那个现在回头看来确实是很“牢”的流程。也就是从按顺序逐一进行自我介绍改成了随机抽取人上台进行自我介绍。
+
+![新生见面会](ToTheApril2025/159.jpg)
+
+为了这个抽奖我还特意写了个Java程序去讲excel的字符串给切割转化成TS格式的字符串数据以便于抽人。
+
+```java
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+
+public class App {
+    public static void main(String[] args) throws Exception {
+        String filePath = "cut\\src\\a.txt";
+        List<String> linesList = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(new FileInputStream(filePath), "UTF-8"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] splitLines = line.split("\n");
+                for (String splitLine : splitLines) {
+                    linesList.add(splitLine);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String[] lines = linesList.toArray(new String[0]);
+        stringBulid(lines);
+    }
+
+    public static void stringBulid(String[] str) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[");
+        for (int i = 0; i < str.length; i++) {
+            builder.append("'" + str[i] + "'");
+            if (i < str.length - 1) {
+                builder.append(", ");
+            }
+        }
+        builder.append("]");
+        System.out.println(builder.toString());
+    }
+}
+```
+
+虽然是一段相当简单的代码，但在当时也是我第一次用IO流去解决实际问题，也算是有点纪念意义。
+
+于是就得到了以下抽人小代码。
+
+```ts
+@Entry
+@Component
+struct Index {
+  names:string[]=['乔越', '翟嘉伟', '杨震宇', '李同', '陈文博', '李昊霖', '刘粟丰', '李思瑾', '徐健超', '王鹏程', '项群山', '李钇兴', '董新萍', '付雅雯', '方华德', '陈著源', '袁伟琪', '李婧', '朱睿妍', '高泽宇', '罗林', '杨国彬', '魏博文', '林鑫玥', '李东骏', '冯滢宇', '靳能宇', '严梽伦', '宋博文', '李泽昊', '赵云龙', '郝津仪', '王瑛祺', '刘博文', '张颖', '卜千帆', '孙博辰', '张彤', '唐琮杰', '刘省三', '魏琦佳', '赖亚威', '李标康', '王东泽', '鲁先珩', '李思玚', '王子澳', '陈默', '刘易恒', '许昊然', '吕法辉', '黄文睿', '倪子宸', '黄天昊', '马梦缘', '褚嘉骐', '陈博文', '杨浩然', '张馨瑶', '李佳澎', '谈虹', '刘心婧', '彭馨', '王语璨', '王秋阳', '崔天麒', '刘天一', '孟庆隆', '王萌', '汪睿涵', '李思湉', '高梦杰', '陈逸天', '常小北', '程鑫涛', '马瑞含', '陈柏宇', '董雨瑄', '吴海鑫', '吕宏涛', '张炜婉', '白然', '骆昕', '时美琴', '王钰杉', '刘宝莹', '孙浩', '傅一为', '王经翔', '汪滢华', '任炳羽', '李阳', '杨昀潼', '陈馨颖', '李方然', '李天乐', '金盛荃', '胡琪', '何伟琪', '吴雨嫣', '段祉安', '郑凯文', '沈千策', '刘博', '汤耀月', '谢青芯', '张依梵', '李姗珊', '刘佳一', '白梓涵', '崔耘硕', '车国蓉', '毛鹤然', '刘鑫', '朱建东', '魏彦西', '武博研', '张智淼', '程子为', '柴沅昔', '崔一']
+  @State luckyDog: string = '  欢迎来到创客空间！';
+  @State random:number=0
+  @State fontSize:number = 35
+  @State isShow:boolean = false
+  @State numSelected:number = 0
+  build() {
+    Column({space:30}) {
+      if (this.isShow){
+        Text(`已抽${this.numSelected}人`)
+          .fontColor('#ff0098cf')
+          .fontSize(30)
+          .fontWeight(700)
+      }
+      Image($rawfile('BistuMaker.png'))
+        .width('100%')
+        .margin({bottom:20})
+      Text(this.luckyDog)
+        .fontSize(this.fontSize)
+        .height(100)
+        .fontColor('#ff6dffff')
+        .fontWeight(700)
+      Text('  抽到的人来自我介绍哦！')
+        .fontSize(25)
+        .fontColor('#ffffffff')
+        .fontWeight(500)
+      Button('抽取下一个幸运儿！')
+        .backgroundColor('#490098cf')
+        .fontSize(20)
+        .padding({top:10,bottom:10,left:25,right:25})
+        .onClick(()=>{
+
+          this.fontSize = 100
+          if (this.names.length>0) {
+            this.random=Math.floor(Math.random()*this.names.length)
+            this.luckyDog=this.names[this.random]
+            this.names.splice(this.random,1)
+            this.numSelected++
+            this.isShow=true
+          }else {
+            this.luckyDog='全抽完了'
+          }
+
+        })
+      Image($rawfile('ChuangKe.png'))
+        .width('80%')
+        .margin({top:20})
+
+    }
+    .expandSafeArea()
+    .justifyContent(FlexAlign.Center)
+    .backgroundImage($rawfile('starSky.jpg'))
+    .backgroundImageSize({height:'100%'})
+    .height('100%')
+    .width('100%')
+  }
+}
+```
+
+现在在看这些名字也是能浮现出不少的回忆。
+
+这个过程我不断的在台上点人，规划怎么去写创客空间这四个大字，也在去和上台的同学交流整体体验还是很爽的一个过程，但是现在再回首也是意识到了对于台下的同学们来说这个过程确实是挺煎熬的，有点像是形式主义的领导举办的活动了，所以我决定25开始不在办这种无趣的见面会了。
+
+不过呢这种形式有一说一其实还是挺有纪念意义的尤其是下面的这两张照片。
+
+![159](ToTheApril2025/159.jpg)
+
+![160](ToTheApril2025/160.jpg)
+
+对！没错！我在第一年的时候就顺利的抢到了创客空间合照的C位！虽然不是第一排的C位，但我仍然认为这是伏笔！第二年我也是很顺理成章的占到了第一排的C位，这一次我当之无愧。
+
+其实到这里，我还是想将这个合照的模式去延续下去的，放在25新生训练营的结尾？这样会不会不太合适？因为来到现场的同学中也有可能没有入选，但我又下定决心不再去组织形式主义的新生见面会。正式活动可能人又来的不太齐。不过仔细一想，其实在训练营两周期间没干活的人也不太敢或者说不会花时间在这种看似没什么意义的活动上，所以其实能到现场的同学们大概率应该也都是通过了的。
 
 ## 大二下
 
