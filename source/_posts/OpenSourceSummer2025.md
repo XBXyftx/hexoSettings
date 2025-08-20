@@ -4704,3 +4704,319 @@ ok，我们只需要等待服务状态检测的API顺利返回值就行，只要
 ```
 
 ok，十分顺利，这次代码的执行顺序就与我们的预期完全一致了。不过我还想到了一种解决加载速度的方式，就是将跳转操作绑定到我们加载完成的`then`回调函数中，不过这样就会导致每次进入应用的开屏时间都不一致，同时也会出现一旦加载失败应用就会卡死在开屏页面的状态。enm，还是算了吧，仔细想想市面上的APP中也没有说像我这样设计的。
+
+### 数据库接口
+
+对于数据库的选取我想的是直接使用键值型数据库即可，因为我的新闻列表整体是属于一个JSON字符串，并不需要进行后续的查询等操作。这也是我第一次使用数据库来进行开发，我先去仿照着官网的代码去进行接口的开发试试。
+
+但很快我就迎来了第一个问题。又是上下文对象的类型问题。
+
+![27](OpenSourceSummer2025/27.png)
+
+这个东西和他搏斗太久了，鸿小易时期就在和这个东西纠缠。我本来想直接使用上面已经存入全局变量中的UIContext就行了结果仔细读了一下文档发现两者并不是同一类型。
+
+![28](OpenSourceSummer2025/28.png)
+
+这个[BaseContext](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-inner-application-basecontext)是一个用来判断当前应用模型的上下文对象。
+
+我只好再去看一看子安学长的代码了。
+
+于是我发现了这一行。
+
+```ts
+  init(context: common.BaseContext): void {...}
+```
+
+于是就有了如下的尝试。
+
+```ts
+import { distributedKVStore } from "@kit.ArkData";
+import { BusinessError } from "@kit.BasicServicesKit";
+import { logger } from "../utils/logger/logger";
+import { common } from '@kit.AbilityKit';
+
+const KVDatabase_LOG_TAG = 'KVDatabase: '
+
+/**
+ * 键值型数据库管理接口
+ */
+export class KVDatabase {
+  /**
+   * 数据库管理对象，应用启动后需要先行创建并进行数据库的创建。
+   */
+  kvManager: distributedKVStore.KVManager | undefined = undefined;
+  appId: string = 'com.xbxyftx.NowInOpenHarmony';
+
+  /**
+   * 创建数据库管理对象KVManager
+   * @param context 当前应用上下文
+   * @returns 是否成功创建
+   */
+  createKVManager(context: common.BaseContext): boolean {
+    const kvManagerConfig: distributedKVStore.KVManagerConfig = {
+      context: context,
+      bundleName: this.appId
+    };
+    try {
+      // 创建KVManager实例
+      this.kvManager = distributedKVStore.createKVManager(kvManagerConfig);
+      console.info(KVDatabase_LOG_TAG + 'Succeeded in creating KVManager.');
+      // 继续创建获取数据库
+      if (this.kvManager !== undefined) {
+        logger.info(KVDatabase_LOG_TAG+'数据库管理对象创建成功。')
+        return true
+      }
+      logger.error(KVDatabase_LOG_TAG + '数据库管理对象创建失败')
+      return false
+    } catch (e) {
+      let error = e as BusinessError;
+      logger.error(KVDatabase_LOG_TAG + `Failed to create KVManager. Code:${error.code},message:${error.message}`);
+      return false
+    }
+  }
+}
+
+export const kvDatabase: KVDatabase = new KVDatabase()
+```
+
+先真机测试一下这个创建过程，以及反复启动应用是否会出现问题。
+
+![29](OpenSourceSummer2025/29.png)
+
+创建成功。不过这也是有个新问题。
+
+![30](OpenSourceSummer2025/30.png)
+
+我们可以看到我们所需要的参数类型是`BaseContext`但是我们所传入的却是`UIAbilityContext`类型。我又将函数定义的类型进行了一下修改进行尝试。
+
+```ts
+//修改前
+createKVManager(context: common.BaseContext)
+//修改后
+createKVManager(context: common.UIAbilityContext)
+```
+
+经测试运行依旧正常，数据库管理对象依旧是正常的去创建了，对此我第一个想到的就是多态，这几个类型之间是存在集成的子父代关系的，与此同时`BaseContext`、`Context`、`UIAbilityContext`这几个命名也是基于`context`这个单次去进行修饰词的添加的。让我们来读一下源码证实我的想法。
+
+![31](OpenSourceSummer2025/31.png)
+
+![32](OpenSourceSummer2025/32.png)
+
+ok，源码完美的验证了我的想法`BaseContext`的的确确是另外两个的上下文对象的父类，而且其仅仅包含了应用模型类型这一个信息。我们传递的参数是`BaseContext`类型说明其仅需要应用框架类型这一个信息，而`UIAbilityContext`是`BaseContext`的子类，同样包含了这个信息，所以我们可以直接将`UIAbilityContext`类型的参数传递给`createKVManager`函数，这就实现了多态。
+
+### 启动页UI
+
+### 主页面UI
+
+#### 页面配色
+
+首先我考虑的是整体页面的背景颜色，毕竟背景颜色的选定是会影响整个页面给用户的第一印象以及整体感受的。我选择采用和OpenHarmony图标一致的蓝绿渐变，给人一种生机盎然的气息，和开元鸿蒙所追求的“万物互联，共创未来”的理念不谋而合。
+
+为了进行深浅色适配我们就需要在`color.json`文件中去进行同名配置，来进行深浅色的自适配。
+
+```js
+{
+  "color": [
+    {
+      "name": "start_window_background",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "index_page_background_1",
+      "value": "#ff00a7c4"
+    },
+    {
+      "name": "index_page_background_2",
+      "value": "#ff00c6c6"
+    },
+    {
+      "name": "index_page_background_3",
+      "value": "#b900d48c"
+    },
+    {
+      "name": "index_page_background_4",
+      "value": "#ff00d91c"
+    }
+  ]
+}
+```
+
+```js
+{
+  "color": [
+    {
+      "name": "start_window_background",
+      "value": "#000000"
+    },
+    {
+      "name": "index_page_background_1",
+      "value": "#FF03788C"
+    },
+    {
+      "name": "index_page_background_2",
+      "value": "#FF048D8D"
+    },
+    {
+      "name": "index_page_background_3",
+      "value": "#B9028C5C"
+    },
+    {
+      "name": "index_page_background_4",
+      "value": "#FF069B18"
+    }
+  ]
+}
+```
+
+![24](OpenSourceSummer2025/24.jpg)
+
+看着还不错吧。
+
+在这个过程中我也是遇到了一个小问题，就是我继续用`NavDestination`制作启动页的话这将意味着我的启动页将无法在平板上去进行全屏的覆盖，这并不合理。
+
+![25](OpenSourceSummer2025/25.jpg)
+
+所以我还是决定使用router来去解决这个问题。
+
+在使用router局部重构页面逻辑时又发现了一个新的问题，就是router的`pushUrl`方法已经被废弃了。
+
+![26](OpenSourceSummer2025/26.png)
+
+我立即去查看了[官方文档](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-router#routerpushurldeprecated)。
+
+原来是和之前遇到的PromptAction相同的指代不明的问题。由于之前解决的时候已经获取过UIContext了所以我就直接使用此前获取的就可以了。
+
+随后我又去学习了一下页面间转场动画的制作，修改完得到如下代码。
+
+```ts
+import { AppStorageV2, curves, PromptAction, Router, router } from "@kit.ArkUI"
+import {
+  GetUIContext,
+  GET_UICONTEXT,
+  logger,
+  NavDests,
+  NAV_PATH_STUCK,
+  NewsArticle,
+  newsListApi,
+  serverHealthApi
+} from "common"
+
+const START_PAGE_TAGE = 'StartPage:  '
+
+@Entry
+@ComponentV2
+struct StarPage {
+  uiPromptAction: PromptAction = AppStorageV2.connect(GetUIContext, GET_UICONTEXT)!.context.getPromptAction()
+  uiRouter: Router = AppStorageV2.connect(GetUIContext, GET_UICONTEXT)!.context.getRouter()
+
+  async aboutToAppear(): Promise<void> {
+    let isServerReady: boolean = false
+    setTimeout(() => {
+      logger.debug(START_PAGE_TAGE + '延时跳转')
+      this.uiRouter.pushUrl({ url: "pages/Index", recoverable: false })
+      // 为了能触发路由动画特此使用push
+      logger.debug(START_PAGE_TAGE + '清理启动页')
+      this.uiRouter.clear()
+    }, 2000)
+    await serverHealthApi.isServerReady().then((res: boolean) => {
+      logger.debug(START_PAGE_TAGE + res.valueOf())
+      if (res) {
+        isServerReady = true
+        logger.info(START_PAGE_TAGE + '服务端准备就绪isServerReady=' + isServerReady)
+      } else {
+        isServerReady = false
+        logger.info(START_PAGE_TAGE + '服务端准备中isServerReady=' + isServerReady)
+      }
+    })
+    if (isServerReady) {
+      logger.debug(START_PAGE_TAGE + '尝试获取全部新闻列表')
+      newsListApi.getAllNews().then((res: NewsArticle[] | null) => {
+        if (res === null) {
+          logger.warn(START_PAGE_TAGE + '')
+        } else {
+          this.uiPromptAction.showToast({ message: '获取新闻列表成功', duration: 2000 })
+        }
+      })
+    }
+  }
+
+  pageTransition() {
+    PageTransitionExit({ type: RouteType.None, duration: 200, curve: Curve.EaseInOut })
+      .slide(SlideEffect.Left)
+  }
+
+  build() {
+
+    Column() {
+      Image($r('app.media.logo'))
+        .width('20%')
+        .margin({bottom:100})
+      Text('Welcome')
+        .fontSize(30)
+        .fontColor('#ff00be53')
+      Text('NowInOpenHarmony')
+        .fontSize(50)
+        .fontColor('#ff00be53')
+        .fontWeight(700)
+    }
+    .expandSafeArea()
+    .backgroundColor('#062872')
+    .justifyContent(FlexAlign.Center)
+    .width('100%')
+    .height('100%')
+
+  }
+}
+```
+
+```ts
+import { AppStorageV2 } from '@kit.ArkUI'
+import { NavDests, NAV_PATH_STUCK } from 'common'
+import { MainPage } from './nav_pages/mainPage'
+
+
+@Entry
+@ComponentV2
+struct Main {
+  @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, NAV_PATH_STUCK,()=>new NavPathStack())!
+  @Builder
+  NavDestMap(name: string) {
+    if (name === NavDests.MAIN) {
+      Main()
+    }
+  }
+  pageTransition() {
+    PageTransitionEnter({ type: RouteType.None, duration: 200, curve: Curve.EaseInOut })
+      .scale({x:0.2,y:0.2})
+      .opacity(0)
+  }
+  aboutToAppear(): void {
+
+  }
+  build() {
+    Navigation(this.navPathStuck){
+      MainPage()
+    }
+    .linearGradient({
+      angle:20,
+      colors:[
+        [$r('app.color.index_page_background_1'),0],
+        [$r('app.color.index_page_background_2'),0.4],
+        [$r('app.color.index_page_background_3'),0.7],
+        [$r('app.color.index_page_background_4'),1]
+      ]
+    })
+    .backgroundColor(Color.Transparent)
+    .padding(10)
+    .navDestination(this.NavDestMap)
+    .hideTitleBar(true)
+    .hideToolBar(true)
+    .height('100%')
+    .width('100%')
+    .hideBackButton(true)
+    .titleMode(NavigationTitleMode.Free)
+    .mode(NavigationMode.Auto)
+    .navBarWidth('40%')
+  }
+}
+```
