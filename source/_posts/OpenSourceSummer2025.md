@@ -4804,6 +4804,515 @@ createKVManager(context: common.UIAbilityContext)
 
 ok，源码完美的验证了我的想法`BaseContext`的的确确是另外两个的上下文对象的父类，而且其仅仅包含了应用模型类型这一个信息。我们传递的参数是`BaseContext`类型说明其仅需要应用框架类型这一个信息，而`UIAbilityContext`是`BaseContext`的子类，同样包含了这个信息，所以我们可以直接将`UIAbilityContext`类型的参数传递给`createKVManager`函数，这就实现了多态。
 
+### 用户首选项接口
+
+我们需要将用户的配置和新闻数据进行分开的存储，由于用户的配置设置属于是很小的数据量，所以我们就依照官方的推荐去进行存储。
+
+```ts
+import { common } from '@kit.AbilityKit';
+import { preferences } from '@kit.ArkData';
+import { logger } from '../../utils';
+const PreferenceDB_LOG_TAG = 'PreferenceDB: '
+/**
+ * 用户首选项数据持久化接口
+ */
+class PreferenceDB {
+  private dataPreference: preferences.Preferences | null = null;
+
+  init(context: common.BaseContext): void {
+    const option: preferences.Options = { name: 'jyt' };
+    this.dataPreference = preferences.getPreferencesSync(context, option);
+    this.dataPreference.on("change", (key: string) => {
+      logger.warn(`${PreferenceDB_LOG_TAG}The key ${key} changed`);
+    });
+  }
+
+  release(): void {
+    if (this.dataPreference) {
+      this.dataPreference.off("change", (key: string) => {
+        logger.warn(`${PreferenceDB_LOG_TAG}UnSubscribe the key ${key}`);
+      });
+    }
+  }
+
+  hasData(key: string): boolean {
+    if (this.dataPreference) {
+      const dataExist: boolean = this.dataPreference.hasSync(key);
+      logger.info(`${PreferenceDB_LOG_TAG}Has ${key} data: ${dataExist}`);
+      return dataExist;
+    }
+    return false;
+  }
+
+  pushData(key: string, value: Object): void {
+    if (this.dataPreference) {
+      this.dataPreference.putSync(key, value);
+      this.dataPreference.flush();
+    }
+  }
+
+  deleteData(key: string): void {
+    if (this.dataPreference) {
+      this.dataPreference.deleteSync(key);
+      logger.warn(`${PreferenceDB_LOG_TAG}Delete data ${key}`);
+    }
+  }
+
+  getData(key: string): object | null {
+    if (this.dataPreference) {
+      const obj: preferences.ValueType = this.dataPreference.getSync(key, 'default');
+      logger.info(`${PreferenceDB_LOG_TAG}Get data ${key} ${JSON.stringify(obj)}`);
+      return obj as object;
+    }
+    return null;
+  }
+}
+
+export const preferenceDB: PreferenceDB = new PreferenceDB();
+```
+
+直接将数据的增删改查封装成一个类，同时对基础的系统接口进行包装，直接将数据的持久化过程利用防御性编程进行封装，以符合业务需求。
+
+随后的话，在应用运行期间的状态始终是要用全局变量的一个包装包装着，但是在进行数据持久化的过程中时我们还是需要去分字段的去进行存储的，这样才方便与管理。为此我的方案是设置一个枚举类型来管理持久化键值字段，与此同时设置一个数据模型并进行数据变化的追踪，用于设置全局变量，并在跟页面设置监听器，一旦出现变化就及时去进行数据的持久化。同时为了方式应用被直接杀死进程的退出，所以我们还需要在生命周期的`onDestroy`方法中去进行数据的持久化。
+
+```ts
+export enum Preference {
+  COLOR_MODE = 'ColorMode',
+  FONT_SIZE = 'FontSize'
+}
+
+/**
+ * 用户设置项
+ */
+@ObservedV2
+export class UserConfigViewModel {
+  /**
+   * 深浅色模式
+   * 0 浅色模式
+   * 1 深色模式
+   * 2 跟随系统
+   */
+  colorModel: 0 | 1 | 2 = 2
+  /**
+   * 文章字体大小
+   * 合理取值区间12-24
+   */
+  fontSize: number = 16
+}
+```
+
+用这套模式在开发时我也是又遇到了新的类型问题，也就是显示数据模型和我所提供的首选项数据接口的类型不一致问题。
+
+![27](OpenSourceSummer2025/33.png)
+
+于是我考虑的是直接将接口的返回值类型给修改为泛型接口，并用trycatch包裹来去处理可能发生的异常。
+
+```ts
+  getData<T>(key: string): T | null {
+    try {
+      if (this.dataPreference) {
+        const obj: preferences.ValueType = this.dataPreference.getSync(key, 'default');
+        logger.info(`${PreferenceDB_LOG_TAG}Get data ${key} ${JSON.stringify(obj)}`);
+        return obj as T;
+      }
+      return null;
+    }catch (e){
+      promptAction.openToast({message:`${PreferenceDB_LOG_TAG}获取数据异常，异常信息为${JSON.stringify(e)}`})
+      logger.error(`${PreferenceDB_LOG_TAG}获取数据异常，异常信息为${JSON.stringify(e)}`)
+    }
+    return null
+  }
+```
+
+### 应用初始化接口
+
+```ts
+import {
+  DEFAULT_COLOR_MODE,
+  DEFAULT_FONT_SIZE,
+  GET_USER_CONFIG,
+  logger,
+  preferenceDB,
+  PreferenceEnum,
+  UserConfigViewModel
+} from "common";
+import { common } from "@kit.AbilityKit";
+import { AppStorageV2, promptAction } from "@kit.ArkUI";
+
+const AppInit_LOG_TAG = 'AppInit: '
+
+/**
+ * 应用初始化接口
+ */
+export class AppInit {
+  /**
+   * 用户配置项初始化
+   */
+  configInit(context: common.UIAbilityContext) {
+    const isPreferenceDBInitSuccess: boolean = preferenceDB.init(context)
+    if (isPreferenceDBInitSuccess) {
+      logger.info(`${AppInit_LOG_TAG}用户首选项初始化成功`)
+      if (preferenceDB.hasData(PreferenceEnum.COLOR_MODE)) {
+        AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel =
+          preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE)!
+      }
+      if (preferenceDB.hasData(PreferenceEnum.FONT_SIZE)) {
+        AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.fontSize =
+          preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE)!
+      }
+      if (!preferenceDB.hasData(PreferenceEnum.COLOR_MODE) || !preferenceDB.hasData(PreferenceEnum.FONT_SIZE)) {
+        this.setConfigToDefault()
+      }
+      
+    } else {
+      promptAction.openToast({ message: `${AppInit_LOG_TAG}用户首选项初始化错误` })
+      logger.error(`${AppInit_LOG_TAG}用户首选项初始化错误`)
+    }
+  }
+
+  setConfigToDefault() {
+    if (preferenceDB.hasData(PreferenceEnum.COLOR_MODE)) {
+      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel =
+        DEFAULT_COLOR_MODE
+      preferenceDB.pushData(PreferenceEnum.COLOR_MODE, DEFAULT_COLOR_MODE)
+    }
+    if (preferenceDB.hasData(PreferenceEnum.FONT_SIZE)) {
+      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel =
+        DEFAULT_COLOR_MODE
+      preferenceDB.pushData(PreferenceEnum.FONT_SIZE, DEFAULT_FONT_SIZE)
+    }
+
+  }
+}
+
+export const appInit = new AppInit()
+```
+
+在应用的启动阶段调用这个初始化接口去进行持久化数据的读取或是默认数据的设置。
+
+但我认为这个代码其实应该将功能再次拆解，将持久化数据以及应用状态的交互拆分出来放在特性层中进行封装，因为我们还需要数据同步接口。
+
+#### 数据管理器封装
+
+```ts
+import {
+  DEFAULT_COLOR_MODE,
+  DEFAULT_FONT_SIZE,
+  GET_USER_CONFIG,
+  logger,
+  preferenceDB,
+  PreferenceEnum,
+  UserConfigViewModel
+} from "common";
+import { AppStorageV2, promptAction } from "@kit.ArkUI";
+
+const UserConfigManager_LOG_TAG = 'UserConfigManager: '
+
+/**
+ * 用户配置项管理器，提供全局变量和持久化数据之间的交互接口。
+ */
+export class UserConfigManager {
+  /**
+   * 持久化当前应用配置数据
+   * @returns 是否成功
+   */
+  syncDataToPreference(): boolean {
+    const UserConfig = AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!
+    const colorMode = UserConfig.colorModel
+    preferenceDB.pushData(PreferenceEnum.COLOR_MODE, colorMode)
+    const fontSize = UserConfig.fontSize
+    preferenceDB.pushData(PreferenceEnum.FONT_SIZE, fontSize)
+    if (preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE) === colorMode &&
+      preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE) === fontSize) {
+      logger.warn(`${UserConfigManager_LOG_TAG}数据持久化成功,colorMode=${preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE)},fontSize=${preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE)}`)
+      return true
+    }
+    return false
+  }
+
+  /**
+   * 获取应用配置持久化数据,若无持久化数据则设置默认数据
+   * @returns 是否成功
+   */
+  syncDataToAppStorage(): boolean {
+    const UserConfig = AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!
+    if (preferenceDB.hasData(PreferenceEnum.COLOR_MODE)) {
+      UserConfig.colorModel = preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE)!
+    }
+    if (preferenceDB.hasData(PreferenceEnum.FONT_SIZE)) {
+      UserConfig.fontSize = preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE)!
+    }
+    if (!preferenceDB.hasData(PreferenceEnum.FONT_SIZE) || !preferenceDB.hasData(PreferenceEnum.COLOR_MODE)) {
+      logger.warn(`${UserConfigManager_LOG_TAG}无用户配置持久化数据，执行默认配置设置`)
+      promptAction.openToast({message:`${UserConfigManager_LOG_TAG}无用户配置持久化数据，执行默认配置设置`})
+      this.setConfigToDefault()
+    }
+    const fontSize = UserConfig.fontSize
+    const colorMode = UserConfig.colorModel
+    if (preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE) === colorMode &&
+      preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE) === fontSize) {
+      logger.warn(`${UserConfigManager_LOG_TAG}用户首选项持久化数据读取成功,colorMode=${colorMode},fontSize=${fontSize}`)
+      return true
+    }
+    logger.error(`${UserConfigManager_LOG_TAG}用户首选项持久化数据获取发生异常`)
+    return false
+  }
+
+  /**
+   * 将全局状态变量以及持久化数据更改为默认状态
+   */
+  setConfigToDefault() {
+    if (preferenceDB.hasData(PreferenceEnum.COLOR_MODE)) {
+      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel =
+        DEFAULT_COLOR_MODE
+      preferenceDB.pushData(PreferenceEnum.COLOR_MODE, DEFAULT_COLOR_MODE)
+    }
+    if (preferenceDB.hasData(PreferenceEnum.FONT_SIZE)) {
+      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel =
+        DEFAULT_COLOR_MODE
+      preferenceDB.pushData(PreferenceEnum.FONT_SIZE, DEFAULT_FONT_SIZE)
+    }
+  }
+}
+
+export const userConfigManager = new UserConfigManager()
+```
+
+#### 配置初始化接口更新
+
+在封装完了数据管理器之后我们就可以对应用初始化包中的应用配置初识化进行简化。
+
+```ts
+import {
+  DEFAULT_COLOR_MODE,
+  DEFAULT_FONT_SIZE,
+  GET_USER_CONFIG,
+  logger,
+  preferenceDB,
+  PreferenceEnum,
+  UserConfigViewModel
+} from "common";
+import { common } from "@kit.AbilityKit";
+import { AppStorageV2, promptAction } from "@kit.ArkUI";
+import { userConfigManager } from "feature";
+
+const AppInit_LOG_TAG = 'AppInit: '
+
+/**
+ * 应用初始化接口
+ */
+export class AppInit {
+  /**
+   * 用户配置项初始化
+   */
+  configInit(context: common.UIAbilityContext) {
+    const isPreferenceDBInitSuccess: boolean = preferenceDB.init(context)
+    if (isPreferenceDBInitSuccess) {
+      logger.info(`${AppInit_LOG_TAG}首选项数据对象初始化成功`)
+      if(userConfigManager.syncDataToAppStorage()){
+        return true
+      }
+      return false
+    } else {
+      promptAction.openToast({ message: `${AppInit_LOG_TAG}首选项数据对象初始化错误` })
+      logger.error(`${AppInit_LOG_TAG}首选项数据对象初始化错误`)
+      return false
+    }
+  }
+
+}
+
+export const appInit = new AppInit()
+```
+
+随后在应用构建的生命周期函数中调用。
+
+```ts
+  onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
+    this.context.getApplicationContext().setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
+    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onCreate');
+    kvDatabase.init(this.context)
+    appInit.configInit(this.context)
+  }
+```
+
+可以看到这里面的数据库初识化还是直接调用的，我们后面也要将他封装进`appInit`对象中。现在先用真机运行一下进行测试。如果能正常打印出用户首选项相关的日志信息就说明我们上面封装的首选项接口都没有问题。
+
+#### 资源未初始化问题的解决
+
+```bash
+Module name:com.xbxyftx.NowInOpenHarmony
+Version:1.0.0
+VersionCode:1000000
+PreInstalled:No
+Foreground:Yes
+Pid:14414
+Uid:20020052
+Reason:TypeError
+Error name:TypeError
+Error message:is not callable
+Stacktrace:
+SourceMap is not initialized yet 
+    at syncDataToAppStorage (feature|feature|1.0.0|src/main/ets/api/UserConfig.ts:40:13)
+    at configInit (default|default|1.0.0|src/main/ets/init/AppInit.ts:17:17)
+    at onCreate (default|default|1.0.0|src/main/ets/entryability/EntryAbility.ts:15:9)
+```
+
+enm，报错了，包的是未初始化的错。我们再来看一下日志断在了什么位置。
+
+```bash
+Callee constructor is OK string
+Ability::constructor callee is object [object Object]
+Ability onCreate
+KVDatabase: Succeeded in creating KVManager.
+KVDatabase: 数据库管理对象创建成功。
+AppInit: 首选项数据对象初始化成功
+PreferenceDB: Has ColorMode data: false
+PreferenceDB: Has FontSize data: false
+PreferenceDB: Has FontSize data: false
+UserConfigManager: 无用户配置持久化数据，执行默认配置设置
+```
+
+成功检测了第一次安装并没有持久化数据，然后开始去检查是否存在无配置的数据，发现字体没有就开始去设置默认值。我们的默认值设置函数并没有设置日志，让我们添加一些日志来进行进一步排查。
+
+```ts
+  /**
+   * 将全局状态变量以及持久化数据更改为默认状态
+   */
+  setConfigToDefault() {
+    logger.debug(`${UserConfigManager_LOG_TAG}开始尝试默认设置写入`)
+    if (preferenceDB.hasData(PreferenceEnum.COLOR_MODE)) {
+      logger.debug(`${UserConfigManager_LOG_TAG}preferenceDB.hasData(PreferenceEnum.COLOR_MODE)=${preferenceDB.hasData(PreferenceEnum.COLOR_MODE)}`)
+      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel =
+        DEFAULT_COLOR_MODE
+      preferenceDB.pushData(PreferenceEnum.COLOR_MODE, DEFAULT_COLOR_MODE)
+    }
+    if (preferenceDB.hasData(PreferenceEnum.FONT_SIZE)) {
+      logger.debug(`${UserConfigManager_LOG_TAG}preferenceDB.hasData(PreferenceEnum.FONT_SIZE)=${preferenceDB.hasData(PreferenceEnum.FONT_SIZE)}`)
+      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel =
+        DEFAULT_COLOR_MODE
+      preferenceDB.pushData(PreferenceEnum.FONT_SIZE, DEFAULT_FONT_SIZE)
+    }
+  }
+```
+
+![34](OpenSourceSummer2025/34.png)
+
+添加日志后发现了我最没想到的问题，整个函数压根就没有进入？？？这可怎么办呢，我们再仔细排查一下。
+
+我尝试了将可疑的耗时点都加上了异步await，但是发现程序确实是会跳过问题点继续运行了，但是问题没有解决，依旧没有后续日志。这时我想起来之前写数据持久化文章时看到的同步和异步flush，所以我决定先去改用同步接口试试。
+
+现象没变化，还是没走到这一步。
+
+```ts
+  pushData(key: string, value: Object): void {
+    if (this.dataPreference) {
+      logger.info(`${PreferenceDB_LOG_TAG}key=${key},value=${value}`)
+      this.dataPreference.putSync(key, value);
+      this.dataPreference.flushSync();
+    }
+  }
+```
+
+再加上一行日志试试。
+
+还是没区别，依旧没走到那行。到这基本上我已经可以确定是我寻找的方向错了。从新审视一下这个问题。
+
+从最后一行日志到函数调用之前仅有两行代码，既然前面已经证明了我的首选项接口没有问题，那我就只能怀疑是这个弹窗的问题了。仔细回想一下应用的构建流程，在`onCreate`生命周期中，我们并没有进行窗口的构建，仅仅是做一些数据上的准备，也就是说这段时间我们的UIContext是还没有被初始化的，虽然我已经从由Promptaction实例对象调用改为了直接调用openToast，但这个弹窗也是要和窗口的事例对象进行绑定的，我既然还没有初始化我的窗口界面，也就没有UI上下文对象，此时我去调用弹窗接口确实就是可能会发生未初始化的情况。
+
+```ts
+    if (!preferenceDB.hasData(PreferenceEnum.FONT_SIZE) || !preferenceDB.hasData(PreferenceEnum.COLOR_MODE)) {
+      logger.warn(`${UserConfigManager_LOG_TAG}无用户配置持久化数据，执行默认配置设置`)
+      // promptAction.openToast({ message: `${UserConfigManager_LOG_TAG}无用户配置持久化数据，执行默认配置设置` })
+      this.setConfigToDefault()
+    }
+```
+
+先将这一行暂时注释掉。再次运行。
+
+我死死盯着手机，它终于是没有闪退了，赶紧查看一下日志。后续的日志都出来了，总算是正确了。
+
+```bash
+AppInit: 首选项数据对象初始化成功
+PreferenceDB: Has ColorMode data: false
+PreferenceDB: Has FontSize data: false
+PreferenceDB: Has FontSize data: false
+UserConfigManager: 无用户配置持久化数据，执行默认配置设置
+UserConfigManager: 开始尝试默认设置写入
+PreferenceDB: Has ColorMode data: false
+PreferenceDB: Has FontSize data: false
+PreferenceDB: Get data ColorMode "default"
+UserConfigManager: 用户首选项持久化数据获取发生异常
+```
+
+随后的这一抹红色也是吓了我一跳，但我很快就反应过来了，原来是我的逻辑还有问题，当前我是先去判断其存在再去写入默认值，这就说明我没有考虑第一次的问题。
+
+```ts
+  /**
+   * 将全局状态变量以及持久化数据更改为默认状态
+   */
+  async setConfigToDefault() {
+    logger.debug(`${UserConfigManager_LOG_TAG}开始尝试默认设置写入`)
+
+    logger.debug(`${UserConfigManager_LOG_TAG}preferenceDB.hasData(PreferenceEnum.COLOR_MODE)=${preferenceDB.hasData(PreferenceEnum.COLOR_MODE)}`)
+    AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel =
+      DEFAULT_COLOR_MODE
+    preferenceDB.pushData(PreferenceEnum.COLOR_MODE, DEFAULT_COLOR_MODE)
+
+    logger.debug(`${UserConfigManager_LOG_TAG}preferenceDB.hasData(PreferenceEnum.FONT_SIZE)=${preferenceDB.hasData(PreferenceEnum.FONT_SIZE)}`)
+    AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel =
+      DEFAULT_COLOR_MODE
+    preferenceDB.pushData(PreferenceEnum.FONT_SIZE, DEFAULT_FONT_SIZE)
+
+  }
+```
+
+从新运行尝试。
+
+```bash
+AppInit: 首选项数据对象初始化成功
+PreferenceDB: Has ColorMode data: false
+PreferenceDB: Has FontSize data: false
+PreferenceDB: Has FontSize data: false
+UserConfigManager: 无用户配置持久化数据，执行默认配置设置
+UserConfigManager: 开始尝试默认设置写入
+PreferenceDB: Has ColorMode data: false
+UserConfigManager: preferenceDB.hasData(PreferenceEnum.COLOR_MODE)=false
+PreferenceDB: key=ColorMode,value=2
+PreferenceDB: Has FontSize data: false
+UserConfigManager: preferenceDB.hasData(PreferenceEnum.FONT_SIZE)=false
+PreferenceDB: key=FontSize,value=16
+PreferenceDB: Get data ColorMode: 2
+PreferenceDB: Get data FontSize: 16
+UserConfigManager: 用户首选项持久化数据读取成功,colorMode=2,fontSize=16
+Ability onWindowStageCreate
+Ability onForeground
+PreferenceDB: The key ColorMode changed
+Succeeded in loading the content.
+PreferenceDB: The key FontSize changed
+```
+
+nb，终于成功了。修改成功了。
+
+```bash
+AppInit: 首选项数据对象初始化成功
+PreferenceDB: Has ColorMode data: true
+PreferenceDB: Has ColorMode data: true
+UserConfigManager: 检测到COLOR_MODE=true
+PreferenceDB: Get data ColorMode: 2
+PreferenceDB: Has FontSize data: true
+PreferenceDB: Has FontSize data: true
+UserConfigManager: 检测到FONT_SIZE=true
+PreferenceDB: Get data FontSize: 16
+PreferenceDB: Has FontSize data: true
+PreferenceDB: Has ColorMode data: true
+PreferenceDB: Get data ColorMode: 2
+PreferenceDB: Get data FontSize: 16
+UserConfigManager: 用户首选项持久化数据读取成功,colorMode=2,fontSize=16
+```
+
+ok！第二次启动也是成功读取到了上一次所持久化的数据！大成功啦！
+
 ### 启动页UI
 
 ### 主页面UI
