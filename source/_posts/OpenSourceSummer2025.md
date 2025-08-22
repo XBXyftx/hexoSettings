@@ -4804,6 +4804,13 @@ createKVManager(context: common.UIAbilityContext)
 
 ok，源码完美的验证了我的想法`BaseContext`的的确确是另外两个的上下文对象的父类，而且其仅仅包含了应用模型类型这一个信息。我们传递的参数是`BaseContext`类型说明其仅需要应用框架类型这一个信息，而`UIAbilityContext`是`BaseContext`的子类，同样包含了这个信息，所以我们可以直接将`UIAbilityContext`类型的参数传递给`createKVManager`函数，这就实现了多态。
 
+{% note success flat %}
+关于这一块我后面又去寻找了一下相关的文档说明，也是找到了专门解释这一块的文档。[传送门](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-inner-application-context#%E4%B8%8D%E5%90%8C%E7%B1%BB%E5%9E%8Bcontext%E7%9A%84%E7%BB%A7%E6%89%BF%E5%92%8C%E6%8C%81%E6%9C%89%E5%85%B3%E7%B3%BB)
+
+![alt text](https://alliance-communityfile-drcn.dbankcdn.com/FileServer/getFile/cmtyPub/011/111/111/0000000000011111111.20250822155516.57232657365788405215170185352656:50001231000000:2800:BF79EFDD4AAA5620DCD6B96CC760D9FECC2247D36B77809280AE796390B43673.png)
+![alt text](https://alliance-communityfile-drcn.dbankcdn.com/FileServer/getFile/cmtyPub/011/111/111/0000000000011111111.20250822155516.41713918890506122165673003330164:50001231000000:2800:607839D596540E0B7FFBC58D6794F403B8FBDAB34632F1390F1C13E04316195D.png)
+{% endnote %}
+
 ### 用户首选项接口
 
 我们需要将用户的配置和新闻数据进行分开的存储，由于用户的配置设置属于是很小的数据量，所以我们就依照官方的推荐去进行存储。
@@ -5312,6 +5319,344 @@ UserConfigManager: 用户首选项持久化数据读取成功,colorMode=2,fontSi
 ```
 
 ok！第二次启动也是成功读取到了上一次所持久化的数据！大成功啦！
+
+### 深浅色切换工具
+
+接下来我们趁热打铁，将用户配置数据和深浅色切换工具相结合，让深浅色切换真正的与应用状态绑定。
+
+首先先去官网查看一下主动切换深浅色的[指南文档](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/ui-dark-light-color-adaptation#%E5%BA%94%E7%94%A8%E4%B8%BB%E5%8A%A8%E8%AE%BE%E7%BD%AE%E6%B7%B1%E6%B5%85%E8%89%B2%E6%A8%A1%E5%BC%8F)。
+
+在看了指南文档后我就确认了，就是现在API18应用创建后基础代码中就包含了的那个方法。所以深浅色工具的封装逻辑就很简单了。
+
+```ts
+import { common, ConfigurationConstant } from "@kit.AbilityKit";
+import { DEFAULT_COLOR_MODE, GET_USER_CONFIG, logger, UserConfigViewModel } from "common";
+import { AppStorageV2 } from "@kit.ArkUI";
+import { userConfigManager } from "./UserConfigManager";
+
+const ColorModManager_LOG_TAG = 'ColorModManager: '
+
+/**
+ * 颜色模式管理器
+ */
+export class ColorModManager {
+  /**
+   * 应用上下文对象
+   */
+  applicationContext: common.ApplicationContext | null = null
+
+  /**
+   * 当前应用颜色模式，需在init过程中进行初始化数据获取，以免直接调用AppStorage造成未初始化问题。
+   */
+  appColorMode: 0 | 1 | 2 = DEFAULT_COLOR_MODE
+
+  /**
+   * 管理器初始化，并应用初始化后的颜色应用状态
+   * @param applicationContext 应用上下文对象
+   * @returns 是否初始化成功
+   */
+  init(applicationContext: common.ApplicationContext): boolean {
+    this.applicationContext = applicationContext
+    this.appColorMode =
+      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel
+    if (applicationContext) {
+      logger.info(`${ColorModManager_LOG_TAG}applicationContext初始化成功`)
+      this.initColoModSetting();
+      return true
+    }
+    return false
+  }
+
+  /**
+   * 初始化颜色设置，仅做内部调用，外部请使用其余设置接口
+   */
+  private initColoModSetting() {
+    switch (this.appColorMode) {
+      case 0:
+        this.applicationContext!.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT);
+      case 1:
+        this.applicationContext!.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_DARK);
+      case 2:
+        this.applicationContext!.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
+    }
+  }
+
+  setDarkMod():boolean {
+    if (this.applicationContext) {
+      this.applicationContext.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_DARK)
+      this.appColorMode = 1
+      logger.info(`${ColorModManager_LOG_TAG}深色模式修改成功colorModel=${AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel}`)
+      userConfigManager.syncDataToPreference()
+      return true
+    }
+    logger.error(`${ColorModManager_LOG_TAG}应用上下文对象缺失`)
+    return false
+  }
+
+  setLightMod():boolean {
+    if (this.applicationContext) {
+      this.applicationContext.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT)
+      this.appColorMode = 0
+      logger.info(`${ColorModManager_LOG_TAG}浅色模式修改成功colorModel=${AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel}`)
+      userConfigManager.syncDataToPreference()
+      return true
+    }
+    logger.error(`${ColorModManager_LOG_TAG}应用上下文对象缺失`)
+    return false
+  }
+
+  setDefaultColorMode(): boolean {
+    if (this.applicationContext) {
+      this.applicationContext.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET)
+      this.appColorMode = 2
+      logger.info(`${ColorModManager_LOG_TAG}跟随系统模式修改成功colorModel=${AppStorageV2.connect(UserConfigViewModel,
+        GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel}`)
+      userConfigManager.syncDataToPreference()
+      return true
+    }
+    logger.error(`${ColorModManager_LOG_TAG}应用上下文对象缺失`)
+    return false
+  }
+}
+```
+
+整体的思路就是通过应用上下文对象设置应用的颜色模式，与此同时通过全局变量来实现应用的通讯，以及深浅色切换控件的图标切换等工作，在切换时自动将数据持久化。
+
+随后将初始化过程串流到应用初始化流程中。
+
+```ts
+import { DEFAULT_COLOR_MODE, GET_USER_CONFIG, logger, UserConfigViewModel } from "common"
+import { AppStorageV2 } from "@kit.ArkUI"
+import { colorModManager } from "../../managers/ColorModManager"
+const ColorModChoseButton_LOG_TAG = 'ColorModChoseButton: '
+/**
+ * 颜色模式切换按钮
+ */
+@ComponentV2
+export struct ColorModChoseButton {
+  @Local appColorMode: 0 | 1 | 2 = DEFAULT_COLOR_MODE
+
+  aboutToAppear(): void {
+    this.appColorMode =
+      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel
+  }
+  
+  changeColorMode(){
+    if (this.appColorMode===2) {
+      this.appColorMode = 0
+      colorModManager.setLightMod()
+      logger.info(`${ColorModChoseButton_LOG_TAG}点击生效，切换为浅色模式`)
+    }else if (this.appColorMode===0){
+      this.appColorMode = 1
+      colorModManager.setDarkMod()
+      logger.info(`${ColorModChoseButton_LOG_TAG}点击生效，切换为深色模式`)
+    }else if (this.appColorMode===1){
+      this.appColorMode = 2
+      colorModManager.setDefaultColorMode()
+      logger.info(`${ColorModChoseButton_LOG_TAG}点击生效，切换为跟随系统模式`)
+    }
+  }
+
+  build() {
+    Column() {
+      if (this.appColorMode===2){
+        Text('系')
+      }else if (this.appColorMode===1){
+        Text('深')
+      }else if (this.appColorMode===0){
+        Text('浅')
+      }
+    }
+    .onClick(()=>{
+      this.changeColorMode()
+    })
+    .justifyContent(FlexAlign.Center)
+    .borderRadius(99)
+    .width(30)
+    .height(30)
+  }
+}
+```
+
+随后用一个`ColorModChoseButton`控件来去进行深浅色切换。
+
+<video width="100%" controls>
+  <source src="35.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+在测试时又发现了新问题，就是在切换深浅色时是正常的但是在退出应用时却发现它变回了默认状态，太诡异了。
+
+#### 持久化失败的问题排查与研究
+
+我们首先再给这个按钮加一些样式来明确一下边界后再次进行测试。
+
+这里也是刚好牵扯出来一个小的开发技巧，就是在动态资源共享包中想要新增一个颜色配置文件该怎么做。
+
+![36](OpenSourceSummer2025/36.png)
+
+创建好深色模式资源包之后将Product模块的两个颜色JSON文件复制过来，这里其实只是为了数据格式的一致性，自己重新写也是可以的。
+
+还有个小点就是主动获取系统配置变化，可以通过[onConfigurationUpdate](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-app-ability-ability#abilityonconfigurationupdate)回调函数来获取。当然这里我们还是先解决深浅色切换为重。
+
+先让我们来取一段日志来分析一下。
+
+![37](OpenSourceSummer2025/37.png)
+
+可以看到，我们按钮点击触发后设置浅色的函数的的确确是成功了的，但是我们的日志显示问题发生在了`PreferenceDB: push data: key=ColorMode,value=2`这一步，写入到数据时跟随系统！！！这很致命啊，我第一时间想到的是深浅拷贝问题，之前在测试我们的持久化数据存储时已经成功了，后面我为了省事我是直接提取为了一个成员变量，我现在加上`@Trace`试一试。
+
+没有变化，问题不在这里那我就把成员变量拆回去。
+
+```ts
+import { common, ConfigurationConstant } from "@kit.AbilityKit";
+import { DEFAULT_COLOR_MODE, GET_USER_CONFIG, logger, UserConfigViewModel } from "common";
+import { AppStorageV2 } from "@kit.ArkUI";
+import { userConfigManager } from "./UserConfigManager";
+
+const ColorModManager_LOG_TAG = 'ColorModManager: '
+
+/**
+ * 颜色模式管理器
+ */
+export class ColorModManager {
+  /**
+   * 应用上下文对象
+   */
+  applicationContext: common.ApplicationContext | null = null
+
+  /**
+   * 管理器初始化，并应用初始化后的颜色应用状态
+   * @param applicationContext 应用上下文对象
+   * @returns 是否初始化成功
+   */
+  init(applicationContext: common.ApplicationContext): boolean {
+    this.applicationContext = applicationContext
+    if (applicationContext) {
+      logger.info(`${ColorModManager_LOG_TAG}applicationContext初始化成功`)
+      this.initColoModSetting();
+      return true
+    }
+    return false
+  }
+
+  /**
+   * 初始化颜色设置，仅做内部调用，外部请使用其余设置接口
+   */
+  private initColoModSetting() {
+    switch (AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel) {
+      case 0:
+        this.applicationContext!.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT);
+      case 1:
+        this.applicationContext!.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_DARK);
+      case 2:
+        this.applicationContext!.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
+    }
+  }
+
+  setDarkMod(): boolean {
+    if (this.applicationContext) {
+      this.applicationContext.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_DARK)
+      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel = 1
+      logger.info(`${ColorModManager_LOG_TAG}深色模式修改成功AppStoragecolorModel=${AppStorageV2.connect(UserConfigViewModel,
+        GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel}开始持久化数据`)
+      userConfigManager.syncDataToPreference()
+      return true
+    }
+    logger.error(`${ColorModManager_LOG_TAG}应用上下文对象缺失`)
+    return false
+  }
+
+  setLightMod(): boolean {
+    if (this.applicationContext) {
+      this.applicationContext.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT)
+      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel = 0
+      logger.info(`${ColorModManager_LOG_TAG}浅色模式修改成功AppStoragecolorModel=${AppStorageV2.connect(UserConfigViewModel,
+        GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel}开始持久化数据`)
+      userConfigManager.syncDataToPreference()
+      return true
+    }
+    logger.error(`${ColorModManager_LOG_TAG}应用上下文对象缺失`)
+    return false
+  }
+
+  setDefaultColorMode(): boolean {
+    if (this.applicationContext) {
+      this.applicationContext.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET)
+      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel = 2
+      logger.info(`${ColorModManager_LOG_TAG}跟随系统模式修改成功AppStoragecolorModel=${AppStorageV2.connect(UserConfigViewModel,
+        GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel}开始持久化数据`)
+      userConfigManager.syncDataToPreference()
+      return true
+    }
+    logger.error(`${ColorModManager_LOG_TAG}应用上下文对象缺失`)
+    return false
+  }
+}
+
+export const colorModManager = new ColorModManager()
+```
+
+再次测试
+
+![38](OpenSourceSummer2025/38.png)
+
+这才对啊。但是真机的显示效果又出现了新的问题。在我重新启动应用后发现按钮显示的文字正确但是真正的颜色模式还是跟随系统。
+
+![39](OpenSourceSummer2025/39.jpg)
+
+这个问题的定位倒是很快速的，我是在当初学习如何设置当前应用的深浅色模式的时候就看到过再创建项目后的默认代码中就有一行是设置成跟随系统，我当时忘删了。删除后再试一下。
+
+诶？不对，还是不对，而且现象相同？那现在可能的原因就是初始化流程中出现了问题。
+
+我需要在初始化的过程中添加更多的日志，因为当前的日志并不能准确的定位问题所在。于是我开始寻找我一楼添加日志的位置，想到往事在写初始化颜色模式的这个函数的时候我认为逻辑过于简单就没有添加日志，我现在加一下试试。
+
+```ts
+  /**
+   * 初始化颜色设置，仅做内部调用，外部请使用其余设置接口
+   */
+  private initColoModSetting() {
+    switch (AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel) {
+      case 0: {
+        logger.info(`${ColorModManager_LOG_TAG}initColoModSetting 0: AppStorageV2colorModel = ${AppStorageV2.connect(UserConfigViewModel,
+          GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel}`)
+        this.applicationContext!.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT);
+      }
+
+      case 1: {
+        logger.info(`${ColorModManager_LOG_TAG}initColoModSetting 1: AppStorageV2colorModel = ${AppStorageV2.connect(UserConfigViewModel,
+          GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel}`)
+        this.applicationContext!.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_DARK);
+      }
+
+      case 2: {
+        logger.info(`${ColorModManager_LOG_TAG}initColoModSetting 2: AppStorageV2colorModel = ${AppStorageV2.connect(UserConfigViewModel,
+          GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel}`)
+        this.applicationContext!.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
+      }
+
+    }
+  }
+```
+
+随后再次进行测试，果然发现了问题所在。
+
+```bash
+ColorModManager: applicationContext初始化成功
+ColorModManager: initColoModSetting 0: AppStorageV2colorModel = 0
+ColorModManager: initColoModSetting 1: AppStorageV2colorModel = 0
+ColorModManager: initColoModSetting 2: AppStorageV2colorModel = 0
+```
+
+三个语块全部进入。很诡异真的。
+
+我又仔细一想，问了下AI才想起来是忘记加break了，导致全部语块都被执行直至最后一个跟随系统设置。
+
+再次测试。
+
+<video width="100%" controls>
+  <source src="40.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
 
 ### 启动页UI
 
