@@ -5658,6 +5658,213 @@ ColorModManager: initColoModSetting 2: AppStorageV2colorModel = 0
   您的浏览器不支持视频标签。
 </video>
 
+### KV数据库与新闻数据管理器
+
+#### KV数据库的功能完善
+
+首先先接着之前的初始化代码后面接着封装一个获取KV数据库实例的方法。
+
+```ts
+import { distributedKVStore } from "@kit.ArkData";
+import { BusinessError } from "@kit.BasicServicesKit";
+import { logger } from "../../utils/logger/logger";
+import { common } from '@kit.AbilityKit';
+
+const KVDatabase_LOG_TAG = 'KVDatabase: '
+
+/**
+ * 键值型数据库管理接口
+ */
+export class KVDatabase {
+  /**
+   * 数据库管理对象，应用启动后需要先行创建并进行数据库的创建。
+   */
+  kvManager: distributedKVStore.KVManager | undefined = undefined;
+  appId: string = 'com.xbxyftx.NowInOpenHarmony';
+
+  /**
+   * 初始化方法，创建数据库管理对象KVManager，需在应用启动阶段进行调用。
+   * @param context 当前应用上下文
+   * @returns 是否成功初始化
+   */
+  init(context: common.UIAbilityContext): boolean {
+    const kvManagerConfig: distributedKVStore.KVManagerConfig = {
+      context: context,
+      bundleName: this.appId
+    };
+    try {
+      // 创建KVManager实例
+      this.kvManager = distributedKVStore.createKVManager(kvManagerConfig);
+      console.info(KVDatabase_LOG_TAG + 'Succeeded in creating KVManager.');
+      // 继续创建获取数据库
+      if (this.kvManager !== undefined) {
+        logger.info(KVDatabase_LOG_TAG+'数据库管理对象创建成功。')
+        return true
+      }
+      logger.error(KVDatabase_LOG_TAG + '数据库管理对象创建失败')
+      return false
+    } catch (e) {
+      let error = e as BusinessError;
+      logger.error(KVDatabase_LOG_TAG + `Failed to create KVManager. Code:${error.code},message:${error.message}`);
+      return false
+    }
+  }
+
+  /**
+   * 通过ID获取数据库实例对象，需在init后使用。
+   * @param storeId 数据库实例对象ID
+   * @returns 单版本数据库实例对象
+   */
+  async getKVStoreById(storeId:string):Promise<distributedKVStore.SingleKVStore|null>{
+    if (this.kvManager) {
+      try {
+        const options:distributedKVStore.Options = {
+          createIfMissing: true,
+          securityLevel: distributedKVStore.SecurityLevel.S1,
+          kvStoreType:distributedKVStore.KVStoreType.SINGLE_VERSION
+        }
+        const kVStore:distributedKVStore.SingleKVStore = await this.kvManager.getKVStore(storeId,options)
+        if (kVStore) {
+          logger.info(`${KVDatabase_LOG_TAG}成功获取storeId:${storeId}数据库实例对象`)
+          this.kvManager.on('distributedDataServiceDie',()=>{
+            logger.warn(`${KVDatabase_LOG_TAG}数据库服务订阅发生变更`)
+          })
+          return kVStore
+        }
+      }catch (e){
+        let err = e as BusinessError
+        logger.error(`${KVDatabase_LOG_TAG}获取KV数据库实例对象异常，异常信息: ${err.message}`)
+      }
+    }
+    return null
+  }
+
+
+}
+
+export const kvDatabase: KVDatabase = new KVDatabase()
+```
+
+这里要注意的一点就是这个获取数据库实例的操作是一个异步的耗时操作，我们在后续的处理中也要注意这一点。随后将这个初始化过程绑定到新闻列表管理器的初始化方法中。
+
+```ts
+  /**
+   * 当前应用的键值数据库实例对象
+   */
+  appKVDb: distributedKVStore.SingleKVStore | undefined = undefined
+
+  /**
+   * 初始化函数，获取当前应用的键值对数据库实例。
+   * @param context
+   * @returns
+   */
+  async init(context: common.UIAbilityContext): Promise<boolean> {
+    kvDatabase.init(context)
+    const res = await kvDatabase.getKVStoreById(APP_KV_DB_ID)
+    if (res) {
+      this.appKVDb = res
+      logger.info(`${NewsManager_LOG_TAG}init: 获取appKVDb成功`)
+      return true
+    }
+    return false
+  }
+```
+
+进行测试：
+
+```bash
+KVDatabase: 成功获取storeId:NowInOpenHarmonyKVDB数据库实例对象
+NewsManager: init: 获取appKVDb成功
+```
+
+成功，随后编写一下更新数据库新闻列表数据的方法。
+
+```ts
+import { APP_KV_DB as APP_KV_DB_ID, kvDatabase,
+  KV_DB_KEYS,
+  logger, NewsArticle, newsListApi, serverHealthApi } from "common"
+import { common } from "@kit.AbilityKit"
+import { distributedKVStore } from "@kit.ArkData"
+import { promptAction } from "@kit.ArkUI"
+import { BusinessError } from "@kit.BasicServicesKit"
+
+const NewsManager_LOG_TAG = 'NewsManager: '
+
+export class NewsManager {
+  /**
+   * 当前应用的键值数据库实例对象
+   */
+  appKVDb: distributedKVStore.SingleKVStore | undefined = undefined
+
+  /**
+   * 初始化函数，获取当前应用的键值对数据库实例。
+   * @param context
+   * @returns
+   */
+  async init(context: common.UIAbilityContext): Promise<boolean> {
+    kvDatabase.init(context)
+    const res = await kvDatabase.getKVStoreById(APP_KV_DB_ID)
+    if (res) {
+      this.appKVDb = res
+      logger.info(`${NewsManager_LOG_TAG}init: 获取appKVDb成功`)
+      return true
+    }
+    logger.error(`${NewsManager_LOG_TAG}初始化失败`)
+    return false
+  }
+
+  async updateNewsListToDB(times: number = 1): Promise<boolean> {
+    if (times<=5){
+      if (await serverHealthApi.isServerReady()) {
+        const news:NewsArticle[]|null = (await newsListApi.getAllNews())
+        if (news && this.appKVDb) {
+          logger.info(`${NewsManager_LOG_TAG}成功获取最新新闻，总条数: ${news.length}`)
+          try {
+            this.appKVDb.put(KV_DB_KEYS.NewsArticleList,JSON.stringify(news))
+            logger.info(`${NewsManager_LOG_TAG}数据库写入成功，无异常`)
+            return true
+          }catch (e){
+            let err = e as BusinessError
+            logger.error(`${NewsManager_LOG_TAG}更新数据库NewsArticle数据发生异常，异常信息: ${err.message}`)
+            return false
+          }
+        }
+        logger.error(`${NewsManager_LOG_TAG}获取新闻失败`)
+        return false
+      } else {
+        logger.warn(`${NewsManager_LOG_TAG}第${times}次查询服务端健康状态失败`)
+        setTimeout(async () => {
+          this.updateNewsListToDB(++times)
+        }, 100)
+      }
+    }
+    logger.error(`${NewsManager_LOG_TAG}times = ${times},服务端健康情况异常`)
+    promptAction.openToast({
+      message:`服务端状态异常，已经尝试状态检查${times}次`,
+      duration:3000
+    })
+    return false
+  }
+}
+
+export const newsManager = new NewsManager()
+```
+
+随后串流至app初始化的流程中进行测试。
+
+```ts
+  async initAll(uiAbilityContext: common.UIAbilityContext,applicationContext:common.ApplicationContext){
+    await newsManager.init(uiAbilityContext)
+    this.configInit(uiAbilityContext)
+    colorModManager.init(applicationContext)
+    newsManager.updateNewsListToDB()
+  }
+```
+
+![41](OpenSourceSummer2025/41.png)
+
+ok，很完美，其实我一开始害怕单个字段存储会不会出现数据量过大的情况，但看来并没有发生，那我就放心了。
+
 ### 启动页UI
 
 ### 主页面UI
