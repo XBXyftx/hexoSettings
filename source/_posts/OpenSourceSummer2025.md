@@ -5865,7 +5865,54 @@ export const newsManager = new NewsManager()
 
 ok，很完美，其实我一开始害怕单个字段存储会不会出现数据量过大的情况，但看来并没有发生，那我就放心了。
 
+随后用类似的结构去封装一下获取数据库中的新闻列表数据的方法。
+
+```ts
+  async getNewsArticleListFromDB(): Promise<NewsArticle[] | null>{
+    if (this.appKVDb) {
+      try {
+        const res:string =(await this.appKVDb.get(KV_DB_KEYS.NewsArticleList)) as string
+        logger.info(`${NewsManager_LOG_TAG}读取到数据库新闻列表数据: ${res}`)
+        const newsArticleList = JSON.parse(res) as NewsArticle[]
+        return newsArticleList
+      }
+      catch (e){
+        let err = e as BusinessError
+        logger.error(`${NewsManager_LOG_TAG}尝试获取数据库新闻列表数据发生异常，异常信息: ${err.message}`)
+        return null
+      }
+    }
+    return null
+  }
+```
+
+随后进行串流测试。这次测试我为了确保在应用断网或者是服务端异常的情况下，应用依然能够正常启动，并开始运作备用的数据库存储方案来去进行数据的渲染，所以特意没有开启服务端，而是进行纯客户端测试。
+
+```ts
+  async initAll(uiAbilityContext: common.UIAbilityContext,applicationContext:common.ApplicationContext){
+    await newsManager.init(uiAbilityContext)
+    this.configInit(uiAbilityContext)
+    colorModManager.init(applicationContext)
+    newsManager.updateNewsListToDB()
+    newsManager.getNewsArticleListFromDB()
+  }
+```
+
+![44](OpenSourceSummer2025/44.png)
+
+我草非常顺利啊，没有出现异常。那接下来我们就只需要去考虑这两套数据获取方式的切换逻辑了，这部分应该是最后在完善AppInit功能模块时的工作，下一步我需要思考的应该是文章渲染组件以及对应的样式设计，以及文章字体大小控制组件的功能封装。
+
 ### 启动页UI
+
+对于启动页的UI，首先肯定是要以简洁为主题风格，随后是要有应用的名称，然后我们还有明白启动页的核心功能是用来给应用的启动提供充足的缓冲时间，如果启动页进入之后还没有加载完成数据，那大概率是意味着网络出现了问题或是服务端出现了这状态异常，所以我们需要将从后端更新数据以及全部数据库的初始化工作都放在启动页显示期间进行。
+
+![27](OpenSourceSummer2025/42.png)
+
+在豆包之后就获得了这个logo，调整几次后的这个结果还是非常让人满意的，思路来源就是OpenHarmony的绿色和蓝色的渐变，虽然不是用专业绘图软件画的没有透明的背景，但我可以直接设置成同样的背景色，这样就可以做出透明背景的效果了。
+
+![43](OpenSourceSummer2025/43.jpg)
+
+#### 应用图标
 
 ### 主页面UI
 
