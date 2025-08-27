@@ -3986,7 +3986,7 @@ ohpm i @hw-agconnect/ui-skeleton
 
 ### 启动页面构建
 
-首先将`Navgation`组件的页面栈以及相关的常量枚举量都创建完成随后进行签名以及真机测试。
+首先将`Navigation`组件的页面栈以及相关的常量枚举量都创建完成随后进行签名以及真机测试。
 
 ```bash
 > hvigor ERROR: Failed :common:default@CompileArkTS... 
@@ -5912,8 +5912,6 @@ ok，很完美，其实我一开始害怕单个字段存储会不会出现数据
 
 ![43](OpenSourceSummer2025/43.jpg)
 
-#### 应用图标
-
 ### 主页面UI
 
 #### 页面配色
@@ -6128,3 +6126,301 @@ struct Main {
   }
 }
 ```
+
+#### Navigation标题的从新启用
+
+在使用Navigation的过程中我发现了一个不算很大但确实影响观感的问题就是在于如果不设置标题的话最上方和左侧在分栏显示的状态下就会出现一条分栏。所以我决定去单独封装一个标题Builder来去进行标题的重新启用，这样可以避免那条无法去除的留白带来的感官影响。
+
+### 平板竖屏显示问题
+
+在测试平板侧的一多的时候发现一个问题就是他的竖屏模式Navigation并不会自动恢复到单栏模式，且图片的比例也会变得很奇怪，所以对于这个问题有两种解决方式，一种是通过媒体查询来去解决这个问，另一种就是通过设置横屏锁定来解决。
+
+![45](OpenSourceSummer2025/45.png)
+
+{% tabs test4 %}
+<!-- tab 媒体查询 -->
+对于媒体查询来说他只需要做到依据手机和平板去让我手动修改Navigation的显示模式就可以了，并不需要进行太多功能性上的修改。
+
+首先先用长宽比属性锁定一下轮播图组件的长宽比，随后去设置断点的判断机制。
+
+```ts
+import { NewsSwiperModule } from 'common'
+import { promptAction } from '@kit.ArkUI'
+
+/**
+ * 首页上方轮播图组件
+ */
+@ComponentV2
+export struct NewsSwiper {
+  @Param swiperList: NewsSwiperModule [] = [
+    new NewsSwiperModule('https://images.openharmony.cn/%E9%A6%96%E9%A1%B5/banner/20240411/4.1releas%E6%89%8B%E6%9C%BA.jpg',
+      '开源生态大会'),
+    new NewsSwiperModule('https://images.openharmony.cn/%E6%B4%BB%E5%8A%A8/%E5%88%9B%E6%96%B0%E8%B5%9B2023/20230831/%E4%B8%89%E6%96%B9%E5%BA%93%E7%A7%BB%E5%8A%A8%E7%AB%AF.png',
+      '开源生态大会'),
+    new NewsSwiperModule('https://images.openharmony.cn/%E6%B4%BB%E5%8A%A8/%E6%98%8E%E6%98%9F%E5%BC%80%E5%8F%91%E6%9D%BF20250728/%E9%A6%96%E9%A1%B5banner657-433.jpg',
+      '开源生态大会')
+  ]
+
+  build() {
+    Column() {
+      Swiper(){
+        ForEach(this.swiperList,(item:NewsSwiperModule)=>{
+          Image(item.img)
+            .width('100%')
+            .objectFit(ImageFit.Fill)
+            .onClick(()=>{
+              promptAction.showToast({message:'跳转原页面功能待开发'})
+            })
+            .borderRadius(10)
+            .aspectRatio(2.2)
+        })
+      }
+      .curve(Curve.EaseInOut)
+      .loop(true)
+      .autoPlay(true)
+      .interval(2000)
+    }
+    .borderRadius(10)
+    .width('100%')
+
+  }
+}
+```
+
+断点监听系统。我需要针对于
+
+```ts
+import { Breakpoint, BreakpointType } from "../../modules/breakPoint/BreakPointSystem"
+import { AppStorageV2, mediaquery } from "@kit.ArkUI"
+import { BreakpointState } from "../../modules/breakPoint/BreakpointState"
+import { logger } from ".."
+
+const BREAK_POINT_SYSTEM_LOG_TAG = 'BreakpointSystem:  '
+/**
+ * 断点系统核心类（单例模式）
+ * 负责管理设备断点状态及监听逻辑
+ */
+export class BreakpointSystem {
+  // 单例实例引用，确保全局唯一性[1](@ref)
+  private static instance: BreakpointSystem
+
+  /** 预定义断点范围配置（可扩展）*/
+  private readonly breakpoints: Breakpoint[] = [
+    { name: 'xs', size: 0 },     // 0vp <= width < 320vp
+    { name: 'sm', size: 320 },   // 320vp <= width < 600vp
+    { name: 'md', size: 700 },   // 700vp <= width < 1240vp
+    { name: 'lg', size: 1540 }    // 1540vp <= width
+  ]
+
+  /** 使用Set存储状态观察者（自动去重）[1](@ref)*/
+  private _states: Set<BreakpointState<Object>>
+
+  public get states(): Set<BreakpointState<Object>> {
+    return this._states
+  }
+
+  // 私有构造器（单例模式）
+  private constructor() {
+    this._states = new Set()  // 初始化观察者集合
+  }
+
+  /** 获取单例实例 */
+  public static getInstance(): BreakpointSystem {
+    if (!BreakpointSystem.instance) {
+      BreakpointSystem.instance = new BreakpointSystem()
+    }
+    return BreakpointSystem.instance
+  }
+
+  /** 注册状态观察者 */
+  public attach(state: BreakpointState<Object>): void {
+    logger.info(`${BREAK_POINT_SYSTEM_LOG_TAG}注册状态观察者`)
+    this._states.add(state)  // 添加新观察者到集合
+  }
+
+  /** 注销状态观察者 */
+  public detach(state: BreakpointState<Object>): void {
+    this._states.delete(state)  // 从集合中移除观察者
+  }
+
+  /** 启动断点监听系统 */
+  public start() {
+    this.breakpoints.forEach((breakpoint: Breakpoint, index) => {
+      /**
+       * 查询条件
+       */
+      let condition: string
+      // 动态生成媒体查询条件：
+      if (index === this.breakpoints.length - 1) {
+        // 最后一个断点使用 >= 条件
+        condition = `(${breakpoint.size}vp<=width)`
+      } else {
+        // 中间断点使用区间条件
+        condition = `(${breakpoint.size}vp<=width<${this.breakpoints[index + 1].size}vp)`
+      }
+
+      // 创建媒体查询监听器[1](@ref)
+      breakpoint.mediaQueryListener = mediaquery.matchMediaSync(condition)
+
+      // 初始化匹配状态检查
+      if (breakpoint.mediaQueryListener.matches) {
+        logger.warn(`${BREAK_POINT_SYSTEM_LOG_TAG}初始化匹配成功breakpoint.name=${breakpoint.name}`)
+        this.updateAllState(breakpoint.name)
+      }
+
+      // 注册尺寸变化监听回调
+      breakpoint.mediaQueryListener.on('change', (mediaQueryResult) => {
+        logger.warn(`${BREAK_POINT_SYSTEM_LOG_TAG}触发断点状态变化回调`)
+        if (mediaQueryResult.matches) {
+          logger.warn(`${BREAK_POINT_SYSTEM_LOG_TAG}匹配成功breakpoint.name=${breakpoint.name}`)
+          this.updateAllState(breakpoint.name)  // 触发状态更新
+        }
+      })
+      logger.info(BREAK_POINT_SYSTEM_LOG_TAG+`第${index}个断点状态对象启动完成`)
+    })
+  }
+
+  /** 更新所有观察者状态 */
+  private updateAllState(type: BreakpointType): void {
+    this._states.forEach(state => state.update(type))  // 遍历执行更新
+    logger.info(BREAK_POINT_SYSTEM_LOG_TAG+'全部断点状态更新完成')
+  }
+
+  /** 停止监听并清理资源 */
+  public stop() {
+    this.breakpoints.forEach(breakpoint => {
+      if (breakpoint.mediaQueryListener) {
+        breakpoint.mediaQueryListener.off('change')  // 注销监听器
+      }
+    })
+    this._states.clear()  // 清空观察者集合
+    logger.info(BREAK_POINT_SYSTEM_LOG_TAG+'断点状态对象全部关闭')
+  }
+}
+
+/**
+ * 获取当前设备断点系统的包装类
+ * 调用getBreakPointSystem获取当前断点系统
+ */
+export class GetBreakPointSystem{
+  private breakPointSystem:BreakpointSystem=BreakpointSystem.getInstance()
+  /**
+   * 获取当前断点系统
+   * @returns 当前断点系统
+   */
+  getBreakPointSystem(){
+    return this.breakPointSystem
+  }
+}
+
+export const breakpointSystem = BreakpointSystem.getInstance()
+
+```
+
+```ts
+import { AppStorageV2 } from '@kit.ArkUI'
+import { BreakpointEnum, BreakpointState, breakpointSystem, logger, NAV_DESTS, NAV_PATH_STUCK } from 'common'
+import { MainPage } from './nav_pages/mainPage'
+
+const Main_LOG_TAG='Main: '
+@Entry
+@ComponentV2
+struct Main {
+  @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, NAV_PATH_STUCK, () => new NavPathStack())!
+  @Local breakPointState: BreakpointState<string> = BreakpointState.of<string>({
+    xs: 'xs',
+    sm: 'sm',
+    xl: 'xl',
+    xxl: 'xxl',
+    md: 'md',
+    lg: 'lg'
+  })
+
+  @Builder
+  NavDestMap(name: string) {
+    if (name === NAV_DESTS.MAIN) {
+      Main()
+    }
+  }
+
+  /**
+   * navigation
+   */
+  @Local navMod: NavigationMode = NavigationMode.Stack
+
+  pageTransition() {
+    PageTransitionEnter({ type: RouteType.None, duration: 200, curve: Curve.EaseInOut })
+      .scale({ x: 0.2, y: 0.2 })
+      .opacity(0)
+  }
+
+  @Monitor('breakPointState.value')
+  getNavMode() {
+    logger.info(`${Main_LOG_TAG}this.breakPointState.getCurrentBreakPointType() = ${this.breakPointState.getCurrentBreakPointType()}`)
+    if (this.breakPointState.getCurrentBreakPointType() === BreakpointEnum.xs ||
+      this.breakPointState.getCurrentBreakPointType() === BreakpointEnum.sm ||
+      this.breakPointState.getCurrentBreakPointType() === BreakpointEnum.md) {
+      this.navMod = NavigationMode.Stack
+    } else {
+      this.navMod = NavigationMode.Split
+    }
+  }
+
+  aboutToAppear(): void {
+    breakpointSystem.attach(this.breakPointState)
+    breakpointSystem.start()
+    this.getNavMode()
+  }
+
+  build() {
+    Navigation(this.navPathStuck) {
+      MainPage()
+    }
+    .linearGradient({
+      angle: 20,
+      colors: [
+        [$r('app.color.index_page_background_1'), 0],
+        [$r('app.color.index_page_background_2'), 0.4],
+        [$r('app.color.index_page_background_3'), 0.7],
+        [$r('app.color.index_page_background_4'), 1]
+      ]
+    })
+    .title('NowInOpenHarmony')
+    .backgroundColor(Color.Transparent)
+    .padding(10)
+    .navDestination(this.NavDestMap)
+    .hideToolBar(true)
+    .height('100%')
+    .width('100%')
+    .hideBackButton(true)
+    .titleMode(NavigationTitleMode.Mini)
+    .mode(this.navMod)
+    .navBarWidth('40%')
+  }
+}
+```
+
+随后进行测试！！！
+
+<video width="100%" controls>
+  <source src="47.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+啊啊啊，经过一个多小时的折磨之后终于是顺利完成了这个切换的逻辑，中间还掺杂了因为忘记`@Monitor`装饰器的用法而导致的bug。还被误认为是我原来写的这套媒体监听逻辑有问题，然后用的时候才发现一个问题就是虽然我项目原本是用API18，但是因为手机是API17所以我测试也只能用API17的接口所以我又把很多新接口改回了被废弃的老接口，也是很绝望了。
+
+![48](OpenSourceSummer2025/48.png)
+
+<!-- endtab -->
+<!-- tab 横屏锁定 -->
+对于横竖屏模式的切换，我查找了[官方文档的建议](https://developer.huawei.com/consumer/cn/doc/best-practices/bpta-landscape-and-portrait-development)，有两种模式进行修改：一种是直接配置module.json5的[orientation字段](https://developer.huawei.com/consumer/cn/doc/harmonyos-guides/module-configuration-file#abilities%E6%A0%87%E7%AD%BE)；还有另外一种在代码逻辑里进行锁定的方式。
+
+但这两种的缺点也很明显，在设置了之后就肯定是无法在切换回竖屏使用了，我也遇到过那种在平板上只能竖向使用不能横向使用的应用，有时候确实很让人恼火，尤其是恰好不是你的使用习惯的场景。
+
+我在尝试着修改了配置文件之后就发现它无法分开在平板和手机上使用不同的横竖屏策略。
+
+![46](OpenSourceSummer2025/46.jpg)
+
+确实是很让人恼火的事，所以我决定去引入媒体查询功能模块。
+<!-- endtab -->
+{% endtabs %}
