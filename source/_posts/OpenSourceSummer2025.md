@@ -6698,6 +6698,57 @@ AppInit: 设置窗口最小尺寸失败，错误原因：Parameter error. Possib
 ！！！完美！！！
 
 随后我们就可以开始依据于平板的旋转事件的监听去进行断点对象的改造了。
+
+对于这一块我仔细的想了一下，改造现有的这套断点系统过于繁琐，不如直接在页面的生命周期函数中去进行操作的好。
+
+```ts
+  @Monitor('breakPointState.value')
+  getNavMode() {
+    logger.info(`${Main_LOG_TAG}this.breakPointState.getCurrentBreakPointType() = ${this.breakPointState.getCurrentBreakPointType()}`)
+    if (this.getUIContext().getMediaQuery().matchMediaSync('(orientation: landscape)').matches){
+      if (this.breakPointState.getCurrentBreakPointType() === BreakpointEnum.xs ||
+        this.breakPointState.getCurrentBreakPointType() === BreakpointEnum.sm ||
+        this.breakPointState.getCurrentBreakPointType() === BreakpointEnum.md) {
+        this.navMod = NavigationMode.Stack
+      } else {
+        this.navMod = NavigationMode.Split
+      }
+    }else if (this.getUIContext().getMediaQuery().matchMediaSync('(orientation: portrait)').matches){
+      this.navMod = NavigationMode.Stack
+    }
+  }
+```
+
+进行测试。
+
+并没有生效，这里我推测的原因是在我修改了触发的极限值后屏幕的旋转并没有触发断点判断，所以导致回调函数没有触发。因此我需要去独立编写一下横竖屏监听事件的触发扳机。
+
+```ts
+  orientationMatch(){
+    const mediaQueryListener:mediaquery.MediaQueryListener = this.getUIContext().getMediaQuery().matchMediaSync('(orientation: landscape)')
+    mediaQueryListener.on('change',()=>{
+      logger.info(`${Main_LOG_TAG}横竖屏发生变化`)
+      this.getNavMode()
+    })
+  }
+  @Local breakpointSystem:BreakpointSystem=BreakpointSystem.getInstance(this.getUIContext())
+  aboutToAppear(): void {
+    this.breakpointSystem.attach(this.breakPointState)
+    this.breakpointSystem.start()
+    this.orientationMatch()
+    this.getNavMode()
+  }
+```
+
+再次测试。
+
+完美解决！！！
+
+<video width="100%" controls>
+  <source src="12.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
 <!-- endtab -->
 <!-- tab 升级断点系统 -->
 首先对于断点系统的升级，我想到两种方式，一种是再加一个断点去判断窗口高度的类型，然后通过排列组合长宽断点情况来去做出改变。还有一种就是直接使用宽高比来去进行断点的划分，从而取代单纯的宽度判断。不过关于这两种想法我都没有很合适的事件案例，所以我决定先去查一查官方的开源代码中的断点判断机制。
