@@ -6424,3 +6424,438 @@ struct Main {
 确实是很让人恼火的事，所以我决定去引入媒体查询功能模块。
 <!-- endtab -->
 {% endtabs %}
+
+### 媒体查询与断点系统的针对性调优
+
+这一部分我们主要是为了解决在平板的{% label 自由多窗和全景多窗 red %}情况下的适配问题，以及当下仍然存在的一部分API接口的兼容问题，API17和API18之间还是有挺大差异的，API18是处理了一大批接口的UI上下文指代不明确的问题。
+
+![49](OpenSourceSummer2025/49.png)
+
+#### 媒体查询接口调优
+
+针对于上面提到的UI上下文指代不明的问题，我对断点系统进行了调优，将构造函数和获取实例方法都进行了UIContext的传参改造。
+
+```ts
+import { Breakpoint, BreakpointType } from "../../modules/breakPoint/BreakPointSystem"
+import { mediaquery } from "@kit.ArkUI"
+import { BreakpointState } from "../../modules/breakPoint/BreakpointState"
+import { logger } from ".."
+
+const BREAK_POINT_SYSTEM_LOG_TAG = 'BreakpointSystem:  '
+/**
+ * 断点系统核心类（单例模式）
+ * 负责管理设备断点状态及监听逻辑
+ */
+export class BreakpointSystem {
+  // 单例实例引用，确保全局唯一性[1](@ref)
+  private static instance: BreakpointSystem
+  uiContext:UIContext
+  /** 预定义断点范围配置（可扩展）*/
+  private readonly breakpoints: Breakpoint[] = [
+    { name: 'xs', size: 0 },     // 0vp <= width < 320vp
+    { name: 'sm', size: 320 },   // 320vp <= width < 600vp
+    { name: 'md', size: 600 },   // 700vp <= width < 1040vp
+    { name: 'lg', size: 1040 }    // 1040vp <= width
+  ]
+
+  /** 使用Set存储状态观察者（自动去重）[1](@ref)*/
+  private _states: Set<BreakpointState<Object>>
+
+  public get states(): Set<BreakpointState<Object>> {
+    return this._states
+  }
+
+  // 私有构造器（单例模式）
+  private constructor(uiContext:UIContext) {
+    this._states = new Set()  // 初始化观察者集合
+    this.uiContext=uiContext
+  }
+
+  /** 获取单例实例 */
+  public static getInstance(uiContext:UIContext): BreakpointSystem {
+    if (!BreakpointSystem.instance) {
+      BreakpointSystem.instance = new BreakpointSystem(uiContext)
+    }
+    return BreakpointSystem.instance
+  }
+
+  /** 注册状态观察者 */
+  public attach(state: BreakpointState<Object>): void {
+    logger.info(`${BREAK_POINT_SYSTEM_LOG_TAG}注册状态观察者`)
+    this._states.add(state)  // 添加新观察者到集合
+  }
+
+  /** 注销状态观察者 */
+  public detach(state: BreakpointState<Object>): void {
+    this._states.delete(state)  // 从集合中移除观察者
+  }
+
+  /** 启动断点监听系统 */
+  public start() {
+    this.breakpoints.forEach((breakpoint: Breakpoint, index) => {
+      /**
+       * 查询条件
+       */
+      let condition: string
+      // 动态生成媒体查询条件：
+      if (index === this.breakpoints.length - 1) {
+        // 最后一个断点使用 >= 条件
+        condition = `(${breakpoint.size}vp<=width)`
+      } else {
+        // 中间断点使用区间条件
+        condition = `(${breakpoint.size}vp<=width<${this.breakpoints[index + 1].size}vp)`
+      }
+
+      // 创建媒体查询监听器[1](@ref)
+      breakpoint.mediaQueryListener = this.uiContext.getMediaQuery().matchMediaSync(condition)
+
+      // 初始化匹配状态检查
+      if (breakpoint.mediaQueryListener.matches) {
+        logger.warn(`${BREAK_POINT_SYSTEM_LOG_TAG}初始化匹配成功breakpoint.name=${breakpoint.name}`)
+        this.updateAllState(breakpoint.name)
+      }
+
+      // 注册尺寸变化监听回调
+      breakpoint.mediaQueryListener.on('change', (mediaQueryResult) => {
+        logger.warn(`${BREAK_POINT_SYSTEM_LOG_TAG}触发断点状态变化回调`)
+        if (mediaQueryResult.matches) {
+          logger.warn(`${BREAK_POINT_SYSTEM_LOG_TAG}匹配成功breakpoint.name=${breakpoint.name}`)
+          this.updateAllState(breakpoint.name)  // 触发状态更新
+        }
+      })
+      logger.info(BREAK_POINT_SYSTEM_LOG_TAG+`第${index}个断点状态对象启动完成`)
+    })
+  }
+
+  /** 更新所有观察者状态 */
+  private updateAllState(type: BreakpointType): void {
+    this._states.forEach(state => state.update(type))  // 遍历执行更新
+    logger.info(BREAK_POINT_SYSTEM_LOG_TAG+'全部断点状态更新完成')
+  }
+
+  /** 停止监听并清理资源 */
+  public stop() {
+    this.breakpoints.forEach(breakpoint => {
+      if (breakpoint.mediaQueryListener) {
+        breakpoint.mediaQueryListener.off('change')  // 注销监听器
+      }
+    })
+    this._states.clear()  // 清空观察者集合
+    logger.info(BREAK_POINT_SYSTEM_LOG_TAG+'断点状态对象全部关闭')
+  }
+}
+```
+
+同时将其初始化的过程从appInit中移出，放置在了首页的生命周期函数中，因为UIContext对象是在窗口的构建之后才会被初始化的。
+
+#### 窗口断点宽度调整
+
+依据官方给出的断点划分840VP以上就是lg断点了，但是840这个分界线会导致平板竖屏场景下依旧是分栏模式不会呈现出单栏模式。这并不合适。于是我尝试将lg断点情况的判定扩展到1040VP，进行测试。
+
+<video width="100%" controls>
+  <source src="50.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+效果很不错，同时也是完美的适配了全景多窗的场景。但我们也要看到缺点，在自由多窗的场景下我们的显示效果并不那么尽如人意。
+
+<video width="100%" controls>
+  <source src="51.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+#### 自由多窗模式针对调优
+
+首先分析一下当前的自由多窗场景下出现显示效果不佳的主要原因。
+
+当前的切换逻辑在我手动覆写之后，切换的依据完全是根据窗口的宽度去进行切换，没有考虑到高度以及长宽比的问题。在实际应用中，自由多窗很可能出现宽度较小，但高度更小的情况，就会出现内容比例过大，信息密度过小的情况出现。这里用一个视频来解释一下。
+
+<video width="100%" controls>
+  <source src="52.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+随意对于这个问题我想到了两种方式，分别是升级断点判断系统，依据窗宽比来去实现断点的切换。另一种则是设置窗口最小高度，同时设置平板的方向旋转事件的监听。当旋转事件发生之后就自动切换为单栏模式，这样我们就可以去将切换为单栏模式的最小宽度给缩小，这样就不会出现宽胖窗口形态下的单栏模式问题了。
+
+{% tabs test4 %}
+<!-- tab 注册最小高度与旋转事件 -->
+在开始这个方法的尝试之前我是先去尝试了升级断点系统，在阅读官方的开源代码时学习到了设置窗口最小高度的方式于是就有了一下尝试。
+
+```ts
+  windowMinSizeInit(mainWindow:window.Window){
+    try{
+      let windowLimits: window.WindowLimits = {
+        minWidth: 350,
+        minHeight:800
+      };
+      mainWindow.setWindowLimits(windowLimits).then(()=>{
+        logger.info(`${AppInit_LOG_TAG}设置窗口最小尺寸成功`)
+      }).catch((err: BusinessError)=>{
+        logger.error(`${AppInit_LOG_TAG}设置窗口最小尺寸失败，错误原因：${err.message}`)
+      })
+    }catch (e){
+      let err = e as BusinessError
+      logger.error(`${AppInit_LOG_TAG}设置窗口最小尺寸失败，错误原因：${err.message}`)
+    }
+  }
+```
+
+```ts
+  onWindowStageCreate(windowStage: window.WindowStage): void {
+    // Main window is created, set main page for this ability
+    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
+    appInit.windowMinSizeInit(windowStage.getMainWindowSync())
+    windowStage.loadContent('pages/StartPage', (err) => {
+      if (err.code) {
+        hilog.error(DOMAIN, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
+        return;
+      }
+      hilog.info(DOMAIN, 'testTag', 'Succeeded in loading the content.');
+
+    });
+  }
+```
+
+随后进行测试。
+
+![54](OpenSourceSummer2025/54.jpg)
+
+```bash
+AppInit: 设置窗口最小尺寸失败，错误原因：Parameter error. Possible causes: 1. Mandatory parameters are left unspecified; 2. Incorrect parameter types; 3. Parameter verification failed.
+```
+
+额，失败了。看一下错误原因中提供的可能原因。1. 必填参数未指定；2. 参数类型不正确；3. 参数验证失败。难道说是我的设置位置出现了问题？
+
+观察官方的开源代码发现它的设置位置是在加载首页之后的位置，但是我放在前面了，所以我放在后面再试试。
+
+测试后还是失败了而且没有任何变化。难道说是因为我的参数设置的太大了。缩小到700试试。不行，再缩到400试试。还是不行。我有点不理解了。我将这一段拆出来直接放在生命周期函数中试试。
+
+测试后还是不行。给日志做一些区分。
+
+```ts
+    try {
+      // Set mini window.
+      let windowClass: window.Window = windowStage.getMainWindowSync();
+      let windowLimits: window.WindowLimits = {
+        minWidth: 350
+      };
+      let promise = windowClass.setWindowLimits(windowLimits);
+      promise.then(() => {
+        logger.info('Succeeded in changing the window limits.');
+      }).catch((err: BusinessError) => {
+        logger.error(`promise设置窗口最小尺寸失败，错误原因：${err.message}`)
+      })
+
+    }catch (e){
+      let err = e as BusinessError
+      logger.error(`设置窗口最小尺寸失败，错误原因：${err.message}`)
+    }
+```
+
+再次测试发现问题出现在外层的trycatch中，说明异常发生在了`setWindowLimits`的传参过程中，而不是执行的过程。我决定先换一种使用配置文件修改的方式。
+
+```json
+    "abilities": [
+      {
+        "name": "EntryAbility",
+        "srcEntry": "./ets/entryability/EntryAbility.ets",
+        "description": "$string:EntryAbility_desc",
+        "icon": "$media:logo",
+        "label": "$string:EntryAbility_label",
+        "startWindowIcon": "$media:logo",
+        "startWindowBackground": "$color:start_window_background",
+        "exported": true,
+        "skills": [
+          {
+            "entities": [
+              "entity.system.home"
+            ],
+            "actions": [
+              "action.system.home"
+            ]
+          }
+        ],
+        "supportWindowMode": ["floating","fullscreen","split"],
+        "minWindowHeight": 600
+      }
+    ],
+```
+
+进行测试。
+
+<video width="100%" controls>
+  <source src="55.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+成功了，调整的更大一些，调整到900，同时设置最小宽度为500。随后调整断点判断的极限值为780。
+
+<video width="100%" controls>
+  <source src="56.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+！！！完美！！！
+
+随后我们就可以开始依据于平板的旋转事件的监听去进行断点对象的改造了。
+<!-- endtab -->
+<!-- tab 升级断点系统 -->
+首先对于断点系统的升级，我想到两种方式，一种是再加一个断点去判断窗口高度的类型，然后通过排列组合长宽断点情况来去做出改变。还有一种就是直接使用宽高比来去进行断点的划分，从而取代单纯的宽度判断。不过关于这两种想法我都没有很合适的事件案例，所以我决定先去查一查官方的开源代码中的断点判断机制。
+
+```ts
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { AbilityConstant, UIAbility, Want } from '@kit.AbilityKit';
+import { display, window } from '@kit.ArkUI';
+import { BusinessError, deviceInfo } from '@kit.BasicServicesKit';
+import Logger from '../constants/utils/Logger';
+
+const TAG: string = 'EntryAbility';
+
+export default class EntryAbility extends UIAbility {
+  private windowObj?: window.Window;
+
+  private updateBreakpoint(windowWidth: number, windowHeight: number): void {
+    let windowWidthVp = windowWidth / display.getDefaultDisplaySync().densityPixels;
+    let curBp: string = '';
+    if (windowWidthVp < 600) {
+      curBp = 'sm';
+    } else if (windowWidthVp < 840) {
+      curBp = 'md';
+    } else {
+      curBp = 'lg';
+    }
+    AppStorage.setOrCreate('breakPoint', curBp);
+    AppStorage.setOrCreate('windowSize', windowWidth / display.getDefaultDisplaySync().densityPixels);
+    AppStorage.setOrCreate('windowSizeHeight', windowHeight / display.getDefaultDisplaySync().densityPixels);
+  };
+
+  onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {
+    Logger.info(TAG, 'testTag', '%{public}s', 'Ability onCreate');
+  }
+
+  onDestroy(): void {
+    Logger.info(TAG, 'testTag', '%{public}s', 'Ability onDestroy');
+  }
+
+  onWindowStageCreate(windowStage: window.WindowStage): void {
+    // Main window is created, set main page for this ability
+    Logger.info(TAG, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
+
+    windowStage.loadContent('pages/Index', (err) => {
+      AppStorage.setOrCreate('uiContext', windowStage.getMainWindowSync().getUIContext());
+      if (err.code) {
+        Logger.error(TAG, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err) ?? '');
+        return;
+      }
+      Logger.info(TAG, 'testTag', 'Succeeded in loading the content.');
+    });
+
+    windowStage.getMainWindow().then((data: window.Window) => {
+      // Window immersive.
+      let deviceTypeInfo: string = deviceInfo.deviceType;
+      if (deviceTypeInfo !== '2in1') {
+        data.setWindowLayoutFullScreen(true)
+          .then((data) => {
+            Logger.info(TAG, 'Succeeded in setting the window layout to full-screen mode. Data: %{public}s',
+              JSON.stringify(data) ?? '');
+          })
+          .catch((err: BusinessError) => {
+            Logger.error(TAG, 'Failed to set the window layout to full-screen mode. Cause: %{public}s',
+              JSON.stringify(err) ?? '');
+          });
+      }
+
+      this.windowObj = data;
+      this.updateBreakpoint(this.windowObj.getWindowProperties().windowRect.width,
+        this.windowObj.getWindowProperties().windowRect.height);
+      this.windowObj.on('windowSizeChange', (windowSize: window.Size) => {
+        this.updateBreakpoint(windowSize.width, windowSize.height);
+      })
+    })
+
+    try {
+      // Set mini window.
+      let windowClass: window.Window = windowStage.getMainWindowSync();
+      let windowLimits: window.WindowLimits = {
+        minWidth: 350
+      };
+      let promise = windowClass.setWindowLimits(windowLimits);
+      promise.then(() => {
+        Logger.info(TAG, 'testTag', 'Succeeded in changing the window limits.');
+      }).catch((err: BusinessError) => {
+        Logger.error(TAG, 'testTag', 'Failed to change the window limits. Cause: %{public}s',
+          JSON.stringify(err) ?? '');
+      })
+
+    } catch (exception) {
+      Logger.error(TAG, 'testTag', 'Failed to change the window limits. Cause: %{public}s',
+        JSON.stringify(exception) ?? '');
+    }
+  }
+
+  onWindowStageDestroy(): void {
+    // Main window is destroyed, release UI related resources
+    Logger.info(TAG, 'testTag', '%{public}s', 'Ability onWindowStageDestroy');
+  }
+
+  onForeground(): void {
+    // Ability has brought to foreground
+    Logger.info(TAG, 'testTag', '%{public}s', 'Ability onForeground');
+  }
+
+  onBackground(): void {
+    // Ability has back to background
+    Logger.info(TAG, 'testTag', '%{public}s', 'Ability onBackground');
+  }
+}
+```
+
+这里我们注意到了官方给出的断点判断与我所想的不同，并不是直接使用长宽比去进行判断，此时在仔细回想的确如此，若面积不同但都是相似图形的话，他的长宽比并不会变，我的想法的确是不合理。
+
+`display`这个包我确实是不熟悉，所以我要先去查询一下[官方文档](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-display)的讲解。
+
+![53](OpenSourceSummer2025/53.png)
+
+在阅读了官方文档中对于`densityPixels`的解释后，我明白了其实官方的这个划分模式依旧是纯粹的使用宽度进行断点判断罢了。也并没有在断点上去考虑高度的数据。
+
+不过在仔细的阅读后我就发现，这里面还有一个设置最小窗口大小的API可以被我的另一种方式所应用。也就是下面这段代码。
+
+```ts
+    try {
+      // Set mini window.
+      let windowClass: window.Window = windowStage.getMainWindowSync();
+      let windowLimits: window.WindowLimits = {
+        minWidth: 350
+      };
+      let promise = windowClass.setWindowLimits(windowLimits);
+      promise.then(() => {
+        Logger.info(TAG, 'testTag', 'Succeeded in changing the window limits.');
+      }).catch((err: BusinessError) => {
+        Logger.error(TAG, 'testTag', 'Failed to change the window limits. Cause: %{public}s',
+          JSON.stringify(err) ?? '');
+      })
+
+    } catch (exception) {
+      Logger.error(TAG, 'testTag', 'Failed to change the window limits. Cause: %{public}s',
+        JSON.stringify(exception) ?? '');
+    }
+```
+
+这段代码中使用了Window对象中的setWindowLimits方法，这个方法可以设置窗口的最小宽度，最大宽度，最小高度，最大高度。这样我们就可以通过设置最小高度来达到另一个方法的效果。
+
+<!-- endtab -->
+{% endtabs %}
