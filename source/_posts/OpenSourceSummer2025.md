@@ -6910,3 +6910,312 @@ export default class EntryAbility extends UIAbility {
 
 <!-- endtab -->
 {% endtabs %}
+
+### 主界面渲染布局
+
+#### 颜色切换按钮的位置布局
+
+这个按钮之前为了测试方便直接放在了主界面的轮播图下面，很显然是不合理的。我考虑是直接将这个按钮放在整个屏幕的右下角，和我博客手机端的切换按钮相似的位置。
+
+```ts
+  build() {
+    Stack(){
+      Navigation(this.navPathStuck) {
+        MainPage()
+      }
+      .linearGradient({
+        angle: 20,
+        colors: [
+          [$r('app.color.index_page_background_1'), 0],
+          [$r('app.color.index_page_background_2'), 0.4],
+          [$r('app.color.index_page_background_3'), 0.7],
+          [$r('app.color.index_page_background_4'), 1]
+        ]
+      })
+      .title('NowInOpenHarmony')
+      .backgroundColor(Color.Transparent)
+      .padding(10)
+      .navDestination(this.NavDestMap)
+      .hideToolBar(true)
+      .height('100%')
+      .width('100%')
+      .hideBackButton(true)
+      .titleMode(NavigationTitleMode.Mini)
+      .mode(this.navMod)
+      .navBarWidth('40%')
+      ColorModChoseButton()
+        .position({right:30,bottom:100})
+    }
+  }
+```
+
+#### 针对平板和手机的差异化布局
+
+在平板上显得大小合适的按钮大小，在手机上显得就会有些大，容易遮挡内容，这主要是因为我们所使用的单位为虚拟像素单位VP而并非物理像素单位PX，两者的分辨率以及VP的换算比不一样所以我们需要进行一下定制化处理，虽然平板也会有分辨率和大小差异，但总体属于同一类别的设备，相差不会太多所以我们就不做更加细化的公式计算了。
+
+这里主要依赖的是之前在读官方提供的开源代码时学习到的[deviceInfo设备信息管理](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-enterprise-deviceinfo#deviceinfogetdeviceinfo)的系统能力。通过这个kit我们可以获取当前设备的类型，从而进行判断。
+
+```ts
+import { DEFAULT_COLOR_MODE, deviceTypesEnum, GET_USER_CONFIG, logger, UserConfigViewModel } from "common"
+import { AppStorageV2 } from "@kit.ArkUI"
+import { colorModManager } from "../../managers/ColorModManager"
+import { ConfigurationConstant } from "@kit.AbilityKit"
+import { deviceInfo } from "@kit.BasicServicesKit"
+
+const ColorModChoseButton_LOG_TAG = 'ColorModChoseButton: '
+
+/**
+ * 颜色模式切换按钮
+ */
+@ComponentV2
+export struct ColorModChoseButton {
+  @Local deviceType: deviceTypesEnum =
+    deviceInfo.deviceType === deviceTypesEnum.PHONE ? deviceTypesEnum.PHONE : deviceTypesEnum.TABLET
+  @Local appColorMode: 0 | 1 | 2 = DEFAULT_COLOR_MODE
+
+  aboutToAppear(): void {
+    this.appColorMode =
+      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel
+  }
+
+  changeColorMode() {
+    logger.debug(`${ColorModChoseButton_LOG_TAG}颜色切换触发`)
+    if (this.appColorMode === 2) {
+      this.appColorMode = 0
+      colorModManager.setLightMod()
+      logger.info(`${ColorModChoseButton_LOG_TAG}点击生效，切换为浅色模式`)
+    } else if (this.appColorMode === 0) {
+      this.appColorMode = 1
+      colorModManager.setDarkMod()
+      logger.info(`${ColorModChoseButton_LOG_TAG}点击生效，切换为深色模式`)
+    } else if (this.appColorMode === 1) {
+      this.appColorMode = 2
+      colorModManager.setDefaultColorMode()
+      logger.info(`${ColorModChoseButton_LOG_TAG}点击生效，切换为跟随系统模式`)
+    }
+  }
+
+  build() {
+    Stack({ alignContent: Alignment.Center }) {
+      Image($rawfile('colorButtonBG.svg'))
+        .width('90%')
+        .height('90%')
+        .fillColor($r('app.color.color_change_button_svg'))
+      if (this.appColorMode === 2) {
+        Text('系')
+          .textStyle(this.deviceType)
+      } else if (this.appColorMode === 1) {
+        Text('深')
+          .textStyle(this.deviceType)
+      } else if (this.appColorMode === 0) {
+        Text('浅')
+          .textStyle(this.deviceType)
+      }
+    }
+    .width(this.deviceType === deviceTypesEnum.PHONE ? 35 : 45)
+    .height(this.deviceType === deviceTypesEnum.PHONE ? 35 : 45)
+    .shadow({
+      color: Color.Black,
+      radius: 10
+    })
+    .backgroundColor($r('app.color.color_change_button_background'))
+    .onClick(() => {
+      this.changeColorMode()
+    })
+    .borderRadius(99)
+  }
+}
+
+@Extend(Text)
+function textStyle(deviceType: deviceTypesEnum) {
+  .fontSize(deviceType === deviceTypesEnum.PHONE ? 20 : 30)
+  .fontWeight(800)
+  .fontColor($r('app.color.color_change_button_font'))
+}
+```
+
+#### 首页吸顶
+
+首先我先设置了两个彼此独立的ListItemGroup，随后为新闻列表编写一个Builder。
+
+```ts
+  @Builder
+  NewsListHeaderBuilder() {
+    Column() {
+      Text(`热点新闻共${this.NewsList?.length}条`)
+        .fontSize(20)
+        .fontColor($r('app.color.news_list_header_font'))
+        .margin({ left: 10 })
+    }
+    .alignItems(HorizontalAlign.Start)
+    .padding(10)
+    .backgroundColor($r('app.color.news_list_header_bg'))
+    .width('100%')
+    .borderRadius({
+      topLeft: 20,
+      topRight: 20
+    })
+  }
+```
+
+编写完Builder后就可以将吸顶属性给设置上了。
+
+```ts
+  @Builder
+  NewsListHeaderBuilder() {
+    Column() {
+      Text(`热点新闻共${this.NewsList?.length}条`)
+        .fontSize(20)
+        .fontColor($r('app.color.news_list_header_font'))
+        .margin({ left: 10 })
+    }
+    .alignItems(HorizontalAlign.Start)
+    .padding(10)
+    .backgroundColor($r('app.color.news_list_header_bg'))
+    .width('100%')
+    .borderRadius({
+      topLeft: 20,
+      topRight: 20
+    })
+
+  }
+
+  build() {
+    NavDestination() {
+      Column() {
+        List({ space: 10 }) {
+          ListItemGroup() {
+            ListItem() {
+              Column() {
+                NewsSwiper()
+              }
+            }
+          }
+
+          ListItemGroup({ header: this.NewsListHeaderBuilder() }) {
+            ListItem() {
+
+            }
+          }
+          .borderRadius({
+            topLeft: 20,
+            topRight: 20
+          })
+        }
+        .sticky(StickyStyle.Header)
+        .width('100%')
+        .height('100%')
+      }
+      .width('100%')
+      .height('100%')
+    }
+    .backgroundColor(Color.Transparent)
+  }
+```
+
+#### 热点新闻列表渲染
+
+对于渲染列表是一个包含了点击跳转至详情页的功能函数，要兼具跳转逻辑以及传参跳转传参的功能，所以我们将它封装为一个功能组件，而不是纯粹的UI样式组件。
+
+这里具体的编写过程就不说了太简单了，最后就直接放代码就好了。
+
+```ts
+import { DEVICE_TYPES, NAV_PATH_STUCK, NewsArticle } from "common"
+import { AppStorageV2 } from "@kit.ArkUI"
+import { deviceInfo } from "@kit.BasicServicesKit"
+
+@ComponentV2
+export struct NewsList {
+  @Param newsList: NewsArticle[] = []
+  @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, NAV_PATH_STUCK, () => new NavPathStack())!
+  @Local deviceType: DEVICE_TYPES =
+    deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
+  @Builder
+  NewsListHeaderBuilder() {
+    Column() {
+      Text(`热点新闻共${this.newsList?.length}条`)
+        .fontSize(20)
+        .fontColor($r('app.color.news_list_header_font'))
+        .margin({ left: 10 })
+    }
+    .alignItems(HorizontalAlign.Start)
+    .padding(10)
+    .backgroundColor($r('app.color.news_list_header_bg'))
+    .width('100%')
+    .borderRadius(20)
+    .margin({
+      bottom:15
+    })
+  }
+
+  build() {
+    ListItemGroup({ header: this.NewsListHeaderBuilder(),space:15 }) {
+      ForEach(this.newsList, (news: NewsArticle, index: number) => {
+        ListItem() {
+          Column({space:20}){
+            Text(news.title)
+              .fontSize(this.deviceType===DEVICE_TYPES.PHONE?20:25)
+              .fontWeight(900)
+            Text(news.date)
+              .fontSize(18)
+              .fontWeight(200)
+              .textOverflow({
+                overflow: TextOverflow.Ellipsis
+              })
+              .maxLines(1)
+          }
+          .alignItems(HorizontalAlign.Start)
+          .width('100%')
+        }
+        .borderWidth(2)
+        .borderColor($r('app.color.news_list_item_border'))
+        .backgroundColor($r('app.color.news_list_item_bg'))
+        .borderRadius(20)
+        .padding({
+          top:5,
+          bottom:5,
+          left:10,
+          right:10
+        })
+        .width('100%')
+      })
+    }
+    .divider({
+      strokeWidth:2,
+      color:$r('app.color.news_list_divider'),
+      endMargin:20,
+      startMargin:20
+    })
+    .borderRadius({
+      topLeft: 20,
+      topRight: 20
+    })
+  }
+}
+```
+
+这里为了保障渲染不出错误所以我的类型设置上并没有设置null的可能性，但是在主界面以及我们的数据获取接口的返回值都有可能是null，所以在传参的时候我也是使用了个小巧思。
+
+```ts
+NewsList({ newsList: this.newsList ?? [] })
+```
+
+我使用了`??`来进行参数值的判断，简化了单独封装一个函数来去获取值的繁琐情况。`??`是空值合并运算符，只有在左侧为null或者undefined的时候才会返回右侧的值，毕竟null和一个空数组是两个不一样的类型。
+
+随后进行一下实机测试。
+
+<video width="100%" controls>
+  <source src="58.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+<video width="100%" controls>
+  <source src="59.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+随后我们还需要解决一下再header吸顶之后四个圆角会漏出一部分内容的问题，这看起来并不太好。还有就是在下拉刷新的逻辑，在下拉之后更新数据库数据，并等待数据库更新完成后再次进行数据库数据的提取，在此之间还要做一下加载动画。
+
+#### 吸顶事件监听
+
+对于header吸顶事件的监听，虽然目前的API18中没有给出直接的监听函数，但是官方的Q&A中给出了一种[解决方案](https://developer.huawei.com/consumer/cn/doc/architecture-guides/health-v1_2-ts_16-0000002445421321)。
