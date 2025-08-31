@@ -7219,3 +7219,849 @@ NewsList({ newsList: this.newsList ?? [] })
 #### 吸顶事件监听
 
 对于header吸顶事件的监听，虽然目前的API18中没有给出直接的监听函数，但是官方的Q&A中给出了一种[解决方案](https://developer.huawei.com/consumer/cn/doc/architecture-guides/health-v1_2-ts_16-0000002445421321)。
+
+```ts
+@Entry
+@Component
+struct StickyHeaderExample {
+  private arr: number[] = [0, 1]
+  @Builder
+  CustomHeader() {
+    Text('分组标题')
+      .height(50)
+      .width('100%')
+      .backgroundColor(Color.Gray)
+      .onAreaChange((oldValue: Area, newValue: Area) => {
+        if (oldValue.position.y == 0 && newValue.position.y == 0) {
+          console.info('没吸顶')
+        } else {
+          console.info('吸顶了', oldValue.position.y)
+        }
+      })
+  }
+  build() {
+    Column() {
+      List({ space: 10 }) {
+        ForEach(this.arr, (item: number) => {
+          ListItem() {
+            Text('' + item)
+              .width('100%')
+              .height(50)
+              .fontSize(16)
+              .textAlign(TextAlign.Center)
+              .borderRadius(10)
+              .backgroundColor(0xFFFFFF)
+          }
+        }, (item: string) => item)
+        ListItemGroup({
+          header: this.CustomHeader,
+          space: 10
+        }) {
+          ForEach(Array.from({ length: 20 }), (item: void, index: number) => {
+            ListItem() {
+              Text(`列表项 ${index}`)
+                .height(80)
+                .width('100%')
+                .backgroundColor('#FFF')
+            }
+          })
+        }
+      }
+      .sticky(StickyStyle.Header)
+      .width('100%')
+      .height('100%')
+    }
+  }
+}
+```
+
+主要就是依据我们的header组件在吸顶时他的y轴坐标始终为0这个特性来作为触发扳机，所以我们可以通过监听y轴坐标的变化来判断header是否吸顶。
+
+首先依据官方给出的方案我们来编写一版基础的代码进行测试。
+
+<video width="100%" controls>
+  <source src="60.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+可以看到这里是有一个比较严重的抖动问题，这个问题的原因其实比较好理解，就是在我们的header在第一次触发吸顶时就会开始动画的播放，但播放动画的过程可能会产生几个像素的强制位移，这就会导致监听器监听到了y轴坐标的变化，导致反复触发吸顶切换动画。
+
+为了解决这个问题我们只需要引入一个防抖机制就可以，同时这个防抖机制也可以用来保障动画的完整性，保证单词动画是可以完整的播放，而不是说在动画播放过程中被强制打断。
+
+```ts
+import {
+  ANIMATE_PARAM,
+  DEVICE_TYPES,
+  IS_STICKY,
+  logger,
+  NAV_PATH_STUCK,
+  NewsArticle,
+  NewsListHeaderIsSticky
+} from "common"
+import { AppStorageV2, curves } from "@kit.ArkUI"
+import { deviceInfo } from "@kit.BasicServicesKit"
+
+const NewsList_LOG_TAG = 'NewsList: '
+
+@ComponentV2
+export struct NewsList {
+  @Param newsList: NewsArticle[] = []
+  @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, NAV_PATH_STUCK, () => new NavPathStack())!
+  @Local deviceType: DEVICE_TYPES =
+    deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
+  @Local isNewsListSticky: NewsListHeaderIsSticky =
+    AppStorageV2.connect(NewsListHeaderIsSticky, IS_STICKY, () => new NewsListHeaderIsSticky())!
+  @Local headerRadius: number = 20
+  @Local headerAlignItems: HorizontalAlign = HorizontalAlign.Center
+  @Local headerFontSize: number = 35
+  @Local isOnAreaChange:boolean = false
+
+  @Builder
+  NewsListHeaderBuilder() {
+    Column() {
+      Column() {
+        Text(`热点新闻共${this.newsList?.length}条`)
+          .fontSize(this.headerFontSize)
+          .fontColor($r('app.color.news_list_header_font'))
+          .margin({ left: 10 })
+          .animation({
+            curve: Curve.EaseInOut,
+            duration: 500,
+          })
+      }
+      .width('95%')
+      .alignItems(this.headerAlignItems)
+      .padding(10)
+      .backgroundColor($r('app.color.news_list_header_bg'))
+      .borderRadius(this.headerRadius)
+      .margin({
+        bottom: 15,
+        left: 5,
+        right: 5
+      })
+      .animation({
+        curve: Curve.EaseInOut,
+        duration: 500,
+      })
+    }
+    .animation({
+      curve: Curve.EaseInOut,
+      duration: 500,
+    })
+    .onAreaChange((oldValue: Area, newValue: Area) => {
+      if (!this.isOnAreaChange){
+        if (newValue.position.y == 0) {
+          this.isNewsListSticky.isSticky = false
+        } else {
+          this.isNewsListSticky.isSticky = true
+          this.isOnAreaChange=true
+          setTimeout(()=>{
+            this.isOnAreaChange=false
+          },500)
+        }
+      }
+
+    })
+    .width('100%')
+  }
+
+  @Monitor('isNewsListSticky.isSticky')
+  viewChange() {
+    if (this.isNewsListSticky.isSticky) {
+      this.headerRadius = 0
+      this.headerAlignItems = HorizontalAlign.Start
+      this.headerFontSize = 20
+    } else {
+      this.headerRadius = 20
+      this.headerAlignItems = HorizontalAlign.Center
+      this.headerFontSize = 35
+    }
+  }
+
+  aboutToAppear(): void {
+    logger.debug('NewsList aboutToAppear')
+    setTimeout(() => {
+      if (this.newsList.length == 0) {
+        this.getUIContext()
+          .getPromptAction()
+          .showToast({ message: '后端数据正在更新请稍后下拉刷新或重启应用重试', duration: 5000 })
+      }
+    }, 200)
+
+  }
+
+  build() {
+    ListItemGroup({ header: this.NewsListHeaderBuilder(), space: 30 }) {
+      ForEach(this.newsList, (news: NewsArticle, index: number) => {
+        ListItem() {
+          Column() {
+            Column({ space: 20 }) {
+              Text(news.title)
+                .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 25)
+                .fontWeight(900)
+              Column() {
+                Text(`来自于${news.source}`)
+                  .fontSize(18)
+                  .fontWeight(200)
+                  .textOverflow({
+                    overflow: TextOverflow.Ellipsis
+                  })
+                  .maxLines(1)
+                Text(news.date)
+                  .fontSize(18)
+                  .fontWeight(200)
+                  .textOverflow({
+                    overflow: TextOverflow.Ellipsis
+                  })
+                  .maxLines(1)
+              }
+              .alignItems(HorizontalAlign.Start)
+            }
+            .alignItems(HorizontalAlign.Start)
+            .width('100%')
+            .padding({
+              top: 5,
+              bottom: 5,
+              left: 10,
+              right: 10
+            })
+            .borderRadius(19)
+            .backgroundColor($r('app.color.news_list_item_bg'))
+          }
+          .width('95%')
+          .backgroundImage($rawfile('newsListItemBG.png'))
+          .borderWidth(2)
+          .borderColor($r('app.color.news_list_item_border'))
+          .backgroundColor($r('app.color.news_list_item_bg'))
+          .borderRadius(20)
+
+        }
+        .transition(ANIMATE_PARAM)
+        .width('100%')
+        .alignSelf(ItemAlign.Center)
+      })
+    }
+    .borderRadius({
+      topLeft: 20,
+      topRight: 20
+    })
+  }
+}
+```
+
+<video width="100%" controls>
+  <source src="61.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+效果很爽啊真的。
+
+#### 返回顶部按钮
+
+```ts
+import {
+  NEWS_LIST_ITEM_ANIMATE_PARAM,
+  DEVICE_TYPES,
+  IS_STICKY,
+  logger,
+  NAV_PATH_STUCK,
+  NewsArticle,
+  NewsListHeaderIsSticky,
+  NEWS_LIST_ANIMATION_PARAM
+} from "common"
+import { AppStorageV2, curves } from "@kit.ArkUI"
+import { deviceInfo } from "@kit.BasicServicesKit"
+
+const NewsList_LOG_TAG = 'NewsList: '
+
+@ComponentV2
+export struct NewsList {
+  @Param listScroller:Scroller = new Scroller()
+  @Param newsList: NewsArticle[] = []
+  @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, NAV_PATH_STUCK, () => new NavPathStack())!
+  @Local deviceType: DEVICE_TYPES =
+    deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
+  @Local isNewsListSticky: NewsListHeaderIsSticky =
+    AppStorageV2.connect(NewsListHeaderIsSticky, IS_STICKY, () => new NewsListHeaderIsSticky())!
+  @Local headerRadius: number = 20
+  @Local headerAlignItems: HorizontalAlign = HorizontalAlign.Center
+  @Local headerFontSize: number = 35
+  @Local isOnAreaChange:boolean = false
+
+  @Builder
+  NewsListHeaderBuilder() {
+    Column() {
+      Column() {
+        Row() {
+          Text(`热点新闻共${this.newsList?.length}条`)
+            .fontSize(this.headerFontSize)
+            .fontColor($r('app.color.news_list_header_font'))
+            .margin({ left: 10 })
+            .animation(NEWS_LIST_ANIMATION_PARAM)
+          if (this.isNewsListSticky.isSticky){
+            Image($rawfile('backToTop.svg'))
+              .fillColor($r('app.color.back_to_top'))
+              .width(25)
+              .transition(NEWS_LIST_ITEM_ANIMATE_PARAM)
+              .onClick(()=>{
+                this.listScroller.scrollEdge(Edge.Top,{velocity:6000})
+              })
+          }
+        }
+        .justifyContent(this.isNewsListSticky.isSticky?FlexAlign.SpaceBetween:FlexAlign.Center)
+        .width('100%')
+      }
+      .width('95%')
+      .padding(10)
+      .backgroundColor($r('app.color.news_list_header_bg'))
+      .borderRadius(this.headerRadius)
+      .margin({
+        bottom: 15,
+        left: 5,
+        right: 5
+      })
+      .animation(NEWS_LIST_ANIMATION_PARAM)
+    }
+    .animation(NEWS_LIST_ANIMATION_PARAM)
+    .onAreaChange((oldValue: Area, newValue: Area) => {
+      if (!this.isOnAreaChange){
+        if (newValue.position.y == 0) {
+          this.isNewsListSticky.isSticky = false
+        } else {
+          this.isNewsListSticky.isSticky = true
+          this.isOnAreaChange=true
+          setTimeout(()=>{
+            this.isOnAreaChange=false
+          },200)
+        }
+      }
+
+    })
+    .width('100%')
+  }
+
+  @Monitor('isNewsListSticky.isSticky')
+  viewChange() {
+    if (this.isNewsListSticky.isSticky) {
+      this.headerRadius = 0
+      this.headerAlignItems = HorizontalAlign.Start
+      this.headerFontSize = 20
+    } else {
+      this.headerRadius = 20
+      this.headerAlignItems = HorizontalAlign.Center
+      this.headerFontSize = 35
+    }
+  }
+
+  aboutToAppear(): void {
+    logger.debug('NewsList aboutToAppear')
+    setTimeout(() => {
+      if (this.newsList.length == 0) {
+        this.getUIContext()
+          .getPromptAction()
+          .showToast({ message: '后端数据正在更新请稍后下拉刷新或重启应用重试', duration: 5000 })
+      }
+    }, 200)
+
+  }
+
+  build() {
+    ListItemGroup({ header: this.NewsListHeaderBuilder(), space: 30 }) {
+      ForEach(this.newsList, (news: NewsArticle, index: number) => {
+        ListItem() {
+          Column() {
+            Column({ space: 20 }) {
+              Text(news.title)
+                .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 25)
+                .fontWeight(900)
+              Column() {
+                Text(`来自于${news.source}`)
+                  .fontSize(18)
+                  .fontWeight(200)
+                  .textOverflow({
+                    overflow: TextOverflow.Ellipsis
+                  })
+                  .maxLines(1)
+                Text(news.date)
+                  .fontSize(18)
+                  .fontWeight(200)
+                  .textOverflow({
+                    overflow: TextOverflow.Ellipsis
+                  })
+                  .maxLines(1)
+              }
+              .alignItems(HorizontalAlign.Start)
+            }
+            .alignItems(HorizontalAlign.Start)
+            .width('100%')
+            .padding({
+              top: 5,
+              bottom: 5,
+              left: 10,
+              right: 10
+            })
+            .borderRadius(19)
+            .backgroundColor($r('app.color.news_list_item_bg'))
+          }
+          .width('95%')
+          .backgroundImage($rawfile('newsListItemBG.png'))
+          .borderWidth(2)
+          .borderColor($r('app.color.news_list_item_border'))
+          .backgroundColor($r('app.color.news_list_item_bg'))
+          .borderRadius(20)
+
+        }
+        .transition(NEWS_LIST_ITEM_ANIMATE_PARAM)
+        .width('100%')
+        .alignSelf(ItemAlign.Center)
+      })
+    }
+    .borderRadius({
+      topLeft: 20,
+      topRight: 20
+    })
+  }
+}
+```
+
+对原有的UI结构进行一些合理的调整，并将控制按钮的出现与吸顶扳机绑定，再加上一点点的出场动画，就可以开始测试了。
+
+<video width="100%" controls>
+  <source src="62.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+可以看到有一点点卡顿，但不明显。改成懒加载优化一下性能。
+
+#### 懒加载改造
+
+![63](OpenSourceSummer2025/63.png)
+
+这描述太对味了。让我们开始进行改造吧。
+
+```ts
+import { NewsArticle } from "../../../../../Index";
+
+// BasicDataSource实现了IDataSource接口，用于管理listener监听，以及通知LazyForEach数据更新
+class BasicDataSource implements IDataSource {
+  private listeners: DataChangeListener[] = [];
+  private originDataArray: NewsArticle[] = [];
+
+  public totalCount(): number {
+    return this.originDataArray.length;
+  }
+
+  public getData(index: number): NewsArticle {
+    return this.originDataArray[index];
+  }
+
+  // 该方法为框架侧调用，为LazyForEach组件向其数据源处添加listener监听
+  registerDataChangeListener(listener: DataChangeListener): void {
+    if (this.listeners.indexOf(listener) < 0) {
+      console.info('add listener');
+      this.listeners.push(listener);
+    }
+  }
+
+  // 该方法为框架侧调用，为对应的LazyForEach组件在数据源处去除listener监听
+  unregisterDataChangeListener(listener: DataChangeListener): void {
+    const pos = this.listeners.indexOf(listener);
+    if (pos >= 0) {
+      console.info('remove listener');
+      this.listeners.splice(pos, 1);
+    }
+  }
+
+  // 通知LazyForEach组件需要重载所有子组件
+  notifyDataReload(): void {
+    this.listeners.forEach(listener => {
+      listener.onDataReloaded();
+    });
+  }
+
+  // 通知LazyForEach组件需要在index对应索引处添加子组件
+  notifyDataAdd(index: number): void {
+    this.listeners.forEach(listener => {
+      listener.onDataAdd(index);
+      // 写法2：listener.onDatasetChange([{type: DataOperationType.ADD, index: index}]);
+    });
+  }
+
+  // 通知LazyForEach组件在index对应索引处数据有变化，需要重建该子组件
+  notifyDataChange(index: number): void {
+    this.listeners.forEach(listener => {
+      listener.onDataChange(index);
+      // 写法2：listener.onDatasetChange([{type: DataOperationType.CHANGE, index: index}]);
+    });
+  }
+
+  // 通知LazyForEach组件需要在index对应索引处删除该子组件
+  notifyDataDelete(index: number): void {
+    this.listeners.forEach(listener => {
+      listener.onDataDelete(index);
+      // 写法2：listener.onDatasetChange([{type: DataOperationType.DELETE, index: index}]);
+    });
+  }
+
+  // 通知LazyForEach组件将from索引和to索引处的子组件进行交换
+  notifyDataMove(from: number, to: number): void {
+    this.listeners.forEach(listener => {
+      listener.onDataMove(from, to);
+      // 写法2：listener.onDatasetChange(
+      //         [{type: DataOperationType.EXCHANGE, index: {start: from, end: to}}]);
+    });
+  }
+
+  notifyDatasetChange(operations: DataOperation[]): void {
+    this.listeners.forEach(listener => {
+      listener.onDatasetChange(operations);
+    });
+  }
+}
+
+export class NewsListDataSource extends BasicDataSource {
+  private dataArray: NewsArticle[] = [];
+
+  public totalCount(): number {
+    return this.dataArray.length;
+  }
+
+  public getData(index: number): NewsArticle {
+    return this.dataArray[index];
+  }
+
+  public pushData(data: NewsArticle): void {
+    this.dataArray.push(data);
+    this.notifyDataAdd(this.dataArray.length - 1);
+  }
+}
+```
+
+首先依据官方文档去封装好我们的数据源工具类，随后我们再去改写一下页面的数据源部分。
+
+```ts
+import {
+  NEWS_LIST_ITEM_ANIMATE_PARAM,
+  DEVICE_TYPES,
+  IS_STICKY,
+  logger,
+  NAV_PATH_STUCK,
+  NewsArticle,
+  NewsListHeaderIsSticky,
+  NEWS_LIST_ANIMATION_PARAM,
+  NewsListDataSource
+} from "common"
+import { AppStorageV2, curves } from "@kit.ArkUI"
+import { deviceInfo } from "@kit.BasicServicesKit"
+
+const NewsList_LOG_TAG = 'NewsList: '
+
+@ComponentV2
+export struct NewsList {
+  @Param listScroller: Scroller = new Scroller()
+  @Param newsList: NewsArticle[] = []
+  @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, NAV_PATH_STUCK, () => new NavPathStack())!
+  @Local deviceType: DEVICE_TYPES =
+    deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
+  @Local isNewsListSticky: NewsListHeaderIsSticky =
+    AppStorageV2.connect(NewsListHeaderIsSticky, IS_STICKY, () => new NewsListHeaderIsSticky())!
+  @Local headerRadius: number = 20
+  @Local headerAlignItems: HorizontalAlign = HorizontalAlign.Center
+  @Local headerFontSize: number = 35
+  @Local isOnAreaChange: boolean = false
+  @Local newsListDataSource: NewsListDataSource = new NewsListDataSource()
+
+  @Builder
+  NewsListHeaderBuilder() {
+    Column() {
+      Column() {
+        Row() {
+          Text(`热点新闻共${this.newsList?.length}条`)
+            .fontSize(this.headerFontSize)
+            .fontColor($r('app.color.news_list_header_font'))
+            .margin({ left: 10 })
+            .animation(NEWS_LIST_ANIMATION_PARAM)
+          if (this.isNewsListSticky.isSticky) {
+            Image($rawfile('backToTop.svg'))
+              .fillColor($r('app.color.back_to_top'))
+              .width(25)
+              .transition(NEWS_LIST_ITEM_ANIMATE_PARAM)
+              .onClick(() => {
+                this.listScroller.scrollEdge(Edge.Top, { velocity: 6000 })
+              })
+          }
+        }
+        .justifyContent(this.isNewsListSticky.isSticky ? FlexAlign.SpaceBetween : FlexAlign.Center)
+        .width('100%')
+      }
+      .width('95%')
+      .padding(10)
+      .backgroundColor($r('app.color.news_list_header_bg'))
+      .borderRadius(this.headerRadius)
+      .margin({
+        bottom: 15,
+        left: 5,
+        right: 5
+      })
+      .animation(NEWS_LIST_ANIMATION_PARAM)
+    }
+    .animation(NEWS_LIST_ANIMATION_PARAM)
+    .onAreaChange((oldValue: Area, newValue: Area) => {
+      if (!this.isOnAreaChange) {
+        if (newValue.position.y == 0) {
+          this.isNewsListSticky.isSticky = false
+        } else {
+          this.isNewsListSticky.isSticky = true
+          this.isOnAreaChange = true
+          setTimeout(() => {
+            this.isOnAreaChange = false
+          }, 200)
+        }
+      }
+
+    })
+    .width('100%')
+  }
+
+  @Monitor('isNewsListSticky.isSticky')
+  viewChange() {
+    if (this.isNewsListSticky.isSticky) {
+      this.headerRadius = 0
+      this.headerAlignItems = HorizontalAlign.Start
+      this.headerFontSize = 20
+    } else {
+      this.headerRadius = 20
+      this.headerAlignItems = HorizontalAlign.Center
+      this.headerFontSize = 35
+    }
+  }
+
+  pushNewsArticleDataToDataSource() {
+    this.newsList.forEach((item) => {
+      this.newsListDataSource.pushData(item)
+    })
+  }
+
+  aboutToAppear(): void {
+
+    setTimeout(() => {
+      if (this.newsList.length == 0) {
+        this.getUIContext()
+          .getPromptAction()
+          .showToast({ message: '后端数据正在更新请稍后下拉刷新或重启应用重试', duration: 5000 })
+      }
+      this.pushNewsArticleDataToDataSource()
+    }, 200)
+  }
+
+  build() {
+    ListItemGroup({ header: this.NewsListHeaderBuilder(), space: 30 }) {
+      LazyForEach(this.newsListDataSource, (news: NewsArticle) => {
+        ListItem() {
+          Column() {
+            Column({ space: 20 }) {
+              Text(news.title)
+                .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 25)
+                .fontWeight(900)
+              Column() {
+                Text(`来自于${news.source}`)
+                  .fontSize(18)
+                  .fontWeight(200)
+                  .textOverflow({
+                    overflow: TextOverflow.Ellipsis
+                  })
+                  .maxLines(1)
+                Text(news.date)
+                  .fontSize(18)
+                  .fontWeight(200)
+                  .textOverflow({
+                    overflow: TextOverflow.Ellipsis
+                  })
+                  .maxLines(1)
+              }
+              .alignItems(HorizontalAlign.Start)
+            }
+            .alignItems(HorizontalAlign.Start)
+            .width('100%')
+            .padding({
+              top: 5,
+              bottom: 5,
+              left: 10,
+              right: 10
+            })
+            .borderRadius(19)
+            .backgroundColor($r('app.color.news_list_item_bg'))
+          }
+          .width('95%')
+          .backgroundImage($rawfile('newsListItemBG.png'))
+          .borderWidth(2)
+          .borderColor($r('app.color.news_list_item_border'))
+          .backgroundColor($r('app.color.news_list_item_bg'))
+          .borderRadius(20)
+
+        }
+        .transition(NEWS_LIST_ITEM_ANIMATE_PARAM)
+        .width('100%')
+        .alignSelf(ItemAlign.Center)
+      }, (item: NewsArticle, i: number) => {
+        return `${item.id}+${i}`
+      })
+    }
+    .borderRadius({
+      topLeft: 20,
+      topRight: 20
+    })
+  }
+}
+```
+
+用数据源进行数据渲染，这里将懒加载提前到下拉刷新逻辑编写之前也是为了方便后续数据更新的逻辑不用再次更新。对此我也进一步的为刷新逻辑进行一下接口的预留吧。
+
+```ts
+export class NewsListDataSource extends BasicDataSource {
+  private dataArray: NewsArticle[] = [];
+
+  public totalCount(): number {
+    return this.dataArray.length;
+  }
+
+  public getData(index: number): NewsArticle {
+    return this.dataArray[index];
+  }
+
+  public pushData(data: NewsArticle): void {
+    this.dataArray.push(data);
+    this.notifyDataAdd(this.dataArray.length - 1);
+  }
+
+  /**
+   * 批量添加数据
+   * @param dataArr 待添加数据数组
+   */
+  public pushDataArr(dataArr: NewsArticle[]): void {
+    dataArr.forEach(item=> {
+      this.dataArray.push(item)
+      this.notifyDataAdd(this.dataArray.length - 1);
+    })
+  }
+  /**
+   * 重新录入全部数据，替换现有数据
+   * @param newData 新的完整数据数组
+   */
+  public resetData(newData: NewsArticle[]): void {
+    // 替换现有数据
+    this.dataArray = [...newData];
+    // 通知组件重新加载所有数据
+    this.notifyDataReload();
+  }
+}
+```
+
+ok，测试一下。
+
+<video width="100%" controls>
+  <source src="64.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+哎呀太爽了。
+
+#### 下拉刷新
+
+下拉刷新逻辑核心就是依赖一个Refresh组件，然后手动绑定一下下拉刷新结束的扳机，同时写一下刷新逻辑。
+
+```ts
+import { IS_STICKY, NewsArticle, NewsListHeaderIsSticky } from "common"
+import { NewsList, newsManager, NewsSwiper } from "feature"
+import { AppStorageV2 } from "@kit.ArkUI"
+
+const MainPage_TAG = 'MainPage: '
+
+@Preview
+@ComponentV2
+export struct MainPage {
+  @Local newsList: NewsArticle[] | null = null
+  @Local isNewsListSticky: NewsListHeaderIsSticky =
+    AppStorageV2.connect(NewsListHeaderIsSticky, IS_STICKY, () => new NewsListHeaderIsSticky())!
+  @Local listScroller: Scroller = new Scroller()
+  @Local isLoading: boolean = false
+
+  async aboutToAppear(): Promise<void> {
+    this.newsList = await newsManager.getNewsArticleListFromDB()
+    if (!this.newsList) {
+      this.getUIContext().getPromptAction().showToast({ message: `当前数据库新闻数据为空,请连接后端服务以更新数据` })
+    } else if (this.newsList) {
+      this.getUIContext().getPromptAction().showToast({ message: `查询到${this.newsList.length}条新闻数据` })
+    }
+  }
+
+  async reloadAllData() {
+    this.getUIContext().getPromptAction().showToast({ message: '刷新数据' })
+    if (await newsManager.updateNewsListToDB()) {
+      this.newsList = await newsManager.getNewsArticleListFromDB()
+      this.newsList = []
+      return true
+    }
+    this.getUIContext().getPromptAction().showToast({ message: '获取新数据失败请稍后再试。' })
+    return false
+  }
+
+  build() {
+    Column() {
+      Refresh({ refreshing: $$this.isLoading }) {
+        List({ space: 20, scroller: this.listScroller }) {
+          ListItemGroup() {
+            ListItem() {
+              NewsSwiper()
+            }
+          }
+
+          NewsList({ newsList: this.newsList ?? [], listScroller: this.listScroller })
+        }
+        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
+        .chainAnimation(true)
+        .sticky(StickyStyle.Header)
+        .width('100%')
+        .height('100%')
+      }
+      .onRefreshing(async () => {
+        await this.reloadAllData()
+        this.isLoading = false
+      })
+    }
+    .width('100%')
+    .height('100%')
+  }
+}
+```
+
+随后再在NewsList组件补上一个监听器就可以。
+
+```ts
+  @Monitor('newsList')
+  resetDataSource(){
+    logger.info('捕获到newsList变化'+this.newsList.length)
+    this.newsListDataSource.resetData(this.newsList)
+  }
+```
+
+经测试很顺利。
+
+## 后端爬虫逻辑调优
+
+### CSDN爬虫数据问题
+
+在开发客户端时一直在编写一些逻辑函数的封装以及UI组件的封装，并没有过多在意我们所获取到的数据是否正确，因为总条数也确实很多我就没有在意，在渲染了NewsList组件后才发现获取的数据都是OpenHarmony官网的资讯，而并不是CSDN的资讯，这时我才意识到了CSDN的爬虫数据获取发生了错误。
+
+首先是在渲染中发现新闻的日期都是很落后的，最细的一个是25年2月的，随后我又去CSDN搜索了一下发现最新的文章是今年8月的，那明显是错误了。
+
+我的怀疑的问题有两点，一种是被反爬了，另一种是因为动态网页的页面内容导致我的爬虫没有等待内容加载完成就进行数据提取了。
+
+在修改完了基础的爬虫逻辑后确实是因为没有等待内容加载完成就进行数据提取了，所以导致获取到的数据都是错误的。但是只有第一篇是成功的后续都是失败的，失败原因是被积极反爬了，所以我要尝试用虚拟IP，修改浏览器UA等功能的高级爬虫来进行尝试。
+
+同时为了减少测试的等待时间，我们将分两种情况：
+
+1. 首次启动时的分批写入：从0开始，每20篇立即写入
+2. 后续定时更新：完整爬取后一次性覆盖，避免数据倒退
+
+在更新完爬取机制之后的的确确是能够正常获取CSDN的数据了。那后端就还剩一个坑没填上了，也就是轮播图的问题。这个接口暂时还没开发。
