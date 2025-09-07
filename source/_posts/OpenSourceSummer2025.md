@@ -8072,7 +8072,7 @@ export struct MainPage {
 
 ### 正文渲染组件
 
-首先正文的渲染是深度依赖于我前期在进行爬虫开发时所设定的数据结构。
+首先正文的渲染是深度依赖于我前期在进行爬虫开发时所设定的数据结构。只需要判断当前语句块的类型，同时去进行对应组件的渲染就好了，整体的逻辑还是非常简单的。
 
 ## PR创建
 
@@ -8111,3 +8111,130 @@ export struct MainPage {
 ![68](OpenSourceSummer2025/68.jpg)
 
 可以看到上面没有签名的它只有一行账号的信息，这是通过git账号登录或是ssh秘钥来去判断的是谁推送的commit，而经过签名的则会还有一行`Signed-off-by`。
+
+### 如何实现签名Commit
+
+那么，如何使用git命令来实现commit签名呢？主要有两种方式：
+
+#### 方式一：使用-s参数快速添加Signed-off-by
+
+这是最简单的一种方式，只需在commit命令中添加`-s`或`--signoff`参数：
+
+```bash
+# 基本语法
+git commit -s -m "你的提交信息"
+
+# 示例
+git commit -s -m "feat: 添加新功能"
+```
+
+这条命令会自动在你的提交信息末尾添加一行`Signed-off-by: 你的名字 <你的邮箱>`，这就是我们在截图中看到的签名行。
+
+#### 方式二：使用GPG密钥进行加密签名
+
+如果你需要更高级的加密签名（在GitHub上会显示"Verified"徽章），可以使用GPG密钥：
+
+1. **检查是否已安装GPG**
+
+  ```bash
+  gpg --version
+  ```
+
+2. **生成GPG密钥（如果没有）**
+
+  ```bash
+  gpg --full-generate-key
+  ```
+
+  - 选择密钥类型：通常选择默认的RSA和RSA
+  - 选择密钥长度：建议至少3072位
+  - 设置密钥有效期：根据需要选择
+  - 填写用户信息：姓名、邮箱等
+  - 设置密码：保护你的私钥
+
+3. **查看并复制GPG密钥ID**
+
+  ``bash
+  pg --list-secret-keys --keyid-format=long
+  ``
+  找到以`sec`开头的行，格式类似`sec  rsa4096/3AA5C34371567BD2 2023-01-01 [SC]`，其中3AA5C34371567BD2`就是你的密钥ID。
+  
+4. **配置Git使用你的GPG密钥**
+
+  ```bash
+  git config --global user.signingkey 你的密钥ID
+  ```
+
+5. **在commit时使用GPG签名**
+
+  ```bash
+  每次commit时手动签名
+  git commit -S -m "你的提交信息"
+
+  或者设置默认签名所有commit
+  git config --global commit.gpgsign true
+  ```
+
+6. **将GPG公钥添加到GitHub**
+
+  ```bash
+  gpg --armor --export 你的密钥ID
+  ```
+  复制输出的公钥内容，然后添加到GitHub的"Settings > SSH and GPG keys > New GPG key"中。
+
+#### 方式三：使用SSH密钥进行签名
+
+GitHub也支持使用SSH密钥进行commit签名，这对于已经有SSH密钥的用户来说更加方便：
+
+1. **生成SSH密钥（如果没有）**
+
+  ```bash
+  # 推荐使用更安全的Ed25519算法
+  ssh-keygen -t ed25519 -C "你的邮箱"
+
+  # 或者使用兼容性更好的RSA算法
+  ssh-keygen -t rsa -b 4096 -C "你的邮箱"
+  ```
+
+2. **配置Git使用SSH密钥格式**
+
+  ```bash
+  git config --global gpg.format ssh
+  ```
+
+1. **设置签名密钥路径**
+
+  ```bash
+  git config --global user.signingkey ~/.ssh/id_ed25519.pub
+  ```
+
+1. **将SSH公钥添加到GitHub并标记为签名密钥**
+
+  - 复制公钥内容：`cat ~/.ssh/id_ed25519.pub`
+  - 添加到GitHub的"Settings > SSH and GPG keys > New SSH key"中
+  - 在"Key type"中选择"Signing Key"
+
+5. **使用SSH密钥签名commit**
+  ```bash
+  # 每次commit时手动签名
+  git commit -S -m "你的提交信息"
+
+  # 或者设置默认签名所有commit
+  git config --global commit.gpgsign true
+  ```
+
+通过以上三种方式，你就可以为你的commit添加签名，提高代码的安全性和可信度。对于开源项目来说，这也是一个很好的实践，可以证明提交确实来自于你本人。
+
+### VScode的git探索
+
+因为我平常已经习惯于用IDE，VScode或者是GithubDesktop这类可视化git工具来去进行推送了，所以想要去研究一下如何使用VScode进行签名commit，这种常用的功能应该会被VScode以及基于VScode的一系列IDE所集成。
+
+在正常的编写完commit信息，准备点击commit的时候我开始了寻找。顺着直觉点开了右上角的更多按钮，下拉找到commit一栏。果然如我所料，VScode系列的这些IDE都有这个选项。
+
+![69](OpenSourceSummer2025/69.jpg)
+
+### 开源协议版权头的添加
+
+为了将过往全部commit都给变成签名commit，我就只好去删库从新创建，先将写好的项目代码复制一份单独备份到Github的私有仓库，随后将本地仓库文件全部删除，最后将gitcode上fork的仓库删除，从新fork。
+
+随后将全部源码再次搬运回来，利用签名commit进行推送，再次创建新的pr并关联issue，在pr的评论区发送`start build`终于是经过了doc检查，开始了代码门禁的静态检查环节。
