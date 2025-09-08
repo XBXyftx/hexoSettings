@@ -8184,10 +8184,248 @@ export enum NAV_DESTS {
   }
 ```
 
-随后再去在NewsList的组件中去进行参数的修改，加入导航页面栈的传入接口。由于NewsList是存在于Feature特性能力层的功能组件，所以我们尽量不直接使用AppStorage去获取数据，而是通过传参的形式去获取数据
+随后再去在NewsList的组件中去进行参数的修改，加入导航页面栈的传入接口。由于NewsList是存在于Feature特性能力层的功能组件，所以我们尽量不直接使用AppStorage去获取数据，而是通过传参的形式去获取数据。
 
 ```ts
 NewsList({ newsList: this.newsList ?? [], listScroller: this.listScroller, navStuck: this.navPathStuck })
+```
+
+```ts
+  @Param navStuck:NavPathStack = new NavPathStack()
+```
+
+随后再去给每一个Item去绑定点击事件。
+
+```ts
+.onClick(()=>{
+  this.navStuck.replacePath({
+    name:NAV_DESTS.ARTICLE,
+    param:news
+  })
+})
+```
+
+通过[NavPathInfo](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-basic-components-navigation#navpathinfo10)对象去进行传参，随后再在目标页面使用[onReady](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-basic-components-navdestination#onready11)回调函数去进行参数的接收。
+
+```ts
+@ComponentV2
+export struct ArticlePage {
+  @Local baseFontSize: number = AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG)!.fontSize
+  @Local article:NewsArticle = {
+    id: '',
+    title: '',
+    date: '',
+    url: '',
+    content: []
+  }
+  build() {
+    NavDestination() {
+
+    }
+    .onReady((navDestinationContext:NavDestinationContext)=>{
+      this.article = navDestinationContext.pathInfo.param as NewsArticle
+    })
+    .width('100%')
+    .height('100%')
+  }
+}
+```
+
+随后实际测试中发现文章的段落间隙过小，同时还存在标题字体过小的问题，于是我又进行了大量的样式调整。
+
+```ts
+/**
+ * Copyright (c) 2025 XBXyftx
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import {
+  CONTENT_TYPE_ENUM, DEVICE_TYPES, NewsArticle, NewsContentBlock
+} from "common"
+import { deviceInfo } from "@kit.BasicServicesKit"
+import { LvMarkdownIn } from '@luvi/lv-markdown-in'
+
+/**
+ * 文章内容渲染组件
+ * @param article 带渲染文章内容
+ * @param baseFontSize 基准字体大小
+ */
+@ComponentV2
+export struct NewsArticleView {
+  @Param article: NewsArticle = {
+    id: "",
+    title: "",
+    date: "",
+    url: "",
+    content: [],
+    source: ''
+  }
+  @Param baseFontSize: number = 0
+  @Local deviceType: DEVICE_TYPES =
+    deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
+
+  @Builder
+  articleInfoBuilder() {
+    Row() {
+      Text(`日期：${this.article.date} ${this.article.source ? '来源：' : ''}${this.article.source}`)
+        .fontSize(this.baseFontSize+4)
+    }
+    .width('100%')
+  }
+
+  build() {
+    // 根组件
+    Scroll() {
+      Column({space:10+(this.baseFontSize*0.3)}) {
+        Text(this.article.title)
+          .alignSelf(ItemAlign.Start)
+          .fontSize(this.baseFontSize + (this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16))
+          .fontWeight(900)
+        // 日期来源行
+        this.articleInfoBuilder()
+
+        ForEach(this.article.content, (item: NewsContentBlock, i: number) => {
+          if (item.type === CONTENT_TYPE_ENUM.TEXT) {
+            Text(item.value)
+              .fontSize(this.baseFontSize)
+          } else if (item.type === CONTENT_TYPE_ENUM.IMAGE) {
+            Image(item.value)
+              .width('80%')
+              .alignSelf(ItemAlign.Center)
+          } else if (item.type === CONTENT_TYPE_ENUM.VIDEO) {
+            Video({
+              src: item.value
+            })
+              .width('80%')
+              .alignSelf(ItemAlign.Center)
+          } else if (item.type === CONTENT_TYPE_ENUM.CODE) {
+            LvMarkdownIn({
+              text: item.value
+            })
+          }
+        })
+      }
+      .borderRadius(20)
+      .alignItems(HorizontalAlign.Start)
+      .backgroundColor($r('app.color.article_info_builder_bg'))
+
+    }
+    .scrollBar(BarState.Off)
+    .borderRadius(20)
+    .width('100%')
+    .height('100%')
+
+  }
+}
+```
+
+将字体大小与可设置的字体大小进行绑定，同时将文章的标题，日期，来源，内容等全部进行绑定，随后在ForEach中根据文章内容类型的不同进行不同的渲染。
+
+随后再加入更多针对手机平板差异的样式调整。
+
+```ts
+/**
+ * Copyright (c) 2025 XBXyftx
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import {
+  CONTENT_TYPE_ENUM, DEVICE_TYPES, NewsArticle, NewsContentBlock
+} from "common"
+import { deviceInfo } from "@kit.BasicServicesKit"
+import { LvMarkdownIn } from '@luvi/lv-markdown-in'
+
+/**
+ * 文章内容渲染组件
+ * @param article 带渲染文章内容
+ * @param baseFontSize 基准字体大小
+ */
+@ComponentV2
+export struct NewsArticleView {
+  @Param article: NewsArticle = {
+    id: "",
+    title: "",
+    date: "",
+    url: "",
+    content: [],
+    source: ''
+  }
+  @Param baseFontSize: number = 0
+  @Local deviceType: DEVICE_TYPES =
+    deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
+
+  @Builder
+  articleInfoBuilder() {
+    Row() {
+      Text(`日期：${this.article.date} ${this.article.source ? '来源：' : ''}${this.article.source}`)
+        .fontSize(this.baseFontSize+4)
+    }
+    .width('100%')
+  }
+
+  build() {
+    // 根组件
+    Scroll() {
+      Column({space:10+(this.baseFontSize*(this.deviceType === DEVICE_TYPES.PHONE ?0.3:0.5))}) {
+        Text(this.article.title)
+          .alignSelf(ItemAlign.Start)
+          .fontSize(this.baseFontSize + (this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16))
+          .fontWeight(900)
+        // 日期来源行
+        this.articleInfoBuilder()
+
+        ForEach(this.article.content, (item: NewsContentBlock, i: number) => {
+          if (item.type === CONTENT_TYPE_ENUM.TEXT) {
+            Text(item.value)
+              .fontSize(this.baseFontSize+ (this.deviceType === DEVICE_TYPES.PHONE ? 0 : 6))
+          } else if (item.type === CONTENT_TYPE_ENUM.IMAGE) {
+            Image(item.value)
+              .width('80%')
+              .alignSelf(ItemAlign.Center)
+          } else if (item.type === CONTENT_TYPE_ENUM.VIDEO) {
+            Video({
+              src: item.value
+            })
+              .width('80%')
+              .alignSelf(ItemAlign.Center)
+          } else if (item.type === CONTENT_TYPE_ENUM.CODE) {
+            LvMarkdownIn({
+              text: item.value
+            })
+          }
+        })
+      }
+      .padding(5)
+      .borderRadius(20)
+      .alignItems(HorizontalAlign.Start)
+      .backgroundColor($r('app.color.article_info_builder_bg'))
+
+    }
+    .scrollBar(BarState.Off)
+    .borderRadius(20)
+    .width('100%')
+    .height('100%')
+
+  }
+}
 ```
 
 ## PR创建
