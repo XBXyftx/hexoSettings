@@ -8088,6 +8088,78 @@ export struct MainPage {
 
 额，好像也就这么点能设置的了。
 
+#### 渲染逻辑
+
+这里就直接扔代码把，大家都看得懂。等实机测试之后才能继续去进行样式的调优。
+
+```ts
+import {
+  CONTENT_TYPE_ENUM,
+  DEVICE_TYPES, NewsArticle, NewsContentBlock } from "common"
+import { deviceInfo } from "@kit.BasicServicesKit"
+import { LvMarkdownIn } from '@luvi/lv-markdown-in'
+/**
+ * 文章内容渲染组件
+ * @param article 带渲染文章内容
+ * @param baseFontSize 基准字体大小
+ */
+@ComponentV2
+export struct NewsArticleView {
+  @Param article: NewsArticle = {
+    id: "",
+    title: "",
+    date: "",
+    url: "",
+    content: [],
+    source: ''
+  }
+  @Param baseFontSize: number = 0
+  @Local deviceType: DEVICE_TYPES =
+    deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
+  @Builder
+  articleInfoBuilder(){
+    Row(){
+      Text(`日期：${this.article.date} ${this.article.source?'来源：':''}${this.article.source}`)
+        .fontSize(this.baseFontSize)
+    }
+    .width('100%')
+  }
+  build() {
+    // 根组件
+    Column() {
+      Text(this.article.title)
+        .alignSelf(ItemAlign.Start)
+        .fontSize(this.baseFontSize + this.deviceType === DEVICE_TYPES.PHONE ? 8 : 10)
+      // 日期来源行
+      this.articleInfoBuilder()
+      
+      ForEach(this.article.content,(item:NewsContentBlock,i:number)=>{
+        if (item.type === CONTENT_TYPE_ENUM.TEXT) {
+          Text(item.value)
+            .fontSize(this.baseFontSize)
+        }else if (item.type === CONTENT_TYPE_ENUM.IMAGE){
+          Image(item.value)
+            .width('80%')
+        }else if (item.type === CONTENT_TYPE_ENUM.VIDEO){
+          Video({
+            src:item.value
+          })
+        }else if (item.type === CONTENT_TYPE_ENUM.CODE){
+          LvMarkdownIn({
+            text:item.value
+          })
+        }
+      })
+    }
+    .backgroundColor($r('app.color.article_info_builder_bg'))
+    .width('100%')
+    .height('100%')
+  }
+}
+```
+
+随后就该回到详情页的NavDestination组件去继续了。
+
 ## PR创建
 
 这一部分我从来没想过会如此麻烦，本以为是写好了直接push到仓库随后让导师审查一下并入主线就好了，结果想象到还有很多流程是我没考虑到的，这我才理解到为什么老师要催着我去先提交一份。
