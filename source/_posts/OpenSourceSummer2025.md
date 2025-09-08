@@ -8184,7 +8184,11 @@ export enum NAV_DESTS {
   }
 ```
 
+随后再去在NewsList的组件中去进行参数的修改，加入导航页面栈的传入接口。由于NewsList是存在于Feature特性能力层的功能组件，所以我们尽量不直接使用AppStorage去获取数据，而是通过传参的形式去获取数据
 
+```ts
+NewsList({ newsList: this.newsList ?? [], listScroller: this.listScroller, navStuck: this.navPathStuck })
+```
 
 ## PR创建
 
