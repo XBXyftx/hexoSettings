@@ -1081,6 +1081,11 @@ inject:
      </script>
    - <link rel="twikoo" href="/css/twikoo.css">
    - <link rel="stylesheet" href="/css/rightmenu.css">
+   ## 顺序图片加载器
+   - <link rel="stylesheet" href="/css/sequential-loader.css">
+   - <script src="/js/sequential-loader-config.js"></script>
+   - <script src="/js/sequential-image-loader.js" defer></script>
+   - <script src="/js/sequential-integration.js" defer></script>
    ## 自定义图片查看器 - 覆盖fancybox
    - <script src="/js/custom-lightbox.js" defer></script>
    - <script src="/js/nyan.js"></script>

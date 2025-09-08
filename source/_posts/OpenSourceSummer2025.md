@@ -8160,6 +8160,32 @@ export struct NewsArticleView {
 
 随后就该回到详情页的NavDestination组件去继续了。
 
+### Nav传参
+
+#### 跳转导航更新
+
+首先我们先将起始页的导航Builder以及跳转名称常量去进行一下更新
+
+```ts
+export enum NAV_DESTS {
+  MAIN = 'Main',
+  ARTICLE = 'Article'
+}
+```
+
+```ts
+  @Builder
+  NavDestMap(name: string) {
+    if (name === NAV_DESTS.MAIN) {
+      Main()
+    }else if (name === NAV_DESTS.ARTICLE) {
+      ArticlePage()
+    }
+  }
+```
+
+
+
 ## PR创建
 
 这一部分我从来没想过会如此麻烦，本以为是写好了直接push到仓库随后让导师审查一下并入主线就好了，结果想象到还有很多流程是我没考虑到的，这我才理解到为什么老师要催着我去先提交一份。
