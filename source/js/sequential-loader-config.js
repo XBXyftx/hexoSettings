@@ -13,20 +13,20 @@ window.sequentialLoaderConfig = {
   // 单张图片超时时间 (毫秒) - 考虑到网络可能不稳定，设置为15秒
   timeout: 15000,
   
-  // 重试次数 - 503错误比较常见，增加重试次数
+  // 重试次数 - 每张图片/视频最多重试3次
   retryCount: 3,
   
   // 请求延迟 (毫秒) - 给服务器减压，避免503错误
   requestDelay: 800,
   
-  // 失败后重试延迟 (毫秒) - 503错误后等待更长时间
+  // 失败后重试延迟 (毫秒) - 每次重试间隔逐渐增加
   retryDelay: 3000,
   
   // 是否显示加载进度
   showProgress: true,
   
-  // 图片选择器 - 适配你的博客结构，特别是文章页面
-  selector: '#article-container img, .post-content img, img[data-src], img[src]:not([data-loaded]):not(.no-sequential)',
+  // 媒体选择器 - 支持图片和视频，排除顶部图片、头像、导航等特殊图片
+  selector: '#article-container img:not(.avatar-img):not(.no-sequential), .post-content img:not(.avatar-img):not(.no-sequential), .markdown-body img:not(.avatar-img):not(.no-sequential), img[data-src]:not(.avatar-img):not(.no-sequential), #article-container video:not(.no-sequential), .post-content video:not(.no-sequential), .markdown-body video:not(.no-sequential)',
   
   // 是否启用懒加载 - 只在图片进入视口时才加载
   enableLazyload: true,
@@ -94,25 +94,26 @@ window.initializeImageFeatures = function() {
 document.addEventListener('DOMContentLoaded', function() {
   const path = window.location.pathname;
   
-  // 文章页面 - 可能包含大量图片，严格控制
+  // 文章页面 - 使用懒加载模式，只在可见时加载
   if (path.includes('/2025/') || path.includes('/posts/')) {
-    console.log('🚨 检测到文章页面，正在应用严格配置...');
+    console.log('🚨 检测到文章页面，应用懒加载模式...');
     console.log('当前路径:', path);
     
-    window.sequentialLoaderConfig.maxConcurrent = 1;        // 严格单线程
-    window.sequentialLoaderConfig.requestDelay = 3000;      // 增加延迟到3秒！！！
-    window.sequentialLoaderConfig.retryDelay = 8000;        // 失败后等待8秒
-    window.sequentialLoaderConfig.timeout = 30000;          // 增加超时到30秒
-    window.sequentialLoaderConfig.enableLazyload = false;   // 暂时禁用懒加载进行测试
-    window.sequentialLoaderConfig.rootMargin = '50px';      // 缩小预加载范围
-    // 文章页面图片选择器更具体
-    window.sequentialLoaderConfig.selector = '#article-container img, .post-content img, .markdown-body img, img[src]:not([data-loaded]):not(.no-sequential)';
+    window.sequentialLoaderConfig.enableLazyload = true;     // ✅ 启用懒加载
+    window.sequentialLoaderConfig.rootMargin = '150px';      // 提前150px开始加载
+    window.sequentialLoaderConfig.requestDelay = 300;        // 减少延迟，懒加载不会并发
+    window.sequentialLoaderConfig.retryDelay = 2000;         // 减少重试延迟
+    window.sequentialLoaderConfig.timeout = 15000;           // 正常超时时间
+    window.sequentialLoaderConfig.showProgress = false;      // 懒加载模式不显示全局进度条
     
-    console.log('📄 文章页面超严格配置已应用：');
-    console.log('- 最大并发数:', window.sequentialLoaderConfig.maxConcurrent);
+    // 文章页面媒体选择器更具体 - 包括图片和视频，排除顶部图片和特殊图片
+    window.sequentialLoaderConfig.selector = '#article-container img:not(.avatar-img):not([class*="top-img"]):not(#page-header img), .post-content img:not(.avatar-img):not([class*="top-img"]), .markdown-body img:not(.avatar-img):not([class*="top-img"]), img[src]:not([data-loaded]):not(.no-sequential):not(.avatar-img):not([class*="top-img"]):not(#page-header img), #article-container video:not(.no-sequential), .post-content video:not(.no-sequential), .markdown-body video:not(.no-sequential), video:not([data-loaded]):not(.no-sequential)';
+    
+    console.log('📄 文章页面懒加载配置已应用：');
+    console.log('- 懒加载模式:', window.sequentialLoaderConfig.enableLazyload);
+    console.log('- 预加载边距:', window.sequentialLoaderConfig.rootMargin);
     console.log('- 请求延迟:', window.sequentialLoaderConfig.requestDelay, 'ms');
     console.log('- 重试延迟:', window.sequentialLoaderConfig.retryDelay, 'ms');
-    console.log('- 懒加载:', window.sequentialLoaderConfig.enableLazyload);
   }
   
   // 首页 - 瀑布流布局
