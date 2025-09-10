@@ -324,7 +324,7 @@ aside:
     enable: true
   card_announcement:
     enable: true
-    content: 笑死还说假期填坑呢，倒是给自己新开了个无底巨坑<br/><img src="https://bu.dusays.com/2025/07/30/688a364c948c2.png" alt="1748944170064.jpg" title="1748944170064.jpg" class="announcementImg"/>
+    content: 本站由于服务器带宽有限，设置了文章图片懒加载，滚动停止后才会开始加载图片，遇到加载中的图片请静止等待<br/><img src="https://bu.dusays.com/2025/09/10/68c18a5b2710f.jpg" alt="1748944170064.jpg" title="1748944170064.jpg" class="announcementImg"/>
   card_recent_post:
     enable: true
     # If set 0 will show all
