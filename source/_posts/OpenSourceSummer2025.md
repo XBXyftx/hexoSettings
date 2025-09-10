@@ -9259,6 +9259,116 @@ export struct NewsSwiper {
 }
 ```
 
+随后再去测试一下我们所需要的轮播图接口状态查询接口的数据接口封装。
+
+```json
+{
+  "service": "banner",
+  "cache_status": {
+    "status": "preparing",
+    "last_update": null,
+    "cache_count": 0,
+    "update_count": 0,
+    "error_message": null,
+    "is_updating": true,
+    "first_load_completed": false
+  },
+  "scheduler_jobs": [
+    {
+      "id": "update_banner_cache",
+      "name": "更新轮播图缓存",
+      "next_run": "2025-09-10T21:59:40.471794+08:00"
+    }
+  ],
+  "api_endpoints": {
+    "mobile_banners": "/api/banner/mobile",
+    "enhanced_banners": "/api/banner/mobile/enhanced",
+    "status": "/api/banner/status",
+    "manual_crawl": "/api/banner/crawl",
+    "clear_cache": "/api/banner/cache/clear",
+    "cache_info": "/api/banner/cache"
+  },
+  "status_explanation": {
+    "preparing": "轮播图服务正在准备中，首次爬取尚未完成或当前正在更新",
+    "ready": "轮播图服务就绪，可以正常获取轮播图数据",
+    "error": "轮播图服务出现错误，需要检查日志或手动重新爬取"
+  },
+  "timestamp": "2025-09-10T18:59:54.090860"
+}
+```
+
+上面这是第一种类型，是当前缓存数据正在更新的状态，接下来我们等一会后继续去请求一下成功的。
+
+```json
+{
+  "service": "banner",
+  "cache_status": {
+    "status": "ready",
+    "last_update": "2025-09-10T19:00:39.216129",
+    "cache_count": 4,
+    "update_count": 1,
+    "error_message": null,
+    "is_updating": false,
+    "first_load_completed": true
+  },
+  "scheduler_jobs": [
+    {
+      "id": "update_banner_cache",
+      "name": "更新轮播图缓存",
+      "next_run": "2025-09-10T21:59:40.471794+08:00"
+    }
+  ],
+  "api_endpoints": {
+    "mobile_banners": "/api/banner/mobile",
+    "enhanced_banners": "/api/banner/mobile/enhanced",
+    "status": "/api/banner/status",
+    "manual_crawl": "/api/banner/crawl",
+    "clear_cache": "/api/banner/cache/clear",
+    "cache_info": "/api/banner/cache"
+  },
+  "status_explanation": {
+    "preparing": "轮播图服务正在准备中，首次爬取尚未完成或当前正在更新",
+    "ready": "轮播图服务就绪，可以正常获取轮播图数据",
+    "error": "轮播图服务出现错误，需要检查日志或手动重新爬取"
+  },
+  "timestamp": "2025-09-10T19:12:58.282317"
+}
+```
+
+所以我们可以看到我们所需要的数据其实仅仅是一个cache_status字段中的status就足以去判断当前轮播图接口的状态了，所以我们可以直接将数据模型构建成如下形式：
+
+```ts
+/**
+ * Copyright (c) 2025 XBXyftx
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+export interface SwiperState {
+  cache_status: CacheStatus
+}
+
+export interface CacheStatus {
+  status: CACHE_STATUS
+  error_message:null|string
+}
+
+export enum CACHE_STATUS {
+  preparing = 'preparing',
+  ready = 'ready',
+  error = 'error'
+}
+```
+
 #### 接口封装
 
 ```ts
@@ -9304,3 +9414,263 @@ export class NewsSwiperAPI{
 ```
 
 依旧是基于先前封装好的AxiosHttp进行接口调用，处理异常并返回数据。
+
+随后还需要封装一个服务状态查询的接口。
+
+```ts
+/**
+ * Copyright (c) 2025 XBXyftx
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { CACHE_STATUS, SwiperState } from "../../modules/server/SwiperState"
+import { logger } from "../../utils"
+import { axiosHttp } from "../http/AxiosHttp"
+import { BusinessError } from "@kit.BasicServicesKit"
+import { promptAction } from "@kit.ArkUI"
+
+const SwiperStateAPI_LOG_TAG = 'SwiperStateAPI: '
+
+export class SwiperStateAPI {
+  /**
+   * 检测轮播图状态
+   * @returns
+   */
+  static async isSwiperServerReady(): Promise<boolean> {
+    try {
+      const res = await axiosHttp.request<SwiperState>({
+        url: '/api/banner/status',
+      })
+      logger.info(SwiperStateAPI_LOG_TAG + JSON.stringify(res))
+      if (res.cache_status.status === CACHE_STATUS.preparing) {
+
+        logger.warn(`${SwiperStateAPI_LOG_TAG}轮播图尚未准备完毕`)
+        return false
+      } else if (res.cache_status.status === CACHE_STATUS.error) {
+        promptAction.showToast({ message: `轮播图服务内部出现异常${res.cache_status.error_message}` })
+        logger.error(`${SwiperStateAPI_LOG_TAG}轮播图服务内部出现异常${res.cache_status.error_message}`)
+        return false
+      } else if (res.cache_status.status === CACHE_STATUS.ready) {
+        return true
+      }
+    } catch (e) {
+      let err = e as BusinessError
+      logger.error(`${SwiperStateAPI_LOG_TAG}${err.message}`)
+      return false
+    }
+    return false
+  }
+}
+```
+
+#### NewsManager功能拓展
+
+在之前编写新闻列表的数据管理模块式时已经完成了键值数据库和网络接口的绑定，但也仅局限于新闻列表，现在我们需要将他的功能进行拓展，使其能够同时管理轮播图的新闻数据。
+
+```ts
+/**
+ * Copyright (c) 2025 XBXyftx
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {
+  APP_KV_DB as APP_KV_DB_ID,
+  kvDatabase,
+  KV_DB_KEYS,
+  logger,
+  NewsArticle,
+  NewsListAPI,
+  NewsSwiperAPI,
+  NewsSwiperStateAPI,
+  ServerHealthAPI
+} from "common"
+import { common } from "@kit.AbilityKit"
+import { distributedKVStore } from "@kit.ArkData"
+import { promptAction } from "@kit.ArkUI"
+import { BusinessError } from "@kit.BasicServicesKit"
+
+const NewsManager_LOG_TAG = 'NewsManager: '
+
+export class NewsManager {
+  /**
+   * 当前应用的键值数据库实例对象
+   */
+  appKVDb: distributedKVStore.SingleKVStore | undefined = undefined
+
+  /**
+   * 初始化函数，获取当前应用的键值对数据库实例。
+   * @param context
+   * @returns
+   */
+  async init(context: common.UIAbilityContext): Promise<boolean> {
+    kvDatabase.init(context)
+    const res = await kvDatabase.getKVStoreById(APP_KV_DB_ID)
+    if (res) {
+      this.appKVDb = res
+      logger.info(`${NewsManager_LOG_TAG}init: 获取appKVDb成功`)
+      return true
+    }
+    logger.error(`${NewsManager_LOG_TAG}初始化失败`)
+    return false
+  }
+
+  /**
+   * 从后端更新新闻文章列表数据，并持久化最新的新闻列表数据。
+   * @param times 递归尝试查询服务端的计数器参数，无需传入
+   * @returns 是否成功获取以及持久化
+   */
+  async updateNewsListToDB(): Promise<boolean> {
+    if (await ServerHealthAPI.isServerReady()) {
+      const news: NewsArticle[] | null = (await NewsListAPI.getAllNews())
+      if (news && this.appKVDb) {
+        logger.info(`${NewsManager_LOG_TAG}成功获取最新新闻，总条数: ${news.length}`)
+        try {
+          this.appKVDb.put(KV_DB_KEYS.NEWS_ARTICLE_LIST, JSON.stringify(news))
+          logger.info(`${NewsManager_LOG_TAG}数据库写入成功，无异常`)
+          return true
+        } catch (e) {
+          let err = e as BusinessError
+          logger.error(`${NewsManager_LOG_TAG}更新数据库NewsArticle数据发生异常，异常信息: ${err.message}`)
+          return false
+        }
+      }
+      logger.error(`${NewsManager_LOG_TAG}获取新闻失败,新闻数据或键值数据库为空。`)
+      return false
+    }
+    logger.error(`${NewsManager_LOG_TAG}获取新闻失败，后端服务状态异常，返回false`)
+    return false
+  }
+
+  async getNewsArticleListFromDB(): Promise<NewsArticle[] | null> {
+    if (this.appKVDb) {
+      try {
+        const res: string = (await this.appKVDb.get(KV_DB_KEYS.NEWS_ARTICLE_LIST)) as string
+        logger.info(`${NewsManager_LOG_TAG}读取到数据库新闻列表数据: ${res}`)
+        const newsArticleList = JSON.parse(res) as NewsArticle[]
+        return newsArticleList
+      } catch (e) {
+        let err = e as BusinessError
+        logger.error(`${NewsManager_LOG_TAG}尝试获取数据库新闻列表数据发生异常，异常信息: ${err.message}`)
+        return null
+      }
+    }
+    return null
+  }
+
+  async updateNewsSwiperToDB(): Promise<boolean> {
+    if (await NewsSwiperStateAPI.isSwiperServerReady()) {
+      let swiperData: ResourceStr[] | null = await NewsSwiperAPI.getNewsSwiperImgData()
+      if (swiperData && this.appKVDb) {
+        logger.info(`${NewsManager_LOG_TAG}成功获取最新轮播图数据，总条数: ${swiperData.length}`)
+        try {
+          this.appKVDb.put(KV_DB_KEYS.NEWS_SWIPER, JSON.stringify(swiperData))
+          logger.info(`${NewsManager_LOG_TAG}轮播图数据库写入成功，无异常`)
+          return true
+        } catch (e) {
+          let err = e as BusinessError
+          logger.error(`${NewsManager_LOG_TAG}更新数据库NewsSwiper数据发生异常，异常信息: ${err.message}`)
+          return false
+        }
+      }
+      logger.error(`${NewsManager_LOG_TAG}获取到的轮播图数据或键值数据库为空`)
+      return false
+    }
+    logger.error(`${NewsManager_LOG_TAG}获取轮播图数据失败，后端轮播图服务状态异常`)
+    return false
+  }
+
+  async getNewsSwiperDataFromDB(): Promise<ResourceStr[] | null> {
+    if (this.appKVDb) {
+      try {
+        const res: string = (await this.appKVDb.get(KV_DB_KEYS.NEWS_SWIPER)) as string
+        logger.info(`${NewsManager_LOG_TAG}读取到数据库轮播图数据列表数据: ${res}`)
+        const newsSwiperData = JSON.parse(res) as ResourceStr[]
+        return newsSwiperData
+      } catch (e) {
+        let err = e as BusinessError
+        logger.error(`${NewsManager_LOG_TAG}尝试获取数据库轮播图数据发生异常，异常信息: ${err.message}`)
+        return null
+      }
+    }
+    return null
+  }
+}
+
+export const newsManager = new NewsManager()
+```
+
+随后将数据库更新串流至应用初始化流程。
+
+```ts
+  async initAll(uiAbilityContext: common.UIAbilityContext, applicationContext: common.ApplicationContext) {
+    await newsManager.init(uiAbilityContext)
+    this.configInit(uiAbilityContext)
+    colorModManager.init(applicationContext)
+    await newsManager.updateNewsListToDB()
+    await newsManager.updateNewsSwiperToDB()
+  }
+```
+
+再将从数据库读取数据的过程串流至页面渲染中。
+
+```ts
+  async aboutToAppear(): Promise<void> {
+    this.newsList = await newsManager.getNewsArticleListFromDB()
+    if (!this.newsList) {
+      this.getUIContext().getPromptAction().showToast({ message: `当前数据库新闻数据为空,请连接后端服务以更新数据` })
+    } else if (this.newsList) {
+      this.getUIContext().getPromptAction().showToast({ message: `从数据库查询到${this.newsList.length}条新闻数据` })
+    }
+    this.newsSwiperData = await newsManager.getNewsSwiperDataFromDB()
+    if (!this.newsSwiperData) {
+      this.getUIContext().getPromptAction().showToast({ message: `当前数据库轮播图数据为空,请连接后端服务以更新数据` })
+    } else if (this.newsSwiperData) {
+      this.getUIContext()
+        .getPromptAction()
+        .showToast({ message: `从数据库查询到${this.newsSwiperData.length}条轮播图数据` })
+    }
+  }
+  NewsSwiper({ swiperData: this.newsSwiperData ?? [] })
+```
+
+然后！测试！！！
+
+![75](OpenSourceSummer2025/75.png)
+
+![76](OpenSourceSummer2025/76.jpg)
+
+ok，还有一处需要修改的，就是在下拉刷新时也要触发一下轮播图的刷新才对。
+
+```ts
+  async reloadAllData() {
+    this.getUIContext().getPromptAction().showToast({ message: '刷新数据' })
+    if (await newsManager.updateNewsListToDB() && await newsManager.updateNewsSwiperToDB()) {
+      this.newsList = await newsManager.getNewsArticleListFromDB()
+      this.newsSwiperData = await newsManager.getNewsSwiperDataFromDB()
+      return true
+    }
+    this.getUIContext().getPromptAction().showToast({ message: '获取新数据失败请稍后再试。' })
+    return false
+  }
+```
+
+再次测试。成功！！！至此当初项目计划书上缩写的内容就基本全部告一段落了。
