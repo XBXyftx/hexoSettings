@@ -6,7 +6,7 @@ tags:
   - 技术向
 cover:  /img/ArticleTopImgs/OpenSourceSummerTopImg.png
 description: 从小白到小有成就的一些感悟。
-typewriter: 从Hello World到Hello Harmony，我的心路历程是复杂的，对代码的态度和对编程的看法也是反复变化的。如何从单向，再到
+typewriter: 从Hello World到Hello Harmony，我的心路历程是复杂的，对代码的态度和对编程的看法也是反复变化的。如何从单向，再到双向再到多向编程，或许这将会是我最大的观念转变吧。
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
