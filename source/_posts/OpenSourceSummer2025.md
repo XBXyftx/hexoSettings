@@ -9674,3 +9674,187 @@ ok，还有一处需要修改的，就是在下拉刷新时也要触发一下轮
 ```
 
 再次测试。成功！！！至此当初项目计划书上缩写的内容就基本全部告一段落了。
+
+## OpenHarmony博文接口开发
+
+### 针对于微信公众号关键词搜索的尝试
+
+去除了CSDN的数据源之后我原本准备用更多的微信公众号文章去进行补充，但是我在实践的时候发现了新的问题，就是针对微信公众号文章的搜索，微信官方并没有给出公共的接口，于是就造成了我无法直接去获取搜索引擎的请求地址，我最初想的是从电脑版微信的搜索栏下手，因为在我印象中电脑版微信的搜索栏与打开网页共用的是用一个页面，能不能直接点击右上角的用系统浏览器打开的方式来去用浏览器开发者工具获取地址，但我点开之后才发现在公众号搜索界面是没有那个用浏览器打开的按钮的。
+
+![77](OpenSourceSummer2025/77.png)
+
+所以我就只能去寻找其他办法。通过阅读一些技术博客我了解到[搜狗搜索引擎](https://weixin.sogou.com/)中有专门接入微信公众号的搜索引擎接口于是我立刻前去尝试。
+
+![78](OpenSourceSummer2025/78.png)
+
+的的确确是能搜到相关关键词的公众号文章，但也仅限于能搜到了。搜索结果全是按照所谓的“综合排名”去罗列的，就导致搜到的都是一些陈年老文，这与我们NowInOpenHarmony项目所需要的聚合最新资讯的理念相悖，新文章因为“热度”低导致都排的比较靠后，先要通过爬虫爬取的难度还是比较高的。首先是得反复大量的去模拟用户操作想后查找文章，并逐一截取日期并进行排序。所以我决定暂时放弃这个想法。当然我也不是没想过在URL里观察一下参数字段是否包含有排序方式。
+
+```bash
+https://weixin.sogou.com/weixin?ie=utf8&s_from=input&_sug_=y&_sug_type_=&type=2&query=OpenHarmony&w=01019900&sut=6711&sst0=1757665204566&lkt=1%2C1757665204461%2C1757665204461
+```
+
+要判断该搜狗微信搜索URL中是否存在规定文章排序顺序的参数，需先拆解URL结构、明确各参数含义，再结合搜索引擎排序逻辑分析，具体如下：
+
+| 参数名       | 参数值示例                | 核心作用                                                                 | 是否与“排序”相关 |
+|--------------|---------------------------|--------------------------------------------------------------------------|------------------|
+| `ie`         | `utf8`                    | 指定页面编码格式为UTF-8，确保中文等字符正常显示                          | 无               |
+| `s_from`     | `input`                   | 标识搜索请求的来源（此处为“手动输入关键词”），用于统计不同入口的搜索量  | 无               |
+| `_sug_`      | `y`                       | 控制是否开启“搜索建议”功能（`y`=开启，输入关键词时实时推荐相关词）       | 无               |
+| `_sug_type_` | 空值                      | 补充定义搜索建议的类型（空值表示默认类型）                               | 无               |
+| `type`       | `2`                       | 限定搜索结果的内容类型（搜狗微信搜索中，`type=2`通常对应“公众号文章”）  | 无（仅筛选类型） |
+| `query`      | `OpenHarmony`             | 核心搜索关键词，即用户要查询的内容（此处为“OpenHarmony”）                | 无（仅定搜索词） |
+| `w`          | `01019900`                | 搜狗内部的设备或终端标识参数，用于适配不同设备的显示逻辑（如PC/移动端）  | 无               |
+| `sut`        | `6711`                    | 搜索会话的临时标识ID，用于追踪单次搜索的请求链路（如防重复请求）         | 无               |
+| `sst0`       | `1757665204566`           | 时间戳（毫秒级，对应时间为2025年11月12日左右），用于标记请求发起时间    | 无               |
+| `lkt`        | `1%2C1757665204461%2C...` | 包含时间戳的复合参数，推测为“搜索行为追踪标识”（记录点击、请求间隔等）  | 无               |
+
+所以暂时放弃相关尝试，开始寻找替代方案。
+
+### OpenHarmony官网博客
+
+次前我们的接口数据仅仅获取了OpenHarmony官网的资讯页面信息，并没有获取博客的数据。
+
+相同的方式，先点击一下博文板块的文章，随后去开发者工具的网络工具进行抓包。
+
+![79](OpenSourceSummer2025/79.png)
+
+```bash
+https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=2&pageNum=1&pageSize=6
+```
+
+直接请求这个链接观察一下返回的数据。
+
+```json
+{
+  "code": 0,
+  "msg": "成功",
+  "pageSize": 6,
+  "pageNum": 1,
+  "totalPage": 28,
+  "totalNum": 165,
+  "data": [
+    {
+      "id": 1429,
+      "type": 2,
+      "title": "OpenHarmony输入事件分发之多模输入",
+      "source": null,
+      "content": "OpenAtom OpenHarmony（以下简称“OpenHarmony”）面向用户提供了多种人机交互方式，除了支持多种传统输入设备，系统内部还会将各种设备有机结合，发挥分布式/跨设备等优势，事件作为主体媒介，面向多业务场景提供系统级支撑能力。",
+      "textDetails": null,
+      "backgroundImage": "https://images.openharmony.cn/%E5%86%85%E5%AE%B9%E5%B0%81%E9%9D%A2/%E5%8D%9A%E5%AE%A2/%E9%80%9A%E7%94%A8%E8%A7%A3%E6%9E%90.png",
+      "url": "https://mp.weixin.qq.com/s/0UdwzVaODNWO4AT6i6Guqw",
+      "advertiseImage": null,
+      "advertiseUrl": null,
+      "startTime": "2024.06.06",
+      "endTime": null,
+      "label": 0,
+      "recommend": 0,
+      "likesCount": 0,
+      "shareCount": 0,
+      "browseCount": 305,
+      "skip": "0"
+    },
+    {
+      "id": 1408,
+      "type": 2,
+      "title": "OpenHarmony之Wi-Fi Display介绍",
+      "source": null,
+      "content": "Wi-Fi Display（缩写为WFD）经常和Miracast联系在一起。实际上，Miracast是Wi-Fi联盟（Wi-Fi Alliance）对支持WFD功能的设备的认证F名称。通过Miracast认证的设备将在最大程度内保持对WFD功能的支持和兼容。所以WFD是一个Miracast的规范。",
+      "textDetails": null,
+      "backgroundImage": "https://images.openharmony.cn/%E5%86%85%E5%AE%B9%E5%B0%81%E9%9D%A2/%E5%8D%9A%E5%AE%A2/%E6%8A%80%E6%9C%AF%E5%88%86%E4%BA%AB.png",
+      "url": "https://mp.weixin.qq.com/s/nUKiPwgaTxpiWR5GelqF9g",
+      "advertiseImage": null,
+      "advertiseUrl": null,
+      "startTime": "2024.04.15",
+      "endTime": null,
+      "label": 0,
+      "recommend": 0,
+      "likesCount": 0,
+      "shareCount": 0,
+      "browseCount": 157,
+      "skip": "0"
+    },
+    {
+      "id": 1401,
+      "type": 2,
+      "title": "OpenHarmony应用启动流程分析——Application&Ability初始化",
+      "source": null,
+      "content": "本文基于OpenAtom OpenHarmony（以下简称“OpenHarmony”） 4.0 Release版本的源码，对应用进程初始化后MainThread初始化及调用AttachApplication、LaunchApplication、LaunchAbility的过程做了分析和总结，该流程贯穿了应用程序的用户进程和系统服务进程。",
+      "textDetails": null,
+      "backgroundImage": "https://images.openharmony.cn/%E5%86%85%E5%AE%B9%E5%B0%81%E9%9D%A2/%E5%8D%9A%E5%AE%A2/%E6%8A%80%E6%9C%AF%E5%88%86%E4%BA%AB.png",
+      "url": "https://mp.weixin.qq.com/s/QyOiCRoMdp7uP4e3SvoDIg",
+      "advertiseImage": null,
+      "advertiseUrl": null,
+      "startTime": "2024.03.15",
+      "endTime": null,
+      "label": 0,
+      "recommend": 0,
+      "likesCount": 0,
+      "shareCount": 0,
+      "browseCount": 160,
+      "skip": "0"
+    },
+    {
+      "id": 1399,
+      "type": 2,
+      "title": "一种OpenHarmony轻量系统适配方案",
+      "source": null,
+      "content": "本文在不改变原有系统基础框架的基础上， 介绍了一种OpenAtom OpenHarmony（以下简称“OpenHarmony”）轻量系统适配方案。本方案使用的是 OpenHarmony v3.2 Release版本源码。",
+      "textDetails": null,
+      "backgroundImage": "https://images.openharmony.cn/%E5%86%85%E5%AE%B9%E5%B0%81%E9%9D%A2/%E5%8D%9A%E5%AE%A2/%E6%8A%80%E6%9C%AF%E5%88%86%E4%BA%AB.png",
+      "url": "https://mp.weixin.qq.com/s/RwKs1gTDngWA4M1WJo8y5Q",
+      "advertiseImage": null,
+      "advertiseUrl": null,
+      "startTime": "2024.03.04",
+      "endTime": null,
+      "label": 0,
+      "recommend": 0,
+      "likesCount": 0,
+      "shareCount": 0,
+      "browseCount": 70,
+      "skip": "0"
+    },
+    {
+      "id": 1398,
+      "type": 2,
+      "title": "【开源三方库】新版本MPChart：打造更出色的OpenHarmony图表体验",
+      "source": null,
+      "content": "随着移动应用的不断发展，数据可视化成为提高用户体验和数据交流的重要手段之一。在OpenAtom OpenHarmony（简称“OpenHarmony”）应用开发中，一个强大而灵活的图表库是实现这一目标的关键。",
+      "textDetails": null,
+      "backgroundImage": "https://images.openharmony.cn/%E5%86%85%E5%AE%B9%E5%B0%81%E9%9D%A2/%E5%8D%9A%E5%AE%A2/%E6%8A%80%E6%9C%AF%E5%88%86%E4%BA%AB.png",
+      "url": "https://mp.weixin.qq.com/s/iyy3OeYRLoqACDqRKDljrA",
+      "advertiseImage": null,
+      "advertiseUrl": null,
+      "startTime": "2024.03.01",
+      "endTime": null,
+      "label": 0,
+      "recommend": 0,
+      "likesCount": 0,
+      "shareCount": 0,
+      "browseCount": 30,
+      "skip": "0"
+    },
+    {
+      "id": 1391,
+      "type": 2,
+      "title": "OpenHarmony之媒体组件模块简介",
+      "source": null,
+      "content": "本文基于OpenAtom OpenHarmony（以下简称“OpenHarmony”）3.2 Release源码foundation目录下的player_framework，在OpenHarmony 2.0 Release版本当中，这个模块的名字叫媒体组件模块",
+      "textDetails": null,
+      "backgroundImage": "https://images.openharmony.cn/%E5%86%85%E5%AE%B9%E5%B0%81%E9%9D%A2/%E5%8D%9A%E5%AE%A2/%E6%8A%80%E6%9C%AF%E5%88%86%E4%BA%AB.png",
+      "url": "https://mp.weixin.qq.com/s/8FSFmkjUfI78tAyeFTNWGg",
+      "advertiseImage": null,
+      "advertiseUrl": null,
+      "startTime": "2024.01.30",
+      "endTime": null,
+      "label": 0,
+      "recommend": 0,
+      "likesCount": 0,
+      "shareCount": 0,
+      "browseCount": 30,
+      "skip": "0"
+    }
+  ]
+}
+```
+
+可以看到它所获取的数据就是我们此前在开发资讯接口时所见过的数据结构，而且这一次我发现了其实在URL的参数中就有PageSize这一项，其实我只需要去修改这个参数值就可以直接的去获取到对应数量的资讯，这一点似乎之前我没有注意到，而是直接去编写逻辑让爬虫模拟用户点击每一个文章卡片之后去获取这个资源URL，再去获取目标文章地址了。
