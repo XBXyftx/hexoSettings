@@ -7,7 +7,7 @@ tags:
   - hexo博客搭建
 description: 通过很长一段时间的迭代，最终推出了一套借助于github codeSpace的全终端云工作流。
 typewriter: 🚀 告别沉重的笔记本电脑，拥抱云端编程的自由！GitHub CodeSpace让你在任何设备上都能享受完整的开发体验。使用网页版VScode来获得更轻便快捷的博客编写体验。
-cover: /img/ArticleTopImgs/cloudWorkflawTopImg.png
+cover: /imgs/ArticleTopImgs/cloudWorkflawTopImg.png
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

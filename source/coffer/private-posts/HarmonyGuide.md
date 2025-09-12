@@ -4,7 +4,7 @@ date: 2025-07-16 10:30:00
 tags: [个人, 想法, 测试]
 categories: [私密日记]
 description: 孙妈专供来了孙妈专供来啦！！！
-cover: /img/cofferTopImg/SUNHarmonyTopIMG.png
+cover: /imgs/cofferTopImg/SUNHarmonyTopIMG.png
 ---
 
 ## 前言

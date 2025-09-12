@@ -4,7 +4,7 @@ date: 2025-05-28 10:30:00
 tags: [个人, 想法, 测试]
 categories: [私密日记]
 description: 看到这篇文章说明我的秘密基地功能成功上线了
-cover: /img/cofferTopImg/firstTopImg.jpg
+cover: /imgs/cofferTopImg/firstTopImg.jpg
 ---
 
 ## 欢迎来到我的私密空间
