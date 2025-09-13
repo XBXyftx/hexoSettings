@@ -1,11 +1,11 @@
 ---
-title: CodeInspiration
+title: 由单向编程走向多向编程
 date: 2025-09-11 15:26:54
 tags:
   - 独白
   - 技术向
 cover:  /imgs/ArticleTopImgs/CodeInspirationTopImg.png
-description: 从小白到小有成就的一些感悟。
+description: 从小白到小有成就的一些感悟。（持续更新中）
 typewriter: 从Hello World到Hello Harmony，我的心路历程是复杂的，对代码的态度和对编程的看法也是反复变化的。如何从单向，再到双向再到多向编程，或许这将会是我最大的观念转变吧。这篇文章也是为了纪念成为程序员的心路历程而写，于是就有了技术向独白这样一个神奇的分类标签。
 post_copyright:
 copyright_author: XBXyftx
