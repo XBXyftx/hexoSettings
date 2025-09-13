@@ -228,3 +228,520 @@ winget install --id GitHub.cli
     ![8](AITrainingCamp/8.jpg)
 
     可以看到，当前的数据都是爬取后直接进行传输而没有去进行任何加工。
+
+#### 爬虫问题更新技术方案
+
+针对OpenHarmony官网资讯文章爬虫的逻辑优化，我们需要重新设计数据采集策略，利用更高效的API接口来替代原有的逐个点击卡片获取数据的方式。
+
+通过分析发现，OpenHarmony官网提供了更高效的批量查询接口：
+
+```bash
+https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=3&pageNum=1&pageSize=300
+```
+
+该接口支持以下参数配置：
+
+- `type`: 数据类型标识（3表示资讯类）
+- `pageNum`: 页码
+- `pageSize`: 每页数据条数（最大300）
+
+优化方案具体实施步骤如下：
+
+1. **接口调用优化**
+   - 替换原有模拟点击的Selenium方式，改用直接调用queryBatch接口
+   - 通过调整pageSize参数一次性获取300条数据，满足当前数据量需求
+
+2. **数据处理优化**
+   - 移除原有的去重逻辑，因为批量接口返回的数据天然无重复
+   - 简化数据清洗流程，直接从接口响应中提取所需字段
+   - 优化数据结构转换，减少中间处理环节
+
+3. **性能提升效果**
+   - 数据获取速度预计提升5倍以上（从原来的逐个点击到批量获取）
+   - 减少网络请求次数，从原来的每篇文章一次请求优化为每300篇文章一次请求
+   - 降低服务器压力，减少被目标网站限制的风险
+
+4. **代码实现要点**
+   - 使用requests库替代Selenium进行接口调用
+   - 添加异常处理机制，确保在网络不稳定时能够重试
+   - 保留原有数据结构，确保与数据库存储模块兼容
+
+通过以上优化，不仅能够大幅提升数据采集效率，还能降低系统资源消耗，为后续的功能扩展提供更好的基础。
+
+#### 日期问题更新技术方案
+
+针对日期格式不统一的问题，我们需要实现一个更加灵活和健壮的日期解析与标准化方案：
+
+1. **改进日期匹配正则表达式**
+   - 使用更通用的日期匹配模式，能够识别多种日期分隔符（如点号`.`、短横线`-`、斜杠`/`等）
+   - 支持不同位数的日期数字（如`9`和`09`）
+   - 新的正则表达式示例：
+
+     ```python
+     # 匹配多种日期格式
+     date_pattern = r'(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})'
+     ```
+
+2. **实现日期标准化函数**
+   - 创建统一的日期格式化函数，将所有匹配到的日期转换为标准格式`YYYY-MM-DD`
+   - 处理月份和日期的前导零问题，确保格式统一
+   - 添加异常处理机制，对于无法解析的日期格式进行日志记录
+
+3. **代码实现示例**
+
+   ```python
+   import re
+   from datetime import datetime
+   
+   def standardize_date(date_str):
+       # 匹配多种日期格式
+       pattern = r'(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})'
+       match = re.search(pattern, date_str)
+       
+       if match:
+           year, month, day = match.groups()
+           # 格式化为统一的YYYY-MM-DD格式
+           return f"{year}-{int(month):02d}-{int(day):02d}"
+       else:
+           # 无法匹配时返回原始字符串并记录日志
+           print(f"无法解析日期格式: {date_str}")
+           return date_str
+   
+   # 使用示例
+   dates = ["2025.9.13", "2025-9-13", "2025/09/13"]
+   standardized_dates = [standardize_date(date) for date in dates]
+   # 结果: ["2025-09-13", "2025-09-13", "2025-09-13"]
+   ```
+
+4. **集成到数据处理流程**
+   - 在数据爬取后、存储前增加日期标准化处理步骤
+   - 对所有涉及日期的字段进行统一处理
+   - 确保API返回的日期格式一致，提升前端展示效果
+
+通过以上方案，我们可以有效解决日期格式不统一的问题，提升数据质量和用户体验。
+
+### 通过cc进行后端服务更新
+
+![9](AITrainingCamp/9.png)
+
+通过将上面的方案都复制给cc去让他进行修改。
+
+在修改完代码本身后可以看到它也编写了功能的测试用例，这一点是我此前一直没有太重视但是今天曾老师在电话里特别跟我强调的，所以这次我选择将测试用例相关代码也放在这里来读一下。
+
+```py
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+测试日期标准化功能
+验证新的日期解析算法是否能正确处理各种日期格式
+"""
+
+import sys
+import os
+sys.path.insert(0, os.path.dirname(__file__))
+
+from services.openharmony_crawler import OpenHarmonyCrawler
+import logging
+
+# 设置日志
+logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
+
+def test_date_standardization():
+    """测试各种日期格式的标准化能力"""
+    crawler = OpenHarmonyCrawler()
+
+    # 测试用例：各种日期格式
+    test_cases = [
+        # 标准格式
+        ("2024-08-31", "2024-08-31"),
+        ("2024.08.31", "2024-08-31"),
+        ("2024/08/31", "2024-08-31"),
+
+        # 单数字月日
+        ("2024-8-31", "2024-08-31"),
+        ("2024.8.31", "2024-08-31"),
+        ("2024/8/31", "2024-08-31"),
+        ("2024-08-3", "2024-08-03"),
+        ("2024.8.3", "2024-08-03"),
+
+        # 中文格式
+        ("2024年08月31日", "2024-08-31"),
+        ("2024年8月31日", "2024-08-31"),
+        ("2024年08月31", "2024-08-31"),
+
+        # 只有年月
+        ("2024年08月", "2024-08-01"),
+        ("2024-08", "2024-08-01"),
+        ("2024.08", "2024-08-01"),
+
+        # 复杂格式
+        ("2023-12-25 10:30:00", "2023-12-25"),
+        ("2023.12.25 10:30:00", "2023-12-25"),
+
+        # 反转格式
+        ("31-08-2024", None),  # 应该无法解析，保持原样
+        ("31.08.2024", None),  # 应该无法解析，保持原样
+
+        # 无效格式
+        ("08-31", None),  # 应该无法解析，保持原样
+        ("08.31", None),  # 应该无法解析，保持原样
+        ("08/31", None),  # 应该无法解析，保持原样
+        ("无效日期", None),  # 应该无法解析，保持原样
+        ("", ""),  # 空字符串
+        (None, ""),  # None值
+
+        # 边界情况
+        ("2024年13月45日", "2024-13-45"),  # 无效日期数值，但格式正确
+    ]
+
+    print("开始测试日期标准化功能...")
+    print("=" * 80)
+
+    success_count = 0
+    total_count = len(test_cases)
+
+    for i, (input_date, expected_output) in enumerate(test_cases, 1):
+        try:
+            result = crawler._standardize_date(input_date)
+
+            # 判断测试结果
+            if expected_output is None:
+                # 期望保持原样
+                if result == input_date:
+                    success_count += 1
+                    status = "成功"
+                    expected = f"保持原样: '{input_date}'"
+                else:
+                    status = "失败"
+                    expected = f"期望保持原样，但得到: '{result}'"
+            else:
+                # 期望特定输出
+                if result == expected_output:
+                    success_count += 1
+                    status = "成功"
+                    expected = expected_output
+                else:
+                    status = "失败"
+                    expected = f"期望: '{expected_output}', 实际: '{result}'"
+
+            print(f"{i:2d}. {status} | 输入: '{input_date}' -> 输出: '{result}'")
+            if status == "失败":
+                print(f"    {expected}")
+
+        except Exception as e:
+            print(f"{i:2d}. 异常 | 输入: '{input_date}' -> 错误: {e}")
+
+    print("=" * 80)
+    success_rate = (success_count / total_count * 100) if total_count > 0 else 0
+    print(f"测试结果: {success_count}/{total_count} 成功 ({success_rate:.1f}%)")
+
+    # 测试实际文章数据
+    print("\n测试实际文章数据标准化...")
+    test_articles = [
+        {"title": "测试文章1", "date": "2024.8.15", "url": "http://test1.com"},
+        {"title": "测试文章2", "date": "2024-12-25", "url": "http://test2.com"},
+        {"title": "测试文章3", "date": "2024年9月1日", "url": "http://test3.com"},
+        {"title": "测试文章4", "date": "2024/6/30", "url": "http://test4.com"},
+    ]
+
+    print("标准化前:")
+    for article in test_articles:
+        print(f"  {article['date']} - {article['title']}")
+
+    # 使用_format_article进行完整测试
+    formatted_articles = []
+    for article in test_articles:
+        formatted_article = crawler._format_article(article)
+        formatted_articles.append(formatted_article)
+
+    print("标准化后:")
+    for article in formatted_articles:
+        print(f"  {article['date']} - {article['title']}")
+
+if __name__ == "__main__":
+    test_date_standardization()
+```
+
+可以看到，其实整体的逻辑是很简单的，就是写了很多可能出现的日期格式，并且通过正则进行一下判断，同时对判断的结果进行一下可视化的数据统计。
+
+```bash
+开始测试日期标准化功能...
+================================================================================
+ 1. 成功 | 输入: '2024-08-31' -> 输出: '2024-08-31'
+ 2. 成功 | 输入: '2024.08.31' -> 输出: '2024-08-31'
+ 3. 成功 | 输入: '2024/08/31' -> 输出: '2024-08-31'
+ 4. 成功 | 输入: '2024-8-31' -> 输出: '2024-08-31'
+ 5. 成功 | 输入: '2024.8.31' -> 输出: '2024-08-31'
+ 6. 成功 | 输入: '2024/8/31' -> 输出: '2024-08-31'
+ 7. 成功 | 输入: '2024-08-3' -> 输出: '2024-08-03'
+ 8. 成功 | 输入: '2024.8.3' -> 输出: '2024-08-03'
+ 9. 成功 | 输入: '2024年08月31日' -> 输出: '2024-08-31'
+10. 成功 | 输入: '2024年8月31日' -> 输出: '2024-08-31'
+11. 成功 | 输入: '2024年08月31' -> 输出: '2024-08-31'
+12. 成功 | 输入: '2024年08月' -> 输出: '2024-08-01'
+13. 成功 | 输入: '2024-08' -> 输出: '2024-08-01'
+14. 成功 | 输入: '2024.08' -> 输出: '2024-08-01'
+15. 成功 | 输入: '2023-12-25 10:30:00' -> 输出: '2023-12-25'
+16. 成功 | 输入: '2023.12.25 10:30:00' -> 输出: '2023-12-25'
+⚠️ 无法解析日期格式: 31-08-2024，保持原样
+17. 成功 | 输入: '31-08-2024' -> 输出: '31-08-2024'
+⚠️ 无法解析日期格式: 31.08.2024，保持原样
+18. 成功 | 输入: '31.08.2024' -> 输出: '31.08.2024'
+⚠️ 无法解析日期格式: 08-31，保持原样
+19. 成功 | 输入: '08-31' -> 输出: '08-31'
+⚠️ 无法解析日期格式: 08.31，保持原样
+20. 成功 | 输入: '08.31' -> 输出: '08.31'
+⚠️ 无法解析日期格式: 08/31，保持原样
+21. 成功 | 输入: '08/31' -> 输出: '08/31'
+20. 成功 | 输入: '08.31' -> 输出: '08.31'
+⚠️ 无法解析日期格式: 08/31，保持原样
+21. 成功 | 输入: '08/31' -> 输出: '08/31'
+⚠️ 无法解析日期格式: 无效日期，保持原样
+22. 成功 | 输入: '无效日期' -> 输出: '无效日期'
+23. 成功 | 输入: '' -> 输出: ''
+24. 成功 | 输入: 'None' -> 输出: ''
+25. 成功 | 输入: '2024年13月45日' -> 输出: '2024-13-45'
+================================================================================
+测试结果: 25/25 成功 (100.0%)
+
+测试实际文章数据标准化...
+标准化前:
+  2024.8.15 - 测试文章1
+  2024-12-25 - 测试文章2
+  2024年9月1日 - 测试文章3
+  2024/6/30 - 测试文章4
+标准化后:
+  2024-08-15 - 测试文章1
+  2024-12-25 - 测试文章2
+  2024-09-01 - 测试文章3
+  2024-06-30 - 测试文章4
+```
+
+结果也是非常的成功。接下来我们再去看一下爬虫功能的测试地址并进行测试。
+
+```py
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+测试优化后的OpenHarmony爬虫
+验证API接口优化和日期标准化的效果
+"""
+
+import sys
+import os
+import time
+sys.path.insert(0, os.path.dirname(__file__))
+
+from services.openharmony_crawler import OpenHarmonyCrawler
+import logging
+
+# 设置日志
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def test_crawler_optimization():
+    """测试爬虫优化效果"""
+    print("开始测试优化后的OpenHarmony爬虫...")
+    print("=" * 80)
+
+    crawler = OpenHarmonyCrawler()
+
+    try:
+        # 测试获取文章信息（只获取第一页，避免测试时间过长）
+        print("测试获取文章信息API...")
+        start_time = time.time()
+
+        # 模拟获取少量数据进行测试
+        all_infos = {}
+        page_num = 1
+        page_size = 10  # 测试用小数据量
+
+        api_url = f"{crawler.base_url}/backend/knowledge/secondaryPage/queryBatch?type=3&pageNum={page_num}&pageSize={page_size}"
+        print(f"请求API: {api_url}")
+
+        resp = crawler.session.get(api_url, timeout=15)
+        resp.raise_for_status()
+        response_data = resp.json()
+        data = response_data.get("data", [])
+
+        end_time = time.time()
+        print(f"API请求耗时: {end_time - start_time:.2f}秒")
+        print(f"获取到{len(data)}条数据")
+
+        if data:
+            # 测试日期标准化
+            print("\n测试日期标准化功能...")
+            for i, item in enumerate(data[:5]):  # 只测试前5条
+                original_date = item.get("startTime", "")
+                title = item.get("title", "")
+                standardized_date = crawler._standardize_date(original_date)
+                print(f"{i+1}. 原标题: '{original_date}' -> 标准化: '{standardized_date}' | {title}")
+
+            # 测试文章格式化
+            print("\n测试文章格式化功能...")
+            test_article = {
+                "title": data[0].get("title", ""),
+                "date": data[0].get("startTime", ""),
+                "url": data[0].get("url", ""),
+                "content": [{"type": "text", "value": "测试内容"}]
+            }
+
+            formatted_article = crawler._format_article(test_article)
+            print("格式化后的文章:")
+            for key, value in formatted_article.items():
+                if key != "content":  # 内容太长，不打印
+                    print(f"  {key}: {value}")
+
+        print("\n" + "=" * 80)
+        print("测试完成！优化后的爬虫功能正常")
+
+    except Exception as e:
+        print(f"测试失败: {e}")
+        import traceback
+        traceback.print_exc()
+
+def test_performance_comparison():
+    """性能对比测试"""
+    print("\n性能对比测试...")
+    print("=" * 80)
+
+    crawler = OpenHarmonyCrawler()
+
+    # 测试不同页面大小的性能
+    page_sizes = [20, 50, 100]
+    results = []
+
+    for page_size in page_sizes:
+        print(f"\n测试页面大小: {page_size}")
+        start_time = time.time()
+
+        try:
+            api_url = f"{crawler.base_url}/backend/knowledge/secondaryPage/queryBatch?type=3&pageNum=1&pageSize={page_size}"
+            resp = crawler.session.get(api_url, timeout=15)
+            resp.raise_for_status()
+            data = resp.json().get("data", [])
+
+            end_time = time.time()
+            duration = end_time - start_time
+
+            results.append({
+                "page_size": page_size,
+                "duration": duration,
+                "data_count": len(data),
+                "efficiency": len(data) / duration if duration > 0 else 0
+            })
+
+            print(f"  请求耗时: {duration:.3f}秒")
+            print(f"  获取数据: {len(data)}条")
+            print(f"  效率: {len(data)/duration:.1f}条/秒")
+
+        except Exception as e:
+            print(f"  请求失败: {e}")
+
+    if results:
+        print("\n性能对比结果:")
+        print(f"{'页面大小':<10} {'耗时(秒)':<10} {'数据量':<10} {'效率(条/秒)':<15}")
+        print("-" * 50)
+        for result in results:
+            print(f"{result['page_size']:<10} {result['duration']:<10.3f} {result['data_count']:<10} {result['efficiency']:<15.1f}")
+
+if __name__ == "__main__":
+    test_crawler_optimization()
+    test_performance_comparison()
+```
+
+通过测试少量数据进行性能指标的监控，可视化的打印出不同页面大小的请求耗时、数据量和效率等数据来验证优化的效果。
+
+```bash
+开始测试优化后的OpenHarmony爬虫...
+================================================================================
+测试获取文章信息API...
+请求API: https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=3&pageNum=1&pageSize=10
+API请求耗时: 0.39秒
+获取到10条数据
+
+测试日期标准化功能...
+1. 原标题: '2025.02.28' -> 标准化: '2025-02-28' | 对话OpenHarmony开源先锋：如何用代码革新终端生态
+2. 原标题: '2025.02.24' -> 标准化: '2025-02-24' | 12强终极PK！第二届OpenHarmony创新应用挑战赛引爆开源热潮 
+3. 原标题: '2025.02.20' -> 标准化: '2025-02-20' | 第二届OpenHarmony创新应用挑战赛决赛路演队伍揭晓
+4. 原标题: '2025.02.11' -> 标准化: '2025-02-11' | OpenHarmony社区2024年度运营报告发布，致谢每一位生态共建 者！
+5. 原标题: '2025.01.29' -> 标准化: '2025-01-29' | 开源鸿蒙社区恭祝全体开发者2025新年快乐，新春大吉！      
+
+测试文章格式化功能...
+格式化后的文章:
+  id: 00d1196eb553e2e0
+  title: 对话OpenHarmony开源先锋：如何用代码革新终端生态
+  date: 2025-02-28
+  url: https://mp.weixin.qq.com/s/cHsMzPTmoYec-_VL6VllBQ
+  category: 官方动态
+  summary:
+  source: OpenHarmony
+  created_at: 2025-09-13T20:02:20.226415
+  updated_at: 2025-09-13T20:02:20.226415
+
+================================================================================
+测试完成！优化后的爬虫功能正常
+
+性能对比测试...
+================================================================================
+
+测试页面大小: 20
+  请求耗时: 0.233秒
+  获取数据: 20条
+  效率: 85.8条/秒
+
+测试页面大小: 50
+  请求耗时: 0.190秒
+  获取数据: 50条
+  效率: 263.4条/秒
+
+测试页面大小: 100
+  请求耗时: 0.215秒
+  获取数据: 100条
+  效率: 466.1条/秒
+
+性能对比结果:
+页面大小       耗时(秒)      数据量        效率(条/秒)
+--------------------------------------------------
+20         0.233      20         85.8
+50         0.190      50         263.4
+100        0.215      100        466.1
+```
+
+可以看到，通过优化后的爬虫，我们可以在较短的时间内获取到更多的数据，并且效率也得到了提升。
+
+### 全链路测试
+
+直接运行run.py文件去启动服务并进行测试。
+
+![10](AITrainingCamp/10.jpg)
+
+```bash
+http://192.168.48.1:8001/api/banner/mobile
+```
+
+```json
+{
+  "success": true,
+  "images": [
+    "https://images.openharmony.cn/%E9%A6%96%E9%A1%B5/banner/20240411/4.1releas%E6%89%8B%E6%9C%BA.jpg",
+    "https://images.openharmony.cn/%E6%B4%BB%E5%8A%A8/%E5%88%9B%E6%96%B0%E8%B5%9B2023/20230831/%E4%B8%89%E6%96%B9%E5%BA%93%E7%A7%BB%E5%8A%A8%E7%AB%AF.png",
+    "https://images.openharmony.cn/%E6%B4%BB%E5%8A%A8/%E5%A4%A7%E8%B5%9B20250812/%E7%AC%AC%E4%B8%89%E5%B1%8A%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99%E5%88%9B%E6%96%B0%E5%BA%94%E7%94%A8%E6%8C%91%E6%88%98%E8%B5%9B-%20750%20350.jpg",
+    "https://images.openharmony.cn/%E6%B4%BB%E5%8A%A8/%E6%8A%80%E6%9C%AF%E5%A4%A7%E4%BC%9A20250826/phone-750x350.jpg"
+  ],
+  "total": 4,
+  "message": "获取手机版Banner图片成功（缓存），共 4 张",
+  "timestamp": "2025-09-13T20:12:06.418254"
+}
+```
+
+轮播图接口是正常的，接下来再去测试一下资讯接口。
+
+![11](AITrainingCamp/11.png)
+
+穿插在更新过程中去进行请求，通过浏览器去进行数据的查看。
+
+![12](AITrainingCamp/12.png)
+
+![13](AITrainingCamp/13.png)
+
+随着时间推移每次刷新文章数量都在稳步增长。同时日期也是一致的格式。
