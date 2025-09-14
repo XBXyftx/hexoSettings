@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(hexo clean:*)",
+      "Bash(hexo generate:*)",
+      "Bash(hexo deploy:*)",
+      "Bash(hexo cl:*)",
+      "Bash(hexo:*)",
+      "Bash(hexo d:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -745,3 +745,133 @@ http://192.168.48.1:8001/api/banner/mobile
 ![13](AITrainingCamp/13.png)
 
 随着时间推移每次刷新文章数量都在稳步增长。同时日期也是一致的格式。
+
+![14](AITrainingCamp/14.jpg)
+
+最后真机的前后端联调测试也是成功了，同时又完善了一些细节。
+
+## Claude对鸿蒙的修改尝试
+
+在昨天的训练营现场我仅仅尝试了Claude对后端的修改，毕竟后端使用的是py和市面上的主流py服务框架，Claude改起来肯定是得心应手的，但是对于鸿蒙嘛，我的确是一直没太敢让AI上手的。今天我也是决定去尝试一下，这个想法也是得到了曾老师的鼓励。决定用外国模型去烧一下鸿蒙代码。
+
+![15](AITrainingCamp/15.jpg)
+
+### 字体选择按钮的实现历程
+
+#### 初期需求分析
+
+我向Claude提出了一个看似简单的需求：在主界面的颜色切换按钮下方添加一个字体大小调整按钮，点击后弹出滑动条进行字体调整。Claude首先分析了项目架构，发现了已经预留的用户配置管理机制，包括UserConfigViewModel、PreferenceEnum.FONT_SIZE等相关配置。
+
+第一轮实现：基础功能
+
+Claude快速创建了FontSizeAdjustButton.ets组件，实现了：
+
+- 圆形按钮设计，与现有颜色切换按钮保持一致
+- 使用Stack布局的弹出面板
+- 基础的滑动条调整功能
+
+  但这个版本有明显问题：按钮占用了额外的空间，导致布局偏移。
+
+  第二轮优化：半模态改造
+
+  我指出了布局问题后，Claude主动提出使用bindSheet半模态。这一改进包括：
+  - 移除了多余的Stack容器
+  - 实现了从底部弹出的原生半模态体验
+  - 支持拖拽关闭和遮罩点击关闭
+
+  第三轮修复：编译错误处理
+
+  在平板测试时遇到编译错误，Claude展现了出色的错误诊断能力：
+  1. 语法错误修复：$$this.showSheet改为正确的双向绑定语法
+  2. 装饰器兼容性：解决了@CustomDialog中不能使用@Param的问题
+  3. API适配：处理了showToast已弃用的警告，实现向后兼容
+
+  第四轮完善：设备适配
+
+  Claude提出了更优雅的解决方案：
+  if (this.deviceType === DEVICE_TYPES.PHONE) {
+    // 手机使用bindSheet半模态
+  } else {
+    // 平板使用CustomDialog弹窗
+  }
+
+  这种设备差异化处理体现了对不同交互场景的深度理解。
+
+  第五轮升华：实时预览机制
+
+  最关键的突破是实现了字体大小的实时生效：
+  // 修改前：只获取一次字体大小
+  @Local baseFontSize: number = AppStorageV2.connect(...)!.fontSize
+
+  // 修改后：响应式绑定整个配置对象
+  @Local userConfig: UserConfigViewModel = AppStorageV2.connect(...)!
+
+  这个改动让文章页能够实时响应字体大小变化，无需退出重进。
+
+  最终完善：深色模式适配
+
+  Claude主动完成了完整的主题适配工作：
+
+  颜色资源配置（base/dark两套）：
+  - font_adjust_dialog_bg: 弹窗背景色
+  - font_adjust_dialog_title: 标题文字色
+  - font_adjust_slider_track: 滑动条轨道色
+  - 等11个颜色配置项...
+
+  组件引用更新：
+  // 硬编码颜色 → 响应式颜色资源
+  .backgroundColor('#FFFFFF')
+  → .backgroundColor($r('app.color.font_adjust_dialog_bg'))
+
+  开发过程中的亮点
+
+  1. 架构理解能力
+
+  Claude能够快速理解复杂的鸿蒙项目结构，包括：
+  - HSP模块化架构（Entry/Common/Feature）
+  - AppStorageV2状态管理机制
+  - 响应式断点系统
+  - 资源文件组织结构
+
+  2. 问题诊断能力
+
+  面对编译错误时，Claude展现了精准的诊断能力：
+  ERROR: Cannot find name '$this'
+  → 立即识别为双向绑定语法错误
+
+  ERROR: @Param decorator can only be used in @ComponentV2
+  → 准确定位装饰器使用限制
+
+  3. 最佳实践应用
+
+  - 使用设备类型判断实现差异化交互
+  - 通过资源文件实现主题适配
+  - 采用响应式数据绑定确保实时更新
+  - 实现数据持久化存储
+
+  技术难点与解决方案
+
+  | 技术难点           | Claude的解决方案           |
+  |----------------|-----------------------|
+  | 平板bindSheet兼容性 | 设备类型判断+CustomDialog替代 |
+  | 字体大小实时生效       | 响应式对象绑定替代值绑定          |
+  | 深色模式适配         | 完整的color.json双套配置     |
+  | API向后兼容        | try-catch优雅降级         |
+
+  总结思考
+
+  这次尝试让我对AI辅助鸿蒙开发有了新的认知：
+
+  优势明显：
+  - 快速理解复杂架构
+  - 精准的错误诊断和修复
+  - 主动的最佳实践应用
+  - 完整的功能实现链路
+
+  仍需人工参与：
+  - 需求的准确描述
+  - 问题现象的及时反馈
+  - 技术方案的最终决策
+
+  看来Claude烧鸿蒙代码的能力确实超出了我的预期，这为后续的AI辅助开发打开了新的可能性。
+
