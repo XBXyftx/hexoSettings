@@ -1,8 +1,4 @@
 div
-  // 请求限制器 - 必须最早加载，在所有其他脚本之前
-  if globalPageType === 'post'
-    script(src=url_for('/js/request-limiter.js'))
-
   script(src=url_for(theme.asset.utils))
   script(src=url_for(theme.asset.main))
 
@@ -28,6 +24,10 @@ div
   // 文章打字机效果 - 只在文章页面加载
   if globalPageType === 'post'
     script(src=url_for('/js/typewriter-effect.js'))
+
+  // 智能图片加载器 - 只在文章页面加载
+  if globalPageType === 'post'
+    script(src=url_for('/js/smart-image-loader.js'))
 
   // 网络监控器 - 帮助定位503问题
   script(src=url_for('/js/network-monitor.js'))

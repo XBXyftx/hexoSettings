@@ -52,8 +52,12 @@ link(rel='stylesheet', href=url_for(theme.asset.main_css))
 link(rel='stylesheet', href=url_for(theme.asset.fontawesome))
 
 //- 文章打字机效果CSS - 只在文章页面加载
-if globalPageType === 'post'  
+if globalPageType === 'post'
   link(rel='stylesheet', href=url_for('/css/typewriter-effect.css'))
+
+//- 智能图片加载器样式 - 只在文章页面加载
+if globalPageType === 'post'
+  link(rel='stylesheet', href=url_for('/css/smart-image-loader.css'))
 
 //- 入场弹窗样式
 link(rel='stylesheet', href=url_for('/css/entrance-popup.css'))
