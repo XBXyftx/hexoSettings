@@ -33,6 +33,9 @@ div
   script(src=url_for('/js/entrance-popup-config.js'))
   script(src=url_for('/js/entrance-popup.js'))
 
+  // 基础懒加载功能
+  script(src=url_for('/js/lazy-loading.js'))
+
   .js-pjax
     if needLoadCountJs
       != partial("includes/third-party/card-post-count/index", {}, { cache: true })

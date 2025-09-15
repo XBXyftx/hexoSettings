@@ -58,6 +58,9 @@ if globalPageType === 'post'
 //- 入场弹窗样式
 link(rel='stylesheet', href=url_for('/css/entrance-popup.css'))
 
+//- 基础懒加载样式
+link(rel='stylesheet', href=url_for('/css/lazy-loading.css'))
+
 if (theme.snackbar && theme.snackbar.enable)
   link(rel='stylesheet', href=url_for(theme.asset.snackbar_css) media="print" onload="this.media='all'")
 
