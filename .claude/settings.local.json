@@ -11,7 +11,11 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(rm:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "Bash(curl:*)",
+      "WebFetch(domain:xbxyftx.top)"
     ],
     "deny": [],
     "ask": []

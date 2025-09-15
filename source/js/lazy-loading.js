@@ -10,7 +10,7 @@
 
     // 配置
     const config = {
-        scrollDelay: 500, // 停止滚动500ms后开始加载
+        scrollDelay: 200, // 停止滚动200ms后开始加载
         rootMargin: '50px', // 提前50px开始检测
         threshold: 0.1 // 10%可见时触发
     };
@@ -132,11 +132,18 @@
         }, config.scrollDelay);
     }
 
-    // 初始化懒加载
-    function initLazyLoading() {
-        console.log('[Lazy Loading] Initializing...');
+    // 获取图片尺寸类别
+    function getImageSizeClass(img) {
+        const rect = img.getBoundingClientRect();
+        const area = rect.width * rect.height;
 
-        // 为文章内容中的图片添加懒加载类
+        if (area < 10000) return 'small'; // 小于 100x100
+        if (area > 90000) return 'large';  // 大于 300x300
+        return '';
+    }
+
+    // 添加占位符到视窗中的元素
+    function addPlaceholderToVisibleElements() {
         const contentSelectors = [
             '.post-content img',
             '#post-content img',
@@ -149,19 +156,34 @@
             try {
                 const images = document.querySelectorAll(selector);
                 images.forEach(img => {
-                    // 排除特定区域的图片
+                    // 排除特定区域的图片和已处理的图片
                     if (!img.closest('#page-header') &&
                         !img.closest('.avatar') &&
                         !img.closest('.related-post-item') &&
                         !img.closest('.aside-card') &&
-                        !img.closest('.footer')) {
+                        !img.closest('.footer') &&
+                        !img.classList.contains('lazy-image')) {
 
-                        img.classList.add('lazy-image', 'lazy-placeholder');
+                        // 只为在视窗中的图片添加占位符
+                        if (isInViewport(img)) {
+                            const sizeClass = getImageSizeClass(img);
+                            img.classList.add('lazy-image', 'lazy-placeholder');
+                            if (sizeClass) {
+                                img.classList.add(sizeClass);
+                            }
 
-                        // 如果已经有src，保存到data-src
-                        if (img.src && !img.dataset.src) {
-                            img.dataset.src = img.src;
-                            img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                            // 如果已经有src，保存到data-src
+                            if (img.src && !img.dataset.src && !img.src.includes('data:image/gif')) {
+                                img.dataset.src = img.src;
+                                img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                            }
+                        } else {
+                            // 不在视窗中的图片也添加懒加载类，但不显示占位符
+                            img.classList.add('lazy-image');
+                            if (img.src && !img.dataset.src && !img.src.includes('data:image/gif')) {
+                                img.dataset.src = img.src;
+                                img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                            }
                         }
                     }
                 });
@@ -169,8 +191,87 @@
                 console.warn('Selector failed:', selector, e);
             }
         });
+    }
 
-        // 为文章内容中的视频添加懒加载类
+    // 初始化懒加载
+    function initLazyLoading() {
+        console.log('[Lazy Loading] ==================== 开始初始化懒加载 ====================');
+        console.log('[Lazy Loading] Document ready state:', document.readyState);
+        console.log('[Lazy Loading] 当前页面URL:', window.location.href);
+
+        // 为文章内容中的所有图片添加懒加载类和占位符
+        const contentSelectors = [
+            '#article-container img',
+            '.post-content img',
+            '.container.post-content img',
+            'article img'
+        ];
+
+        console.log('[Lazy Loading] 使用的选择器:', contentSelectors);
+        console.log('[Lazy Loading] 开始查找文章图片...');
+
+        contentSelectors.forEach(selector => {
+            try {
+                const images = document.querySelectorAll(selector);
+                console.log(`[Lazy Loading] 选择器 "${selector}" 找到 ${images.length} 张图片`);
+
+                images.forEach((img, index) => {
+                    console.log(`[Lazy Loading] 处理第 ${index + 1} 张图片:`, {
+                        src: img.src,
+                        classes: img.classList.toString(),
+                        parentElement: img.parentElement?.tagName || 'unknown'
+                    });
+
+                    // 排除特定区域的图片
+                    if (!img.closest('#page-header') &&
+                        !img.closest('.avatar') &&
+                        !img.closest('.related-post-item') &&
+                        !img.closest('.aside-card') &&
+                        !img.closest('.footer') &&
+                        !img.classList.contains('lazy-image')) {
+
+                        console.log(`[Lazy Loading] ✅ 图片 ${index + 1} 通过筛选，开始添加懒加载...`);
+
+                        // 获取图片尺寸类别
+                        const sizeClass = getImageSizeClass(img);
+
+                        // 为所有文章内图片添加懒加载类和占位符
+                        img.classList.add('lazy-image', 'lazy-placeholder');
+                        if (sizeClass) {
+                            img.classList.add(sizeClass);
+                        }
+
+                        console.log('[Lazy Loading] Processing image:', img.src, 'Classes added:', img.classList.toString());
+
+                        // 如果已经有src，保存到data-src并替换为占位符
+                        if (img.src && !img.dataset.src && !img.src.includes('data:image/gif')) {
+                            img.dataset.src = img.src;
+                            img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                            console.log('[Lazy Loading] ✅ 图片src已替换为占位符, data-src:', img.dataset.src);
+                        } else {
+                            console.log('[Lazy Loading] ❌ 图片不需要替换src:', {
+                                hasSrc: !!img.src,
+                                hasDataSrc: !!img.dataset.src,
+                                isGif: img.src?.includes('data:image/gif')
+                            });
+                        }
+                    } else {
+                        console.log(`[Lazy Loading] ❌ 图片 ${index + 1} 被排除:`, {
+                            hasPageHeader: !!img.closest('#page-header'),
+                            hasAvatar: !!img.closest('.avatar'),
+                            hasRelatedPost: !!img.closest('.related-post-item'),
+                            hasAsideCard: !!img.closest('.aside-card'),
+                            hasFooter: !!img.closest('.footer'),
+                            hasLazyClass: img.classList.contains('lazy-image')
+                        });
+                    }
+                });
+            } catch (e) {
+                console.warn('Selector failed:', selector, e);
+            }
+        });
+
+        // 为文章内容中的视频添加懒加载类和占位符
         const videoSelectors = [
             '.post-content video',
             '#post-content video',
@@ -190,6 +291,7 @@
                         !video.closest('.aside-card') &&
                         !video.closest('.footer')) {
 
+                        // 为所有文章内视频添加懒加载类和占位符
                         video.classList.add('lazy-video', 'lazy-placeholder');
 
                         // 如果已经有src，保存到data-src
@@ -211,7 +313,12 @@
         // 初始加载可见元素
         setTimeout(processVisibleElements, 100);
 
-        console.log('[Lazy Loading] Initialized successfully');
+        console.log('[Lazy Loading] ==================== 懒加载初始化完成 ====================');
+
+        // 最终统计
+        const allLazyImages = document.querySelectorAll('.lazy-image');
+        const allPlaceholders = document.querySelectorAll('.lazy-placeholder');
+        console.log(`[Lazy Loading] 最终统计: ${allLazyImages.length} 张懒加载图片, ${allPlaceholders.length} 个占位符`);
     }
 
     // 页面加载完成后初始化
