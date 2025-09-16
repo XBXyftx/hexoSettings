@@ -1647,3 +1647,43 @@ Text("点击\"新建\"按钮创建第一个收藏夹")
 图标文件缺失缺失是不能怪AI这它也无能为力，但颜色资源文件的缺失确实更加明显的暴露了Claude在鸿蒙开发领域的知识缺失。
 
 ![18](AITrainingCamp/18.png)
+
+## 新的尝试
+
+经过一段长时间的搏斗之后，始终卡在了
+
+```shell
+Error Message: Cannot read properties of undefined (reading 'indexOf')
+COMPILE RESULT:FAIL {ERROR:1}
+
+* Try the following:
+  > Check whether undefined attributes or methods are used in the hvigorconfig.ts and hvigorfile.ts files.
+  > Go to the official website for help
+  > More info: https://developer.huawei.com/consumer/cn/doc/harmonyos-faqs/faqs-compiling-and-building-108
+```
+
+这一步。
+
+怎么改都改不对。所以我决定回滚然后再次尝试。
+
+### 提示词
+
+我现在需要首先在NewsList组件中的每一个ListItem组件添加一个[swipeAction](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-container-listitem#swipeaction9)划出组件，划出组件中有收藏按钮，点击收藏按钮之后，如果设备为手机则会弹出一个[半模态](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-universal-attributes-sheet-transition)让用户选择要收藏的收藏夹，如果设备类型是平板，则会弹出一个自定义弹窗，使用[List](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/ts-container-list)去渲染全部收藏文件夹信息，第一次收藏时只有一个默认收藏夹，半模态的右上角有一个+号，点击后就进入到创建收藏夹的NavDestination()页面，输入文件夹名称后就可以点击完成。页面返回上一级并刷新对应的半模态或是弹窗。
+
+随后用户点击半模态或是弹窗中的某个收藏文件夹，就会将当前文章添加到该收藏文件夹中。你要合理的进行UI界面功能的修改同时也要创建新的或是更新现有的Manager类来去将用户所收藏的文章的NewsArticle对象存储到KV数据库中，同时也要合理的编排不同收藏文件夹的分类，将一个文件夹设置为一个KV数据库的key，对应的value是一个List<NewsArticle>对象，这样就可以实现不同收藏夹的存储了。在创建新的文件夹时一定要在用户点击确定按钮时注意去重，不要出现相同文件夹名称的情况。还要注意更新appinit的数据初始化过程，要在初始化阶段读取KV数据库中的收藏夹信息。
+
+一定要注意避免以下问题！！！
+
+```shell
+Error Message: Cannot read properties of undefined (reading 'indexOf')
+COMPILE RESULT:FAIL {ERROR:1}
+
+* Try the following:
+  > Check whether undefined attributes or methods are used in the hvigorconfig.ts and hvigorfile.ts files.
+  > Go to the official website for help
+  > More info: https://developer.huawei.com/consumer/cn/doc/harmonyos-faqs/faqs-compiling-and-building-108
+```
+
+### 第二次尝试的结果
+
+在使用了上面的提示词，特别警示了它不雅犯索引错误后确实是能编译运行了，但是运行的结果却是始终无法正常显示选择文件夹弹窗，在反复挣扎之后也无济于事，
