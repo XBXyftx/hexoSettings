@@ -25,9 +25,16 @@ div
   if globalPageType === 'post'
     script(src=url_for('/js/typewriter-effect.js'))
 
+  // 网络监控器 - 帮助定位503问题
+  script(src=url_for('/js/network-monitor.js'))
+  script(src=url_for('/js/topimg-monitor.js'))
+
   // 入场弹窗功能
   script(src=url_for('/js/entrance-popup-config.js'))
   script(src=url_for('/js/entrance-popup.js'))
+
+  // 基础懒加载功能
+  script(src=url_for('/js/lazy-loading.js'))
 
   .js-pjax
     if needLoadCountJs

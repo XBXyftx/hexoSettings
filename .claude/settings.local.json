@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(hexo clean:*)",
+      "Bash(hexo generate:*)",
+      "Bash(hexo deploy:*)",
+      "Bash(hexo cl:*)",
+      "Bash(hexo:*)",
+      "Bash(hexo d:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(rm:*)",
+      "WebSearch",
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "Bash(curl:*)",
+      "WebFetch(domain:xbxyftx.top)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
