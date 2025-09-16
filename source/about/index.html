@@ -927,7 +927,7 @@
                             <h2>AI辅助编程专家</h2>
                         </div>
                         <p class="card-description">
-                            深度使用过VSCode、Trae、Cursor，也深度体验了扣子、硅基流动、ollama等常用AI应用搭建工具。
+                            深度使用过VSCode、Trae、Cursor，也深度体验了扣子、硅基流动、ollama等常用AI应用搭建工具。近期也是使用了cc去进行开发。
                         </p>
                         <div class="ai-tools">
                             <div class="tool-category">
@@ -946,6 +946,33 @@
                                     <span class="tool-tag">Ollama</span>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-row">
+                <div class="card card-right">
+                    <div class="card-images">
+                        <div class="carousel-container" data-carousel="ai">
+                            <div class="carousel-slide active">
+                                <img src="NowInOpenHarmony1.jpg" alt="NowInOpenHarmony1.jpg">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="NowInOpenHarmony2.png" alt="NowInOpenHarmony2.png">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-header">
+                            <div class="card-icon">🤖</div>
+                            <h2>开源鸿蒙共建者</h2>
+                        </div>
+                        <p class="card-description">
+                            通过开源之夏，向<a href="https://gitcode.com/openharmony-sig/ostest_integration_test" target="_blank" class="project-link">openharmony-sig/ostest_integration_test集成测试仓</a>openharmony-sig/ostest_integration_test集成测试仓贡献了开源鸿蒙项目NowInOpenHarmony。
+                        </p>
+                        <div class="highlights">
+                            <div class="highlight-item">NowInOpenHarmony</div>
                         </div>
                     </div>
                 </div>
@@ -974,58 +1001,33 @@
         </div>
     </div>
 
+    <!-- 引入关于页面专用懒加载脚本 -->
+    <script src="lazy-loading-about.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 轮播功能
-            function initCarousel() {
-                const carousels = document.querySelectorAll('.carousel-container');
-                
-                carousels.forEach((carousel, index) => {
-                    const slides = carousel.querySelectorAll('.carousel-slide');
-                    let currentSlide = 0;
-                    
-                    function nextSlide() {
-                        slides[currentSlide].classList.remove('active');
-                        currentSlide = (currentSlide + 1) % slides.length;
-                        slides[currentSlide].classList.add('active');
-                    }
-                    
-                    // 每个轮播使用不同的延迟时间，避免所有图片同时切换
-                    const delay = index * 400; // 每个轮播错开400ms
-                    setTimeout(() => {
-                        setInterval(nextSlide, 2000); // 每2秒切换一次
-                    }, delay);
-                });
-            }
+            // 轮播功能现在由懒加载脚本管理，这里仅保留备用逻辑
             
-            initCarousel();
-            
-            // 图片懒加载和动画
-            const images = document.querySelectorAll('img');
-            const imageObserver = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const img = entry.target;
-                        img.style.opacity = '0';
-                        img.style.transform = 'scale(0.9)';
-                        img.style.transition = 'all 0.6s ease';
-                        
-                        setTimeout(() => {
-                            img.style.opacity = '1';
-                            img.style.transform = 'scale(1)';
-                        }, 100);
-                        
-                        observer.unobserve(img);
-                    }
-                });
-            });
-            
-            images.forEach(img => {
-                imageObserver.observe(img);
-            });
-            
+            // 监听懒加载完成事件，添加额外的增强效果
+            document.addEventListener('cardRowImagesLoaded', function(event) {
+                const { index, cardRow } = event.detail;
+                console.log(`卡片行 ${index} 图片加载完成，添加增强效果`);
 
-            
+                // 为新加载的图片添加悬浮效果
+                const images = cardRow.querySelectorAll('img');
+                images.forEach(img => {
+                    img.addEventListener('mouseenter', () => {
+                        img.style.transform = 'scale(1.05)';
+                        img.style.boxShadow = '0 8px 25px rgba(74, 144, 226, 0.3)';
+                    });
+
+                    img.addEventListener('mouseleave', () => {
+                        img.style.transform = 'scale(1)';
+                        img.style.boxShadow = '';
+                    });
+                });
+            });
+
             // 卡片hover效果增强
             const cards = document.querySelectorAll('.card');
             cards.forEach(card => {
@@ -1061,5 +1063,23 @@
                 el.style.transition = 'all 0.6s ease';
                 observer.observe(el);
             });
+
+            // 添加懒加载状态监控（开发环境下）
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                // 每隔3秒显示加载状态
+                setInterval(() => {
+                    if (window.AboutPageLazyLoading) {
+                        const status = window.AboutPageLazyLoading.getStatus();
+                        console.log(`[About Page] 懒加载状态: ${status.loaded}/${status.total} (${status.progress})`);
+                    }
+                }, 3000);
+
+                // 提供手动控制接口
+                window.debugLazyLoading = {
+                    status: () => window.AboutPageLazyLoading?.getStatus(),
+                    forceLoad: (index) => window.AboutPageLazyLoading?.forceLoadCardRow(index),
+                    destroy: () => window.AboutPageLazyLoading?.destroy()
+                };
+            }
         });
     </script>
