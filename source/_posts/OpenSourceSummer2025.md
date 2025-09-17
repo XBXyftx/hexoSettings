@@ -70,8 +70,6 @@ NowInOpenHarmony
 
 <!-- timeline 07-14 -->
 7.14至7.27完成完成后端开发（完成）√
-
-轮播图接口待开发
 <!-- endtimeline -->
 
 <!-- timeline 07-28 -->
