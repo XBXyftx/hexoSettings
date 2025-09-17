@@ -39,31 +39,17 @@ description: "这里是你的个人简介"
 
 .waterfall-item.visible {
   opacity: 1;
-  transform: translateY(0) scale(1) rotateX(0deg);
-  visibility: visible; /* 定位完成后显示 */
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3),
-              0 0 0 2px rgba(135, 206, 250, 0.5),
-              0 0 0 4px rgba(0, 255, 127, 0.4);
-  animation: colorfulGlow 0.8s ease-out;
+  transform: translateY(0) scale(1) rotateX(0deg) rotateY(0deg) rotateZ(var(--random-rotation, 0deg));
+  visibility: visible;
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(138, 43, 226, 0.6),
+    0 0 50px rgba(72, 61, 139, 0.4),
+    0 0 70px rgba(0, 255, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  animation: auroraGlow 1.2s ease-out, auroraFloat 4s ease-in-out infinite 1.5s;
 }
 
-@keyframes colorfulGlow {
-  0% {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
-                0 0 0 0px rgba(135, 206, 250, 0),
-                0 0 0 0px rgba(0, 255, 127, 0);
-  }
-  50% {
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3),
-                0 0 0 3px rgba(135, 206, 250, 0.8),
-                0 0 0 6px rgba(0, 255, 127, 0.7);
-  }
-  100% {
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3),
-                0 0 0 2px rgba(135, 206, 250, 0.5),
-                0 0 0 4px rgba(0, 255, 127, 0.4);
-  }
-}
 
 .waterfall-item.positioned {
   visibility: visible; /* 定位完成后立即显示 */
@@ -355,20 +341,28 @@ body {
 </div>
 
 <script>
-// 配置参数
+// 极光主题优化配置参数
 const config = {
   // 图片文件夹路径（相对于当前页面）
   imageFolderPath: '/swiper/images/',
   // 支持的图片格式
   supportedFormats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'],
-  loadDelay: 100, // 增加加载间隔到100ms，减少并发压力
-  concurrentLoads: 4, // 减少并发数量到4，避免浏览器限制
-  preloadCount: 5, // 减少预加载数量到5
-  imageTimeout: 8000, // 增加单图超时到8秒
-  batchTimeout: 15000, // 增加批次超时到15秒
+  loadDelay: 80, // 优化加载间隔，平衡性能和用户体验
+  concurrentLoads: 6, // 适度增加并发数，现代浏览器性能更好
+  preloadCount: 10, // 增加预加载数量，提升体验
+  imageTimeout: 5000, // 优化超时时间
+  batchTimeout: 10000, // 优化批次超时
   observerOptions: {
-    threshold: 0.1, // 降低阈值，更早触发显示
-    rootMargin: '50px' // 增加边距，提前加载
+    threshold: [0, 0.1, 0.25, 0.5], // 多级阈值，更精确的显示控制
+    rootMargin: '150px 0px 300px 0px' // 上方150px，下方300px提前触发
+  },
+  // 极光动画配置
+  aurora: {
+    enableFloatAnimation: true, // 启用浮动动画
+    staggerDelay: 100, // 错开显示延迟
+    glowIntensity: 0.8, // 发光强度
+    hoverScale: 1.08, // 悬停缩放比例
+    randomRotation: true // 随机轻微旋转
   },
   // 缓存配置
   cache: {
@@ -633,34 +627,53 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // 创建Intersection Observer用于监听元素进入视口
+  // 创建增强版Intersection Observer - 极光主题懒加载
   const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
+    entries.forEach((entry, index) => {
       const item = entry.target;
-      
+      const intersectionRatio = entry.intersectionRatio;
+
       if (entry.isIntersecting) {
-        // 进入视口，添加浮现动画
+        // 进入视口，添加极光主题浮现动画
         if (!item.classList.contains('visible')) {
-          // 随机延迟，让图片逐个浮现
-          const delay = Math.random() * 300 + 50; // 50-350ms 随机延迟
-          
+          // 基于可见度比例和配置的错开延迟计算
+          const baseDelay = config.aurora.staggerDelay || 100;
+          const randomFactor = config.aurora.randomRotation ? Math.random() * 200 : 0;
+          const visibilityDelay = (1 - intersectionRatio) * 150; // 越可见越快显示
+          const delay = baseDelay + randomFactor + visibilityDelay;
+
+          // 添加轻微随机旋转（如果启用）
+          if (config.aurora.randomRotation) {
+            const randomRotation = (Math.random() - 0.5) * 3; // -1.5到1.5度
+            item.style.setProperty('--random-rotation', `${randomRotation}deg`);
+          }
+
           setTimeout(() => {
             item.classList.add('visible');
-            console.log(`🎬 图片进入视口浮现显示，延迟: ${delay.toFixed(0)}ms`);
+
+            // 触发自定义极光显示事件
+            const showEvent = new CustomEvent('auroraItemShow', {
+              detail: { item, intersectionRatio, delay }
+            });
+            document.dispatchEvent(showEvent);
+
+            console.log(`✨ 极光图片浮现 - 可见度: ${(intersectionRatio * 100).toFixed(1)}%, 延迟: ${delay.toFixed(0)}ms`);
           }, delay);
         }
       } else {
-        // 离开视口，立即隐藏等待下次浮现动画
+        // 离开视口时的处理 - 保持更平滑的隐藏
         if (item.classList.contains('visible')) {
-          item.classList.remove('visible');
-          console.log(`👻 图片离开视口，隐藏等待下次浮现`);
+          // 添加短暂延迟，避免快速滚动时频繁切换
+          setTimeout(() => {
+            if (!entry.isIntersecting) { // 再次确认确实离开了视口
+              item.classList.remove('visible');
+              console.log(`🌙 极光图片渐隐`);
+            }
+          }, 100);
         }
       }
     });
-  }, {
-    threshold: 0.1, // 当图片10%可见时触发
-    rootMargin: '50px' // 提前50px开始动画
-  });
+  }, config.observerOptions);
 
   // 尝试自动读取本地图片文件夹
   async function loadLocalImages() {
@@ -717,14 +730,91 @@ document.addEventListener('DOMContentLoaded', function() {
     return validImages.length > 0 ? validImages : null;
   }
 
-  // 数组随机打乱函数
+  // 增强版随机打乱函数 - 极光走马灯效果
   function shuffleArray(array) {
+    console.log(`🎲 开始极光走马灯随机化，原始数量: ${array.length}`);
+
+    // 创建带时间戳的随机种子，确保每次刷新都不同
+    const timeBasedSeed = Date.now() % 1000000;
+    console.log(`⏰ 时间随机种子: ${timeBasedSeed}`);
+
+    // Fisher-Yates洗牌算法 + 时间种子
     const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    let randomSeed = timeBasedSeed;
+
+    // 自定义随机数生成器（基于线性同余生成器）
+    function customRandom() {
+      randomSeed = (randomSeed * 9301 + 49297) % 233280;
+      return randomSeed / 233280;
     }
+
+    // 多轮洗牌，增加随机性
+    for (let round = 0; round < 3; round++) {
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        // 结合Math.random和customRandom
+        const randomFactor1 = Math.random();
+        const randomFactor2 = customRandom();
+        const combinedRandom = (randomFactor1 + randomFactor2) / 2;
+
+        const j = Math.floor(combinedRandom * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+    }
+
+    // 额外的分组随机化 - 防止相似文件名聚集
+    const chunkSize = Math.max(3, Math.floor(shuffled.length / 8));
+    for (let i = 0; i < shuffled.length; i += chunkSize) {
+      const chunk = shuffled.slice(i, i + chunkSize);
+      const reshuffledChunk = chunk.sort(() => Math.random() - 0.5);
+      shuffled.splice(i, chunkSize, ...reshuffledChunk);
+    }
+
+    console.log(`✨ 极光走马灯随机化完成，最终顺序预览:`,
+      shuffled.slice(0, 5).map(url => url.split('/').pop()));
+
     return shuffled;
+  }
+
+  // 极光主题随机显示增强器
+  function enhanceAuroraRandomization(imageList) {
+    // 基于文件名特征进行智能分组
+    const groups = {
+      similar: [], // 相似文件名
+      different: [], // 不同类型
+      mixed: []    // 混合类型
+    };
+
+    imageList.forEach(url => {
+      const filename = url.split('/').pop();
+      const hasHash = /^[a-f0-9]{30,}/.test(filename); // 检测hash命名
+      const hasNumber = /\d+/.test(filename);          // 检测数字
+
+      if (hasHash) {
+        groups.similar.push(url);
+      } else if (hasNumber) {
+        groups.different.push(url);
+      } else {
+        groups.mixed.push(url);
+      }
+    });
+
+    // 分别打乱各组
+    Object.keys(groups).forEach(key => {
+      groups[key] = shuffleArray(groups[key]);
+    });
+
+    // 交错合并各组，创造更好的视觉多样性
+    const result = [];
+    const maxLength = Math.max(groups.similar.length, groups.different.length, groups.mixed.length);
+
+    for (let i = 0; i < maxLength; i++) {
+      if (groups.similar[i]) result.push(groups.similar[i]);
+      if (groups.different[i]) result.push(groups.different[i]);
+      if (groups.mixed[i]) result.push(groups.mixed[i]);
+    }
+
+    // 最后再次整体打乱
+    return shuffleArray(result);
   }
 
   // 带缓存的图片预加载
@@ -1063,13 +1153,14 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // 分批加载图片（优化版 + 随机化 + 缓存）
+  // 极光主题分批加载图片（增强随机化 + 智能缓存）
   async function loadImages(imageList) {
-    // 随机打乱图片顺序
-    const randomizedImages = shuffleArray(imageList);
-    console.log(`🎲 图片列表已随机打乱: ${randomizedImages.length} 张图片`);
+    // 使用增强版随机化
+    console.log(`🌟 开始极光走马灯处理 ${imageList.length} 张图片`);
+    const enhancedRandomImages = enhanceAuroraRandomization(imageList);
+    console.log(`✨ 极光走马灯随机化完成: ${enhancedRandomImages.length} 张图片`);
     
-    allImages = randomizedImages;
+    allImages = enhancedRandomImages;
     currentBatch = 0;
     loadedCount = 0;
     activeLoads = 0;
@@ -1077,7 +1168,7 @@ document.addEventListener('DOMContentLoaded', function() {
     grid.innerHTML = ''; // 清空现有内容
     resetLayout(); // 重置布局
 
-    if (randomizedImages.length === 0) {
+    if (enhancedRandomImages.length === 0) {
       showEmptyState();
       hideLoadingIndicator();
       return;
@@ -1085,7 +1176,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 获取缓存统计
     if (imageCache && imageCache.ready) {
-      cacheStats = await imageCache.getCacheStats(randomizedImages);
+      cacheStats = await imageCache.getCacheStats(enhancedRandomImages);
       console.log(`📊 缓存统计: ${cacheStats.cached}/${cacheStats.total} 张图片已缓存，需要加载 ${cacheStats.remaining} 张`);
       
       // 更新加载提示
@@ -1095,16 +1186,16 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    console.log(`🚀 开始加载 ${randomizedImages.length} 张图片，并发数: ${config.concurrentLoads}`);
+    console.log(`🚀 开始极光加载 ${enhancedRandomImages.length} 张图片，并发数: ${config.concurrentLoads}`);
 
     // 显示进度指示器（当图片数量大于1批时）
-    if (randomizedImages.length > BATCH_SIZE) {
+    if (enhancedRandomImages.length > BATCH_SIZE) {
       showProgressIndicator();
       updateProgress();
     }
 
     // 预加载前几张图片
-    preloadInitialImages(randomizedImages);
+    preloadInitialImages(enhancedRandomImages);
 
     // 加载第一批图片
     loadNextBatch();

@@ -15,7 +15,8 @@
       "Bash(findstr:*)",
       "Bash(dir:*)",
       "Bash(curl:*)",
-      "WebFetch(domain:xbxyftx.top)"
+      "WebFetch(domain:xbxyftx.top)",
+      "Bash(npm run server:*)"
     ],
     "deny": [],
     "ask": []
