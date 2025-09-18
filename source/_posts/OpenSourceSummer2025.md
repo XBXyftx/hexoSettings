@@ -9917,4 +9917,155 @@ https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=2&pag
 
 ### 问题描述
 
-最早发现这个问题是出现在了因为AI训练营，曾老师给我推荐了一个远程AIcoding的神奇手机软件，[Happy](https://github.com/slopus/happy)，很神奇，页确实很好用，于是我就决定用它配合向日葵来尝试一下远程编码的感觉，于是下载了普通手机形态的模拟器，将原本的程序在模拟器上一跑我才发现不对劲。
+最早发现这个问题是出现在了因为AI训练营，曾老师给我推荐了一个远程AIcoding的神奇手机软件，Happy，很神奇，页确实很好用，于是我就决定用它配合向日葵来尝试一下远程编码的感觉，于是下载了普通手机形态的模拟器，将原本的程序在模拟器上一跑我才发现不对劲。
+
+<div style="
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  border: 1px solid #404040;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  max-width: 500px;
+">
+  <div style="display: flex; align-items: center; margin-bottom: 12px;">
+    <svg style="width: 20px; height: 20px; margin-right: 8px; fill: #ffffff;" viewBox="0 0 16 16">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+    </svg>
+    <h3 style="margin: 0; color: #ffffff; font-size: 18px; font-weight: 600;">
+      <a href="https://github.com/slopus/happy" style="color: #ffffff; text-decoration: none;">
+        slopus/happy
+      </a>
+    </h3>
+  </div>
+  <p style="color: #d4d4d4; margin: 0 0 16px 0; font-size: 14px; line-height: 1.5;">
+    Mobile and Web client for Claude Code, with realtime voice, encryption and fully featured
+  </p>
+  <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
+    <span style="display: flex; align-items: center; color: #d4d4d4; font-size: 12px;">
+      <span style="
+        width: 12px;
+        height: 12px;
+        background: #3178c6;
+        border-radius: 50%;
+        margin-right: 6px;
+      "></span>
+      TypeScript
+    </span>
+    <span style="display: flex; align-items: center; color: #d4d4d4; font-size: 12px;">
+      <svg style="width: 12px; height: 12px; margin-right: 4px; fill: #d4d4d4;" viewBox="0 0 16 16">
+        <path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/>
+      </svg>
+      1.8k
+    </span>
+    <span style="display: flex; align-items: center; color: #d4d4d4; font-size: 12px;">
+      <svg style="width: 12px; height: 12px; margin-right: 4px; fill: #d4d4d4;" viewBox="0 0 16 16">
+        <path d="M5 3.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm0 2.122a2.25 2.25 0 10-1.5 0v.878A2.25 2.25 0 005.75 8.5h1.5v2.128a2.251 2.251 0 101.5 0V8.5h1.5a2.25 2.25 0 002.25-2.25v-.878a2.25 2.25 0 10-1.5 0v.878a.75.75 0 01-.75.75h-4.5A.75.75 0 015 6.25v-.878z"/>
+      </svg>
+      122
+    </span>
+    <span style="color: #22c55e; font-size: 12px; background: rgba(34, 197, 94, 0.1); padding: 2px 6px; border-radius: 4px;">
+      MIT
+    </span>
+  </div>
+  <div style="margin-top: 12px;">
+    <a href="https://github.com/slopus/happy"
+       style="
+         color: #ffffff;
+         text-decoration: none;
+         font-size: 12px;
+         border: 1px solid #404040;
+         padding: 6px 12px;
+         border-radius: 6px;
+         background: rgba(255, 255, 255, 0.05);
+         transition: all 0.2s ease;
+         display: inline-block;
+       "
+       onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'"
+       onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
+      查看仓库
+    </a>
+  </div>
+</div>
+
+![80](OpenSourceSummer2025/80.png)
+
+对没错它很违和的折行了，这谁受得了，我必须得解决一下，单纯的限制宽度很显然是不显示的，我们虽然可以直接写text的组件宽度为百分之多少来去限制宽度，但是文字的大小不变的花还是会出现折行的情况，如果我直接手动进行单词的花粉并添加折行符号的话显示效果又不太好所以我决定去获取一下屏幕的宽度随后再计算一下文字大小。
+
+### issue创建
+
+这次我决定要规范一下这个新功能的增加过程，于是先去github创建了一个issue。
+
+<div style="
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  border: 1px solid #404040;
+  border-left: 4px solid #28a745;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  max-width: 500px;
+">
+  <div style="display: flex; align-items: center; margin-bottom: 12px;">
+    <svg style="width: 20px; height: 20px; margin-right: 8px; fill: #28a745;" viewBox="0 0 16 16">
+      <path d="M8 9.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+      <path fill-rule="evenodd" d="M8 0a8 8 0 100 16A8 8 0 008 0zM1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0z"/>
+    </svg>
+    <span style="color: #28a745; font-size: 12px; font-weight: 600; margin-right: 8px;">OPEN</span>
+    <h3 style="margin: 0; color: #ffffff; font-size: 16px; font-weight: 600;">
+      <a href="https://github.com/ifLabVibe/NowInOpenHarmony/issues/1" style="color: #ffffff; text-decoration: none;">
+        启动页字体适配问题
+      </a>
+    </h3>
+  </div>
+  <div style="display: flex; align-items: center; margin-bottom: 12px;">
+    <span style="color: #d4d4d4; font-size: 12px; margin-right: 16px;">
+      #1
+    </span>
+    <span style="color: #d4d4d4; font-size: 12px; margin-right: 16px;">
+      ifLabVibe/NowInOpenHarmony
+    </span>
+  </div>
+  <p style="color: #d4d4d4; margin: 0 0 16px 0; font-size: 14px; line-height: 1.5;">
+    当前启动页缺少多设备适配，硬编码的数据仅针对PuraX系列手机屏幕宽度优化，在普通手机屏幕上会出现换行问题。
+  </p>
+  <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
+    <span style="display: flex; align-items: center; color: #d4d4d4; font-size: 12px;">
+      <svg style="width: 12px; height: 12px; margin-right: 4px; fill: #d4d4d4;" viewBox="0 0 16 16">
+        <path d="M8 2a.75.75 0 01.75.75v3.5h3.5a.75.75 0 010 1.5h-3.5v3.5a.75.75 0 01-1.5 0v-3.5h-3.5a.75.75 0 010-1.5h3.5v-3.5A.75.75 0 018 2z"/>
+      </svg>
+      XBXyftx
+    </span>
+    <span style="display: flex; align-items: center; color: #d4d4d4; font-size: 12px;">
+      <svg style="width: 12px; height: 12px; margin-right: 4px; fill: #d4d4d4;" viewBox="0 0 16 16">
+        <path d="M1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0zM8 0a8 8 0 100 16A8 8 0 008 0zm.5 4.75a.75.75 0 00-1.5 0v3.5a.75.75 0 00.471.696l2.5 1a.75.75 0 00.557-1.392L8.5 7.742V4.75z"/>
+      </svg>
+      Sep 18, 2025
+    </span>
+    <span style="color: #28a745; font-size: 12px; background: rgba(40, 167, 69, 0.1); padding: 2px 6px; border-radius: 4px;">
+      需要修复
+    </span>
+  </div>
+  <div style="margin-top: 12px;">
+    <a href="https://github.com/ifLabVibe/NowInOpenHarmony/issues/1"
+       style="
+         color: #ffffff;
+         text-decoration: none;
+         font-size: 12px;
+         border: 1px solid #404040;
+         padding: 6px 12px;
+         border-radius: 6px;
+         background: rgba(255, 255, 255, 0.05);
+         transition: all 0.2s ease;
+         display: inline-block;
+       "
+       onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'"
+       onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
+      查看Issue
+    </a>
+  </div>
+</div>
