@@ -39,117 +39,61 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ## 博客是什么
 
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);" onclick="window.open('https://blog.zhheo.com/', '_blank')" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(102, 126, 234, 0.4)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.3)'">
+<div style="position: relative; z-index: 2;">
+<div style="display: flex; align-items: center; margin-bottom: 16px;">
+<span style="font-size: 24px; margin-right: 12px;">🌟</span>
+<h3 style="margin: 0; font-size: 20px; font-weight: 600; color: #87CEEB;">张洪Heo - blog.zhheo.com</h3>
+</div>
+<p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">专注设计与科技生活分享，涵盖产品设计、UI/UX、软件开发等领域，拥有自研AI搜索和丰富交互功能的现代化博客。</p>
+<div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+<span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">设计分享</span>
+<span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">UI/UX</span>
+<span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">AI搜索</span>
+</div>
+<a href="https://blog.zhheo.com/" target="_blank" style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 10px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); font-weight: 500; transition: all 0.2s ease;" onclick="event.stopPropagation()" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 2px 8px rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+<span style="margin-right: 8px;">🔗</span>
+访问博客
+</a>
+</div>
+</div>
 
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 30px; margin: 40px 0; padding: 0 15px; perspective: 1000px;">
-  <!-- 张洪Heo的博客卡片 -->
-  <div style="position: relative; overflow: hidden; background: linear-gradient(135deg, #667eea 0%, #764ba2 30%, #f093fb 70%, #ff6b9d 100%); border-radius: 25px; padding: 30px; box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2); transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1); cursor: pointer; transform-style: preserve-3d; border: 1px solid rgba(255,255,255,0.2);" onclick="window.open('https://blog.zhheo.com/', '_blank')" onmouseover="this.style.transform='translateY(-25px) rotateX(8deg) rotateY(-2deg) scale(1.02)'; this.style.boxShadow='0 40px 80px rgba(102, 126, 234, 0.4), 0 0 0 1px rgba(255,255,255,0.3), inset 0 2px 0 rgba(255,255,255,0.4), 0 0 100px rgba(102, 126, 234, 0.2)'; this.style.filter='brightness(1.1) saturate(1.2)'" onmouseout="this.style.transform='translateY(0) rotateX(0deg) rotateY(0deg) scale(1)'; this.style.boxShadow='0 20px 60px rgba(102, 126, 234, 0.3), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'; this.style.filter='brightness(1) saturate(1)'">
-    <!-- 光影效果层 -->
-    <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 50%); opacity: 0; transition: opacity 0.5s ease; pointer-events: none;" onmouseover="this.style.opacity='0.3'" onmouseout="this.style.opacity='0'"></div>
-    <!-- 动态装饰元素 -->
-    <div style="position: absolute; width: 100%; height: 100%; pointer-events: none; top: 0; left: 0;">
-      <span style="position: absolute; top: 8%; left: 85%; color: rgba(255,255,255,0.9); font-size: 16px; transform: scale(0.8) rotate(-15deg); transition: all 0.4s ease; filter: drop-shadow(0 0 8px rgba(255,255,255,0.5));">✨</span>
-      <span style="position: absolute; top: 25%; left: 5%; color: rgba(255,255,255,0.8); font-size: 14px; transform: scale(0.9) rotate(10deg); transition: all 0.4s ease; filter: drop-shadow(0 0 6px rgba(255,255,255,0.4));">💫</span>
-      <span style="position: absolute; top: 75%; left: 88%; color: rgba(255,255,255,0.95); font-size: 18px; transform: scale(1.1) rotate(-8deg); transition: all 0.4s ease; filter: drop-shadow(0 0 10px rgba(255,255,255,0.6));">⭐</span>
-      <span style="position: absolute; top: 65%; left: 8%; color: rgba(255,255,255,0.7); font-size: 12px; transform: scale(0.7) rotate(25deg); transition: all 0.4s ease; filter: drop-shadow(0 0 4px rgba(255,255,255,0.3));">✨</span>
-    </div>
-    <!-- 浮动粒子 -->
-    <div style="position: absolute; top: 12%; right: 12%; width: 8px; height: 8px; background: radial-gradient(circle, rgba(255,255,255,0.6), rgba(255,255,255,0.2)); border-radius: 50%; opacity: 0; transition: all 0.6s ease; box-shadow: 0 0 15px rgba(255,255,255,0.4);"></div>
-    <div style="position: absolute; top: 40%; right: 8%; width: 6px; height: 6px; background: radial-gradient(circle, rgba(255,255,255,0.5), rgba(255,255,255,0.1)); border-radius: 50%; opacity: 0; transition: all 0.6s ease; box-shadow: 0 0 12px rgba(255,255,255,0.3);"></div>
-    <div style="position: absolute; bottom: 20%; right: 15%; width: 10px; height: 10px; background: radial-gradient(circle, rgba(255,255,255,0.7), rgba(255,255,255,0.3)); border-radius: 50%; opacity: 0; transition: all 0.6s ease; box-shadow: 0 0 18px rgba(255,255,255,0.5);"></div>
-    <div style="position: relative; z-index: 3; display: flex; align-items: center; margin-bottom: 25px;">
-      <div style="position: relative; transition: all 0.5s ease; width: 70px; height: 70px; background: linear-gradient(45deg, rgba(255,255,255,0.25), rgba(255,255,255,0.45)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 20px; backdrop-filter: blur(15px); border: 2px solid rgba(255,255,255,0.4); box-shadow: 0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);" onmouseover="this.style.transform='rotateY(360deg) scale(1.15)'; this.style.boxShadow='0 0 25px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.5)'" onmouseout="this.style.transform='rotateY(0deg) scale(1)'; this.style.boxShadow='0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3)'">
-        <span style="font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">🌟</span>
-      </div>
-      <div>
-        <h3 style="margin: 0; color: white; font-size: 22px; font-weight: bold; text-shadow: 0 3px 6px rgba(0,0,0,0.4), 0 0 20px rgba(255,255,255,0.3); letter-spacing: 0.5px;">张洪Heo</h3>
-        <p style="margin: 6px 0 0 0; color: rgba(255,255,255,0.95); font-size: 15px; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.3);">blog.zhheo.com</p>
-      </div>
-    </div>
-    <div style="margin: 20px 0; border-radius: 15px; overflow: hidden; box-shadow: 0 12px 35px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.2); transition: all 0.5s ease; position: relative;" onmouseover="this.style.transform='scale(1.03) rotateY(2deg)'; this.style.boxShadow='0 20px 50px rgba(0,0,0,0.4), 0 0 0 2px rgba(255,255,255,0.3), 0 0 30px rgba(102, 126, 234, 0.3)'" onmouseout="this.style.transform='scale(1) rotateY(0deg)'; this.style.boxShadow='0 12px 35px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.2)'">
-      <img src="https://bu.dusays.com/2025/06/27/685e62a90e4c5.png" alt="张洪Heo博客预览" style="width: 100%; height: auto; display: block; border: 3px solid rgba(255,255,255,0.4); transition: all 0.3s ease; filter: brightness(1.05) contrast(1.1);">
-    </div>
-    <p style="color: rgba(255,255,255,0.98); font-size: 16px; line-height: 1.8; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.3); font-weight: 400; letter-spacing: 0.3px;">
-      专注设计与科技生活分享，涵盖产品设计、UI/UX、软件开发等领域，拥有自研AI搜索和丰富交互功能的现代化博客。
-    </p>
-    <div style="margin-top: 25px; display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: rgba(255,255,255,0.1); border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
-      <span style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">点击访问</span>
-      <span style="transition: all 0.4s ease; display: inline-block; color: white; font-size: 24px; font-weight: bold; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));" onmouseover="this.style.transform='translateX(8px) rotate(25deg) scale(1.2)'; this.style.color='#FFD700'; this.style.filter='drop-shadow(0 0 10px #FFD700)'" onmouseout="this.style.transform='translateX(0) rotate(0deg) scale(1)'; this.style.color='white'; this.style.filter='drop-shadow(0 2px 4px rgba(0,0,0,0.3))'">→</span>
-    </div>
-  </div>
+<div style="background: linear-gradient(135deg, #11998e 0%, #00d4aa 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);" onclick="window.open('https://www.liushen.fun/', '_blank')" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(17, 153, 142, 0.4)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(17, 153, 142, 0.3)'">
+<div style="position: relative; z-index: 2;">
+<div style="display: flex; align-items: center; margin-bottom: 16px;">
+<span style="font-size: 24px; margin-right: 12px;">🚀</span>
+<h3 style="margin: 0; font-size: 20px; font-weight: 600; color: #87CEEB;">清羽飞扬 - www.liushen.fun</h3>
+</div>
+<p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">前端开发学生的技术成长记录，分享开源项目、深度学习经验，以及自建的多个实用工具，技术驱动的开放博客。</p>
+<div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+<span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">前端开发</span>
+<span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">开源项目</span>
+<span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">实用工具</span>
+</div>
+<a href="https://www.liushen.fun/" target="_blank" style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 10px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); font-weight: 500; transition: all 0.2s ease;" onclick="event.stopPropagation()" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 2px 8px rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+<span style="margin-right: 8px;">🔗</span>
+访问博客
+</a>
+</div>
+</div>
 
-  <!-- 清羽飞扬的博客卡片 -->
-  <div style="position: relative; overflow: hidden; background: linear-gradient(135deg, #11998e 0%, #38ef7d 30%, #a8edea 70%, #00d4aa 100%); border-radius: 25px; padding: 30px; box-shadow: 0 20px 60px rgba(17, 153, 142, 0.3), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2); transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1); cursor: pointer; transform-style: preserve-3d; border: 1px solid rgba(255,255,255,0.2);" onclick="window.open('https://www.liushen.fun/', '_blank')" onmouseover="this.style.transform='translateY(-25px) rotateX(8deg) rotateY(-2deg) scale(1.02)'; this.style.boxShadow='0 40px 80px rgba(17, 153, 142, 0.4), 0 0 0 1px rgba(255,255,255,0.3), inset 0 2px 0 rgba(255,255,255,0.4), 0 0 100px rgba(17, 153, 142, 0.2)'; this.style.filter='brightness(1.1) saturate(1.2)'" onmouseout="this.style.transform='translateY(0) rotateX(0deg) rotateY(0deg) scale(1)'; this.style.boxShadow='0 20px 60px rgba(17, 153, 142, 0.3), 0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'; this.style.filter='brightness(1) saturate(1)'">
-    <!-- 光影效果层 -->
-    <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 50%); opacity: 0; transition: opacity 0.5s ease; pointer-events: none;" onmouseover="this.style.opacity='0.3'" onmouseout="this.style.opacity='0'"></div>
-    <!-- 动态装饰元素 -->
-    <div style="position: absolute; width: 100%; height: 100%; pointer-events: none; top: 0; left: 0;">
-      <span style="position: absolute; top: 8%; left: 85%; color: rgba(255,255,255,0.9); font-size: 16px; transform: scale(0.8) rotate(-15deg); transition: all 0.4s ease; filter: drop-shadow(0 0 8px rgba(255,255,255,0.5));">🚀</span>
-      <span style="position: absolute; top: 25%; left: 5%; color: rgba(255,255,255,0.8); font-size: 14px; transform: scale(0.9) rotate(10deg); transition: all 0.4s ease; filter: drop-shadow(0 0 6px rgba(255,255,255,0.4));">💻</span>
-      <span style="position: absolute; top: 75%; left: 88%; color: rgba(255,255,255,0.95); font-size: 18px; transform: scale(1.1) rotate(-8deg); transition: all 0.4s ease; filter: drop-shadow(0 0 10px rgba(255,255,255,0.6));">⚡</span>
-      <span style="position: absolute; top: 65%; left: 8%; color: rgba(255,255,255,0.7); font-size: 12px; transform: scale(0.7) rotate(25deg); transition: all 0.4s ease; filter: drop-shadow(0 0 4px rgba(255,255,255,0.3));">🔥</span>
-    </div>
-    <!-- 浮动粒子 -->
-    <div style="position: absolute; top: 12%; right: 12%; width: 8px; height: 8px; background: radial-gradient(circle, rgba(255,255,255,0.6), rgba(255,255,255,0.2)); border-radius: 50%; opacity: 0; transition: all 0.6s ease; box-shadow: 0 0 15px rgba(255,255,255,0.4);"></div>
-    <div style="position: absolute; top: 40%; right: 8%; width: 6px; height: 6px; background: radial-gradient(circle, rgba(255,255,255,0.5), rgba(255,255,255,0.1)); border-radius: 50%; opacity: 0; transition: all 0.6s ease; box-shadow: 0 0 12px rgba(255,255,255,0.3);"></div>
-    <div style="position: absolute; bottom: 20%; right: 15%; width: 10px; height: 10px; background: radial-gradient(circle, rgba(255,255,255,0.7), rgba(255,255,255,0.3)); border-radius: 50%; opacity: 0; transition: all 0.6s ease; box-shadow: 0 0 18px rgba(255,255,255,0.5);"></div>
-    <div style="position: relative; z-index: 3; display: flex; align-items: center; margin-bottom: 25px;">
-      <div style="position: relative; transition: all 0.5s ease; width: 70px; height: 70px; background: linear-gradient(45deg, rgba(255,255,255,0.25), rgba(255,255,255,0.45)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 20px; backdrop-filter: blur(15px); border: 2px solid rgba(255,255,255,0.4); box-shadow: 0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3);" onmouseover="this.style.transform='rotateY(360deg) scale(1.15)'; this.style.boxShadow='0 0 25px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.5)'" onmouseout="this.style.transform='rotateY(0deg) scale(1)'; this.style.boxShadow='0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.3)'">
-        <span style="font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">🚀</span>
-      </div>
-      <div>
-        <h3 style="margin: 0; color: white; font-size: 22px; font-weight: bold; text-shadow: 0 3px 6px rgba(0,0,0,0.4), 0 0 20px rgba(255,255,255,0.3); letter-spacing: 0.5px;">清羽飞扬</h3>
-        <p style="margin: 6px 0 0 0; color: rgba(255,255,255,0.95); font-size: 15px; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.3);">www.liushen.fun</p>
-      </div>
-    </div>
-    <div style="margin: 20px 0; border-radius: 15px; overflow: hidden; box-shadow: 0 12px 35px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.2); transition: all 0.5s ease; position: relative;" onmouseover="this.style.transform='scale(1.03) rotateY(2deg)'; this.style.boxShadow='0 20px 50px rgba(0,0,0,0.4), 0 0 0 2px rgba(255,255,255,0.3), 0 0 30px rgba(17, 153, 142, 0.3)'" onmouseout="this.style.transform='scale(1) rotateY(0deg)'; this.style.boxShadow='0 12px 35px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.2)'">
-      <img src="https://bu.dusays.com/2025/06/27/685e62abae4bb.png" alt="清羽飞扬博客预览" style="width: 100%; height: auto; display: block; border: 3px solid rgba(255,255,255,0.4); transition: all 0.3s ease; filter: brightness(1.05) contrast(1.1);">
-    </div>
-
-    <p style="color: rgba(255,255,255,0.98); font-size: 16px; line-height: 1.8; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.3); font-weight: 400; letter-spacing: 0.3px;">
-      前端开发学生的技术成长记录，分享开源项目、深度学习经验，以及自建的多个实用工具，技术驱动的开放博客。
-    </p>
-
-    <div style="margin-top: 25px; display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: rgba(255,255,255,0.1); border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
-      <span style="color: rgba(255,255,255,0.9); font-size: 14px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">点击访问</span>
-      <span style="transition: all 0.4s ease; display: inline-block; color: white; font-size: 24px; font-weight: bold; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));" onmouseover="this.style.transform='translateX(8px) rotate(25deg) scale(1.2)'; this.style.color='#FFD700'; this.style.filter='drop-shadow(0 0 10px #FFD700)'" onmouseout="this.style.transform='translateX(0) rotate(0deg) scale(1)'; this.style.color='white'; this.style.filter='drop-shadow(0 2px 4px rgba(0,0,0,0.3))'">→</span>
-    </div>
-  </div>
-
-  <!-- Whlcj的博客卡片 -->
-  <div style="position: relative; overflow: hidden; background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 30%, #ff9a9e 70%, #ff6b96 100%); border-radius: 25px; padding: 30px; box-shadow: 0 20px 60px rgba(255, 236, 210, 0.3), 0 0 0 1px rgba(139,69,19,0.1), inset 0 1px 0 rgba(255,255,255,0.4); transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1); cursor: pointer; transform-style: preserve-3d; border: 1px solid rgba(139,69,19,0.2);" onclick="window.open('https://whlcj.github.io/', '_blank')" onmouseover="this.style.transform='translateY(-25px) rotateX(8deg) rotateY(-2deg) scale(1.02)'; this.style.boxShadow='0 40px 80px rgba(255, 236, 210, 0.4), 0 0 0 1px rgba(139,69,19,0.3), inset 0 2px 0 rgba(255,255,255,0.6), 0 0 100px rgba(255, 236, 210, 0.2)'; this.style.filter='brightness(1.1) saturate(1.2)'" onmouseout="this.style.transform='translateY(0) rotateX(0deg) rotateY(0deg) scale(1)'; this.style.boxShadow='0 20px 60px rgba(255, 236, 210, 0.3), 0 0 0 1px rgba(139,69,19,0.1), inset 0 1px 0 rgba(255,255,255,0.4)'; this.style.filter='brightness(1) saturate(1)'">
-    <!-- 光影效果层 -->
-    <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 50%); opacity: 0; transition: opacity 0.5s ease; pointer-events: none;" onmouseover="this.style.opacity='0.3'" onmouseout="this.style.opacity='0'"></div>
-    <!-- 动态装饰元素 -->
-    <div style="position: absolute; width: 100%; height: 100%; pointer-events: none; top: 0; left: 0;">
-      <span style="position: absolute; top: 8%; left: 85%; color: rgba(139,69,19,0.9); font-size: 16px; transform: scale(0.8) rotate(-15deg); transition: all 0.4s ease; filter: drop-shadow(0 0 8px rgba(139,69,19,0.5));">💼</span>
-      <span style="position: absolute; top: 25%; left: 5%; color: rgba(139,69,19,0.8); font-size: 14px; transform: scale(0.9) rotate(10deg); transition: all 0.4s ease; filter: drop-shadow(0 0 6px rgba(139,69,19,0.4));">🏆</span>
-      <span style="position: absolute; top: 75%; left: 88%; color: rgba(139,69,19,0.95); font-size: 18px; transform: scale(1.1) rotate(-8deg); transition: all 0.4s ease; filter: drop-shadow(0 0 10px rgba(139,69,19,0.6));">⭐</span>
-      <span style="position: absolute; top: 65%; left: 8%; color: rgba(139,69,19,0.7); font-size: 12px; transform: scale(0.7) rotate(25deg); transition: all 0.4s ease; filter: drop-shadow(0 0 4px rgba(139,69,19,0.3));">💻</span>
-    </div>
-    <!-- 浮动粒子 -->
-    <div style="position: absolute; top: 12%; right: 12%; width: 8px; height: 8px; background: radial-gradient(circle, rgba(139,69,19,0.6), rgba(139,69,19,0.2)); border-radius: 50%; opacity: 0; transition: all 0.6s ease; box-shadow: 0 0 15px rgba(139,69,19,0.4);"></div>
-    <div style="position: absolute; top: 40%; right: 8%; width: 6px; height: 6px; background: radial-gradient(circle, rgba(139,69,19,0.5), rgba(139,69,19,0.1)); border-radius: 50%; opacity: 0; transition: all 0.6s ease; box-shadow: 0 0 12px rgba(139,69,19,0.3);"></div>
-    <div style="position: absolute; bottom: 20%; right: 15%; width: 10px; height: 10px; background: radial-gradient(circle, rgba(139,69,19,0.7), rgba(139,69,19,0.3)); border-radius: 50%; opacity: 0; transition: all 0.6s ease; box-shadow: 0 0 18px rgba(139,69,19,0.5);"></div>
-    <div style="position: relative; z-index: 3; display: flex; align-items: center; margin-bottom: 25px;">
-      <div style="position: relative; transition: all 0.5s ease; width: 70px; height: 70px; background: linear-gradient(45deg, rgba(255,255,255,0.35), rgba(255,255,255,0.55)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 20px; backdrop-filter: blur(15px); border: 2px solid rgba(139,69,19,0.4); box-shadow: 0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.5);" onmouseover="this.style.transform='rotateY(360deg) scale(1.15)'; this.style.boxShadow='0 0 25px rgba(139,69,19,0.6), 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.7)'" onmouseout="this.style.transform='rotateY(0deg) scale(1)'; this.style.boxShadow='0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.5)'">
-        <span style="font-size: 32px; filter: drop-shadow(0 2px 4px rgba(139,69,19,0.3));">💻</span>
-      </div>
-      <div>
-        <h3 style="margin: 0; color: #8B4513; font-size: 22px; font-weight: bold; text-shadow: 0 3px 6px rgba(255,255,255,0.5), 0 0 20px rgba(139,69,19,0.3); letter-spacing: 0.5px;">Whlcj</h3>
-        <p style="margin: 6px 0 0 0; color: rgba(139,69,19,0.95); font-size: 15px; font-weight: 500; text-shadow: 0 1px 3px rgba(255,255,255,0.3);">whlcj.github.io</p>
-      </div>
-    </div>
-    <div style="margin: 20px 0; border-radius: 15px; overflow: hidden; box-shadow: 0 12px 35px rgba(0,0,0,0.3), 0 0 0 1px rgba(139,69,19,0.2); transition: all 0.5s ease; position: relative;" onmouseover="this.style.transform='scale(1.03) rotateY(2deg)'; this.style.boxShadow='0 20px 50px rgba(0,0,0,0.4), 0 0 0 2px rgba(139,69,19,0.3), 0 0 30px rgba(255, 236, 210, 0.3)'" onmouseout="this.style.transform='scale(1) rotateY(0deg)'; this.style.boxShadow='0 12px 35px rgba(0,0,0,0.3), 0 0 0 1px rgba(139,69,19,0.2)'">
-      <img src="https://bu.dusays.com/2025/06/27/685e62f28a7bf.png" alt="Whlcj博客预览" style="width: 100%; height: auto; display: block; border: 3px solid rgba(139,69,19,0.4); transition: all 0.3s ease; filter: brightness(1.05) contrast(1.1);">
-    </div>
-    <p style="color: rgba(139,69,19,0.98); font-size: 16px; line-height: 1.8; margin: 0; text-shadow: 0 2px 4px rgba(255,255,255,0.3); font-weight: 400; letter-spacing: 0.3px;">
-      创客空间23级社长，曾在字节跳动工作一年，现就职于腾讯。专业iOS开发者的技术博客，深入分享移动端开发经验和职场成长历程。
-    </p>
-    <div style="margin-top: 25px; display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: rgba(255,255,255,0.2); border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(139,69,19,0.2);">
-      <span style="color: rgba(139,69,19,0.9); font-size: 14px; font-weight: 600; text-shadow: 0 1px 2px rgba(255,255,255,0.3);">点击访问</span>
-      <span style="transition: all 0.4s ease; display: inline-block; color: #8B4513; font-size: 24px; font-weight: bold; filter: drop-shadow(0 2px 4px rgba(139,69,19,0.3));" onmouseover="this.style.transform='translateX(8px) rotate(25deg) scale(1.2)'; this.style.color='#FFD700'; this.style.filter='drop-shadow(0 0 10px #FFD700)'" onmouseout="this.style.transform='translateX(0) rotate(0deg) scale(1)'; this.style.color='#8B4513'; this.style.filter='drop-shadow(0 2px 4px rgba(139,69,19,0.3))'">→</span>
-    </div>
-  </div>
+<div style="background: linear-gradient(135deg, #000000 0%, #4a154b 25%, #1a1f71 75%, #00ffff 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);" onclick="window.open('https://whlcj.github.io/', '_blank')" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(0, 255, 255, 0.4)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(0, 255, 255, 0.3)'">
+<div style="position: relative; z-index: 2;">
+<div style="display: flex; align-items: center; margin-bottom: 16px;">
+<span style="font-size: 24px; margin-right: 12px;">💻</span>
+<h3 style="margin: 0; font-size: 20px; font-weight: 600; color: #87CEEB;">李昌骏 - whlcj.github.io</h3>
+</div>
+<p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">创客空间23级社长，曾在字节跳动工作一年，现就职于腾讯。专业iOS开发者的技术博客，深入分享移动端开发经验和职场成长历程。</p>
+<div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+<span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">iOS开发</span>
+<span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">职场成长</span>
+<span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">创客空间</span>
+</div>
+<a href="https://whlcj.github.io/" target="_blank" style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 10px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); font-weight: 500; transition: all 0.2s ease;" onclick="event.stopPropagation()" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 2px 8px rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+<span style="margin-right: 8px;">🔗</span>
+访问博客
+</a>
+</div>
 </div>
 
 博客是一个展示你自己的平台，是一个记录你生活的地方，是组建独属于你的小天地的港湾。
