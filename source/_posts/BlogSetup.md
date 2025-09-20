@@ -43,7 +43,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 <div style="position: relative; z-index: 2;">
 <div style="display: flex; align-items: center; margin-bottom: 16px;">
 <span style="font-size: 24px; margin-right: 12px;">🌟</span>
-<h3 style="margin: 0; font-size: 20px; font-weight: 600; color: #87CEEB;">张洪Heo - blog.zhheo.com</h3>
+<div style="margin: 0; font-size: 20px; font-weight: 600; color: #87CEEB;">张洪Heo - blog.zhheo.com</div>
 </div>
 <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">专注设计与科技生活分享，涵盖产品设计、UI/UX、软件开发等领域，拥有自研AI搜索和丰富交互功能的现代化博客。</p>
 <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
@@ -62,7 +62,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 <div style="position: relative; z-index: 2;">
 <div style="display: flex; align-items: center; margin-bottom: 16px;">
 <span style="font-size: 24px; margin-right: 12px;">🚀</span>
-<h3 style="margin: 0; font-size: 20px; font-weight: 600; color: #87CEEB;">清羽飞扬 - www.liushen.fun</h3>
+<div style="margin: 0; font-size: 20px; font-weight: 600; color: #87CEEB;">清羽飞扬 - www.liushen.fun</div>
 </div>
 <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">前端开发学生的技术成长记录，分享开源项目、深度学习经验，以及自建的多个实用工具，技术驱动的开放博客。</p>
 <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
@@ -81,7 +81,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 <div style="position: relative; z-index: 2;">
 <div style="display: flex; align-items: center; margin-bottom: 16px;">
 <span style="font-size: 24px; margin-right: 12px;">💻</span>
-<h3 style="margin: 0; font-size: 20px; font-weight: 600; color: #87CEEB;">李昌骏 - whlcj.github.io</h3>
+<div style="margin: 0; font-size: 20px; font-weight: 600; color: #87CEEB;">李昌骏 - whlcj.github.io</div>
 </div>
 <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">创客空间23级社长，曾在字节跳动工作一年，现就职于腾讯。专业iOS开发者的技术博客，深入分享移动端开发经验和职场成长历程。</p>
 <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
@@ -756,7 +756,7 @@ hexo会自动帮你生成一个新的md文件，你只需要打开这个文件�
 
   ```html
   <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 15px; margin: 20px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
-    <h3 style="color: white; margin-bottom: 15px; text-align: center;">🚀 我的技能树</h3>
+    <div style="color: white; margin-bottom: 15px; text-align: center; font-size: 18px; font-weight: 600;">🚀 我的技能树</div>
     
     <div style="margin-bottom: 15px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
@@ -803,7 +803,7 @@ hexo会自动帮你生成一个新的md文件，你只需要打开这个文件�
   效果展示：
 
   <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 15px; margin: 20px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
-    <h3 style="color: white; margin-bottom: 15px; text-align: center;">🚀 我的技能树</h3>
+    <div style="color: white; margin-bottom: 15px; text-align: center; font-size: 18px; font-weight: 600;">🚀 我的技能树</div>
     
     <div style="margin-bottom: 15px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
