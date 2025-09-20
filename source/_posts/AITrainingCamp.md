@@ -1964,4 +1964,7 @@ claude mcp add my-server --scope project /path/to/server
 
 额，但是测试失败了。
 
-但是这个Fetch的功能和cc内置的Fetch没有什么区别于是我选择先去将曾老师给的一个真正有用的小玩意给搞下来
+![24](AITrainingCamp/24.png)
+
+但是这个Fetch的功能和cc内置的Fetch没有什么区别于是我选择先去将曾老师给的一个真正有用的小玩意给搞下来。
+
