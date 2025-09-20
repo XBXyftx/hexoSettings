@@ -1689,3 +1689,144 @@ COMPILE RESULT:FAIL {ERROR:1}
 在使用了上面的提示词，特别警示了它不雅犯索引错误后确实是能编译运行了，但是运行的结果却是始终无法正常显示选择文件夹弹窗，在反复挣扎之后也无济于事，于是我只好去执行了代码的回滚，回到了最完美的那个版本，今天绝大部分的Token烧的都没有成果，但并非是毫无价值的，这让我清晰的认识到了Claude能力的界限，果然用一个外国的模型去编写鸿蒙的代码确实是很难的一件事，其训练数据里的ArkTS语料应该仅仅是局限在了网上零散的一些代码片段以及少部分的官网百科这种东西而已。
 
 模型本身的能力是十分优秀的，只可惜其训练数据拖了后腿，以后的鸿蒙开发CC并非完全不能用，它处理一些黑盒内部的纯逻辑部分还是十分优秀的，我也可以让他帮我阅读别的开源代码，来去帮助我理解项目，也可以让他帮我规划整体的数据链条或是控制逻辑链条，总之就是作为一个很强力的辅助工具还是绰绰有余，只是不能完全替代我的工作罢了。
+
+## 为cc添加自定义命令
+
+在我们使用cc的时候是经常会使用到官方提供的命令。
+
+![19](AITrainingCamp/19.png)
+
+这些命令中包含了cc所具备的一些基础功能的调用，可以让一些常用的功能意见调用，同时CC也是提供了自定义命令的方式，让很多个人的开发常用指令或是当前项目所需的常用特殊指令被封装为一个可复用的提示词，以来避免反复输入大量重复提示词。
+
+### cc官方文档的指南
+
+[cc的官方文档](https://docs.claude.com/en/home)是给出了一个专门用来指南如何使用cc的AI的也是一个相当人性化的AI文档了，我感觉在文档中内嵌一个专注于回答文档内容的AI是以后必然的一个趋势了。
+
+在Claude Code中，您可以通过创建Markdown文件来定义自定义斜杠命令[(1)](https://docs.claude.com/en/docs/claude-code/sdk/sdk-slash-commands#creating-custom-slash-commands)[(2)](https://docs.claude.com/en/docs/claude-code/slash-commands#custom-slash-commands)。
+
+#### 文件位置
+
+自定义斜杠命令根据其作用域存储在指定目录中[(2)](https://docs.claude.com/en/docs/claude-code/slash-commands#custom-slash-commands)：
+
+- **项目命令**：`.claude/commands/` - 仅在当前项目中可用[(2)](https://docs.claude.com/en/docs/claude-code/slash-commands#custom-slash-commands)
+- **个人命令**：`~/.claude/commands/` - 在所有项目中可用[(2)](https://docs.claude.com/en/docs/claude-code/slash-commands#custom-slash-commands)
+
+#### 文件格式
+
+每个自定义命令都是一个Markdown文件[(1)](https://docs.claude.com/en/docs/claude-code/sdk/sdk-slash-commands#creating-custom-slash-commands)：
+
+- 文件名（不含`.md`扩展名）成为命令名称[(1)](https://docs.claude.com/en/docs/claude-code/sdk/sdk-slash-commands#creating-custom-slash-commands)
+- 文件内容定义命令的功能[(1)](https://docs.claude.com/en/docs/claude-code/sdk/sdk-slash-commands#creating-custom-slash-commands)
+- 可选的YAML前置内容提供配置[(1)](https://docs.claude.com/en/docs/claude-code/sdk/sdk-slash-commands#creating-custom-slash-commands)
+
+#### 基本示例
+
+创建`.claude/commands/refactor.md`[(1)](https://docs.claude.com/en/docs/claude-code/sdk/sdk-slash-commands#creating-custom-slash-commands)：
+
+```
+Refactor the selected code to improve readability and maintainability.
+Focus on clean code principles and best practices.
+```
+
+[(1)](https://docs.claude.com/en/docs/claude-code/sdk/sdk-slash-commands#creating-custom-slash-commands)
+
+这将创建可通过SDK使用的`/refactor`命令[(1)](https://docs.claude.com/en/docs/claude-code/sdk/sdk-slash-commands#creating-custom-slash-commands)。
+
+#### 带前置内容的示例
+
+创建`.claude/commands/security-check.md`[(1)](https://docs.claude.com/en/docs/claude-code/sdk/sdk-slash-commands#creating-custom-slash-commands)：
+
+```
+---
+allowed-tools: Read, Grep, Glob
+description: Run security vulnerability scan
+model: claude-3-5-sonnet-20241022
+---
+
+Analyze the codebase for security vulnerabilities including:
+- SQL injection risks
+- XSS vulnerabilities
+- Exposed credentials
+- Insecure configurations
+```
+
+[(1)](https://docs.claude.com/en/docs/claude-code/sdk/sdk-slash-commands#creating-custom-slash-commands)
+
+#### 在SDK中使用自定义命令
+
+定义在文件系统中后，自定义命令会自动通过SDK可用[(1)](https://docs.claude.com/en/docs/claude-code/sdk/sdk-slash-commands#creating-custom-slash-commands)：
+
+```
+import { query } from "@anthropic-ai/claude-code";
+
+// Use a custom command
+for await (const message of query({
+  prompt: "/refactor src/auth/login.ts",
+  options: { maxTurns: 3 }
+})) {
+
+  if (message.type === "assistant") {
+    console.log("Refactoring suggestions:", message.message);
+  }
+}
+```
+
+[(1)](https://docs.claude.com/en/docs/claude-code/sdk/sdk-slash-commands#creating-custom-slash-commands)
+
+#### 命令参数
+
+您可以使用`$ARGUMENTS`占位符创建接受用户输入的灵活命令[(3)](https://docs.claude.com/en/docs/claude-code/common-workflows#create-custom-slash-commands)：
+
+```
+echo 'Find and fix issue #$ARGUMENTS. Follow these steps: 1.
+Understand the issue described in the ticket 2. Locate the relevant code in
+
+our codebase 3. Implement a solution that addresses the root cause 4. Add
+appropriate tests 5. Prepare a concise PR description' >
+.claude/commands/fix-issue.md
+```
+
+[(3)](https://docs.claude.com/en/docs/claude-code/common-workflows#create-custom-slash-commands)
+
+然后可以这样使用：
+
+```
+> /fix-issue 123
+```
+
+[(3)](https://docs.claude.com/en/docs/claude-code/common-workflows#create-custom-slash-commands)
+
+#### 命名空间组织
+
+您可以在子目录中组织命令以获得更好的结构[(1)](https://docs.claude.com/en/docs/claude-code/sdk/sdk-slash-commands#creating-custom-slash-commands)：
+
+```
+.claude/commands/
+├── frontend/
+│   ├── component.md      # Creates /component (project:frontend)
+│   └── style-check.md     # Creates /style-check (project:frontend)
+├── backend/
+│   ├── api-test.md        # Creates /api-test (project:backend)
+│   └── db-migrate.md      # Creates /db-migrate (project:backend)
+└── review.md              # Creates /review (project)
+```
+
+[(1)](https://docs.claude.com/en/docs/claude-code/sdk/sdk-slash-commands#creating-custom-slash-commands)
+
+子目录出现在命令描述中，但不影响命令名称本身[(1)](https://docs.claude.com/en/docs/claude-code/sdk/sdk-slash-commands#creating-custom-slash-commands)。
+
+### 自定义命令的尝试
+
+首先我先去我C盘的'~/.claude/commands/'目录下创建一个名为'commit_and_push.md'的文件，内容如下：
+
+```md
+请帮我commit当前项目，编写详细的commit信息，并sign-off，然后push到远程仓库。
+```
+
+很简洁，先进行一下尝试，后面我会继续完善的。
+
+![21](AITrainingCamp/21.png)
+
+![20](AITrainingCamp/20.png)
+
+我就直接针对于这个博客仓库进行一下尝试吧。
