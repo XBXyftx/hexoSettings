@@ -1830,3 +1830,135 @@ appropriate tests 5. Prepare a concise PR description' >
 ![20](AITrainingCamp/20.png)
 
 我就直接针对于这个博客仓库进行一下尝试吧。
+
+![23](AITrainingCamp/23.png)
+
+非常nb的成功了，接着下一个！！！
+
+## MCP工具添加
+
+### 官方文档AI的回答
+
+在Claude Code中，您可以通过三种不同的方式添加MCP服务器[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)：
+
+#### 选项1：添加本地stdio服务器
+
+Stdio服务器作为本地进程在您的机器上运行，适合需要直接系统访问或自定义脚本的工具[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)。
+
+```
+# 基本语法
+claude mcp add <name> <command> [args...]
+
+# 实际示例：添加Airtable服务器
+claude mcp add airtable --env AIRTABLE_API_KEY=YOUR_KEY \
+  -- npx -y airtable-mcp-server
+```
+
+[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)
+
+#### 选项2：添加远程SSE服务器
+
+SSE（Server-Sent Events）服务器提供实时流连接，许多云服务使用它进行实时更新[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)。
+
+```
+# 基本语法
+claude mcp add --transport sse <name> <url>
+
+# 实际示例：连接到Linear
+claude mcp add --transport sse linear https://mcp.linear.app/sse
+
+# 带认证头的示例
+claude mcp add --transport sse private-api https://api.company.com/mcp \
+  --header "X-API-Key: your-key-here"
+```
+
+[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)
+
+#### 选项3：添加远程HTTP服务器
+
+HTTP服务器使用标准请求/响应模式，大多数REST API和Web服务使用此传输方式[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)。
+
+```
+# 基本语法
+claude mcp add --transport http <name> <url>
+
+# 实际示例：连接到Notion
+claude mcp add --transport http notion https://mcp.notion.com/mcp
+
+# 带Bearer token的示例
+claude mcp add --transport http secure-api https://api.example.com/mcp \
+  --header "Authorization: Bearer your-token"
+```
+
+[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)
+
+#### 管理您的服务器
+
+配置完成后，您可以使用这些命令管理MCP服务器[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)：
+
+```
+# 列出所有已配置的服务器
+claude mcp list
+
+# 获取特定服务器的详细信息
+claude mcp get github
+
+# 移除服务器
+claude mcp remove github
+
+# （在Claude Code中）检查服务器状态
+/mcp
+```
+
+[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)
+
+#### 作用域选项
+
+MCP服务器可以在不同的作用域级别配置[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)：
+
+- **local**（默认）：仅在当前项目中对您可用[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)
+- **project**：通过`.mcp.json`文件与项目中的每个人共享[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)
+- **user**：在所有项目中对您可用[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)
+
+使用`--scope`标志指定作用域[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)：
+
+```
+claude mcp add my-server --scope project /path/to/server
+```
+
+[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)
+
+#### 远程服务器身份验证
+
+许多基于云的MCP服务器需要身份验证。Claude Code支持OAuth 2.0进行安全连接[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)。
+
+1. 添加需要身份验证的服务器[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)：
+
+  ```
+  claude mcp add --transport http sentry https://mcp.sentry.dev/mcp
+  ```
+
+  [(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)
+
+2. 在Claude Code中使用`/mcp`命令[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)：
+  
+  ```
+  > /mcp
+  ```
+  
+  [(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)
+  
+  然后按照浏览器中的步骤登录[(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)。
+  
+  **Windows用户注意**：在原生Windows（非WSL）上，使用`npx`的本地MCP服务器需要`cmd /c`包装器以确保正确执行[(1)](https://docs.claude. com/en/docs/claude-code/mcp#installing-mcp-servers)：
+  
+  ```
+  claude mcp add my-server -- cmd /c npx -y @some/package
+  ```
+
+  [(1)](https://docs.claude.com/en/docs/claude-code/mcp#installing-mcp-servers)
+
+### 尝试添加
+
+我选择先去魔搭添加一个在线sse服务[“Fetch网页内容抓取”](https://modelscope.cn/mcp/servers/@modelcontextprotocol/fetch)
+
