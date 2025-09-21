@@ -22,7 +22,12 @@
       "WebFetch(domain:www.liushen.fun)",
       "WebFetch(domain:whlcj.github.io)",
       "Bash(git pull:*)",
-      "WebFetch(domain:akilar.top)"
+      "WebFetch(domain:akilar.top)",
+      "Bash(npx:*)",
+      "mcp__pointer__get-pointed-element",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd //c:*)"
     ],
     "deny": [],
     "ask": []
