@@ -96,7 +96,27 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 </div>
 </div>
 
-博客是一个展示你自己的平台，是一个记录你生活的地方，是组建独属于你的小天地的港湾。
+博客是一个展示你自己的平台，是一个记录你生活的地方，是组建独属于你的小天地的港湾。与此同时，博客也是一个展示捏技术力的地方，是一个让陌生人对你刮目相看的展示平台。像是下面这种博客就是经过了深度魔改，集成了独属于自己的喜好与巧思的博客。
+
+<div style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 154, 158, 0.3);" onclick="window.open('https://akilar.top/', '_blank')" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(255, 154, 158, 0.4)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(255, 154, 158, 0.3)'">
+<div style="position: relative; z-index: 2;">
+<div style="display: flex; align-items: center; margin-bottom: 16px;">
+<span style="font-size: 24px; margin-right: 12px;">🌸</span>
+<div style="margin: 0; font-size: 20px; font-weight: 600; color: #87CEEB;">Akilar - akilar.top</div>
+</div>
+<p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">专注于Hexo博客深度魔改的技术博客，分享主题美化、插件开发、性能优化等前端技术，是Hexo爱好者的学习宝典和魔改指南。</p>
+<div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+<span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">Hexo魔改</span>
+<span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">前端技术</span>
+<span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">主题美化</span>
+</div>
+<a href="https://akilar.top/" target="_blank" style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 10px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); font-weight: 500; transition: all 0.2s ease;" onclick="event.stopPropagation()" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 2px 8px rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+<span style="margin-right: 8px;">🔗</span>
+访问博客
+</a>
+</div>
+</div>
+
 
 ### 展示自己
 

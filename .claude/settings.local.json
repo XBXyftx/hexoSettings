@@ -20,7 +20,9 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:blog.zhheo.com)",
       "WebFetch(domain:www.liushen.fun)",
-      "WebFetch(domain:whlcj.github.io)"
+      "WebFetch(domain:whlcj.github.io)",
+      "Bash(git pull:*)",
+      "WebFetch(domain:akilar.top)"
     ],
     "deny": [],
     "ask": []
