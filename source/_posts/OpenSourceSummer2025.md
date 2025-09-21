@@ -10071,3 +10071,7 @@ https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=2&pag
 </div>
 
 由于当前还属于是开源之夏的结项前的最后完善阶段，我就先将这个功能在开源之夏仓库的文件中进行修改，等后面完全结项之后我会去再开一个文章记录后续的完善以及新功能的增加过程。
+
+### 代码修改
+
+针对于屏幕宽度的获取我决定使用[WindowProperties](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/arkts-apis-window-i#windowproperties)中的windowRect属性去获取。

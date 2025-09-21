@@ -2038,4 +2038,3 @@ claude mcp add my-server --scope project /path/to/server
     </a>
   </div>
 </div>
-
