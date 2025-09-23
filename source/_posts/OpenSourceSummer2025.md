@@ -50,7 +50,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
       </svg>
       <div style="margin: 0; font-size: 20px; font-weight: 600;">openharmony-sig/ostest_integration_test</div>
     </div>
-    <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">🎉 项目已被收录至OpenHarmony SIG官方测试集成仓库</p>
+    <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">🎉 项目已被收录至OpenHarmony SIG集成测试仓库</p>
     <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
       <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">✅ 官方收录</span>
       <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">🔬 集成测试</span>
