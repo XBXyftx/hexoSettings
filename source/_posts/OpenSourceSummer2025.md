@@ -10075,3 +10075,187 @@ https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=2&pag
 ### 代码修改
 
 针对于屏幕宽度的获取我决定使用[WindowProperties](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/arkts-apis-window-i#windowproperties)中的windowRect属性去获取。
+
+#### CodeGenine的回答
+
+我突然想到我为什么不问一问华为官方所提供的编码助手呢，也许可以给我提供一些不一样的思路呢。
+
+```ts
+@Entry
+@Component
+struct AutoScaleTextExample {
+  @State title: string = "这是一个长文本示例，会根据容器宽度自动缩放";
+  @State titleFS: number = 20; // 初始字体大小
+  @State pWidth: number = 300; // 容器初始宽度
+
+  build() {
+    Row() {
+      Text(this.title)
+        .fontSize(this.titleFS)
+        .maxLines(1)
+        .onAreaChange((oldValue: Area, newValue: Area) => {
+          // 测量文本实际宽度
+          let textWidth = measure.measureText({
+            textContent: this.title,
+            fontSize: this.titleFS
+          });
+          // 判断是否需要缩放
+          if (px2vp(textWidth) > this.pWidth && this.titleFS > 12) {
+            this.titleFS--; // 逐步缩小字体
+          } else if (px2vp(textWidth) < this.pWidth - 10 && this.titleFS < 20) {
+            this.titleFS++; // 逐步放大字体（可选）
+          }
+        })
+    }
+    .width(this.pWidth)
+    .onAreaChange((oldValue: Area, newValue: Area) => {
+      this.pWidth = newValue.width; // 更新容器当前宽度
+    })
+  }
+}
+```
+
+确确实实是给我了我个新思路，通过监听区域变化获取区域宽度数据。然后自己编写一个函数去计算字体大小。其实和我原本的思路差不多只是所用的能力接口不同而已。
+
+同时下面还给出了另一种思路。
+
+```ts
+Row() {
+  Text("自适应文本")
+    .layoutWeight(1) // 占满剩余空间
+    .fontSize('4%')  // 按容器宽度百分比设置字体
+}
+```
+
+通过设置字体大小为容器的百分比，这样就可以实现自适应字体大小了。
+
+居然这么简单。我本来想的就是这个，只不过一时间没有看到文档中写可以用百分比去表示字体大小，就没有管。
+
+```ts
+Column() {
+  Image($r('app.media.logo'))
+    .width('20%')
+    .margin({ bottom: 100 })
+  Text('Welcome To')
+    .fontSize('12%')
+    .fontColor('#ff00be53')
+  Text('NowInOpenHarmony')
+    .fontSize('50%')
+    .fontColor('#ff00be53')
+    .fontWeight(700)
+}
+.expandSafeArea()
+.backgroundColor('#062872')
+.justifyContent(FlexAlign.Center)
+.width('100%')
+.height('100%')
+```
+
+设置了百分比字体大小进行尝试，我直接设置一个百分之五十这个很大的数是为了测试这种方式到底是否能生效，因为我仍然在质疑这种方式的可行性。
+
+![81](OpenSourceSummer2025/81.jpg)
+
+卧槽很显然是不生效的，这和我当初学的时候是一样的结论，哪怕是因为组件宽度上的因素导致百分比显得很小，但上下两个文本的比例我设的差距很大但两者的大小显示却是一样的，这就说明确实是没有生效。让我们去看一下最新的文档中的说明。
+
+![82](OpenSourceSummer2025/82.png)
+
+…… 我还能说什么呢，文档特别标注了不能使用百分比，但是……
+
+#### 通过windowRect属性
+
+在onWindowStageCreate中获取Window实例对象并调用`getWindowProperties().windowRect.width`获取屏幕宽度，然后通过计算得到字体大小。
+
+```ts
+  onWindowStageCreate(windowStage: window.WindowStage): void {
+    // Main window is created, set main page for this ability
+    hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
+    window.getLastWindow(this.context).then((win) => {
+      const winWidth = win.getWindowProperties().windowRect.width
+      AppStorageV2.connect(WinWidth, WINDOW_WIDTH, () => new WinWidth(winWidth))
+    })
+    windowStage.loadContent('pages/StartPage', (err) => {
+      if (err.code) {
+        hilog.error(DOMAIN, 'testTag', 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
+        return;
+      }
+      hilog.info(DOMAIN, 'testTag', 'Succeeded in loading the content.');
+      appInit.markDownConfigInit()
+
+    });
+  }
+```
+
+```ts
+@ObservedV2
+/**
+ * 屏幕宽度包装类
+ */
+export class WinWidth {
+  /**
+   * 屏幕宽度值
+   */
+  @Trace value: number
+
+  constructor(value: number) {
+    this.value = value
+  }
+}
+```
+
+```ts
+  uiRouter: Router = this.getUIContext().getRouter()
+  @Local winWidth : number = 0
+  async aboutToAppear(): Promise<void> {
+    const width:number = (AppStorageV2.connect(WinWidth, WINDOW_WIDTH)?.value)??350
+    logger.debug(`${START_PAGE_TAGE}width: ${width}`)
+    this.winWidth = width
+  }
+```
+
+这里也是依据华为官方给出的断点分布图设置了个备用值来防止屏幕宽度获取失败的情况。
+
+![83](OpenSourceSummer2025/83.png)
+
+可以看到这个获取的数据很大，于是我去看了一下文档。
+
+![84](OpenSourceSummer2025/84.png)
+
+单位是px，那看来还得进行一下转换。小小修改一下。
+
+```ts
+const width: number = (AppStorageV2.connect(WinWidth, WINDOW_WIDTH)?.value) ?? 350
+this.winWidth = this.getUIContext().px2vp(width)
+logger.debug(`${START_PAGE_TAGE}winWidth: ${this.winWidth}`)
+```
+
+```ts
+  updateFontSize() {
+    const num = 16
+    this.fontsize = Math.floor((this.winWidth*0.9)/num)
+  }
+```
+
+这样的方式的确是可以顺利的去获取了，在puraX上是正常的，但是在模拟器上测试时却无法正常获取目标的宽度导致我们的text组件直接消失了。
+
+![85](OpenSourceSummer2025/85.png)
+
+这让我想到了之前在搜索窗口获取内容时AI助手说过的一句话。
+
+![86](OpenSourceSummer2025/86.png)
+
+"❌ 避免在 aboutToAppear 生命周期调用：此时窗口可能未完成布局，获取的尺寸不准确。"
+
+既然如此，我在onWindowStageCreate调用很可能出现问题。
+
+但是在API17和API18上测试都没发现问题，所以我决定先commit一下进行尝试。
+
+```ts
+  onPageShow(): void {
+    window.getLastWindow(this.getUIContext().getHostContext()).then((win)=>{
+      this.winWidth =this.getUIContext().px2vp(win.getWindowProperties().windowRect.width)
+    })
+    this.updateFontSize()
+  }
+```
+
+哦！这样一来在模拟器可以了。但是真机上失效了，应该问题就在于模拟器和真机的区别。于是我决定回滚一手去提交。后面再研究研究
