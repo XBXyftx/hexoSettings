@@ -10279,3 +10279,28 @@ logger.debug(`${START_PAGE_TAGE}winWidth: ${this.winWidth}`)
 第一次让cc尝试的时候我仅仅说了让他创建pr并且关联issue，没有添加任何更多的要求，CC就是直接按照完整的PR流程开始在新的分支去修改我的代码编写测试程序了，真的是很主动了但是也很让人崩溃。
 
 我让他立刻强制回退了全部的代码修改本地以及远程。强制回退之后，我讲更新的代码从新从我gitcode仓库中打包然后再次解压到了我的github本地仓库中，然后第二次尝试是让他严禁修改任何代码仅仅是创建pr并且关联issue，这样也只能说是在极大程度上不会产生以外的代码修改，但我们依旧要手动的去进行commit，甚至是进行代码的zip打包。毕竟前两天也是出现了一些CC删掉了整个库并且篡改了git的记录导致无法通过回滚来进行恢复的悲剧。
+
+第二次的尝试CC的操作让我很震惊，我本来以为只要是不修改我的代码就不会再出什么幺蛾子，但没想到他居然给我创建了一个空的PR，没错是空的，没有任何代码提交的空PR。这个罪证我也是留下来了。
+
+<div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(40, 167, 69, 0.4)'; this.style.background='linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(40, 167, 69, 0.3)'; this.style.background='linear-gradient(135deg, #28a745 0%, #20c997 100%)'">
+  <div style="position: relative; z-index: 2;">
+    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="margin-right: 12px;">
+        <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+      </svg>
+      <div style="margin: 0; font-size: 20px; font-weight: 600;">Pull Request #2</div>
+    </div>
+    <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">📋 首次提交NowInOpenHarmony项目代码</p>
+    <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">🚀 首次提交</span>
+      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">📱 移动应用</span>
+      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">🎯 资讯聚合</span>
+    </div>
+    <a href="https://github.com/ifLabVibe/NowInOpenHarmony/pull/2" target="_blank" style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 10px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); font-weight: 500; transition: all 0.2s ease;" onclick="event.stopPropagation()" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 2px 8px rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="margin-right: 12px;">
+        <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+      </svg>
+      查看 Pull Request
+    </a>
+  </div>
+</div>

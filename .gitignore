@@ -7,3 +7,6 @@ public/
 .deploy*/
 # MCP Pointer temporary files
 D:tmpmcp-pointer-shared-state.json
+Dtmpmcp-pointer-shared-state.json
+.claude/settings.local.json
+.claude/settings.local.json
