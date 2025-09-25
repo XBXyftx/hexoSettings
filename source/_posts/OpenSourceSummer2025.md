@@ -10409,32 +10409,34 @@ This commit has no content."
     </div>
     <!-- 箭头 -->
     <div style="color: white; font-size: 24px; animation: bounce 2s infinite;">↓</div>
-    <!-- 第五步：开发编码 -->
-    <div style="display: flex; align-items: center; justify-content: space-around; width: 100%; position: relative;">
-      <!-- 开发过程的循环 -->
-      <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 25px; border-radius: 10px; color: white; text-align: center; min-width: 150px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-          <div style="font-size: 16px; font-weight: bold; margin-bottom: 5px;">💻 编码开发</div>
-          <div style="font-size: 12px; opacity: 0.9;">实现功能逻辑</div>
-        </div>
-        <!-- 循环箭头 -->
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <div style="color: white; font-size: 16px;">→</div>
-          <div style="background: linear-gradient(135deg, #ff9a56 0%, #ff6b6b 100%); padding: 12px 20px; border-radius: 8px; color: white; text-align: center; min-width: 120px; box-shadow: 0 3px 10px rgba(255, 154, 86, 0.3);">
-            <div style="font-size: 14px; font-weight: bold; margin-bottom: 3px;">🔍 测试</div>
-            <div style="font-size: 11px; opacity: 0.9;">验证功能</div>
-          </div>
-          <div style="color: white; font-size: 16px;">→</div>
-          <div style="background: linear-gradient(135deg, #56ccf2 0%, #2f80ed 100%); padding: 12px 20px; border-radius: 8px; color: white; text-align: center; min-width: 120px; box-shadow: 0 3px 10px rgba(86, 204, 242, 0.3);">
-            <div style="font-size: 14px; font-weight: bold; margin-bottom: 3px;">💾 Commit</div>
-            <div style="font-size: 11px; opacity: 0.9;">提交代码</div>
-          </div>
-        </div>
+    <!-- 第五步：编码开发 -->
+    <div style="display: flex; align-items: center; justify-content: center; width: 100%; position: relative;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px 30px; border-radius: 12px; color: white; text-align: center; min-width: 200px; box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 8px 25px rgba(102, 126, 234, 0.4)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 5px 15px rgba(102, 126, 234, 0.3)'">
+        <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">💻 编码开发</div>
+        <div style="font-size: 14px; opacity: 0.9;">实现功能逻辑</div>
       </div>
     </div>
     <!-- 箭头 -->
     <div style="color: white; font-size: 24px; animation: bounce 2s infinite;">↓</div>
-    <!-- 第六步：PR创建 -->
+    <!-- 第六步：测试 -->
+    <div style="display: flex; align-items: center; justify-content: center; width: 100%; position: relative;">
+      <div style="background: linear-gradient(135deg, #ff9a56 0%, #ff6b6b 100%); padding: 20px 30px; border-radius: 12px; color: white; text-align: center; min-width: 200px; box-shadow: 0 5px 15px rgba(255, 154, 86, 0.3); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 8px 25px rgba(255, 154, 86, 0.4)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 5px 15px rgba(255, 154, 86, 0.3)'">
+        <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">🔍 测试</div>
+        <div style="font-size: 14px; opacity: 0.9;">验证功能</div>
+      </div>
+    </div>
+    <!-- 箭头 -->
+    <div style="color: white; font-size: 24px; animation: bounce 2s infinite;">↓</div>
+    <!-- 第七步：提交代码 -->
+    <div style="display: flex; align-items: center; justify-content: center; width: 100%; position: relative;">
+      <div style="background: linear-gradient(135deg, #56ccf2 0%, #2f80ed 100%); padding: 20px 30px; border-radius: 12px; color: white; text-align: center; min-width: 200px; box-shadow: 0 5px 15px rgba(86, 204, 242, 0.3); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 8px 25px rgba(86, 204, 242, 0.4)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 5px 15px rgba(86, 204, 242, 0.3)'">
+        <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">💾 Commit</div>
+        <div style="font-size: 14px; opacity: 0.9;">提交代码</div>
+      </div>
+    </div>
+    <!-- 箭头 -->
+    <div style="color: white; font-size: 24px; animation: bounce 2s infinite;">↓</div>
+    <!-- 第八步：PR创建 -->
     <div style="display: flex; align-items: center; justify-content: center; width: 100%; position: relative;">
       <div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 20px 30px; border-radius: 12px; color: #2d3436; text-align: center; min-width: 200px; box-shadow: 0 5px 15px rgba(168, 237, 234, 0.3); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 8px 25px rgba(168, 237, 234, 0.4)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 5px 15px rgba(168, 237, 234, 0.3)'">
         <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">🚀 创建PR</div>
@@ -10443,27 +10445,16 @@ This commit has no content."
     </div>
     <!-- 箭头 -->
     <div style="color: white; font-size: 24px; animation: bounce 2s infinite;">↓</div>
-    <!-- 第七步：代码审查 -->
+    <!-- 第九步：代码审查 -->
     <div style="display: flex; align-items: center; justify-content: center; width: 100%; position: relative;">
       <div style="background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%); padding: 20px 30px; border-radius: 12px; color: #2d3436; text-align: center; min-width: 200px; box-shadow: 0 5px 15px rgba(255, 234, 167, 0.3); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 8px 25px rgba(255, 234, 167, 0.4)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 5px 15px rgba(255, 234, 167, 0.3)'">
         <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">👥 代码审查</div>
         <div style="font-size: 14px; opacity: 0.9;">团队成员评审代码质量</div>
       </div>
     </div>
-    <!-- 条件分支箭头 -->
-    <div style="display: flex; justify-content: space-around; width: 100%; margin: 20px 0;">
-      <!-- 通过路径 -->
-      <div style="display: flex; flex-direction: column; align-items: center;">
-        <div style="color: #00b894; font-size: 16px; font-weight: bold; margin-bottom: 10px;">✅ 审查通过</div>
-        <div style="color: white; font-size: 24px;">↓</div>
-      </div>
-      <!-- 需要修改路径 -->
-      <div style="display: flex; flex-direction: column; align-items: center;">
-        <div style="color: #e17055; font-size: 16px; font-weight: bold; margin-bottom: 10px;">❌ 需要修改</div>
-        <div style="color: white; font-size: 20px;">↗</div>
-      </div>
-    </div>
-    <!-- 第八步：合并完成 -->
+    <!-- 箭头 -->
+    <div style="color: white; font-size: 24px; animation: bounce 2s infinite;">↓</div>
+    <!-- 第十步：合并完成 -->
     <div style="display: flex; align-items: center; justify-content: center; width: 100%; position: relative;">
       <div style="background: linear-gradient(135deg, #00b894 0%, #00cec9 100%); padding: 20px 30px; border-radius: 12px; color: white; text-align: center; min-width: 200px; box-shadow: 0 5px 15px rgba(0, 184, 148, 0.3); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 8px 25px rgba(0, 184, 148, 0.4)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 5px 15px rgba(0, 184, 148, 0.3)'">
         <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;">🎉 合并完成</div>
