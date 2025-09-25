@@ -27,7 +27,10 @@
       "mcp__pointer__get-pointed-element",
       "Bash(netstat:*)",
       "Bash(taskkill:*)",
-      "Bash(cmd //c:*)"
+      "Bash(cmd //c:*)",
+      "Bash(cat:*)",
+      "Bash(\"C:\\Program Files\\GitHub CLI\\gh.exe\" pr view 2 --repo ifLabVibe/NowInOpenHarmony --json additions,deletions,title,body)",
+      "WebFetch(domain:api.github.com)"
     ],
     "deny": [],
     "ask": []
