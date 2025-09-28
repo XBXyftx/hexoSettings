@@ -17,6 +17,76 @@ copyright_url: https://xbxyftx.top
 copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自原作者
 ---
 
+## NowInOpenHarmony项目简介
+
+**NowInOpenHarmony**
+作为OpenHarmony生态专属资讯聚合平台，NowInOpenHarmony为开发者与爱好者打造一站式信息枢纽。系统深度整合官方网站动态、技术博客干货资源，通过智能爬虫技术实现多源数据精准聚合。
+
+依托多线程架构与智能缓存机制，每30分钟自动更新内容，确保资讯新鲜度的同时，实现无阻塞流畅体验。支持新闻分类浏览、关键词搜索与分页查看，让你快速捕捉OpenHarmony版本更新、API升级等核心动态。
+
+从技术解读到生态资讯，随时随地掌握一手信息，是OpenHarmony生态用户的必备工具。
+
+![3](NowInOpenHarmonyPutaway/3.jpg)
+
+![4](NowInOpenHarmonyPutaway/4.jpg)
+
+![5](NowInOpenHarmonyPutaway/5.jpg)
+
+![6](NowInOpenHarmonyPutaway/6.jpg)
+
+![7](NowInOpenHarmonyPutaway/7.jpg)
+
+![8](NowInOpenHarmonyPutaway/8.jpg)
+
+![9](NowInOpenHarmonyPutaway/9.jpg)
+
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(102, 126, 234, 0.4)'; this.style.background='linear-gradient(135deg, #7c4dff 0%, #8e24aa 100%)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.3)'; this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'">
+  <div style="position: relative; z-index: 2;">
+    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="margin-right: 12px;">
+        <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+      </svg>
+      <div style="margin: 0; font-size: 20px; font-weight: 600;">ifLabVibe/NowInOpenHarmony</div>
+    </div>
+    <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">🚀 基于OpenHarmony的资讯聚合应用 - 开源之夏2025项目</p>
+    <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">OpenHarmony</span>
+      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">ArkTS</span>
+      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">Python</span>
+      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">FastAPI</span>
+    </div>
+    <a href="https://github.com/ifLabVibe/NowInOpenHarmony" target="_blank" style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 10px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); font-weight: 500; transition: all 0.2s ease;" onclick="event.stopPropagation()" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 2px 8px rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="white" style="margin-right: 8px;">
+        <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+      </svg>
+      查看项目仓库
+    </a>
+  </div>
+</div>
+
+<div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(40, 167, 69, 0.4)'; this.style.background='linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(40, 167, 69, 0.3)'; this.style.background='linear-gradient(135deg, #28a745 0%, #20c997 100%)'">
+  <div style="position: relative; z-index: 2;">
+    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+      <svg width="24" height="24" viewBox="0 0 1056 1024" style="margin-right: 12px;" fill="none">
+        <path d="M479.663158 988.429474c-90.004211-10.24-187.553684-48.505263-247.376842-96.471579-33.953684-26.947368-90.004211-88.387368-111.023158-120.724211-64.134737-99.166316-90.004211-222.046316-70.602105-333.608421 18.863158-107.250526 63.056842-191.326316 141.20421-267.856842 135.814737-133.12 353.010526-175.157895 527.090526-101.861053 57.128421 24.252632 112.101053 58.206316 134.736843 82.997895 44.193684 49.044211 28.025263 128.808421-31.258948 158.450526-25.330526 12.395789-72.218947 12.934737-90.543158 1.077895s-35.031579-44.193684-39.343158-77.069473c-2.155789-15.629474-4.850526-28.564211-5.389473-28.564211-1.077895 0-14.551579 7.545263-29.642106 16.168421-49.583158 29.103158-64.134737 33.414737-140.126315 38.265263-39.882105 2.155789-84.075789 5.928421-97.549474 8.084211-24.791579 3.233684-54.972632-1.077895-102.938947-16.168421l-25.330527-8.084211 1.077895 52.277895c0.538947 50.661053 0 53.355789-21.557895 98.088421-28.025263 58.206316-38.265263 93.237895-42.576842 144.976842-10.24 124.496842 57.667368 217.195789 186.47579 253.844211 83.536842 23.713684 221.507368 18.863158 296.421052-10.778948 71.68-28.564211 134.736842-94.854737 134.736842-142.282105 0-19.402105-24.791579-44.193684-51.738947-50.661053-11.317895-3.233684-54.433684-7.006316-95.393684-8.623158-86.770526-3.772632-147.132632-11.856842-163.84-22.635789s-25.330526-40.96-17.785263-63.59579c7.545263-23.713684 19.402105-33.953684 54.433684-46.888421 23.713684-9.162105 40.96-10.778947 109.945263-10.778947 146.593684 0 215.578947 18.324211 269.473684 72.218947 61.978947 62.517895 68.446316 157.372632 16.168421 241.448421-77.069474 123.418947-168.151579 194.021053-291.570526 225.818948-41.498947 11.317895-151.444211 18.324211-196.176842 12.934737z" fill="#D62240"/>
+      </svg>
+      <div style="margin: 0; font-size: 20px; font-weight: 600;">openharmony-sig/ostest_integration_test</div>
+    </div>
+    <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">🎉 项目已被收录至OpenHarmony SIG集成测试仓库</p>
+    <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">✅ 官方收录</span>
+      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">🔬 集成测试</span>
+      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">OpenHarmony SIG</span>
+    </div>
+    <a href="https://gitcode.com/openharmony-sig/ostest_integration_test" target="_blank" style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 10px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); font-weight: 500; transition: all 0.2s ease;" onclick="event.stopPropagation()" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 2px 8px rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+      <svg width="16" height="16" viewBox="0 0 1056 1024" style="margin-right: 8px;" fill="none">
+        <path d="M479.663158 988.429474c-90.004211-10.24-187.553684-48.505263-247.376842-96.471579-33.953684-26.947368-90.004211-88.387368-111.023158-120.724211-64.134737-99.166316-90.004211-222.046316-70.602105-333.608421 18.863158-107.250526 63.056842-191.326316 141.20421-267.856842 135.814737-133.12 353.010526-175.157895 527.090526-101.861053 57.128421 24.252632 112.101053 58.206316 134.736843 82.997895 44.193684 49.044211 28.025263 128.808421-31.258948 158.450526-25.330526 12.395789-72.218947 12.934737-90.543158 1.077895s-35.031579-44.193684-39.343158-77.069473c-2.155789-15.629474-4.850526-28.564211-5.389473-28.564211-1.077895 0-14.551579 7.545263-29.642106 16.168421-49.583158 29.103158-64.134737 33.414737-140.126315 38.265263-39.882105 2.155789-84.075789 5.928421-97.549474 8.084211-24.791579 3.233684-54.972632-1.077895-102.938947-16.168421l-25.330527-8.084211 1.077895 52.277895c0.538947 50.661053 0 53.355789-21.557895 98.088421-28.025263 58.206316-38.265263 93.237895-42.576842 144.976842-10.24 124.496842 57.667368 217.195789 186.47579 253.844211 83.536842 23.713684 221.507368 18.863158 296.421052-10.778948 71.68-28.564211 134.736842-94.854737 134.736842-142.282105 0-19.402105-24.791579-44.193684-51.738947-50.661053-11.317895-3.233684-54.433684-7.006316-95.393684-8.623158-86.770526-3.772632-147.132632-11.856842-163.84-22.635789s-25.330526-40.96-17.785263-63.59579c7.545263-23.713684 19.402105-33.953684 54.433684-46.888421 23.713684-9.162105 40.96-10.778947 109.945263-10.778947 146.593684 0 215.578947 18.324211 269.473684 72.218947 61.978947 62.517895 68.446316 157.372632 16.168421 241.448421-77.069474 123.418947-168.151579 194.021053-291.570526 225.818948-41.498947 11.317895-151.444211 18.324211-196.176842 12.934737z" fill="#D62240"/>
+      </svg>
+      查看官方仓库
+    </a>
+  </div>
+</div>
+
 ## 前言
 
 在经历了开源之夏一个暑期的努力之后，NowInOpenHarmony项目从最初的idea到现在已经具备了完整的功能架构和技术实现。从大一下半学期在春耕校源行上初识开源之夏，到大二下决心参与这个活动，再到三个月的开发历程，这个项目承载了我对OpenHarmony生态建设的热情和对技术实现的执着追求。
@@ -31,7 +101,9 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 这也是直接导致无法用没有公网IP的机器来当作服务端，C/S的网络请求过程是刚需最直接可访问的IP地址的，现阶段来说只能是祈求IPV6快快普及，赶紧替代IPV4吧。
 
-### issue创建
+### 需求实现规范化
+
+#### issue创建
 
 这也是规范化软件开发步骤的一步。
 
@@ -103,6 +175,145 @@ onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
 </a>
 </div>
 </div>
+
+#### 新分支的创建
+
+在[开源之夏文章](/2025/06/29/OpenSourceSummer2025/)的结尾我深度的解析了issue，pr，commit之间的关系及其重要性。
+
+所以我们先去进行一个新分支的创建。
+
+```bash
+> 我创建了一个issue：https://github.com/ifLabVibe/NowInOpenHarmony/issues/4，标题是后端docker容器化部署，现在先去创建一个新的   
+  分支并进行合适的命名，将当前的更改都commit到新的分支，记得要signoff
+
+● 好的，我来为你创建新分支并提交Docker容器化的更改。首先检查当前的Git状态：
+
+● Bash(git status)
+  ⎿  On branch fix/startup-page-font-adaptation-issue-1
+     Your branch is up to date with 'origin/fix/startup-page-font-adaptation-issue-1'.
+     … +21 lines (ctrl+o to expand)
+
+● Bash(git branch)
+  ⎿  * fix/startup-page-font-adaptation-issue-1
+       main
+
+● 现在创建一个新的分支来专门处理Docker容器化部署：
+
+● Bash(git checkout -b feature/docker-containerization-deployment-issue-4)
+  ⎿  Switched to a new branch 'feature/docker-containerization-deployment-issue-4'
+
+● 现在添加所有Docker相关的文件：
+
+● Bash(git add Dockerfile docker-compose.yml docker-compose.prod.yml CLAUDE.md .env.example DEPLOYMENT.md UBUNTU_DEPLOYMENT.md
+      deploy.sh nginx/)
+  ⎿  (No content)
+
+● 查看暂存的文件：
+
+● Bash(git status)
+  ⎿  On branch feature/docker-containerization-deployment-issue-4
+     Changes to be committed:
+       (use "git restore --staged <file>..." to unstage)
+     … +18 lines (ctrl+o to expand)
+
+● 现在使用signoff提交更改：
+
+● Bash(git commit -s -m "feat: implement complete Docker containerization deployment solution…)
+  ⎿  Interrupted · What should Claude do instead?
+
+> 用中文
+
+● Bash(git commit -s -m "feat: 实现完整的Docker容器化部署方案…)
+  ⎿  [feature/docker-containerization-deployment-issue-4 521f48c] feat: 实现完整的Docker容器化部署方案
+      10 files changed, 1483 insertions(+), 45 deletions(-)
+      create mode 100644 Server/.env.example
+     … +6 lines (ctrl+o to expand)
+
+● 完美！已成功创建新分支并提交了所有Docker容器化更改：
+
+  ✅ 完成的操作
+
+  1. 创建新分支：feature/docker-containerization-deployment-issue-4
+  2. 提交了10个文件：
+    - 新增：.env.example - 环境变量模板
+    - 新增：DEPLOYMENT.md - 完整部署文档
+    - 新增：UBUNTU_DEPLOYMENT.md - Ubuntu专用部署指南
+    - 新增：deploy.sh - 自动化部署脚本
+    - 新增：docker-compose.prod.yml - 生产环境配置
+    - 新增：nginx/ - Nginx配置文件
+    - 修改：Dockerfile、docker-compose.yml、CLAUDE.md
+  3. 使用了Signed-off-by，符合开源项目规范
+
+  📋 提交详情
+
+  - 分支名称：feature/docker-containerization-deployment-issue-4
+  - 提交哈希：521f48c
+  - 关联issue：#4
+  - 文件变更：10个文件，1483行新增，45行修改
+
+  现在你可以：
+  1. 推送到远程仓库：git push origin feature/docker-containerization-deployment-issue-4
+  2. 在GitHub上创建Pull Request
+  3. 将PR关联到issue #4
+
+  需要我帮你推送到远程仓库吗？
+
+> 推送
+
+● Bash(git push -u origin feature/docker-containerization-deployment-issue-4)
+  ⎿ branch 'feature/docker-containerization-deployment-issue-4' set up to track 'origin/feature/docker-containerization-dep
+    loyment-issue-4'.
+    remote:
+    … +7 lines (ctrl+o to expand)
+
+
+● 🚀 推送成功！
+
+  ✅ 完成状态
+
+  - 分支已推送：feature/docker-containerization-deployment-issue-4
+  - 远程追踪已设置：本地分支已关联到远程分支
+
+  🔗 下一步操作
+
+  GitHub已经为你提供了创建Pull Request的链接：
+
+  创建PR链接：
+  https://github.com/ifLabVibe/NowInOpenHarmony/pull/new/feature/docker-containerization-deployment-issue-4
+
+  📋 PR建议信息
+
+  标题：
+  feat: 实现完整的Docker容器化部署方案 (#4)
+
+  描述模板：
+  ## 概述
+  实现了完整的Docker容器化部署方案，支持开发和生产环境一键部署。
+
+  ## 主要功能
+  - ✅ 优化的Docker镜像配置
+  - ✅ 开发和生产环境Docker Compose配置
+  - ✅ 自动化部署脚本
+  - ✅ Nginx反向代理配置
+  - ✅ 完整的监控栈（Prometheus + Grafana）
+  - ✅ 详细的部署文档
+
+  ## 文件变更
+  - 新增部署脚本和配置文件
+  - 优化Dockerfile安全配置
+  - 添加Ubuntu服务器专用部署指南
+
+  ## 测试
+  - [x] Docker镜像构建成功
+  - [x] 开发环境启动正常
+  - [x] 生产环境配置完整
+
+  Fixes #4
+
+  现在你可以点击链接去创建Pull Request了！
+```
+
+![2](NowInOpenHarmonyPutaway/2.png)
 
 ### docker的本地配置
 
@@ -1251,4 +1462,4 @@ main "$@"
 
 我感觉cc好像并没有理解我的意思，我是指是否需要在宝塔上去点击安装Docker，而不是在Ubuntu服务器上安装Docker。不过看他的回答那就是肯定需要了，所以我及直接去安装了。
 
-
+![1](NowInOpenHarmonyPutaway/1.png)
