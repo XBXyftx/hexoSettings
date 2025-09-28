@@ -99,6 +99,8 @@ onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
 
 ### 现有项目分析与运行测试
 
+#### 直接运行
+
 首先我们让CC帮我们运行一下当前的项目并且去告诉我预览的本地端口地址。
 
 ```bash
@@ -281,3 +283,11 @@ onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
 ![3](AITrainingCamp2/3.png)
 
 额，不知道为什么点全部启动之后就失败了。等佳澎回来我再问他一下吧。
+
+#### docker的安装
+
+![4](AITrainingCamp2/4.png)
+
+安装docker进行一下尝试。
+
+额依旧是无法连接。

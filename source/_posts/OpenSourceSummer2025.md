@@ -6,6 +6,7 @@ tags:
   - 鸿蒙
   - 项目
   - 技术向
+  - NowInOpenHarmony
 cover:  /imgs/ArticleTopImgs/OpenSourceSummerTopImg.png
 top: 20
 description: 开源之夏2025项目开发笔记
