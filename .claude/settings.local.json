@@ -30,7 +30,9 @@
       "Bash(cmd //c:*)",
       "Bash(cat:*)",
       "Bash(\"C:\\Program Files\\GitHub CLI\\gh.exe\" pr view 2 --repo ifLabVibe/NowInOpenHarmony --json additions,deletions,title,body)",
-      "WebFetch(domain:api.github.com)"
+      "WebFetch(domain:api.github.com)",
+      "Bash(systeminfo)",
+      "Bash(ver)"
     ],
     "deny": [],
     "ask": []
