@@ -1463,3 +1463,154 @@ main "$@"
 我感觉cc好像并没有理解我的意思，我是指是否需要在宝塔上去点击安装Docker，而不是在Ubuntu服务器上安装Docker。不过看他的回答那就是肯定需要了，所以我及直接去安装了。
 
 ![1](NowInOpenHarmonyPutaway/1.png)
+
+安装完后我去截了个图给cc去确认了一下。
+
+![10](NowInOpenHarmonyPutaway/10.png)
+
+随后我去宝塔的终端上去继续一下安装成功的验证。
+
+![11](NowInOpenHarmonyPutaway/11.png)
+
+#### 应用商店的选择
+
+在安装了docker之后宝塔面板的docker分页就会出现应用商店，里面各种各样的运行环境，docker管理应用琳琅满目，我的的确确是不知道该选什么了。
+
+```bash
+> 我是要通过宝塔面板进行docker项目的部署， @image.png 我该怎么做
+  ⎿  Read image.png (220.5KB)
+
+● 好的！我看到你现在在宝塔面板的应用商店。对于Docker项目部署，你有两种方式：
+
+  🐋 方式一：通过宝塔Docker管理器（推荐）
+
+  1. 先安装Docker管理器
+
+  在当前页面搜索"Docker"或者在应用分类中选择"实用工具"，找到并安装：
+  - Docker管理器 - 用于可视化管理Docker容器
+
+  2. 安装后的操作步骤
+
+  宝塔面板 → Docker → 镜像管理 → 容器管理
+
+  🚀 方式二：SSH命令行部署（更灵活）
+
+  1. 通过SSH连接服务器
+
+  # 在宝塔面板 → 终端 或者使用SSH工具连接
+
+  2. 创建项目目录
+
+  mkdir -p /www/wwwroot/openharmony-server
+  cd /www/wwwroot/openharmony-server
+
+  3. 上传代码（选择一种方式）
+
+  方式A：通过宝塔文件管理器
+  - 将本地Server文件夹打包成zip
+  - 通过宝塔面板 → 文件 → 上传并解压
+
+  方式B：通过Git克隆
+  git clone https://github.com/ifLabVibe/NowInOpenHarmony.git
+  cd NowInOpenHarmony/Server
+
+  4. 一键部署
+
+  chmod +x deploy.sh
+  ./deploy.sh install
+  ./deploy.sh start
+
+  📋 推荐操作流程
+
+  建议使用方式二（SSH命令行），因为：
+  - 更灵活，支持我们的自动化脚本
+  - 便于调试和查看日志
+  - 支持完整的Docker Compose功能
+
+  你想用哪种方式？我可以详细指导具体操作步骤。
+```
+
+它给了我两种方式去进行安装，我更倾向于使用第一种可视化的方式去继续进行操作，毕竟对于我来说我还只是第一次进行docker部署的尝试。
+
+它让我在搜索框输入"Docker"找到"Docker管理器"应用，但是我搜索结果中并没有这个应用。
+
+![13](NowInOpenHarmonyPutaway/13.png)
+
+但是以我之前用宝塔的经验来说，应该是直接用宝塔自带的工具进行部署就可以没必要下更多的管理软件的。
+
+于是我决定直接截一张图让他去教我怎么做。
+
+![14](NowInOpenHarmonyPutaway/14.png)
+
+```bash
+> @image.png 不要下载额外软件现在就告诉我现在的这个宝塔自带的界面该怎么做？
+  ⎿  Read image.png (92.6KB)
+
+● 好的！我看到你已经在宝塔自带的Docker管理界面了。现在我来指导你如何使用这个界面进行部署：
+
+● 🚀 使用宝塔自带Docker界面部署
+
+  第一步：上传项目代码
+
+  在当前Docker界面操作之前，我们需要先上传代码：
+
+  1. 点击左侧菜单"文件"
+  2. 进入目录 /www/wwwroot/
+  3. 创建文件夹 openharmony-server
+  4. 进入该文件夹
+  5. 上传文件：
+    - 将本地Server文件夹的所有文件打包成zip
+    - 上传并解压
+
+  第二步：回到Docker界面
+
+  回到当前Docker管理页面，点击顶部的 "本地镜像" 标签
+
+  第三步：构建镜像
+
+  1. 点击"构建镜像"按钮（通常在页面右上角）
+  2. 填写构建信息：
+    - 镜像名称：openharmony-server
+    - 标签：latest
+    - 构建路径：/www/wwwroot/openharmony-server
+    - Dockerfile路径：Dockerfile
+
+  第四步：等待构建完成
+
+  构建过程可能需要5-10分钟，在"本地镜像"中会看到构建进度
+
+  第五步：创建容器
+
+  构建完成后：
+  1. 点击"容器列表"标签
+  2. 点击"创建容器"
+  3. 配置容器：
+    - 容器名称：openharmony-api
+    - 选择镜像：openharmony-server:latest
+    - 端口映射：8001:8001
+    - 重启策略：always
+
+  第六步：启动容器
+
+  创建完成后，在容器列表中点击"启动"按钮
+
+  📋 具体操作顺序
+
+  现在请按以下顺序操作：
+
+  1. 先去文件管理器上传代码
+  2. 回到Docker → 本地镜像
+  3. 点击构建镜像
+
+  你现在可以先去上传代码，需要我准备一个简化版的文件包给你吗？
+```
+
+![15](NowInOpenHarmonyPutaway/15.png)
+
+![16](NowInOpenHarmonyPutaway/16.png)
+
+![17](NowInOpenHarmonyPutaway/17.png)
+
+至此我成功将全部文件上传到了我的服务器，将这些截图喂给cc让他同步一下我现在的进度，随后继续指导我去进行部署。
+
+
