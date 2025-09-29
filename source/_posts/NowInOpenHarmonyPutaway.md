@@ -1,5 +1,5 @@
 ---
-title: NowInOpenHarmonyPutaway
+title: NowInOpenHarmony上架笔记
 date: 2025-09-27 17:02:05
 tags:
   - 开源之夏
@@ -7,9 +7,9 @@ tags:
   - 项目
   - 技术向
   - NowInOpenHarmony
-cover:  /imgs/ArticleTopImgs/OpenSourceSummerTopImg.png
+cover:  /imgs/ArticleTopImgs/NowInOpenHarmonyPutawayTopImg.jpg
 description: NowInOpenHarmony上架笔记
-typewriter: 这篇文章将会记录我将NowInOpenHarmony上架的过程，尽全力将NowInOpenHarmony作为我的第一个上架的应用。
+typewriter: 🚀 从开源之夏到应用上架的完整征程！本文记录了NowInOpenHarmony项目从开发完成到正式上架的全流程实践。深入探索了服务器部署的技术细节，包括Docker容器化、宝塔面板操作、环境配置等核心技术。特别详细地记录了部署过程中遇到的tar格式技术难题及其解决方案，通过实际踩坑经历深入理解了很多技术细节的本质区别。从GitHub分支管理到Ubuntu服务器配置，从环境搭建到镜像构建，每一个步骤都有详细的截图和说明。这不仅是一次技术实践的记录，更是从学生开发者向产品开发者转变的重要里程碑，见证了第一个正式上架应用的诞生过程。
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
@@ -1756,3 +1756,163 @@ Docker在构建镜像时需要频繁读取文件内容，如果使用压缩格�
 ![24](NowInOpenHarmonyPutaway/24.png)
 
 额，解压完tar那一层也被一并解开了。嘶，那只好问问CC了。这次我直接把我的博文复制给他。
+
+```bash
+● 哈哈，你的理解是对的！.tar.gz解压确实是直接解开两层变成文件夹了。
+
+  🎯 创建纯.tar文件的方法
+
+  方法一：在宝塔文件管理器中
+
+  1. 选中所有需要打包的文件和文件夹（不包括Server.tar.gz）
+  2. 右键 → 压缩
+  3. 在压缩格式中选择.tar（不是.tar.gz）
+  4. 命名为 openharmony-server.tar
+
+  方法二：使用SSH终端（推荐）
+
+  cd /www/wwwroot/openharmony-server/Server
+  tar -cf openharmony-server.tar .
+
+  这个命令会创建一个包含当前目录所有文件的tar归档。
+
+  🚀 但是！更简单的解决方案
+
+  实际上，宝塔的Docker管理器对tar格式支持可能有限。我建议直接用SSH终端构建镜像：
+
+  终极解决方案：
+
+  # 1. 进入项目目录
+  cd /www/wwwroot/openharmony-server/Server
+
+  # 2. 直接构建Docker镜像
+  docker build -t openharmony-server:latest .
+
+  # 3. 查看构建结果
+  docker images
+
+  这样就能绕过宝塔界面的格式限制，直接用Docker原生命令构建镜像。
+
+  💡 tar知识补充
+
+  你总结得很对！简单记忆：
+  - .tar = 打包（文件大小基本不变）
+  - .tar.gz = 打包 + 压缩（文件变小）
+  - .zip = 打包 + 压缩（Windows常用）
+
+  现在建议直接用SSH终端命令，这样最稳妥！需要我指导终端操作吗？
+```
+
+![25](NowInOpenHarmonyPutaway/25.png)
+
+哦！很有意思，CC居然回复我了一个“哈哈”这真的有点像是在和真人聊天了，有点意思。
+
+我把这段经历也发到了AI训练营的群里，曾老师也是评价道说：“你得到了它”。
+
+回归正题，在宝塔面板上则直接去选择压缩格式并没有办法去直接选择tar格式，他的tar格式是于gz绑定的。
+
+于是我决定现在使用终端去进行部署尝试。
+
+```bash
+> 我要用终端进行，请给我命令行
+
+● 好的！我给你完整的终端命令行操作步骤：
+
+  🚀 终端Docker部署命令
+
+  第一步：进入项目目录
+
+  cd /www/wwwroot/openharmony-server/Server
+
+  第二步：检查文件是否完整
+
+  ls -la
+  确认能看到：Dockerfile、requirements.txt、main.py、run.py等文件
+
+  第三步：构建Docker镜像
+
+  docker build -t openharmony-server:latest .
+
+  第四步：查看构建结果
+
+  docker images | grep openharmony
+
+  第五步：创建并运行容器
+
+  docker run -d \
+    --name openharmony-api \
+    -p 8001:8001 \
+    -v /www/wwwroot/openharmony-server/logs:/app/logs \
+    -v /www/wwwroot/openharmony-server/data:/app/data \
+    -e HOST=0.0.0.0 \
+    -e PORT=8001 \
+    -e DATABASE_URL=sqlite:///./data/openharmony_news.db \
+    -e LOG_LEVEL=INFO \
+    -e ENABLE_SCHEDULER=true \
+    --restart unless-stopped \
+    openharmony-server:latest
+
+  第六步：查看容器状态
+
+  docker ps
+
+  第七步：查看容器日志
+
+  docker logs -f openharmony-api
+
+  第八步：测试API服务
+
+  curl http://localhost:8001/health
+
+  🔧 如果出错的常用调试命令
+
+  # 查看构建过程的详细信息
+  docker build -t openharmony-server:latest . --no-cache
+
+  # 进入容器内部调试
+  docker exec -it openharmony-api /bin/bash
+
+  # 停止容器
+  docker stop openharmony-api
+
+  # 删除容器
+  docker rm openharmony-api
+
+  # 重新启动
+  docker start openharmony-api
+
+  现在你可以复制第一个命令开始执行了！ 🎯
+```
+
+![26](NowInOpenHarmonyPutaway/26.png)
+
+```bash
+> @"image copy.png"
+  ⎿  Read image copy.png (66.5KB)
+
+● 完美！我看到你已经在正确的目录了，所有文件都在。现在开始构建Docker镜像：
+
+  🚀 开始构建Docker镜像
+
+  复制并执行以下命令：
+
+  docker build -t openharmony-server:latest .
+
+  这个命令会：
+  - 读取当前目录的 Dockerfile
+  - 下载Python基础镜像
+  - 安装系统依赖和Python包
+  - 构建完整的应用镜像
+
+  构建过程大约需要5-10分钟，你会看到很多输出信息，包括：
+  - 下载镜像层
+  - 安装系统包
+  - 安装Python依赖
+  - 复制应用代码
+
+  构建完成后会显示类似：
+  Successfully built [镜像ID]
+  Successfully tagged openharmony-server:latest
+
+  现在执行这个命令，我等你的构建结果！ 🎯
+```
