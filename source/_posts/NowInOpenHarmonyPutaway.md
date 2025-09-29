@@ -8,7 +8,7 @@ tags:
   - 技术向
   - NowInOpenHarmony
 cover:  /imgs/ArticleTopImgs/NowInOpenHarmonyPutawayTopImg.jpg
-description: NowInOpenHarmony上架笔记
+description: NowInOpenHarmony上架笔记（已被迫断更）
 typewriter: 🚀 从开源之夏到应用上架的完整征程！本文记录了NowInOpenHarmony项目从开发完成到正式上架的全流程实践。深入探索了服务器部署的技术细节，包括Docker容器化、宝塔面板操作、环境配置等核心技术。特别详细地记录了部署过程中遇到的tar格式技术难题及其解决方案，通过实际踩坑经历深入理解了很多技术细节的本质区别。从GitHub分支管理到Ubuntu服务器配置，从环境搭建到镜像构建，每一个步骤都有详细的截图和说明。这不仅是一次技术实践的记录，更是从学生开发者向产品开发者转变的重要里程碑，见证了第一个正式上架应用的诞生过程。
 post_copyright:
 copyright_author: XBXyftx
@@ -2673,24 +2673,24 @@ ok，直接开始接口测试！！！
 
   你想先检查哪个？我可以指导你具体操作！
 
-> 113.47.8.204换成这个IP试试
+> ***.***.*.***换成这个IP试试
 
 ● 好的！让我用这个IP地址来测试你的API服务。
 
-● Fetch(http://113.47.8.204:8001/health)
+● Fetch(http://***.***.*.***:8001/health)
   ⎿  Error: Client network socket disconnected before secure TLS connection was established
 
-● Fetch(http://113.47.8.204/health)
+● Fetch(http://***.***.*.***/health)
   ⎿  Error: self-signed certificate
 
-● Fetch(https://113.47.8.204)
+● Fetch(https://***.***.*.***)
   ⎿  Error: self-signed certificate
 
 ● 🔍 测试结果分析
 
   ❌ API端口8001问题
 
-  - http://113.47.8.204:8001/health - 网络连接失败
+  - http://***.***.*.***:8001/health - 网络连接失败
   - 说明8001端口没有对外开放或服务没有正确绑定
 
   ⚠️ SSL证书问题
@@ -3042,3 +3042,522 @@ PermissionError: [Errno 13] Permission denied: '/app/logs/openharmony_api_202509
 ```
 
 ![43](NowInOpenHarmonyPutaway/43.png)
+
+```bash
+> @image.png
+  ⎿  Read image.png (50.2KB)
+
+● 🎉 权限修复成功！
+
+  我看到权限已经正确设置：
+  - data目录: drwxrwxrwx 2 root root ✅
+  - logs目录: drwxrwxrwx 2 www www ✅
+  - logs目录中已经有一些日志文件，权限也是 rwxrwxrwx ✅
+
+  🚀 现在启动容器
+
+  执行启动命令：
+
+  docker start openharmony-api
+
+  📊 检查容器状态
+
+  启动后立即检查：
+
+  docker ps
+
+  📝 查看启动日志
+
+  docker logs -f openharmony-api
+
+  现在执行 docker start openharmony-api 启动容器！
+
+  这次应该会成功启动，因为权限问题已经解决了。启动后我们就能看到容器正在运行，然后就可以测试API接口了！
+```
+
+```bash
+root@hcss-ecs-2ad2:/www/wwwroot/openharmony-server# docker ps
+CONTAINER ID   IMAGE                       COMMAND           CREATED             STATUS                        PORTS                                         NAMES
+b986f8e8436c   openharmony-server:latest   "python run.py"   About an hour ago   Up About a minute (healthy)   0.0.0.0:8001->8001/tcp, [::]:8001->8001/tcp   openharmony-api
+root@hcss-ecs-2ad2:/www/wwwroot/openharmony-server# docker logs -f openharmony-api
+Traceback (most recent call last):
+  File "/app/run.py", line 242, in <module>
+    main() 
+  File "/app/run.py", line 214, in main
+    setup_logging()
+  File "/app/core/logging_config.py", line 62, in setup_logging
+    file_handler = logging.handlers.TimedRotatingFileHandler(
+  File "/usr/local/lib/python3.9/logging/handlers.py", line 211, in __init__
+    BaseRotatingHandler.__init__(self, filename, 'a', encoding=encoding,
+  File "/usr/local/lib/python3.9/logging/handlers.py", line 58, in __init__
+    logging.FileHandler.__init__(self, filename, mode=mode,
+  File "/usr/local/lib/python3.9/logging/__init__.py", line 1146, in __init__
+    StreamHandler.__init__(self, self._open())
+  File "/usr/local/lib/python3.9/logging/__init__.py", line 1175, in _open
+    return open(self.baseFilename, self.mode, encoding=self.encoding,
+PermissionError: [Errno 13] Permission denied: '/app/logs/openharmony_api_20250929.log'
+Traceback (most recent call last):
+  File "/app/run.py", line 242, in <module>
+    main() 
+  File "/app/run.py", line 214, in main
+    setup_logging()
+  File "/app/core/logging_config.py", line 62, in setup_logging
+    file_handler = logging.handlers.TimedRotatingFileHandler(
+  File "/usr/local/lib/python3.9/logging/handlers.py", line 211, in __init__
+    BaseRotatingHandler.__init__(self, filename, 'a', encoding=encoding,
+  File "/usr/local/lib/python3.9/logging/handlers.py", line 58, in __init__
+    logging.FileHandler.__init__(self, filename, mode=mode,
+  File "/usr/local/lib/python3.9/logging/__init__.py", line 1146, in __init__
+    StreamHandler.__init__(self, self._open())
+  File "/usr/local/lib/python3.9/logging/__init__.py", line 1175, in _open
+    return open(self.baseFilename, self.mode, encoding=self.encoding,
+PermissionError: [Errno 13] Permission denied: '/app/logs/openharmony_api_20250929.log'
+2025-09-29 13:09:33 - root - INFO - 日志系统初始化完成
+============================================================
+🚀 NowInOpenHarmony API 服务启动成功!
+============================================================
+
+📡 服务可通过以下地址访问:
+----------------------------------------
+      主要IP: http://172.17.0.2:8001
+     API文档: http://172.17.0.2:8001/docs
+      健康检查: http://172.17.0.2:8001/health
+      全部新闻: http://172.17.0.2:8001/api/news/?all=true
+  Banner图片: http://172.17.0.2:8001/api/banner/mobile
+----------------------------------------
+
+🎯 主要API端点:
+  📰 全部新闻: http://172.17.0.2:8001/api/news/?all=true
+  🌐 官网新闻: http://172.17.0.2:8001/api/news/openharmony
+  📚 技术博客: http://172.17.0.2:8001/api/news/blog
+  📱 Banner图片: http://172.17.0.2:8001/api/banner/mobile
+  ⚡ 服务状态: http://172.17.0.2:8001/api/health
+
+📋 完整API路径列表:
+------------------------------------------------------------
+🔧 基础服务:
+  根路径: http://172.17.0.2:8001/
+  API文档: http://172.17.0.2:8001/docs
+  ReDoc文档: http://172.17.0.2:8001/redoc
+  健康检查: http://172.17.0.2:8001/health
+  API健康检查: http://172.17.0.2:8001/api/health
+
+📰 新闻API:
+  全部新闻: http://172.17.0.2:8001/api/news/
+  分页新闻: http://172.17.0.2:8001/api/news/?page=1&page_size=20
+  搜索新闻: http://172.17.0.2:8001/api/news/?search=关键词
+  分类新闻: http://172.17.0.2:8001/api/news/?category=官方动态
+  OpenHarmony官网: http://172.17.0.2:8001/api/news/openharmony
+  OpenHarmony技术博客: http://172.17.0.2:8001/api/news/blog
+  手动爬取: http://172.17.0.2:8001/api/news/crawl (POST)
+  新闻服务状态: http://172.17.0.2:8001/api/news/status/info
+
+🖼️ Banner轮播图API:
+  手机版Banner: http://172.17.0.2:8001/api/banner/mobile
+  增强版Banner: http://172.17.0.2:8001/api/banner/mobile/enhanced
+  Banner状态: http://172.17.0.2:8001/api/banner/status
+  手动爬取Banner: http://172.17.0.2:8001/api/banner/crawl (POST)
+  Banner缓存信息: http://172.17.0.2:8001/api/banner/cache
+  清空Banner缓存: http://172.17.0.2:8001/api/banner/cache/clear (DELETE)
+
+📊 API参数示例:
+  强制爬取全部新闻: http://172.17.0.2:8001/api/news/crawl?source=all&limit=50
+  爬取官网新闻: http://172.17.0.2:8001/api/news/crawl?source=openharmony
+  爬取技术博客: http://172.17.0.2:8001/api/news/crawl?source=openharmony_blog
+  强制爬取Banner: http://172.17.0.2:8001/api/banner/mobile?force_crawl=true
+  下载Banner图片: http://172.17.0.2:8001/api/banner/mobile/enhanced?download_images=true
+  增强版爬取: http://172.17.0.2:8001/api/banner/crawl?use_enhanced=true
+
+💡 提示:
+  - 局域网IP可供同一网络下的其他设备访问
+  - GET请求可直接在浏览器中访问
+  - POST/DELETE请求需要使用API工具(如Postman)或curl命令
+  - 使用 Ctrl+C 停止服务
+============================================================
+
+⚙️  启动配置:
+  绑定地址: 0.0.0.0
+  端口: 8001
+  调试模式: False
+  日志级别: INFO
+============================================================
+2025-09-29 13:09:34 - root - INFO - 日志系统初始化完成
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+2025-09-29 13:09:34 - main - INFO - 应用启动中...
+2025-09-29 13:09:35 - core.database - INFO - 数据库初始化完成
+2025-09-29 13:09:35 - main - INFO - 数据库初始化完成
+2025-09-29 13:09:35 - core.cache - INFO - 新闻缓存初始化完成
+2025-09-29 13:09:35 - core.cache - INFO - 轮播图缓存初始化完成
+2025-09-29 13:09:35 - main - INFO - 缓存初始化完成
+2025-09-29 13:09:35 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-09-29 13:09:35 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-09-29 13:09:35 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-09-29 13:09:35 - core.scheduler - INFO - 定时任务设置完成
+2025-09-29 13:09:35 - apscheduler.scheduler - INFO - Added job "更新所有新闻源缓存" to job store "default"
+2025-09-29 13:09:35 - apscheduler.scheduler - INFO - Added job "更新轮播图缓存" to job store "default"
+2025-09-29 13:09:35 - apscheduler.scheduler - INFO - Added job "完整爬取任务" to job store "default"
+2025-09-29 13:09:35 - apscheduler.scheduler - INFO - Scheduler started
+2025-09-29 13:09:35 - core.scheduler - INFO - 定时任务调度器已启动
+2025-09-29 13:09:35 - main - INFO - 定时任务调度器启动完成
+2025-09-29 13:09:35 - main - INFO - 开始执行初始缓存加载...
+2025-09-29 13:09:35 - core.scheduler - INFO - 开始执行初始缓存加载
+2025-09-29 13:09:35 - core.scheduler - INFO - 📦 分批写入模式：将在第一批数据写入后立即变为可用状态
+2025-09-29 13:09:35 - core.scheduler - INFO - 🚀 开始执行初始缓存加载 - 来源: all
+2025-09-29 13:09:35 - core.scheduler - INFO - 🖼️ 开始执行初始轮播图加载
+2025-09-29 13:09:35 - core.scheduler - INFO - 初始缓存加载任务已提交到后台线程，服务可以立即响应请求
+2025-09-29 13:09:35 - core.cache - INFO - 开始轮播图数据更新，状态设为准备中
+2025-09-29 13:09:35 - core.scheduler - INFO - 📊 初始缓存加载 - 准备并行爬取数据...
+2025-09-29 13:09:35 - core.scheduler - INFO - 初始轮播图加载任务已提交到后台线程
+2025-09-29 13:09:35 - core.cache - INFO - 轮播图服务状态更新: preparing
+2025-09-29 13:09:35 - services.enhanced_mobile_banner_crawler - INFO - 🚀 初始化增强版手机Banner爬虫
+2025-09-29 13:09:35 - main - INFO - 初始缓存加载完成
+2025-09-29 13:09:35 - services.enhanced_mobile_banner_crawler - INFO -    - Selenium可用: True
+2025-09-29 13:09:35 - services.news_service - INFO - 🌐 开始爬取OpenHarmony官网新闻...
+2025-09-29 13:09:35 - main - INFO - 应用启动完成
+2025-09-29 13:09:35 - services.openharmony_crawler - INFO - 🌐 开始爬取OpenHarmony官网新闻...
+2025-09-29 13:09:35 - services.enhanced_mobile_banner_crawler - INFO -    - requests-html可用: False
+2025-09-29 13:09:35 - services.openharmony_crawler - INFO - 📦 启用分批处理模式，每 20 篇文章执行一次回调
+INFO:     Application startup complete.
+🚀 开始高效获取OpenHarmony文章信息，每页300条数据...
+📡 请求API: 第1页
+2025-09-29 13:09:35 - services.enhanced_mobile_banner_crawler - INFO - 🚀 开始增强版手机Banner爬取...
+2025-09-29 13:09:35 - services.enhanced_mobile_banner_crawler - INFO - 🎯 目标URL: https://www.openharmony.cn/mainPlay
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+2025-09-29 13:09:35 - services.enhanced_mobile_banner_crawler - INFO - 📱 尝试方法1: Selenium WebDriver
+2025-09-29 13:09:35 - services.enhanced_mobile_banner_crawler - INFO - 🎯 使用Selenium获取动态轮播图...
+❌ API请求失败: 404 Client Error:  for url: https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=3&pageNum=1&pageSize=300
+📋 共获取到0条有效文章信息
+🔍 进行快速有效性校验...
+✅ 快速校验完成：0/0 有效，有效率0.0%
+🐌 有效率较低，进行完整URL有效性校验...
+✅ 完整校验完成，有效URL数量: 0
+2025-09-29 13:09:36 - services.openharmony_crawler - INFO - 📋 获取到 0 篇文章信息
+2025-09-29 13:09:36 - services.openharmony_crawler - INFO - 🎉 OpenHarmony官网爬取完成，共处理 0 篇文章
+2025-09-29 13:09:36 - services.news_service - INFO - ✅ OpenHarmony官网新闻爬取完成，获取 0 篇文章，耗时 1.10秒
+2025-09-29 13:09:36 - services.news_service - INFO - 📚 开始爬取OpenHarmony技术博客...
+2025-09-29 13:09:36 - services.openharmony_blog_crawler - INFO - 🚀 [OpenHarmony博客] 开始爬取OpenHarmony技术博客新闻...
+2025-09-29 13:09:36 - services.openharmony_blog_crawler - INFO - 📦 [OpenHarmony博客] 启用分批处理模式，每 20 篇文章执行一次回调
+2025-09-29 13:09:36 - services.openharmony_blog_crawler - INFO - 🚀 [OpenHarmony博客] 开始获取技术博客文章列表，页面大小: 200
+2025-09-29 13:09:36 - services.openharmony_blog_crawler - INFO - 📡 [OpenHarmony博客] 请求第 1 页: https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=2&pageNum=1&pageSize=200
+2025-09-29 13:09:36 - services.openharmony_blog_crawler - ERROR - ❌ [OpenHarmony博客] 获取第 1 页失败: 404 Client Error:  for url: https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=2&pageNum=1&pageSize=200
+2025-09-29 13:09:36 - services.openharmony_blog_crawler - INFO - ✅ [OpenHarmony博客] 共获取到 0 篇有效文章信息
+2025-09-29 13:09:36 - services.openharmony_blog_crawler - INFO - 📋 [OpenHarmony博客] 获取到 0 篇文章信息
+2025-09-29 13:09:36 - services.openharmony_blog_crawler - WARNING - ⚠️ [OpenHarmony博客] 未获取到任何文章信息
+2025-09-29 13:09:36 - services.news_service - INFO - ✅ OpenHarmony技术博客爬取完成，获取 0 篇文章，耗时 0.64秒
+2025-09-29 13:09:36 - core.scheduler - INFO - 🔍 初始缓存加载 - 爬取完成，原始文章数: 0
+2025-09-29 13:09:36 - services.news_service - INFO - 文章验证完成，有效文章: 0/0
+2025-09-29 13:09:36 - core.scheduler - INFO - ✅ 初始缓存加载 - 验证完成，有效文章数: 0
+2025-09-29 13:09:36 - core.scheduler - INFO - 🎉 初始缓存加载完成（首次加载），缓存中共有 0 篇文章
+2025-09-29 13:09:37 - main - INFO - GET /health - Status: 200 - Process Time: 0.001s
+INFO:     127.0.0.1:49746 - "GET /health HTTP/1.1" 200 OK
+2025-09-29 13:10:07 - main - INFO - GET /health - Status: 200 - Process Time: 0.000s
+INFO:     127.0.0.1:44372 - "GET /health HTTP/1.1" 200 OK
+2025-09-29 13:10:37 - main - INFO - GET /health - Status: 200 - Process Time: 0.000s
+INFO:     127.0.0.1:33378 - "GET /health HTTP/1.1" 200 OK
+2025-09-29 13:11:03 - selenium.webdriver.common.selenium_manager - WARNING - Cache folder (/home/appuser/.cache/selenium) cannot be created: Permission denied (os error 13)
+2025-09-29 13:11:04 - services.enhanced_mobile_banner_crawler - ERROR - ❌ Selenium WebDriver错误: Message: session not created: probably user data directory is already in use, please specify a unique value for --user-data-dir argument, or don't use --user-data-dir
+Stacktrace:
+#0 0x562e311b3b82 <unknown>
+#1 0x562e30c2b255 <unknown>
+#2 0x562e30c66d3a <unknown>
+#3 0x562e30c60c9f <unknown>
+#4 0x562e30cafc27 <unknown>
+#5 0x562e30caf387 <unknown>
+#6 0x562e30ca0827 <unknown>
+#7 0x562e30c6e541 <unknown>
+#8 0x562e30c6f325 <unknown>
+#9 0x562e3117e69e <unknown>
+#10 0x562e311819ff <unknown>
+#11 0x562e3118149c <unknown>
+#12 0x562e31181ea9 <unknown>
+#13 0x562e3116807b <unknown>
+#14 0x562e31182224 <unknown>
+#15 0x562e3115192d <unknown>
+#16 0x562e311a0c39 <unknown>
+#17 0x562e311a0e2f <unknown>
+#18 0x562e311b2669 <unknown>
+#19 0x7ff2a2867b7b <unknown>
+
+2025-09-29 13:11:04 - services.enhanced_mobile_banner_crawler - INFO - 📱 尝试方法3: 传统HTML解析（兜底）
+2025-09-29 13:11:04 - services.mobile_banner_crawler - INFO - 📱 已设置手机端请求头，User-Agent: Mozilla/5.0 (Linux; Android 12; SM-G975F) AppleWeb...
+2025-09-29 13:11:04 - services.mobile_banner_crawler - INFO - 🚀 开始爬取OpenHarmony手机版banner图片
+2025-09-29 13:11:04 - services.mobile_banner_crawler - INFO - 🎯 目标URL: https://www.openharmony.cn/mainPlay
+2025-09-29 13:11:04 - services.mobile_banner_crawler - INFO - 📱 正在请求手机版页面: https://www.openharmony.cn/mainPlay
+2025-09-29 13:11:04 - services.mobile_banner_crawler - INFO - 📱 已设置手机端请求头，User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac O...
+2025-09-29 13:11:05 - services.mobile_banner_crawler - ERROR - ❌ 请求手机版页面失败: https://www.openharmony.cn/mainPlay, 错误: 404 Client Error:  for url: https://www.openharmony.cn/mainPlay
+2025-09-29 13:11:05 - services.mobile_banner_crawler - ERROR - ❌ 无法获取页面内容，爬取失败
+2025-09-29 13:11:05 - services.enhanced_mobile_banner_crawler - INFO - 🎉 总共获取到 0 张唯一的banner图片
+2025-09-29 13:11:05 - services.enhanced_mobile_banner_crawler - ERROR - ❌ 保存结果失败: [Errno 2] No such file or directory: ''
+2025-09-29 13:11:05 - core.scheduler - INFO - ✅ 使用增强版爬虫成功，获取 0 张图片
+2025-09-29 13:11:05 - core.cache - INFO - 开始轮播图数据更新，状态设为准备中
+2025-09-29 13:11:05 - core.cache - INFO - 轮播图服务状态更新: preparing
+2025-09-29 13:11:05 - core.cache - INFO - 🎉 轮播图首加载完成
+2025-09-29 13:11:05 - core.cache - WARNING - ⚠️ 轮播图缓存更新完成，但未获取到数据，状态保持：PREPARING
+2025-09-29 13:11:05 - core.scheduler - WARNING - ⚠️ 初始轮播图加载完成，但未找到任何轮播图，状态保持PREPARING
+2025-09-29 13:11:08 - main - INFO - GET /health - Status: 200 - Process Time: 0.001s
+INFO:     127.0.0.1:43866 - "GET /health HTTP/1.1" 200 OK
+2025-09-29 13:11:38 - main - INFO - GET /health - Status: 200 - Process Time: 0.000s
+INFO:     127.0.0.1:37372 - "GET /health HTTP/1.1" 200 OK
+2025-09-29 13:12:08 - main - INFO - GET /health - Status: 200 - Process Time: 0.001s
+INFO:     127.0.0.1:53638 - "GET /health HTTP/1.1" 200 OK
+```
+
+nb！！！这熟悉的日志终于回来了！！！
+
+![44](NowInOpenHarmonyPutaway/44.png)
+
+没想到整体的占用率居然这么低？那应该不需要买服务器了。
+
+```bash
+http://***.***.*.***:8001/api/health
+```
+
+让我进行一下访问试试。
+
+```json
+{
+  "status": "healthy",
+  "timestamp": 1759152200.08084,
+  "version": "1.0.0",
+  "services": {
+    "cache": {
+      "status": "ready",
+      "cache_count": 0,
+      "last_update": null,
+      "error_message": null
+    },
+    "news_sources": [
+      {
+        "source": "openharmony",
+        "name": "OpenHarmony官网",
+        "description": "OpenHarmony官方网站最新动态和新闻",
+        "base_url": "https://www.openharmony.cn"
+      },
+      {
+        "source": "openharmony_blog",
+        "name": "OpenHarmony技术博客",
+        "description": "OpenHarmony官网技术博客文章，深度技术分享",
+        "base_url": "https://www.openharmony.cn"
+      }
+    ]
+  },
+  "endpoints": {
+    "openharmony_news": "/api/news/openharmony",
+    "all_news": "/api/news/",
+    "manual_crawl": "/api/news/crawl",
+    "service_status": "/api/news/status/info",
+    "banner_images": "/api/banner/",
+    "download_banners": "/api/banner/download",
+    "banner_urls": "/api/banner/urls",
+    "banner_status": "/api/banner/status"
+  }
+}
+```
+
+```bash
+http://***.***.*.***:8001/api/news/?all=true
+```
+
+```json
+{
+  "articles": [],
+  "total": 0,
+  "page": 1,
+  "page_size": 0,
+  "has_next": false,
+  "has_prev": false
+}
+```
+
+卧槽不对劲，没有数据，而且状态是ready，说明爬取已经结束了但是没有数据！！！
+
+```bash
+● 🔍 发现问题了！爬虫无法获取数据！
+
+  从日志和API响应可以看到：
+
+  ❌ 问题分析
+
+  1. OpenHarmony官网API失效：
+  ❌ API请求失败: 404 Client Error: for url:
+  https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=3&pageNum=1&pageSize=300
+  2. 技术博客API也失效：
+  ❌ 获取第 1 页失败: 404 Client Error: for url:
+  https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=2&pageNum=1&pageSize=200
+  3. Banner图片API也404：
+  ❌ 请求手机版页面失败: https://www.openharmony.cn/mainPlay
+
+  🔧 解决方案
+
+  方案一：检查和更新API端点
+
+  让我检查当前的爬虫配置：
+
+● Read(services\openharmony_crawler.py)
+  ⎿  Read 50 lines (ctrl+o to expand)
+
+● 问题很清楚了！OpenHarmony官网的API端点已经失效或者改变了。让我验证当前的API状态：
+
+● Fetch(https://www.openharmony.cn)
+  ⎿  Received 1.7KB (200 )
+
+● Fetch(https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=3&pageNum=1&pageSize=10)
+  ⎿  Error: Request failed with status code 404
+
+● 🎯 问题确认：API端点已失效
+
+  立即解决方案
+
+  1. 手动触发爬虫测试：
+  curl -X POST http://113.47.8.204:8001/api/news/crawl
+
+  2. 检查服务器日志看详细错误：
+  docker logs openharmony-api | tail -50
+
+  3. 暂时禁用失效的爬虫，或者更新API端点
+
+  快速修复建议
+
+  你可以选择：
+
+  选项A：临时禁用爬虫功能
+  - 让API服务正常运行，但不提供新闻数据
+
+  选项B：更新爬虫逻辑
+  - 分析OpenHarmony网站的新结构
+  - 更新API端点或改用网页爬取
+
+  选项C：使用模拟数据
+  - 添加一些示例新闻数据用于测试
+
+  你倾向于哪种解决方案？我可以帮你快速实现！
+```
+
+草啊！爬虫正常了但是API失效了！！！
+
+我赶紧跑一下本地的爬虫吧。啊啊啊啊啊啊卧槽啊。
+
+```bash
+2025-09-29 21:32:21 - main - INFO - 应用启动中...
+2025-09-29 21:32:21 - core.database - INFO - 数据库初始化完成
+2025-09-29 21:32:21 - main - INFO - 数据库初始化完成
+2025-09-29 21:32:21 - core.cache - INFO - 新闻缓存初始化完成
+2025-09-29 21:32:21 - core.cache - INFO - 轮播图缓存初始化完成
+2025-09-29 21:32:21 - main - INFO - 缓存初始化完成
+2025-09-29 21:32:21 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-09-29 21:32:21 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-09-29 21:32:21 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-09-29 21:32:21 - core.scheduler - INFO - 定时任务设置完成
+2025-09-29 21:32:21 - apscheduler.scheduler - INFO - Added job "更新所有新闻源缓存" to job store "default"
+2025-09-29 21:32:21 - apscheduler.scheduler - INFO - Added job "更新轮播图缓存" to job store "default"
+2025-09-29 21:32:21 - apscheduler.scheduler - INFO - Added job "完整爬取任务" to job store "default"
+2025-09-29 21:32:21 - apscheduler.scheduler - INFO - Scheduler started
+2025-09-29 21:32:21 - core.scheduler - INFO - 定时任务调度器已启动
+2025-09-29 21:32:21 - main - INFO - 定时任务调度器启动完成
+2025-09-29 21:32:21 - main - INFO - 开始执行初始缓存加载...
+2025-09-29 21:32:21 - core.scheduler - INFO - 开始执行初始缓存加载
+2025-09-29 21:32:21 - core.scheduler - INFO - 📦 分批写入模式：将在第一批数据写入后立即变为可用状态
+2025-09-29 21:32:21 - core.scheduler - INFO - 🚀 开始执行初始缓存加载 - 来源: all
+2025-09-29 21:32:21 - core.scheduler - INFO - 🖼️ 开始执行初始轮播图加载
+2025-09-29 21:32:21 - core.scheduler - INFO - 初始缓存加载任务已提交到后台线程，服务可以立即响应请求
+2025-09-29 21:32:21 - core.scheduler - INFO - 📊 初始缓存加载 - 准备并行爬取数据...
+2025-09-29 21:32:21 - core.cache - INFO - 开始轮播图数据更新，状态设为准备中
+2025-09-29 21:32:21 - core.scheduler - INFO - 初始轮播图加载任务已提交到后台线程
+2025-09-29 21:32:21 - services.news_service - INFO - 🌐 开始爬取OpenHarmony官网新闻...
+2025-09-29 21:32:21 - core.cache - INFO - 轮播图服务状态更新: preparing
+2025-09-29 21:32:21 - main - INFO - 初始缓存加载完成
+2025-09-29 21:32:21 - services.openharmony_crawler - INFO - 🌐 开始爬取OpenHarmony官网新闻...
+2025-09-29 21:32:21 - services.enhanced_mobile_banner_crawler - INFO - 🚀 初始化增强版手机Banner爬虫
+2025-09-29 21:32:21 - main - INFO - 应用启动完成
+2025-09-29 21:32:21 - services.openharmony_crawler - INFO - 📦 启用分批处理模式，每 20 篇文章执行一次回调
+2025-09-29 21:32:21 - services.enhanced_mobile_banner_crawler - INFO -    - Selenium可用: True
+INFO:     Application startup complete.
+🚀 开始高效获取OpenHarmony文章信息，每页300条数据...
+📡 请求API: 第1页
+2025-09-29 21:32:21 - services.enhanced_mobile_banner_crawler - INFO -    - requests-html可用: False
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+2025-09-29 21:32:21 - services.enhanced_mobile_banner_crawler - INFO - 🚀 开始增强版手机Banner爬取...
+2025-09-29 21:32:21 - services.enhanced_mobile_banner_crawler - INFO - 🎯 目标URL: https://www.openharmony.cn/mainPlay
+2025-09-29 21:32:21 - services.enhanced_mobile_banner_crawler - INFO - 📱 尝试方法1: Selenium WebDriver
+2025-09-29 21:32:21 - services.enhanced_mobile_banner_crawler - INFO - 🎯 使用Selenium获取动态轮播图...
+❌ API请求失败: 404 Client Error:  for url: https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=3&pageNum=1&pageSize=300
+📋 共获取到0条有效文章信息
+🔍 进行快速有效性校验...
+✅ 快速校验完成：0/0 有效，有效率0.0%
+🐌 有效率较低，进行完整URL有效性校验...
+✅ 完整校验完成，有效URL数量: 0
+2025-09-29 21:32:21 - services.openharmony_crawler - INFO - 📋 获取到 0 篇文章信息
+2025-09-29 21:32:21 - services.openharmony_crawler - INFO - 🎉 OpenHarmony官网爬取完成，共处理 0 篇文章
+2025-09-29 21:32:21 - services.news_service - INFO - ✅ OpenHarmony官网新闻爬取完成，获取 0 篇文章，耗时 0.25秒
+2025-09-29 21:32:21 - services.news_service - INFO - 📚 开始爬取OpenHarmony技术博客...
+2025-09-29 21:32:21 - services.openharmony_blog_crawler - INFO - 🚀 [OpenHarmony博客] 开始爬取OpenHarmony技术博客新闻...       
+2025-09-29 21:32:21 - services.openharmony_blog_crawler - INFO - 📦 [OpenHarmony博客] 启用分批处理模式，每 20 篇文章执行一次回 调
+2025-09-29 21:32:21 - services.openharmony_blog_crawler - INFO - 🚀 [OpenHarmony博客] 开始获取技术博客文章列表，页面大小: 200  
+2025-09-29 21:32:21 - services.openharmony_blog_crawler - INFO - 📡 [OpenHarmony博客] 请求第 1 页: https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=2&pageNum=1&pageSize=200
+2025-09-29 21:32:22 - services.openharmony_blog_crawler - ERROR - ❌ [OpenHarmony博客] 获取第 1 页失败: 404 Client Error:  for url: https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=2&pageNum=1&pageSize=200
+2025-09-29 21:32:22 - services.openharmony_blog_crawler - INFO - ✅ [OpenHarmony博客] 共获取到 0 篇有效文章信息
+2025-09-29 21:32:22 - services.openharmony_blog_crawler - INFO - 📋 [OpenHarmony博客] 获取到 0 篇文章信息
+2025-09-29 21:32:22 - services.openharmony_blog_crawler - WARNING - ⚠️ [OpenHarmony博客] 未获取到任何文章信息
+2025-09-29 21:32:22 - services.news_service - INFO - ✅ OpenHarmony技术博客爬取完成，获取 0 篇文章，耗时 0.29秒
+2025-09-29 21:32:22 - core.scheduler - INFO - 🔍 初始缓存加载 - 爬取完成，原始文章数: 0
+2025-09-29 21:32:22 - services.news_service - INFO - 文章验证完成，有效文章: 0/0
+2025-09-29 21:32:22 - core.scheduler - INFO - ✅ 初始缓存加载 - 验证完成，有效文章数: 0
+2025-09-29 21:32:22 - core.scheduler - INFO - 🎉 初始缓存加载完成（首次加载），缓存中共有 0 篇文章
+
+DevTools listening on ws://127.0.0.1:57977/devtools/browser/6b3257f9-2ba6-40f6-a0cc-e76a4bf4cdca
+2025-09-29 21:32:29 - services.enhanced_mobile_banner_crawler - INFO - 📱 访问页面: https://www.openharmony.cn/mainPlay
+[41172:16996:0929/213233.227:ERROR:google_apis\gcm\engine\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[41172:16996:0929/213233.236:ERROR:google_apis\gcm\engine\registration_request.cc:291] Registration response error message: PHONE_REGISTRATION_ERROR
+Created TensorFlow Lite XNNPACK delegate for CPU.
+2025-09-29 21:32:53 - services.enhanced_mobile_banner_crawler - WARNING - ⚠️ 轮播容器加载超时，继续执行...
+2025-09-29 21:32:53 - services.enhanced_mobile_banner_crawler - INFO - 🔄 执行页面滚动...
+[41172:16996:0929/213258.432:ERROR:google_apis\gcm\engine\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+2025-09-29 21:33:15 - services.enhanced_mobile_banner_crawler - INFO - ⚡ 执行JavaScript触发脚本
+2025-09-29 21:33:34 - services.enhanced_mobile_banner_crawler - INFO - 🔍 选择器 '.el-carousel img' 找到 0 个图片元素
+[41172:16996:0929/213342.135:ERROR:google_apis\gcm\engine\registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+2025-09-29 21:33:44 - services.enhanced_mobile_banner_crawler - INFO - 🔍 选择器 '.banner img' 找到 0 个图片元素
+2025-09-29 21:33:54 - services.enhanced_mobile_banner_crawler - INFO - 🔍 选择器 '.el-carousel__item img' 找到 0 个图片元素
+2025-09-29 21:34:04 - services.enhanced_mobile_banner_crawler - INFO - 🔍 选择器 '.carousel img' 找到 0 个图片元素
+2025-09-29 21:34:14 - services.enhanced_mobile_banner_crawler - INFO - 🔍 选择器 '.swiper-slide img' 找到 0 个图片元素
+2025-09-29 21:34:24 - services.enhanced_mobile_banner_crawler - INFO - 🔍 选择器 '.banner-img' 找到 0 个图片元素
+2025-09-29 21:34:34 - services.enhanced_mobile_banner_crawler - INFO - 🔍 选择器 'img[class*='banner']' 找到 0 个图片元素
+2025-09-29 21:34:44 - services.enhanced_mobile_banner_crawler - INFO - 🔍 选择器 'img[class*='carousel']' 找到 0 个图片元素
+2025-09-29 21:34:54 - services.enhanced_mobile_banner_crawler - INFO - 🔍 页面总共有 0 个img元素
+2025-09-29 21:34:54 - services.enhanced_mobile_banner_crawler - INFO - 🎉 Selenium方法获取到 0 张轮播图
+2025-09-29 21:34:56 - services.enhanced_mobile_banner_crawler - INFO - 🔧 已关闭WebDriver
+2025-09-29 21:34:56 - services.enhanced_mobile_banner_crawler - INFO - 📱 尝试方法3: 传统HTML解析（兜底）
+2025-09-29 21:34:56 - services.mobile_banner_crawler - INFO - 📱 已设置手机端请求头，User-Agent: Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebK...
+2025-09-29 21:34:56 - services.mobile_banner_crawler - INFO - 🚀 开始爬取OpenHarmony手机版banner图片
+2025-09-29 21:34:56 - services.mobile_banner_crawler - INFO - 🎯 目标URL: https://www.openharmony.cn/mainPlay
+2025-09-29 21:34:56 - services.mobile_banner_crawler - INFO - 📱 正在请求手机版页面: https://www.openharmony.cn/mainPlay       
+2025-09-29 21:34:56 - services.mobile_banner_crawler - INFO - 📱 已设置手机端请求头，User-Agent: Mozilla/5.0 (Linux; Android 12; MI 12) AppleWebKit...
+2025-09-29 21:34:56 - services.mobile_banner_crawler - ERROR - ❌ 请求手机版页面失败: https://www.openharmony.cn/mainPlay, 错误: 404 Client Error:  for url: https://www.openharmony.cn/mainPlay
+2025-09-29 21:34:56 - services.mobile_banner_crawler - ERROR - ❌ 无法获取页面内容，爬取失败
+2025-09-29 21:34:56 - services.enhanced_mobile_banner_crawler - INFO - 🎉 总共获取到 0 张唯一的banner图片
+2025-09-29 21:34:56 - services.enhanced_mobile_banner_crawler - ERROR - ❌ 保存结果失败: [WinError 3] 系统找不到指定的路径。: ''
+2025-09-29 21:34:56 - core.scheduler - INFO - ✅ 使用增强版爬虫成功，获取 0 张图片
+2025-09-29 21:34:56 - core.cache - INFO - 开始轮播图数据更新，状态设为准备中
+2025-09-29 21:34:56 - core.cache - INFO - 轮播图服务状态更新: preparing
+2025-09-29 21:34:56 - core.cache - INFO - 🎉 轮播图首次加载完成
+2025-09-29 21:34:56 - core.cache - WARNING - ⚠️ 轮播图缓存更新完成，但未获取到数据，状态保持：PREPARING
+2025-09-29 21:34:56 - core.scheduler - WARNING - ⚠️ 初始轮播图加载完成，但未找到任何轮播图，状态保持PREPARING
+```
+
+？？？孩子逗我玩呢？？？我部署成功了爬虫端口烂掉了？？？
+
+哇，哇，哇，好绝望啊。
+
+那我现在只能重新去写一遍爬虫进行再次部署了。
+
+![45](NowInOpenHarmonyPutaway/45.png)
+
+![46](NowInOpenHarmonyPutaway/46.png)
+
+好好好，原来是整个OpenHarmony官网全都重构了，原本的爬虫全废了，从头再来吧。
+
+这三个月一半的心血白费了孩子们，气笑了。行了，打游戏去了孩子们以后再见吧。
+
+![47](NowInOpenHarmonyPutaway/47.png)
+
+我会回来的，我一定会回来的。第一版NowInOpenHarmony就用这张图告一段落吧，累了孩子。
