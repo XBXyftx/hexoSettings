@@ -2410,4 +2410,145 @@ okok，吃了一口经典的烤肉饭回来我直接就是一个查看。
 
 ![35](NowInOpenHarmonyPutaway/35.png)
 
+![36](NowInOpenHarmonyPutaway/36.png)
 
+```bash
+> @1.png
+  ⎿  Read 1.png (26.8KB)
+
+● 🎉 完美！一切都成功了！
+
+  从截图可以看到：
+
+  ✅ 成功状态分析
+
+  1. 镜像构建成功：
+    - openharmony-server latest 2291f0b7faa6 52 minutes ago 1.24GB ✅
+    - 镜像已经存在并且大小正常
+  2. 容器创建和运行成功：
+    - 执行的docker run命令返回了容器ID：b986f8e8436c8794fdc3cecc73412ce0569e0aeecf702f990d9b610dce36b4 ✅
+    - 没有错误信息，说明容器启动成功
+
+  🚀 验证容器运行状态
+
+  现在执行以下命令验证：
+
+  # 查看容器状态
+  docker ps
+
+  # 查看容器日志
+  docker logs openharmony-api
+
+  # 测试API健康检查
+  curl http://localhost:8001/health
+
+  🎯 接下来的操作
+
+  如果一切正常，你应该能够：
+
+  1. 访问API文档：http://你的服务器IP:8001/docs
+  2. 健康检查：http://你的服务器IP:8001/health
+  3. 新闻API：http://你的服务器IP:8001/api/news/
+
+  执行 docker ps 看看容器是否正在运行！ 🚀
+```
+
+它让我用命令行去进行一波尝试，不过我还是想用用可视化来进行。
+
+```bash
+> @image.png 我现在能从这里启动吗
+  ⎿  Read image.png (71.9KB)
+
+● 🎉 完美！可以从这里启动！
+
+  我看到宝塔Docker管理界面中：
+
+  ✅ 当前状态
+
+  - 镜像：openharmony-server:latest (1.16 GB) ✅
+  - 容器：openharmony-api (绿色状态) ✅
+  - 创建时间：2025-09-29 18:59:26
+
+  🚀 宝塔界面操作
+
+  从当前界面你可以：
+
+  1. 启动容器
+
+  点击右侧的 "启动" 按钮
+
+  2. 查看容器详情
+
+  点击容器名称 openharmony-api 可以查看：
+  - 运行状态
+  - 端口映射
+  - 日志输出
+  - 资源使用情况
+
+  3. 管理容器
+
+  右侧操作按钮：
+  - 启动 - 启动容器
+  - 重启 - 重启容器
+  - 停止 - 停止容器
+  - 删除 - 删除容器
+
+  📋 建议操作步骤
+
+  1. 点击"启动"按钮
+  2. 查看容器状态 - 确认变为"运行中"
+  3. 查看日志 - 确认应用启动成功
+  4. 测试访问 - 访问 http://你的服务器IP:8001/health
+
+  现在点击"启动"按钮试试！ 🎯
+```
+
+![37](NowInOpenHarmonyPutaway/37.png)
+
+笑死，压根就没有启动按钮，看来CC又看错了。
+
+```bash
+> @"image copy.png" 但是没有启动按钮啊
+  ⎿  Read image copy.png (3.2KB)
+
+● 我看到了！确实没有启动按钮，只有这几个操作按钮。让我帮你分析一下：
+
+  🔍 当前状态分析
+
+  从界面看，容器可能已经在运行中了，或者需要通过其他方式启动。
+
+  🎯 解决方案
+
+  方案一：点击容器名称查看详情
+
+  点击 openharmony-api 容器名称，进入容器详情页面，那里应该有启动/停止按钮
+
+  方案二：使用SSH终端确认状态
+
+  # 查看容器状态
+  docker ps -a
+
+  # 如果容器未运行，手动启动
+  docker start openharmony-api
+
+  # 查看容器日志
+  docker logs openharmony-api
+
+  方案三：重新创建容器
+
+  如果容器有问题，可以：
+  1. 点击 "删除" 删除当前容器
+  2. 点击 "创建容器" 重新创建
+
+  💡 建议操作
+
+  先点击容器名称 openharmony-api 进入详情页面，看看里面是否有启动选项。
+
+  或者你可以回到SSH终端执行 docker ps 看看容器是否已经在运行了！
+
+  你想试哪种方式？
+```
+
+![38](NowInOpenHarmonyPutaway/38.png)
+
+我嘞个豆还真被它说中了就藏在这里面。
