@@ -1916,3 +1916,47 @@ Docker在构建镜像时需要频繁读取文件内容，如果使用压缩格�
 
   现在执行这个命令，我等你的构建结果！ 🎯
 ```
+
+![27](NowInOpenHarmonyPutaway/27.png)
+
+这个过程我等了很久很久但是都没动静于是我决定先去问问CC。
+
+```bash
+> @image.png 这对吗，好慢啊
+  ⎿  Read image.png (121.8KB)
+
+● 🎯 完全正确！这是正常的构建过程！
+
+  从截图可以看到：
+
+  ✅ 构建进度分析
+
+  当前进度：[4/8] RUN apt-get update && apt-get install...
+  - 正在执行第4步（共8步）
+  - 当前在安装系统依赖包（gcc, g++, curl, chromium等）
+
+  为什么这么慢？
+  1. 第一次构建：需要下载所有依赖包
+  2. 网络速度：在下载Debian软件包
+  3. 包体积大：chromium浏览器比较大（约200MB+）
+  4. 服务器位置：可能服务器在海外，网络延迟高
+
+  📊 构建步骤预览
+
+  [1/8] FROM docker.io/library/python:3.9-slim ✅
+  [2/8] WORKDIR /app ✅
+  [3/8] ENV... ✅
+  [4/8] RUN apt-get update && install... 🔄 (当前步骤，最耗时)
+  [5/8] COPY requirements.txt ⏳
+  [6/8] RUN pip install ⏳
+  [7/8] COPY . . ⏳
+  [8/8] CMD ["python", "run.py"] ⏳
+
+  ⏱️ 预计时间
+
+  - 当前步骤：还需要5-8分钟（最耗时的步骤）
+  - 剩余步骤：大约2-3分钟
+  - 总计：大约8-12分钟完成
+
+  请耐心等待，这是正常现象！ 构建完成后后续操作会很快。你可以泡杯茶休息一下 ☕
+```
