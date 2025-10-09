@@ -324,7 +324,7 @@ aside:
     enable: true
   card_announcement:
     enable: true
-    content: 热烈庆祝鸿蒙五终端数量突破两千万！！！<br/><img src="/imgs/HM5.jpg" title="1748944170064.jpg" class="announcementImg"/>
+    content: welcome！<br/><img src="/imgs/ClaudeCode.png" title="1748944170064.jpg" class="announcementImg"/>
   card_recent_post:
     enable: true
     # If set 0 will show all
