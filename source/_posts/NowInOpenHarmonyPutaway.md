@@ -9,7 +9,7 @@ tags:
   - NowInOpenHarmony
 cover:  /imgs/ArticleTopImgs/NowInOpenHarmonyPutawayTopImg.jpg
 description: NowInOpenHarmony上架笔记，记录从后端打包到OpenHarmony官网重构（已被迫断更）
-typewriter: 🚀 从开源之夏到应用上架的完整征程！本文记录了NowInOpenHarmony项目从开发完成到正式上架的全流程实践。深入探索了服务器部署的技术细节，包括Docker容器化、宝塔面板操作、环境配置等核心技术。特别详细地记录了部署过程中遇到的tar格式技术难题及其解决方案，通过实际踩坑经历深入理解了很多技术细节的本质区别。从GitHub分支管理到Ubuntu服务器配置，从环境搭建到镜像构建，每一个步骤都有详细的截图和说明。这不仅是一次技术实践的记录，更是从学生开发者向产品开发者转变的重要里程碑，见证了第一个正式上架应用的诞生过程。
+typewriter: 💔 一个充满戏剧性的上架故事 | 开源之夏三个月开发，Docker部署、宝塔配置、tar格式踩坑...历经千辛万苦完成服务器部署，结果发现OpenHarmony官网全面重构，所有爬虫接口全部失效。三个月一半心血瞬间白费，这就是真实的开发世界。虽被迫断更，但技术积累永不白费。✨ 已被OpenHarmony官方SIG收录 | 我会回来的！
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
