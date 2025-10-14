@@ -816,3 +816,91 @@ Stacktrace:
 对于这个需求来说GPT5的high模式使用体感和Claude很类似，插件的便捷程度和界面的美观程度更胜于Claude，等我再多用一用再去进行评价吧，现在先再次部署进行轮播图接口的测试。
 
 ![25](NowInOpenHarmonyPutaway2/25.png)
+
+果然还是没有办法一帆风顺吗。再打包并且部署了最新版本的代码之后依旧出现了熟悉的报错。
+
+```bash
+2025-10-14 04:11:21 - services.enhanced_mobile_banner_crawler - WARNING - ⚠️ 首次启动Chrome失败: Message: session not created: probably user data directory is already in use, please specify a unique value for --user-data-dir argument, or don't use --user-data-dir
+Stacktrace:
+#0 0x561fa3c466a2 <unknown>
+#1 0x561fa36b68ab <unknown>
+#2 0x561fa36f23aa <unknown>
+#3 0x561fa36ec30f <unknown>
+#4 0x561fa373b2a7 <unknown>
+#5 0x561fa373aa07 <unknown>
+#6 0x561fa372be97 <unknown>
+#7 0x561fa36f9bb1 <unknown>
+#8 0x561fa36fa995 <unknown>
+#9 0x561fa3c1061e <unknown>
+#10 0x561fa3c13a7f <unknown>
+#11 0x561fa3c1351c <unknown>
+#12 0x561fa3c13f29 <unknown>
+#13 0x561fa3bf9ffb <unknown>
+#14 0x561fa3c142b4 <unknown>
+#15 0x561fa3be388d <unknown>
+#16 0x561fa3c33339 <unknown>
+#17 0x561fa3c3352f <unknown>
+#18 0x561fa3c45059 <unknown>
+#19 0x7f4f9ed69b7b <unknown>
+2025-10-14T04:11:21.692726145Z
+2025-10-14 04:11:21 - services.enhanced_mobile_banner_crawler - INFO - 🧭 使用Chrome二进制: /usr/bin/chromium
+2025-10-14 04:11:21 - services.enhanced_mobile_banner_crawler - INFO - 📁 使用临时用户目录: /tmp/chrome_user_data_1_bf3792d4
+2025-10-14 04:11:22 - services.enhanced_mobile_banner_crawler - ERROR - ❌ Selenium WebDriver错误: Message: session not created: probably user data directory is already in use, please specify a unique value for --user-data-dir argument, or don't use --user-data-dir
+Stacktrace:
+#0 0x564ea30b96a2 <unknown>
+#1 0x564ea2b298ab <unknown>
+#2 0x564ea2b653aa <unknown>
+#3 0x564ea2b5f30f <unknown>
+#4 0x564ea2bae2a7 <unknown>
+#5 0x564ea2bada07 <unknown>
+#6 0x564ea2b9ee97 <unknown>
+#7 0x564ea2b6cbb1 <unknown>
+#8 0x564ea2b6d995 <unknown>
+#9 0x564ea308361e <unknown>
+#10 0x564ea3086a7f <unknown>
+#11 0x564ea308651c <unknown>
+#12 0x564ea3086f29 <unknown>
+#13 0x564ea306cffb <unknown>
+#14 0x564ea30872b4 <unknown>
+#15 0x564ea305688d <unknown>
+#16 0x564ea30a6339 <unknown>
+#17 0x564ea30a652f <unknown>
+#18 0x564ea30b8059 <unknown>
+#19 0x7fadc5fd4b7b <unknown>
+2025-10-14T04:11:22.381714535Z
+2025-10-14 04:11:22 - services.enhanced_mobile_banner_crawler - INFO - 🧹 已清理临时用户目录: /tmp/chrome_user_data_1_bf3792d4
+2025-10-14 04:11:22 - services.enhanced_mobile_banner_crawler - INFO - 📱 尝试方法3: 传统HTML解析（兜底）
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 📱 已设置手机端请求头，User-Agent: Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWeb...
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 🚀 开始爬取OpenHarmony手机版banner图片
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 🎯 目标URL: https://old.openharmony.cn/mainPlay
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 📱 正在请求手机版页面: https://old.openharmony.cn/mainPlay
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 📱 已设置手机端请求头，User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac O...
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 📱 页面加载成功，内容长度: 534649 字符
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - ✅ 成功获取手机版页面内容
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 🔍 开始解析HTML内容，查找banner相关图片...
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 🔍 找到 0 个包含 banner-img 类名的元素
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*banner.*' 找到 1 个元素
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*swiper.*slide.*' 找到 0 个元素
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*carousel.*' 找到 5 个元素
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*slider.*' 找到 0 个元素
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*hero.*' 找到 0 个元素
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*main.*banner.*' 找到 0 个元素
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*top.*banner.*' 找到 0 个元素
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 🔍 页面总共有 16 张图片，筛选可能的banner图片...
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 🎯 共提取到 0 张唯一的banner相关图片
+2025-10-14 04:11:22 - services.mobile_banner_crawler - WARNING - 🔍 未找到banner图片，分析页面结构...
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - 📊 页面调试信息：
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - - 总图片数量: 16
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - - 图片1: src=https://images.openharmony.cn/compatibility/标识下载/p..., class=['logo-pic'], alt=无
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - - 图片2: src=/_nuxt/img/search.2585098.png..., class=['search-img'], alt=
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - - 图片3: src=/_nuxt/img/close.9ee23e2.svg..., class=['close-img'], alt=
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - - 图片4: src=/_nuxt/img/search.2585098.png..., class=['search-img-instance'], alt=
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - - 图片5: src=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA..., class=['menu-img-instance'], alt=无
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - - 可能的banner容器数量: 3
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - - 容器1: class=['banner'], 包含图片=0张
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - - 容器2: class=['el-carousel', 'el-carousel--horizontal'], 包含图片=0张
+2025-10-14 04:11:22 - services.mobile_banner_crawler - INFO - - 容器3: class=['el-carousel__container'], 包含图片=0张
+2025-10-14 04:11:22 - services.mobile_banner_crawler - WARNING - ⚠️ 未找到任何banner图片
+2025-10-14 04:11:22 - services.enhanced_mobile_banner_crawler - INFO - 🎉 总共获取到 0 张唯一的banner图片
+2025-10-14 04:11:22 - services.enhanced_mobile_banner_crawler - ERROR - ❌ 保存结果失败: [Errno 2] No such file or directory: ''
+```
