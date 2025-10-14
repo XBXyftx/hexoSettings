@@ -2359,4 +2359,1076 @@ INFO: 127.0.0.1:58790 - "GET /health HTTP/1.1" 200 OK
 
 [腾讯云文章](https://cloud.tencent.com/developer/article/2556817)
 
-从这些文章中我了解到Selenium与ChromeDriver是当下浏览器自动化爬虫还有测试等应用场景的主流王者。
+从这些文章中我了解到Selenium与ChromeDriver是当下浏览器自动化爬虫还有测试等应用场景的主流王者。（应该能解决吧~）
+
+这一次GPT5又提出了一个新的方案，这个新的方案是通过添加一个兜底机制，利用 Nuxt 状态解析兜底：解析页面里的 `window.__NUXT__` 预渲染 JSON，直接提取 banner 图地址（对这种站点通常有效），避免 JS 执行。
+
+```bash
+看日志点：现在容器还是在用本地 Chromium/Chromedriver（日志里出现 “使用Chromedriver: /usr/bin/chromedriver”），并未启用远程 WebDriver；而传统解析对 Nuxt 动态页拿不到图。所以这次要落地远程 WebDriver 方案，让增强版走独立浏览器容器。
+
+方案一（推荐，最稳）：启用远程 WebDriver
+
+启动独立浏览器容器
+docker network create ohnet || true
+docker run -d --name selenium --network ohnet -p 4444:4444 --shm-size=2g --restart unless-stopped selenium/standalone-chromium:latest
+以远程地址启动 API 容器（和 selenium 同网段）
+停现有容器: docker stop NIOHSERVER && docker rm NIOHSERVER
+启动新容器（关键 env）:
+docker run -d --name NIOHSERVER --network ohnet -p 8001:8001 --shm-size=1g
+-e BANNER_USE_ENHANCED=true
+-e SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub
+-e SELENIUM_USE_USER_DATA_DIR=false
+openharmony-server:latest
+验证日志关键行
+需要看到 “🌐 使用远程WebDriver: http://selenium:4444/wd/hub”
+不应再出现 “使用Chromedriver: /usr/bin/chromedriver”
+验证接口
+curl "http://<服务器IP>:8001/api/banner/crawl?use_enhanced=true" -X POST
+curl "http://<服务器IP>:8001/api/banner/mobile"
+观察日志：应看到 Selenium 页面解析后有 img 数量>0，并且轮播图缓存状态从 preparing 变为 ready
+提示（你目前用宝塔面板部署）：
+
+面板里“容器”新建一个 selenium/standalone-chromium 容器，映射 4444 端口，SHM 设置成 2g；然后在 API 容器里添加环境变量 SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub，并把两个容器加入同一个 docker 网络（或把 SELENIUM_REMOTE_URL 指向宿主机 IP:4444）。
+方案二（过渡）
+
+直接禁用增强版，先让服务启动不报错（但很可能仍无图）
+docker run ... -e BANNER_USE_ENHANCED=false openharmony-server:latest
+这不会解决取图问题（因为 Nuxt 动态页），只是规避 Selenium 问题。
+下一步（若远程 WebDriver 仍不行）我来做小重构：无 Selenium 提取
+
+增加 Nuxt 状态解析兜底：解析页面里的 window.__NUXT__ 预渲染 JSON，直接提取 banner 图地址（对这种站点通常有效），避免 JS 执行。
+如你同意，我会在 MobileBannerCrawler 增加这一兜底解析，并在 Enhanced 里做第零优先级尝试，保证即使 Selenium 不可用，也能稳定拿到图片。
+要不要我现在就加上 Nuxt 状态解析的兜底实现？你这边先按上面的远程 WebDriver 方案部署一次，我同时可以把兜底代码补上，双保险。
+
+添加兜底解析，我尝试完兜底解析后如果成功了的话再进行进一步的重构
+
+
+已为轮播图爬虫加上 Nuxt/SSR 兜底解析，并提交到当前分支。具体如下：
+
+实现内容
+
+在 MobileBannerCrawler 增加从内联脚本提取的兜底解析
+新增方法：从 window.__NUXT__/nuxtState 所在 <script> 中用正则提取图片 URL，按关键词过滤 banner/carousel/swiper/slide/hero/main/top/header
+解析相对路径为绝对 URL，去重并返回
+文件：services/mobile_banner_crawler.py: 新增 _extract_banner_images_from_nuxt
+调整解析顺序
+crawl_mobile_banners 中优先调用 Nuxt 兜底解析，若无结果，再走原传统 HTML 解析
+这样 Enhanced 爬虫回退到 MobileBannerCrawler 时，也会优先使用 Nuxt 兜底
+提交记录
+feat(banner/nuxt-fallback): add Nuxt/SSR inline script parser to extract banner images; use as first fallback before traditional HTML parsing
+如何验证
+
+手动触发并观察日志
+curl -X POST "http://<host>:8001/api/banner/crawl?use_enhanced=true"
+curl "http://<host>:8001/api/banner/mobile"
+期望日志出现类似：
+“🎯 [Nuxt兜底] 从内联脚本提取到 N 张可能的banner图片”
+Banner 缓存状态从 preparing 变为 ready
+如你已启用远程 WebDriver，则 Enhanced 成功也会返回；若仍失败，Nuxt 兜底应能返回图片。
+需要我再把关键词或正则调得更宽松/更严格（例如只保留包含 banner/carousel 的 URL），或立刻继续做“进一步重构”版本（从 Nuxt JSON 深层键结构精准取图）吗？
+```
+
+如果这一次成功了的话我就会考虑去除前面的方式，但仔细阅读它给出的解决方案之后我认为核心还是在于远程WebDriver，但还是先试一试吧，不试一试怎么知道呢。
+
+```bash
+113.47.8.204
+0
+首页
+网站
+数据库
+Docker
+监控
+安全
+WAF
+文件
+日志
+WP Tools
+多用户
+终端
+节点管理
+计划任务
+软件商店
+设置
+退出
+应用商店
+总览
+网站
+容器
+线上镜像
+本地镜像
+容器编排
+网络
+存储卷
+仓库
+设置
+企业版
+需求反馈
+>>使用帮助
+请输入容器名、ID、容器镜像
+容器名
+容器ID
+状态
+镜像
+端口(主机-->容器)
+操作
+NIOHServer
+cc06e8accfbb
+运行中
+openharmony-server:latest	
+0.0.0.0:32776-->8001/tcp
+管理终端删除
+更多
+
+
+共 1 条
+前往
+1
+页
+宝塔Linux面板©2014-2025 广东堡塔安全技术有限公司 (bt.cn)
+论坛求助
+使用手册
+微信公众号
+正版查询
+联系人工客服
+
+
+
+2025-10-14 11:30:53 - root - INFO - 日志系统初始化完成
+============================================================
+🚀 NowInOpenHarmony API 服务启动成功!
+============================================================
+2025-10-14T11:30:53.320056323Z
+📡 服务可通过以下地址访问:
+----------------------------------------
+主要IP: http://172.17.0.2:8001
+API文档: http://172.17.0.2:8001/docs
+健康检查: http://172.17.0.2:8001/health
+全部新闻: http://172.17.0.2:8001/api/news/?all=true
+Banner图片: http://172.17.0.2:8001/api/banner/mobile
+----------------------------------------
+2025-10-14T11:30:53.320109783Z
+🎯 主要API端点:
+📰 全部新闻: http://172.17.0.2:8001/api/news/?all=true
+🌐 官网新闻: http://172.17.0.2:8001/api/news/openharmony
+📚 技术博客: http://172.17.0.2:8001/api/news/blog
+📱 Banner图片: http://172.17.0.2:8001/api/banner/mobile
+⚡ 服务状态: http://172.17.0.2:8001/api/health
+2025-10-14T11:30:53.320161334Z
+📋 完整API路径列表:
+------------------------------------------------------------
+🔧 基础服务:
+根路径: http://172.17.0.2:8001/
+API文档: http://172.17.0.2:8001/docs
+ReDoc文档: http://172.17.0.2:8001/redoc
+健康检查: http://172.17.0.2:8001/health
+API健康检查: http://172.17.0.2:8001/api/health
+2025-10-14T11:30:53.320342843Z
+📰 新闻API:
+全部新闻: http://172.17.0.2:8001/api/news/
+分页新闻: http://172.17.0.2:8001/api/news/?page=1&page_size=20
+搜索新闻: http://172.17.0.2:8001/api/news/?search=关键词
+分类新闻: http://172.17.0.2:8001/api/news/?category=官方动态
+OpenHarmony官网: http://172.17.0.2:8001/api/news/openharmony
+OpenHarmony技术博客: http://172.17.0.2:8001/api/news/blog
+手动爬取: http://172.17.0.2:8001/api/news/crawl (POST)
+新闻服务状态: http://172.17.0.2:8001/api/news/status/info
+2025-10-14T11:30:53.320620303Z
+🖼️ Banner轮播图API:
+手机版Banner: http://172.17.0.2:8001/api/banner/mobile
+增强版Banner: http://172.17.0.2:8001/api/banner/mobile/enhanced
+Banner状态: http://172.17.0.2:8001/api/banner/status
+手动爬取Banner: http://172.17.0.2:8001/api/banner/crawl (POST)
+Banner缓存信息: http://172.17.0.2:8001/api/banner/cache
+清空Banner缓存: http://172.17.0.2:8001/api/banner/cache/clear (DELETE)
+2025-10-14T11:30:53.320657383Z
+📊 API参数示例:
+强制爬取全部新闻: http://172.17.0.2:8001/api/news/crawl?source=all&limit=50
+爬取官网新闻: http://172.17.0.2:8001/api/news/crawl?source=openharmony
+爬取技术博客: http://172.17.0.2:8001/api/news/crawl?source=openharmony_blog
+强制爬取Banner: http://172.17.0.2:8001/api/banner/mobile?force_crawl=true
+下载Banner图片: http://172.17.0.2:8001/api/banner/mobile/enhanced?download_images=true
+增强版爬取: http://172.17.0.2:8001/api/banner/crawl?use_enhanced=true
+2025-10-14T11:30:53.320684943Z
+💡 提示:
+- 局域网IP可供同一网络下的其他设备访问
+- GET请求可直接在浏览器中访问
+- POST/DELETE请求需要使用API工具(如Postman)或curl命令
+- 使用 Ctrl+C 停止服务
+============================================================
+2025-10-14T11:30:53.320708674Z
+⚙️ 启动配置:
+绑定地址: 0.0.0.0
+端口: 8001
+调试模式: False
+日志级别: INFO
+============================================================
+2025-10-14 11:30:54 - root - INFO - 日志系统初始化完成
+INFO: Started server process [1]
+INFO: Waiting for application startup.
+2025-10-14 11:30:54 - main - INFO - 应用启动中...
+2025-10-14 11:30:54 - core.database - INFO - 数据库初始化完成
+2025-10-14 11:30:54 - main - INFO - 数据库初始化完成
+2025-10-14 11:30:54 - core.cache - INFO - 新闻缓存初始化完成
+2025-10-14 11:30:54 - core.cache - INFO - 轮播图缓存初始化完成
+2025-10-14 11:30:54 - main - INFO - 缓存初始化完成
+2025-10-14 11:30:54 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-10-14 11:30:54 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-10-14 11:30:54 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-10-14 11:30:54 - core.scheduler - INFO - 定时任务设置完成
+2025-10-14 11:30:54 - apscheduler.scheduler - INFO - Added job "更新所有新闻源缓存" to job store "default"
+2025-10-14 11:30:54 - apscheduler.scheduler - INFO - Added job "更新轮播图缓存" to job store "default"
+2025-10-14 11:30:54 - apscheduler.scheduler - INFO - Added job "完整爬取任务" to job store "default"
+2025-10-14 11:30:54 - apscheduler.scheduler - INFO - Scheduler started
+2025-10-14 11:30:54 - core.scheduler - INFO - 定时任务调度器已启动
+2025-10-14 11:30:54 - main - INFO - 定时任务调度器启动完成
+2025-10-14 11:30:54 - main - INFO - 开始执行初始缓存加载...
+2025-10-14 11:30:54 - core.scheduler - INFO - 开始执行初始缓存加载
+2025-10-14 11:30:54 - core.scheduler - INFO - 📦 分批写入模式：将在第一批数据写入后立即变为可用状态
+2025-10-14 11:30:54 - core.scheduler - INFO - 🚀 开始执行初始缓存加载 - 来源: all
+2025-10-14 11:30:54 - core.scheduler - INFO - 🖼️ 开始执行初始轮播图加载
+2025-10-14 11:30:54 - core.scheduler - INFO - 📊 初始缓存加载 - 准备并行爬取数据...
+2025-10-14 11:30:54 - core.scheduler - INFO - 初始缓存加载任务已提交到后台线程，服务可以立即响应请求
+2025-10-14 11:30:54 - core.cache - INFO - 开始轮播图数据更新，状态设为准备中
+2025-10-14 11:30:54 - services.news_service - INFO - 🌐 开始爬取OpenHarmony官网新闻...
+2025-10-14 11:30:54 - core.scheduler - INFO - 初始轮播图加载任务已提交到后台线程
+2025-10-14 11:30:54 - core.cache - INFO - 轮播图服务状态更新: preparing
+2025-10-14 11:30:54 - services.openharmony_news_crawler - INFO - 🌐 开始爬取OpenHarmony官网新闻...
+2025-10-14 11:30:54 - services.openharmony_news_crawler - INFO - 📦 启用分批处理模式，每 20 篇文章执行一次回调
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - 🚀 初始化增强版手机Banner爬虫
+2025-10-14 11:30:54 - main - INFO - 初始缓存加载完成
+🚀 开始高效获取OpenHarmony文章信息，每页300条数据...
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - - Selenium可用: True
+📡 请求API: 第1页
+2025-10-14 11:30:54 - main - INFO - 应用启动完成
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - - requests-html可用: False
+INFO: Application startup complete.
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - 🚀 开始增强版手机Banner爬取...
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - 🎯 目标URL: https://old.openharmony.cn/mainPlay
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - 📱 尝试方法1: Selenium WebDriver
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - 🎯 使用Selenium获取动态轮播图...
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - 🧭 使用Chrome二进制: /usr/bin/chromium
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - 🧭 使用Chromedriver: /usr/bin/chromedriver
+INFO: Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+📊 第1页获取到300条数据
+📈 第1页新增300条有效数据，累计300条
+📡 请求API: 第2页
+📊 第2页获取到107条数据
+📈 第2页新增107条有效数据，累计407条
+🎯 第2页数据量(107)小于页面大小(300)，爬取完成
+📋 共���取到407条有效文章信息
+🔍 进行快速有效性校验...
+2025-10-14 11:30:56 - main - INFO - GET /health - Status: 200 - Process Time: 0.001s
+INFO: 127.0.0.1:59172 - "GET /health HTTP/1.1" 200 OK
+2025-10-14 11:30:56 - services.enhanced_mobile_banner_crawler - WARNING - ⚠️ 首次启动Chrome失败: Message: session not created: probably user data directory is already in use, please specify a unique value for --user-data-dir argument, or don't use --user-data-dir
+Stacktrace:
+#0 0x556676dc86a2 <unknown>
+#1 0x5566768388ab <unknown>
+#2 0x5566768743aa <unknown>
+#3 0x55667686e30f <unknown>
+#4 0x5566768bd2a7 <unknown>
+#5 0x5566768bca07 <unknown>
+#6 0x5566768ade97 <unknown>
+#7 0x55667687bbb1 <unknown>
+#8 0x55667687c995 <unknown>
+#9 0x556676d9261e <unknown>
+#10 0x556676d95a7f <unknown>
+#11 0x556676d9551c <unknown>
+#12 0x556676d95f29 <unknown>
+#13 0x556676d7bffb <unknown>
+#14 0x556676d962b4 <unknown>
+#15 0x556676d6588d <unknown>
+#16 0x556676db5339 <unknown>
+#17 0x556676db552f <unknown>
+#18 0x556676dc7059 <unknown>
+#19 0x7f3270a12b7b <unknown>
+2025-10-14T11:30:56.913639249Z
+2025-10-14 11:30:56 - services.enhanced_mobile_banner_crawler - INFO - 🧭 使用Chrome二进制: /usr/bin/chromium
+2025-10-14 11:30:56 - services.enhanced_mobile_banner_crawler - INFO - 📁 使用临时用户目录: /tmp/chrome_user_data_1_fa10d476
+2025-10-14 11:30:57 - services.enhanced_mobile_banner_crawler - ERROR - ❌ Selenium WebDriver错误: Message: session not created: probably user data directory is already in use, please specify a unique value for --user-data-dir argument, or don't use --user-data-dir
+Stacktrace:
+#0 0x563460ed76a2 <unknown>
+#1 0x5634609478ab <unknown>
+#2 0x5634609833aa <unknown>
+#3 0x56346097d30f <unknown>
+#4 0x5634609cc2a7 <unknown>
+#5 0x5634609cba07 <unknown>
+#6 0x5634609bce97 <unknown>
+#7 0x56346098abb1 <unknown>
+#8 0x56346098b995 <unknown>
+#9 0x563460ea161e <unknown>
+#10 0x563460ea4a7f <unknown>
+#11 0x563460ea451c <unknown>
+#12 0x563460ea4f29 <unknown>
+#13 0x563460e8affb <unknown>
+#14 0x563460ea52b4 <unknown>
+#15 0x563460e7488d <unknown>
+#16 0x563460ec4339 <unknown>
+#17 0x563460ec452f <unknown>
+#18 0x563460ed6059 <unknown>
+#19 0x7fa0d51b7b7b <unknown>
+2025-10-14T11:30:57.655037457Z
+2025-10-14 11:30:57 - services.enhanced_mobile_banner_crawler - INFO - 🧹 已清理临时用户目录: /tmp/chrome_user_data_1_fa10d476
+2025-10-14 11:30:57 - services.enhanced_mobile_banner_crawler - INFO - 📱 尝试方法3: 传统HTML解析（兜底）
+2025-10-14 11:30:57 - services.mobile_banner_crawler - INFO - 📱 已设置手机端请求头，User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac O...
+2025-10-14 11:30:57 - services.mobile_banner_crawler - INFO - 🚀 开始爬取OpenHarmony手机版banner图片
+2025-10-14 11:30:57 - services.mobile_banner_crawler - INFO - 🎯 目标URL: https://old.openharmony.cn/mainPlay
+2025-10-14 11:30:57 - services.mobile_banner_crawler - INFO - 📱 正在请求手机版页面: https://old.openharmony.cn/mainPlay
+2025-10-14 11:30:57 - services.mobile_banner_crawler - INFO - 📱 已设置手机端请求头，User-Agent: Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWeb...
+2025-10-14 11:30:57 - services.mobile_banner_crawler - INFO - 📱 页面加载成功，内容长度: 534650 字符
+2025-10-14 11:30:57 - services.mobile_banner_crawler - INFO - ✅ 成功获取手机版页面内容
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 [Nuxt兜底] 未在内联脚本中提取到匹配的banner图片
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 开始解析HTML内容，查找banner相关图片...
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 找到 0 个包含 banner-img 类名的元素
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*banner.*' 找到 1 个元素
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*swiper.*slide.*' 找到 0 个元素
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*carousel.*' 找到 5 个元素
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*slider.*' 找到 0 个元素
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*hero.*' 找到 0 个元素
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*main.*banner.*' 找到 0 个元素
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*top.*banner.*' 找到 0 个元素
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 页面总共有 16 张图片，筛选可能的banner图片...
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🎯 共提取到 0 张唯一的banner相关图片
+2025-10-14 11:30:58 - services.mobile_banner_crawler - WARNING - 🔍 未找到banner图片，分析页面结构...
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 📊 页面调试信息：
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 总图片数量: 16
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 图片1: src=https://images.openharmony.cn/compatibility/标识下载/p..., class=['logo-pic'], alt=无
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 图片2: src=/_nuxt/img/search.2585098.png..., class=['search-img'], alt=
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 图片3: src=/_nuxt/img/close.9ee23e2.svg..., class=['close-img'], alt=
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 图片4: src=/_nuxt/img/search.2585098.png..., class=['search-img-instance'], alt=
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 图片5: src=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA..., class=['menu-img-instance'], alt=无
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 可能的banner容器数量: 3
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 容器1: class=['banner'], 包含图片=0张
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 容器2: class=['el-carousel', 'el-carousel--horizontal'], 包含图片=0张
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 容器3: class=['el-carousel__container'], 包含图片=0张
+2025-10-14 11:30:58 - services.mobile_banner_crawler - WARNING - ⚠️ 未找到任何banner图片
+2025-10-14 11:30:58 - services.enhanced_mobile_banner_crawler - INFO - 🎉 总共获取到 0 张唯一的banner图片
+2025-10-14 11:30:58 - core.scheduler - INFO - ✅ 使用增强版爬虫成功，获取 0 张图片
+2025-10-14 11:30:58 - core.cache - INFO - 开始轮播图数据更新，状态设为准备中
+2025-10-14 11:30:58 - core.cache - INFO - 轮播图服务状态更新: preparing
+2025-10-14 11:30:58 - core.cache - INFO - 🎉 轮播图首次加载完成
+2025-10-14 11:30:58 - core.cache - WARNING - ⚠️ 轮播图缓存更新完成，但未获取到数据，状态保持：PREPARING
+2025-10-14 11:30:58 - core.scheduler - WARNING - ⚠️ 初始轮播图加载完成，但未找到任何轮播图，状态保持PREPARING
+✅ 快速校验完成：10/10 有效，有效率100.0%
+🚀 有效率高，跳过完整校验，直接返回所有数据
+2025-10-14 11:31:01 - services.openharmony_news_crawler - INFO - 📋 获取到 407 篇文章信息
+2025-10-14 11:31:01 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 1/407 篇文章: 对话OpenHarmony开源先锋：如何用代码革新终端生态
+2025-10-14 11:31:01 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 27 个内容块
+NIOHServer
+(29.53 KB)
+2025-10-14 11:30:53 - root - INFO - 日志系统初始化完成
+============================================================
+🚀 NowInOpenHarmony API 服务启动成功!
+============================================================
+2025-10-14T11:30:53.320056323Z
+📡 服务可通过以下地址访问:
+----------------------------------------
+主要IP: http://172.17.0.2:8001
+API文档: http://172.17.0.2:8001/docs
+健康检查: http://172.17.0.2:8001/health
+全部新闻: http://172.17.0.2:8001/api/news/?all=true
+Banner图片: http://172.17.0.2:8001/api/banner/mobile
+----------------------------------------
+2025-10-14T11:30:53.320109783Z
+🎯 主要API端点:
+📰 全部新闻: http://172.17.0.2:8001/api/news/?all=true
+🌐 官网新闻: http://172.17.0.2:8001/api/news/openharmony
+📚 技术博客: http://172.17.0.2:8001/api/news/blog
+📱 Banner图片: http://172.17.0.2:8001/api/banner/mobile
+⚡ 服务状态: http://172.17.0.2:8001/api/health
+2025-10-14T11:30:53.320161334Z
+📋 完整API路径列表:
+------------------------------------------------------------
+🔧 基础服务:
+根路径: http://172.17.0.2:8001/
+API文档: http://172.17.0.2:8001/docs
+ReDoc文档: http://172.17.0.2:8001/redoc
+健康检查: http://172.17.0.2:8001/health
+API健康检查: http://172.17.0.2:8001/api/health
+2025-10-14T11:30:53.320342843Z
+📰 新闻API:
+全部新闻: http://172.17.0.2:8001/api/news/
+分页新闻: http://172.17.0.2:8001/api/news/?page=1&page_size=20
+搜索新闻: http://172.17.0.2:8001/api/news/?search=关键词
+分类新闻: http://172.17.0.2:8001/api/news/?category=官方动态
+OpenHarmony官网: http://172.17.0.2:8001/api/news/openharmony
+OpenHarmony技术博客: http://172.17.0.2:8001/api/news/blog
+手动爬取: http://172.17.0.2:8001/api/news/crawl (POST)
+新闻服务状态: http://172.17.0.2:8001/api/news/status/info
+2025-10-14T11:30:53.320620303Z
+🖼️ Banner轮播图API:
+手机版Banner: http://172.17.0.2:8001/api/banner/mobile
+增强版Banner: http://172.17.0.2:8001/api/banner/mobile/enhanced
+Banner状态: http://172.17.0.2:8001/api/banner/status
+手动爬取Banner: http://172.17.0.2:8001/api/banner/crawl (POST)
+Banner缓存信息: http://172.17.0.2:8001/api/banner/cache
+清空Banner缓存: http://172.17.0.2:8001/api/banner/cache/clear (DELETE)
+2025-10-14T11:30:53.320657383Z
+📊 API参数示例:
+强制爬取全部新闻: http://172.17.0.2:8001/api/news/crawl?source=all&limit=50
+爬取官网新闻: http://172.17.0.2:8001/api/news/crawl?source=openharmony
+爬取技术博客: http://172.17.0.2:8001/api/news/crawl?source=openharmony_blog
+强制爬取Banner: http://172.17.0.2:8001/api/banner/mobile?force_crawl=true
+下载Banner图片: http://172.17.0.2:8001/api/banner/mobile/enhanced?download_images=true
+增强版爬取: http://172.17.0.2:8001/api/banner/crawl?use_enhanced=true
+2025-10-14T11:30:53.320684943Z
+💡 提示:
+- 局域网IP可供同一网络下的其他设备访问
+- GET请求可直接在浏览器中访问
+- POST/DELETE请求需要使用API工具(如Postman)或curl命令
+- 使用 Ctrl+C 停止服务
+============================================================
+2025-10-14T11:30:53.320708674Z
+⚙️ 启动配置:
+绑定地址: 0.0.0.0
+端口: 8001
+调试模式: False
+日志级别: INFO
+============================================================
+2025-10-14 11:30:54 - root - INFO - 日志系统初始化完成
+INFO: Started server process [1]
+INFO: Waiting for application startup.
+2025-10-14 11:30:54 - main - INFO - 应用启动中...
+2025-10-14 11:30:54 - core.database - INFO - 数据库初始化完成
+2025-10-14 11:30:54 - main - INFO - 数据库初始化完成
+2025-10-14 11:30:54 - core.cache - INFO - 新闻缓存初始化完成
+2025-10-14 11:30:54 - core.cache - INFO - 轮播图缓存初始化完成
+2025-10-14 11:30:54 - main - INFO - 缓存初始化完成
+2025-10-14 11:30:54 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-10-14 11:30:54 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-10-14 11:30:54 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-10-14 11:30:54 - core.scheduler - INFO - 定时任务设置完成
+2025-10-14 11:30:54 - apscheduler.scheduler - INFO - Added job "更新所有新闻源缓存" to job store "default"
+2025-10-14 11:30:54 - apscheduler.scheduler - INFO - Added job "更新轮播图缓存" to job store "default"
+2025-10-14 11:30:54 - apscheduler.scheduler - INFO - Added job "完整爬取任务" to job store "default"
+2025-10-14 11:30:54 - apscheduler.scheduler - INFO - Scheduler started
+2025-10-14 11:30:54 - core.scheduler - INFO - 定时任务调度器已启动
+2025-10-14 11:30:54 - main - INFO - 定时任务调度器启动完成
+2025-10-14 11:30:54 - main - INFO - 开始执行初始缓存加载...
+2025-10-14 11:30:54 - core.scheduler - INFO - 开始执行初始缓存加载
+2025-10-14 11:30:54 - core.scheduler - INFO - 📦 分批写入模式：将在第一批数据写入后立即变为可用状态
+2025-10-14 11:30:54 - core.scheduler - INFO - 🚀 开始执行初始缓存加载 - 来源: all
+2025-10-14 11:30:54 - core.scheduler - INFO - 🖼️ 开始执行初始轮播图加载
+2025-10-14 11:30:54 - core.scheduler - INFO - 📊 初始缓存加载 - 准备并行爬取数据...
+2025-10-14 11:30:54 - core.scheduler - INFO - 初始缓存加载任务已提交到后台线程，服务可以立即响应请求
+2025-10-14 11:30:54 - core.cache - INFO - 开始轮播图数据更新，状态设为准备中
+2025-10-14 11:30:54 - services.news_service - INFO - 🌐 开始爬取OpenHarmony官网新闻...
+2025-10-14 11:30:54 - core.scheduler - INFO - 初始轮播图加载任务已提交到后台线程
+2025-10-14 11:30:54 - core.cache - INFO - 轮播图服务状态更新: preparing
+2025-10-14 11:30:54 - services.openharmony_news_crawler - INFO - 🌐 开始爬取OpenHarmony官网新闻...
+2025-10-14 11:30:54 - services.openharmony_news_crawler - INFO - 📦 启用分批处理模式，每 20 篇文章执行一次回调
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - 🚀 初始化增强版手机Banner爬虫
+2025-10-14 11:30:54 - main - INFO - 初始缓存加载完成
+🚀 开始高效获取OpenHarmony文章信息，每页300条数据...
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - - Selenium可用: True
+📡 请求API: 第1页
+2025-10-14 11:30:54 - main - INFO - 应用启动完成
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - - requests-html可用: False
+INFO: Application startup complete.
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - 🚀 开始增强版手机Banner爬取...
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - 🎯 目标URL: https://old.openharmony.cn/mainPlay
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - 📱 尝试方法1: Selenium WebDriver
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - 🎯 使用Selenium获取动态轮播图...
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - 🧭 使用Chrome二进制: /usr/bin/chromium
+2025-10-14 11:30:54 - services.enhanced_mobile_banner_crawler - INFO - 🧭 使用Chromedriver: /usr/bin/chromedriver
+INFO: Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+📊 第1页获取到300条数据
+📈 第1页新增300条有效数据，累计300条
+📡 请求API: 第2页
+📊 第2页获取到107条数据
+📈 第2页新增107条有效数据，累计407条
+🎯 第2页数据量(107)小于页面大小(300)，爬取完成
+📋 共���取到407条有效文章信息
+🔍 进行快速有效性校验...
+2025-10-14 11:30:56 - main - INFO - GET /health - Status: 200 - Process Time: 0.001s
+INFO: 127.0.0.1:59172 - "GET /health HTTP/1.1" 200 OK
+2025-10-14 11:30:56 - services.enhanced_mobile_banner_crawler - WARNING - ⚠️ 首次启动Chrome失败: Message: session not created: probably user data directory is already in use, please specify a unique value for --user-data-dir argument, or don't use --user-data-dir
+Stacktrace:
+#0 0x556676dc86a2 <unknown>
+#1 0x5566768388ab <unknown>
+#2 0x5566768743aa <unknown>
+#3 0x55667686e30f <unknown>
+#4 0x5566768bd2a7 <unknown>
+#5 0x5566768bca07 <unknown>
+#6 0x5566768ade97 <unknown>
+#7 0x55667687bbb1 <unknown>
+#8 0x55667687c995 <unknown>
+#9 0x556676d9261e <unknown>
+#10 0x556676d95a7f <unknown>
+#11 0x556676d9551c <unknown>
+#12 0x556676d95f29 <unknown>
+#13 0x556676d7bffb <unknown>
+#14 0x556676d962b4 <unknown>
+#15 0x556676d6588d <unknown>
+#16 0x556676db5339 <unknown>
+#17 0x556676db552f <unknown>
+#18 0x556676dc7059 <unknown>
+#19 0x7f3270a12b7b <unknown>
+2025-10-14T11:30:56.913639249Z
+2025-10-14 11:30:56 - services.enhanced_mobile_banner_crawler - INFO - 🧭 使用Chrome二进制: /usr/bin/chromium
+2025-10-14 11:30:56 - services.enhanced_mobile_banner_crawler - INFO - 📁 使用临时用户目录: /tmp/chrome_user_data_1_fa10d476
+2025-10-14 11:30:57 - services.enhanced_mobile_banner_crawler - ERROR - ❌ Selenium WebDriver错误: Message: session not created: probably user data directory is already in use, please specify a unique value for --user-data-dir argument, or don't use --user-data-dir
+Stacktrace:
+#0 0x563460ed76a2 <unknown>
+#1 0x5634609478ab <unknown>
+#2 0x5634609833aa <unknown>
+#3 0x56346097d30f <unknown>
+#4 0x5634609cc2a7 <unknown>
+#5 0x5634609cba07 <unknown>
+#6 0x5634609bce97 <unknown>
+#7 0x56346098abb1 <unknown>
+#8 0x56346098b995 <unknown>
+#9 0x563460ea161e <unknown>
+#10 0x563460ea4a7f <unknown>
+#11 0x563460ea451c <unknown>
+#12 0x563460ea4f29 <unknown>
+#13 0x563460e8affb <unknown>
+#14 0x563460ea52b4 <unknown>
+#15 0x563460e7488d <unknown>
+#16 0x563460ec4339 <unknown>
+#17 0x563460ec452f <unknown>
+#18 0x563460ed6059 <unknown>
+#19 0x7fa0d51b7b7b <unknown>
+2025-10-14T11:30:57.655037457Z
+2025-10-14 11:30:57 - services.enhanced_mobile_banner_crawler - INFO - 🧹 已清理临时用户目录: /tmp/chrome_user_data_1_fa10d476
+2025-10-14 11:30:57 - services.enhanced_mobile_banner_crawler - INFO - 📱 尝试方法3: 传统HTML解析（兜底）
+2025-10-14 11:30:57 - services.mobile_banner_crawler - INFO - 📱 已设置手机端请求头，User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac O...
+2025-10-14 11:30:57 - services.mobile_banner_crawler - INFO - 🚀 开始爬取OpenHarmony手机版banner图片
+2025-10-14 11:30:57 - services.mobile_banner_crawler - INFO - 🎯 目标URL: https://old.openharmony.cn/mainPlay
+2025-10-14 11:30:57 - services.mobile_banner_crawler - INFO - 📱 正在请求手机版页面: https://old.openharmony.cn/mainPlay
+2025-10-14 11:30:57 - services.mobile_banner_crawler - INFO - 📱 已设置手机端请求头，User-Agent: Mozilla/5.0 (Linux; Android 13; SM-G991B) AppleWeb...
+2025-10-14 11:30:57 - services.mobile_banner_crawler - INFO - 📱 页面加载成功，内容长度: 534650 字符
+2025-10-14 11:30:57 - services.mobile_banner_crawler - INFO - ✅ 成功获取手机版页面内容
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 [Nuxt兜底] 未在内联脚本中提取到匹配的banner图片
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 开始解析HTML内容，查找banner相关图片...
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 找到 0 个包含 banner-img 类名的元素
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*banner.*' 找到 1 个元素
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*swiper.*slide.*' 找到 0 个元素
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*carousel.*' 找到 5 个元素
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*slider.*' 找到 0 个元素
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*hero.*' 找到 0 个元素
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*main.*banner.*' 找到 0 个元素
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 通过模式 '.*top.*banner.*' 找到 0 个元素
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🔍 页面总共有 16 张图片，筛选可能的banner图片...
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 🎯 共提取到 0 张唯一的banner相关图片
+2025-10-14 11:30:58 - services.mobile_banner_crawler - WARNING - 🔍 未找到banner图片，分析页面结构...
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - 📊 页面调试信息：
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 总图片数量: 16
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 图片1: src=https://images.openharmony.cn/compatibility/标识下载/p..., class=['logo-pic'], alt=无
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 图片2: src=/_nuxt/img/search.2585098.png..., class=['search-img'], alt=
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 图片3: src=/_nuxt/img/close.9ee23e2.svg..., class=['close-img'], alt=
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 图片4: src=/_nuxt/img/search.2585098.png..., class=['search-img-instance'], alt=
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 图片5: src=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAA..., class=['menu-img-instance'], alt=无
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 可能的banner容器数量: 3
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 容器1: class=['banner'], 包含图片=0张
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 容器2: class=['el-carousel', 'el-carousel--horizontal'], 包含图片=0张
+2025-10-14 11:30:58 - services.mobile_banner_crawler - INFO - - 容器3: class=['el-carousel__container'], 包含图片=0张
+2025-10-14 11:30:58 - services.mobile_banner_crawler - WARNING - ⚠️ 未找到任何banner图片
+2025-10-14 11:30:58 - services.enhanced_mobile_banner_crawler - INFO - 🎉 总共获取到 0 张唯一的banner图片
+2025-10-14 11:30:58 - core.scheduler - INFO - ✅ 使用增强版爬虫成功，获取 0 张图片
+2025-10-14 11:30:58 - core.cache - INFO - 开始轮播图数据更新，状态设为准备中
+2025-10-14 11:30:58 - core.cache - INFO - 轮播图服务状态更新: preparing
+2025-10-14 11:30:58 - core.cache - INFO - 🎉 轮播图首次加载完成
+2025-10-14 11:30:58 - core.cache - WARNING - ⚠️ 轮播图缓存更新完成，但未获取到数据，状态保持：PREPARING
+2025-10-14 11:30:58 - core.scheduler - WARNING - ⚠️ 初始轮播图加载完成，但未找到任何轮播图，状态保持PREPARING
+✅ 快速校验完成：10/10 有效，有效率100.0%
+🚀 有效率高，跳过完整校验，直接返回所有数据
+2025-10-14 11:31:01 - services.openharmony_news_crawler - INFO - 📋 获取到 407 篇文章信息
+2025-10-14 11:31:01 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 1/407 篇文章: 对话OpenHarmony开源先锋：如何用代码革新终端生态
+2025-10-14 11:31:01 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 27 个内容块
+```
+
+好吧依旧失败了，现在尝试一下独立浏览器容器，当然我的前提肯定是不能在额外购置服务器，最好是直接在这个服务器上实现，我将会让GPT带着我去做，一步一步的。
+
+```bash
+看到了，还是在用本地 Chromedriver。我们直接按远程 WebDriver 落地，保证增强版能跑起来。给你两套可执行方案，按你当前“单容器（宝塔）”场景优先用方案A。
+
+方案A（单机两容器，最稳）
+
+创建网络
+docker network create ohnet || true
+启动独立浏览器容器
+docker run -d --name selenium --network ohnet -p 4444:4444 --shm-size=2g --restart unless-stopped selenium/standalone-chromium:latest
+重建 API 容器并接入远程 WebDriver
+docker stop NIOHServer || true && docker rm NIOHServer || true
+docker run -d --name NIOHServer --network ohnet -p 8001:8001 --shm-size=1g
+-e BANNER_USE_ENHANCED=true
+-e SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub
+-e SELENIUM_USE_USER_DATA_DIR=false
+openharmony-server:latest
+验证
+需要在日志看到“🌐 使用远程WebDriver: http://selenium:4444/wd/hub”
+触发一次爬取：curl -X POST "http://<服务器IP>:8001/api/banner/crawl?use_enhanced=true"
+查看结果：curl "http://<服务器IP>:8001/api/banner/mobile"
+方案B（若不方便建自定义网络）
+
+启动浏览器容器并映射到宿主
+docker run -d --name selenium -p 4444:4444 --shm-size=2g --restart unless-stopped selenium/standalone-chromium:latest
+重建 API 容器，远程地址指向宿主
+docker stop NIOHServer || true && docker rm NIOHServer || true
+docker run -d --name NIOHServer -p 8001:8001 --shm-size=1g
+-e BANNER_USE_ENHANCED=true
+-e SELENIUM_REMOTE_URL=http://172.17.0.1:4444/wd/hub
+-e SELENIUM_USE_USER_DATA_DIR=false
+openharmony-server:latest
+说明：在 Linux 默认 bridge 下，容器访问宿主端口用 172.17.0.1；或改为你的公网/内网 IP:4444
+注意点
+
+成功标志：日志不再出现“使用Chromedriver: /usr/bin/chromedriver”，而是“使用远程WebDriver…”
+如果仍失败：curl http://<宿主IP>:4444/status 看看 Selenium 是否正常；如有防火墙需放行 4444
+要不要我把你当前容器名/端口换成你实际值，给你一段可复制的一键脚本？
+
+告诉我需要提替换的值，我直接给你找
+
+
+好的，我列出需要你替换/确认的值，并给出两套命令模板。你把占位符替换成你环境里的实际值后，直接复制执行即可。
+
+需要替换的值
+
+APP_CONTAINER_NAME：你现有 API 容器名。示例：NIOHServer（在面板“容器”列表可见）
+APP_IMAGE：API 镜像名。示例：openharmony-server:latest
+HOST_PORT：主机映射到容器 8001 的端口。示例：32776（面板显示 0.0.0.0:32776→8001）
+DOCKER_NETWORK：用于让两个容器互通的自定义网络名。建议：ohnet
+SELENIUM_CONTAINER_NAME：浏览器容器名。建议：selenium
+SELENIUM_REMOTE_URL：
+同网段（推荐）：http://selenium:4444/wd/hub
+不建网络时（容器访问宿主）：http://172.17.0.1:4444/wd/hub（或宿主内网/公网IP:4444）
+TZ：时区，例：Asia/Shanghai（可不改）
+提示：
+
+容器访问宿主常用网关 IP 是 172.17.0.1（Linux 默认 bridge）。也可在容器里 ip route | awk '/default/ {print $3}' 查实际值。
+若用面板创建容器，它可能自动分配 HOST_PORT；你可以沿用这个端口避免冲突。
+方案A（推荐，同网段）
+
+创建网络
+docker network create DOCKER_NETWORK || true
+启动 Selenium 容器
+docker run -d --name SELENIUM_CONTAINER_NAME --network DOCKER_NETWORK -p 4444:4444 --shm-size=2g --restart unless-stopped selenium/standalone-chromium:latest
+重建 API 容器（连接到远程 WebDriver）
+docker stop APP_CONTAINER_NAME || true && docker rm APP_CONTAINER_NAME || true
+docker run -d --name APP_CONTAINER_NAME --network DOCKER_NETWORK -p HOST_PORT:8001 --shm-size=1g -e BANNER_USE_ENHANCED=true -e SELENIUM_REMOTE_URL=http://SELENIUM_CONTAINER_NAME:4444/wd/hub -e SELENIUM_USE_USER_DATA_DIR=false APP_IMAGE
+替换示例：
+
+DOCKER_NETWORK=ohnet
+SELENIUM_CONTAINER_NAME=selenium
+APP_CONTAINER_NAME=NIOHServer
+HOST_PORT=32776
+APP_IMAGE=openharmony-server:latest
+方案B（不建网络，容器访问宿主）
+
+启动 Selenium 容器（映射到宿主 4444）
+docker run -d --name SELENIUM_CONTAINER_NAME -p 4444:4444 --shm-size=2g --restart unless-stopped selenium/standalone-chromium:latest
+重建 API 容器（远程 URL 指向宿主）
+docker stop APP_CONTAINER_NAME || true && docker rm APP_CONTAINER_NAME || true
+docker run -d --name APP_CONTAINER_NAME -p HOST_PORT:8001 --shm-size=1g -e BANNER_USE_ENHANCED=true -e SELENIUM_REMOTE_URL=http://172.17.0.1:4444/wd/hub -e SELENIUM_USE_USER_DATA_DIR=false APP_IMAGE
+如 172.17.0.1 不通，可改用你的宿主 IP：http://服务器内网/公网IP:4444/wd/hub
+
+验证步骤
+
+浏览器容器健康：curl http://<宿主或容器可达地址>:4444/status
+日志关键行（API容器）：应出现“使用远程WebDriver: …”，不再出现“使用Chromedriver: /usr/bin/chromedriver”
+触发爬取：curl -X POST "http://<服务器IP或域名>:HOST_PORT/api/banner/crawl?use_enhanced=true"
+查看图片列表：curl "http://<服务器IP或域名>:HOST_PORT/api/banner/mobile"
+把上面占位符替换后发我一份命令，我帮你再过目确认无误。
+
+其余的你自定义，给我完整的可直接执行的命令
+
+
+User attachment
+User attachment
+下面是一套可直接执行的命令，我已替你填好所有值（基于你当前环境：容器名 NIOHServer、镜像 openharmony-server:latest、对外端口 32776）。按顺序整段复制执行即可。
+
+创建网络 + 启动独立浏览器容器 + 重新创建 API 容器（使用远程 WebDriver）
+`bash
+1) 创建独立网络（如已存在不报错）
+docker network create ohnet || true
+
+2) 启动 Selenium 独立浏览器容器（远程 WebDriver）
+docker rm -f selenium 2>/dev/null || true
+docker run -d --name selenium --network ohnet
+-p 4444:4444
+--shm-size=2g
+--restart unless-stopped
+selenium/standalone-chromium:latest
+
+等待 Selenium 就绪
+until curl -sf http://127.0.0.1:4444/status | grep -q '"ready":true'; do
+echo "Waiting for Selenium remote WebDriver on :4444 ..."; sleep 2;
+done
+
+3) 重建 API 容器（连接到远程 WebDriver）
+docker rm -f NIOHServer 2>/dev/null || true
+docker run -d --name NIOHServer --network ohnet
+-p 32776:8001
+--shm-size=1g
+-e TZ=Asia/Shanghai
+-e BANNER_USE_ENHANCED=true
+-e SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub
+-e SELENIUM_USE_USER_DATA_DIR=false
+openharmony-server:latest
+
+4) 基础连通性与状态检查
+echo; echo "Selenium status:"; curl -s http://127.0.0.1:4444/status || true
+echo; echo "API health:"; curl -s http://127.0.0.1:32776/health || true
+`
+
+触发与验证轮播图
+`bash
+触发增强版爬取（走远程 WebDriver）
+curl -s -X POST "http://127.0.0.1:32776/api/banner/crawl?use_enhanced=true"
+
+查看轮播图状态与结果
+echo; echo "Banner status:"; curl -s "http://127.0.0.1:32776/api/banner/status"
+echo; echo "Banner images:"; curl -s "http://127.0.0.1:32776/api/banner/mobile"
+`
+
+实时查看关键日志（确认日志出现“使用远程WebDriver”而非本地 chromedriver）
+bash docker logs -f --tail=200 NIOHServer | grep -E "远程WebDriver|WebDriver|Selenium|使用Chromedriver|Banner|轮播图|enhanced" -n --color=always
+如果需要快速回退为非增强版（不依赖 Selenium），用这两行重建：
+bash docker rm -f NIOHServer || true docker run -d --name NIOHServer --network ohnet -p 32776:8001 --shm-size=1g \ -e TZ=Asia/Shanghai -e BANNER_USE_ENHANCED=false \ openharmony-server:latest
+
+说明
+
+以上命令使用单机两容器方案：Selenium 与 API 都在同一台服务器，通过自定义网络 ohnet 互通。
+关键环境变量：SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub，确保增强版爬虫使用远程浏览器。
+端口：API 对外 32776，Selenium 对外 4444；如有安全策略请放行。
+```
+
+一下是我所需要执行的命令，让我来总结一下：
+
+```bash
+docker network create ohnet || true
+```
+
+```bash
+docker rm -f selenium 2>/dev/null || true
+```
+
+```bash
+docker run -d --name selenium --network ohnet -p 4444:4444 --shm-size=2g --restart unless-stopped selenium/standalone-chromium:latest
+```
+
+```bash
+until curl -sf http://127.0.0.1:4444/status | grep -q '"ready":true'; do echo "Waiting for Selenium remote WebDriver on :4444 ..."; sleep 2; done
+```
+
+```bash
+docker rm -f NIOHServer 2>/dev/null || true
+```
+
+```bash
+docker run -d --name NIOHServer --network ohnet -p 32776:8001 --shm-size=1g -e TZ=Asia/Shanghai -e BANNER_USE_ENHANCED=true -e SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub -e SELENIUM_USE_USER_DATA_DIR=false openharmony-server:latest
+```
+
+```bash
+curl -s http://127.0.0.1:4444/status
+```
+
+```bash
+curl -s http://127.0.0.1:32776/health
+```
+
+```bash
+curl -s -X POST "http://127.0.0.1:32776/api/banner/crawl?use_enhanced=true"
+```
+
+```bash
+curl -s "http://127.0.0.1:32776/api/banner/status"
+```
+
+```bash
+curl -s "http://127.0.0.1:32776/api/banner/mobile"
+```
+
+```bash
+docker logs -f --tail=200 NIOHServer | grep -E "远程WebDriver|WebDriver|Selenium|使用Chromedriver|Banner|轮播图|enhanced" -n --color=always
+```
+
+ok以上就是需要去执行的命令，现在我正在逐一执行，现在执行到了第三步。然后正在拉取 selenium/standalone-chromium 的镜像。这个过程比较长，刚好用来回顾一下这套解决方式。
+
+![26](NowInOpenHarmonyPutaway2/26.png)
+
+我们所需要解决的核心问题在于，
+
+主要集中在以下几件事：
+
+- 浏览器环境可控化：把 WebDriver 从宿主机剥离，使用独立容器的固定版本，避免系统升级/驱动不匹配。
+- 资源与稳定性：扩大 /dev/shm，避免长页面截图/滚动导致的崩溃；容器限额可控，防止互相“抢资源”。
+- 网络连通性：容器间直连可预期，避免容器→宿主的网关差异（172.17.0.1 不同环境不一定可达）。
+- 可观测性：通过“是否打印远程WebDriver日志”“/status”就绪检查，快速定位问题。
+- 回退策略：一键切回非增强版（不依赖 Selenium），确保业务不中断。
+
+我们的解决方案回顾：
+
+- 自定义网络 ohnet，保证 API 容器与浏览器容器在同一网络内互通。
+- 浏览器容器：selenium/standalone-chromium:latest 暴露 4444，提供标准远程 WebDriver。
+- API 容器：通过 `SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub` 直连，不再依赖本地 chromedriver。
+
+验证口径：
+
+- `GET http://127.0.0.1:4444/status` 返回 `"ready": true` 后再重启/启动 API 容器。
+- `docker logs -f NIOHServer` 日志出现“使用远程WebDriver”，且不再打印本地 chromedriver 路径。
+- 访问 `GET /api/banner/mobile` 与 `GET /api/banner/status`，图片数量、最近抓取状态正常。
+
+易踩坑与处理：
+
+- /dev/shm 太小：为浏览器容器加 `--shm-size=2g`。
+- 容器互通失败：确保两容器都在 ohnet；不要一个在 bridge、一个在 ohnet。
+- 172.17.0.1 不通：优先方案A（容器内网直连）。若必须方案B，改宿主内网/公网IP 并放行防火墙。
+- 镜像版本漂移：生产环境建议固定 tag（例如 `selenium/standalone-chromium:122.0`）。
+
+应急回退（不用 Selenium 的非增强版）：
+
+```bash
+docker rm -f NIOHServer || true
+```
+
+```bash
+docker run -d --name NIOHServer --network ohnet -p 32776:8001 --shm-size=1g \
+  -e TZ=Asia/Shanghai -e BANNER_USE_ENHANCED=false \
+  openharmony-server:latest
+```
+
+后面我会继续执行剩余步骤，并记录 Banner 抓取成功率、耗时以及日志关键词（远程WebDriver/Chromedriver）对比，验证这套方案的稳定性提升是否达到预期。
+
+```bash
+2025-10-14 20:21:24 - root - INFO - 日志系统初始化完成
+============================================================
+🚀 NowInOpenHarmony API 服务启动成功!
+============================================================
+2025-10-14T12:21:24.796525657Z
+📡 服务可通过以下地址访问:
+----------------------------------------
+主要IP: http://172.19.0.3:8001
+API文档: http://172.19.0.3:8001/docs
+健康检查: http://172.19.0.3:8001/health
+全部新闻: http://172.19.0.3:8001/api/news/?all=true
+Banner图片: http://172.19.0.3:8001/api/banner/mobile
+----------------------------------------
+2025-10-14T12:21:24.796584668Z
+🎯 主要API端点:
+📰 全部新闻: http://172.19.0.3:8001/api/news/?all=true
+🌐 官网新闻: http://172.19.0.3:8001/api/news/openharmony
+📚 技术博客: http://172.19.0.3:8001/api/news/blog
+📱 Banner图片: http://172.19.0.3:8001/api/banner/mobile
+⚡ 服务状态: http://172.19.0.3:8001/api/health
+2025-10-14T12:21:24.796608777Z
+📋 完整API路径列表:
+------------------------------------------------------------
+🔧 基础服务:
+根路径: http://172.19.0.3:8001/
+API文档: http://172.19.0.3:8001/docs
+ReDoc文档: http://172.19.0.3:8001/redoc
+健康检查: http://172.19.0.3:8001/health
+API健康检查: http://172.19.0.3:8001/api/health
+2025-10-14T12:21:24.796638868Z
+📰 新闻API:
+全部新闻: http://172.19.0.3:8001/api/news/
+分页新闻: http://172.19.0.3:8001/api/news/?page=1&page_size=20
+搜索新闻: http://172.19.0.3:8001/api/news/?search=关键词
+分类新闻: http://172.19.0.3:8001/api/news/?category=官方动态
+OpenHarmony官网: http://172.19.0.3:8001/api/news/openharmony
+OpenHarmony技术博客: http://172.19.0.3:8001/api/news/blog
+手动爬取: http://172.19.0.3:8001/api/news/crawl (POST)
+新闻服务状态: http://172.19.0.3:8001/api/news/status/info
+2025-10-14T12:21:24.796681277Z
+🖼️ Banner轮播图API:
+手机版Banner: http://172.19.0.3:8001/api/banner/mobile
+增强版Banner: http://172.19.0.3:8001/api/banner/mobile/enhanced
+Banner状态: http://172.19.0.3:8001/api/banner/status
+手动爬取Banner: http://172.19.0.3:8001/api/banner/crawl (POST)
+Banner缓存信息: http://172.19.0.3:8001/api/banner/cache
+清空Banner缓存: http://172.19.0.3:8001/api/banner/cache/clear (DELETE)
+2025-10-14T12:21:24.796708417Z
+📊 API参数示例:
+强制爬取全部新闻: http://172.19.0.3:8001/api/news/crawl?source=all&limit=50
+爬取官网新闻: http://172.19.0.3:8001/api/news/crawl?source=openharmony
+爬取技术博客: http://172.19.0.3:8001/api/news/crawl?source=openharmony_blog
+强制爬取Banner: http://172.19.0.3:8001/api/banner/mobile?force_crawl=true
+下载Banner图片: http://172.19.0.3:8001/api/banner/mobile/enhanced?download_images=true
+增强版爬取: http://172.19.0.3:8001/api/banner/crawl?use_enhanced=true
+2025-10-14T12:21:24.796737808Z
+💡 提示:
+- 局域网IP可供同一网络下的其他设备访问
+- GET请求可直接在浏览器中访问
+- POST/DELETE请求需要使用API工具(如Postman)或curl命令
+- 使用 Ctrl+C 停止服务
+============================================================
+2025-10-14T12:21:24.796761857Z
+⚙️ 启动配置:
+绑定地址: 0.0.0.0
+端口: 8001
+调试模式: False
+日志级别: INFO
+============================================================
+2025-10-14 20:21:26 - root - INFO - 日志系统初始化完成
+INFO: Started server process [1]
+INFO: Waiting for application startup.
+2025-10-14 20:21:26 - main - INFO - 应用启动中...
+2025-10-14 20:21:26 - core.database - INFO - 数据库初始化完成
+2025-10-14 20:21:26 - main - INFO - 数据库初始化完成
+2025-10-14 20:21:26 - core.cache - INFO - 新闻缓存初始化完成
+2025-10-14 20:21:26 - core.cache - INFO - 轮播图缓存初始化完成
+2025-10-14 20:21:26 - main - INFO - 缓存初始化完成
+2025-10-14 20:21:26 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-10-14 20:21:26 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-10-14 20:21:26 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-10-14 20:21:26 - core.scheduler - INFO - 定时任务设置完成
+2025-10-14 20:21:26 - apscheduler.scheduler - INFO - Added job "更新所有新闻源缓存" to job store "default"
+2025-10-14 20:21:26 - apscheduler.scheduler - INFO - Added job "更新轮播图缓存" to job store "default"
+2025-10-14 20:21:26 - apscheduler.scheduler - INFO - Added job "完整爬取任务" to job store "default"
+2025-10-14 20:21:26 - apscheduler.scheduler - INFO - Scheduler started
+2025-10-14 20:21:26 - core.scheduler - INFO - 定时任务调度器已启动
+2025-10-14 20:21:26 - main - INFO - 定时任务调度器启动完成
+2025-10-14 20:21:26 - main - INFO - 开始执行初始缓存加载...
+2025-10-14 20:21:26 - core.scheduler - INFO - 开始执行初始缓存加载
+2025-10-14 20:21:26 - core.scheduler - INFO - 📦 分批写入模式：将在第一批数据写入后立即变为可用状态
+2025-10-14 20:21:26 - core.scheduler - INFO - 🚀 开始执行初始缓存加载 - 来源: all
+2025-10-14 20:21:26 - core.scheduler - INFO - 📊 初始缓存加载 - 准备并行爬取数据...
+2025-10-14 20:21:26 - services.news_service - INFO - 🌐 开始爬取OpenHarmony官网新闻...
+2025-10-14 20:21:26 - services.openharmony_news_crawler - INFO - 🌐 开始爬取OpenHarmony官网新闻...
+2025-10-14 20:21:26 - services.openharmony_news_crawler - INFO - 📦 启用分批处理模式，每 20 篇文章执行一次回调
+🚀 开始高效获取OpenHarmony文章信息，每页300条数据...
+📡 请求API: 第1页
+2025-10-14 20:21:26 - core.scheduler - INFO - 🖼️ 开始执行初始轮播图加载
+2025-10-14 20:21:26 - core.cache - INFO - 开始轮播图数据更新，状态设为准备中
+2025-10-14 20:21:26 - core.cache - INFO - 轮播图服务状态更新: preparing
+2025-10-14 20:21:26 - services.enhanced_mobile_banner_crawler - INFO - 🚀 初始化增强版手机Banner爬虫
+2025-10-14 20:21:26 - services.enhanced_mobile_banner_crawler - INFO - - Selenium可用: True
+2025-10-14 20:21:26 - services.enhanced_mobile_banner_crawler - INFO - - requests-html可用: False
+2025-10-14 20:21:26 - core.scheduler - INFO - 初始缓存加载任务已提交到后台线程，服务可以立即响应请求
+2025-10-14 20:21:26 - services.enhanced_mobile_banner_crawler - INFO - 🚀 开始增强版手机Banner爬取...
+2025-10-14 20:21:26 - core.scheduler - INFO - 初始轮播图加载任务已提交到后台线程
+2025-10-14 20:21:26 - services.enhanced_mobile_banner_crawler - INFO - 🎯 目标URL: https://old.openharmony.cn/mainPlay
+2025-10-14 20:21:26 - main - INFO - 初始缓存加载完成
+2025-10-14 20:21:26 - services.enhanced_mobile_banner_crawler - INFO - 📱 尝试方法1: Selenium WebDriver
+2025-10-14 20:21:26 - main - INFO - 应用启动完成
+2025-10-14 20:21:26 - services.enhanced_mobile_banner_crawler - INFO - 🎯 使用Selenium获取动态轮播图...
+INFO: Application startup complete.
+2025-10-14 20:21:26 - services.enhanced_mobile_banner_crawler - INFO - 🧭 使用Chrome二进制: /usr/bin/chromium
+2025-10-14 20:21:26 - services.enhanced_mobile_banner_crawler - INFO - 🌐 使用远程WebDriver: http://selenium:4444/wd/hub
+INFO: Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+📊 第1页获取到300条数据
+📈 第1页新增300条有效数据，累计300条
+📡 请求API: 第2页
+📊 第2页获取到107条数据
+📈 第2页新增107条有效数据，累计407条
+🎯 第2页数据量(107)小于页面大小(300)，爬取完成
+📋 共���取到407条有效文章信息
+🔍 进行快速有效性校验...
+2025-10-14 20:21:27 - main - INFO - GET /health - Status: 200 - Process Time: 0.001s
+INFO: 127.0.0.1:55366 - "GET /health HTTP/1.1" 200 OK
+2025-10-14 20:21:29 - services.enhanced_mobile_banner_crawler - INFO - 📱 访问页面: https://old.openharmony.cn/mainPlay
+✅ 快速校验完成：9/10 有效，有效率90.0%
+🚀 有效率高，跳过完整校验，直接返回所有数据
+2025-10-14 20:21:42 - services.openharmony_news_crawler - INFO - 📋 获取到 407 篇文章信息
+2025-10-14 20:21:42 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 1/407 篇文章: 对话OpenHarmony开源先锋：如何用代码革新终端生态
+2025-10-14 20:21:44 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 27 个内容块
+2025-10-14 20:21:45 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 2/407 篇文章: 12强终极PK！第二届OpenHarmony创新应用挑战赛引爆开源热潮
+2025-10-14 20:21:46 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 11 个内容块
+2025-10-14 20:21:47 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 3/407 篇文章: 第二届OpenHarmony创新应用挑战赛决赛路演队伍揭晓
+2025-10-14 20:21:48 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 2 个内容块
+2025-10-14 20:21:48 - services.enhanced_mobile_banner_crawler - INFO - ✅ 轮播容器已加载
+2025-10-14 20:21:48 - services.enhanced_mobile_banner_crawler - INFO - 🔄 执行页面滚动...
+2025-10-14 20:21:49 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 4/407 篇文章: OpenHarmony社区2024年度运营报告发布，致谢每一位生态共建者！
+2025-10-14 20:21:49 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 34 个内容块
+2025-10-14 20:21:50 - services.enhanced_mobile_banner_crawler - INFO - 🖱️ 模拟鼠标悬停
+2025-10-14 20:21:50 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 5/407 篇文章: 开源鸿蒙社区恭祝全体开发者2025新年快乐，新春大吉！
+2025-10-14 20:21:51 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 2 个内容块
+2025-10-14 20:21:52 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 6/407 篇文章: 共绘2025年开源新蓝图，OpenHarmony社区项目管理委员会年度工作会议在深圳成功举办
+2025-10-14 20:21:52 - services.enhanced_mobile_banner_crawler - INFO - 👆 点击轮播指示器
+2025-10-14 20:21:53 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 41 个内容块
+2025-10-14 20:21:53 - main - INFO - GET /health - Status: 200 - Process Time: 0.001s
+INFO: 172.19.0.1:59564 - "GET /health HTTP/1.1" 200 OK
+2025-10-14 20:21:54 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 7/407 篇文章: 开源鸿蒙项目群新增捐赠人（2024年12月）
+2025-10-14 20:21:54 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 16 个内容块
+2025-10-14 20:21:54 - services.enhanced_mobile_banner_crawler - INFO - ⚡ 执行JavaScript触发脚本
+2025-10-14 20:21:55 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 8/407 篇文章: 开源鸿蒙社区隆重致谢授牌2024年度社区贡献单位和个人
+2025-10-14 20:21:56 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 4 个内容块
+2025-10-14 20:21:57 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 9/407 篇文章: 厚植根基，同启新程！一文回顾 2024 OpenHarmony 社区年度工作会议精彩瞬间
+2025-10-14 20:21:57 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 44 个内容块
+2025-10-14 20:21:58 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 10/407 篇文章: 第二届OpenHarmony创新应用挑战赛决赛晋级名单公示
+2025-10-14 20:21:59 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 2 个内容块
+2025-10-14 20:21:59 - main - INFO - GET /health - Status: 200 - Process Time: 0.000s
+INFO: 127.0.0.1:57904 - "GET /health HTTP/1.1" 200 OK
+2025-10-14 20:22:00 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 11/407 篇文章: 一元复始 万象更新|开源鸿蒙社区祝广大开发者元旦快乐！
+2025-10-14 20:22:01 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 2 个内容块
+2025-10-14 20:22:02 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 12/407 篇文章: OpenHarmony程序分析框架论文入选第50届国际软件工程大会ICSE2025
+2025-10-14 20:22:02 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 8 个内容块
+2025-10-14 20:22:02 - services.enhanced_mobile_banner_crawler - INFO - 🔍 选择器 '.el-carousel img' 找到 4 个图片元素
+2025-10-14 20:22:03 - services.enhanced_mobile_banner_crawler - INFO - 🔍 选择器 '.banner img' 找到 4 个图片元素
+2025-10-14 20:22:03 - services.enhanced_mobile_banner_crawler - INFO - 🔍 选择器 '.el-carousel__item img' 找到 4 个图片元素
+2025-10-14 20:22:03 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 13/407 篇文章: OpenHarmony开发者激励计划 | 2024年度精彩回顾
+2025-10-14 20:22:04 - api.banner - INFO - 🚀 手动触发轮播图爬取 - 增强版: True, 下载: False
+2025-10-14 20:22:04 - core.scheduler - INFO - 开始执行手动轮播图爬取任务
+2025-10-14 20:22:04 - core.scheduler - INFO - 🖼️ 开始执行手动轮播图爬取任务
+2025-10-14 20:22:04 - core.cache - INFO - 开始轮播图数据更新，状态设为准备中
+2025-10-14 20:22:04 - core.scheduler - INFO - 手动轮播图爬取任务已提交到后台线程
+2025-10-14 20:22:04 - core.cache - INFO - 轮播图服务状态更新: preparing
+2025-10-14 20:22:04 - api.banner - INFO - 🔄 执行增强版Banner爬取任务
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - 🚀 初始化增强版手机Banner爬虫
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - 🚀 初始化增强版手机Banner爬虫
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - - Selenium可用: True
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - - Selenium可用: True
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - - requests-html可用: False
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - - requests-html可用: False
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - 🚀 开始增强版手机Banner爬取...
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - 🚀 开始增强版手机Banner爬取...
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - 🎯 目标URL: https://old.openharmony.cn/mainPlay
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - 🎯 目标URL: https://old.openharmony.cn/mainPlay
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - 📱 尝试方法1: Selenium WebDriver
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - 📱 尝试方法1: Selenium WebDriver
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - 🎯 使用Selenium获取动态轮播图...
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - 🎯 使用Selenium获取动态轮播图...
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - 🧭 使用Chrome二进制: /usr/bin/chromium
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - 🧭 使用Chrome二进制: /usr/bin/chromium
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - 🌐 使用远程WebDriver: http://selenium:4444/wd/hub
+2025-10-14 20:22:04 - services.enhanced_mobile_banner_crawler - INFO - 🌐 使用远程WebDriver: http://selenium:4444/wd/hub
+2025-10-14 20:22:04 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 4 个内容块
+2025-10-14 20:22:05 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 14/407 篇文章: 开源鸿蒙荣获开放原子“2024年度操作系统领域国内活跃开源项目”
+2025-10-14 20:22:06 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 8 个内容块
+2025-10-14 20:22:07 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 15/407 篇文章: OpenHarmony项目群10-11月新增捐赠人
+2025-10-14 20:22:07 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 39 个内容块
+2025-10-14 20:22:08 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 16/407 篇文章: 大咖导师 源力唤醒|第二届开源鸿蒙创新应用挑战赛导师阵容重磅亮相
+2025-10-14 20:22:09 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 2 个内容块
+2025-10-14 20:22:10 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 17/407 篇文章: 与鸿同行，探索无限！开源鸿蒙技术分论坛在武汉成功举办
+2025-10-14 20:22:11 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 49 个内容块
+2025-10-14 20:22:12 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 18/407 篇文章: 开源鸿蒙5.0重磅发布，共赴万物智联未来
+2025-10-14 20:22:12 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 17 个内容块
+2025-10-14 20:22:13 - services.enhanced_mobile_banner_crawler - INFO - 🔍 选择器 '.carousel img' 找到 0 个图片元素
+2025-10-14 20:22:13 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 19/407 篇文章: 源鸿蒙 5.0 Release版本关键特性解读
+2025-10-14 20:22:14 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 24 个内容块
+2025-10-14 20:22:15 - services.openharmony_news_crawler - INFO - 🔍 正在处理第 20/407 篇文章: 精彩预告 | 2024开放原子开发者大会OpenHarmony技术分论坛等您来！
+2025-10-14 20:22:16 - services.openharmony_news_crawler - INFO - ✅ 成功解析文章，共 2 个内容块
+2025-10-14 20:22:16 - services.openharmony_news_crawler - INFO - 📦 [分批处理] 达到批处理大小 20，执行回调...
+```
+
+芜湖！！！卧槽这次日志总算是没问题了！！！
+
+这样一来我就可以访问一下我的接口了，啊啊啊啊一定要没问题啊。
+
+```bash
+http://113.47.8.204:32776/api/banner/mobile
+```
+
+```json
+{
+  "success": true,
+  "images": [
+    "https://images.openharmony.cn/%E9%A6%96%E9%A1%B5/banner/20240411/4.1releas%E6%89%8B%E6%9C%BA.jpg",
+    "https://images.openharmony.cn/%E6%B4%BB%E5%8A%A8/%E5%88%9B%E6%96%B0%E8%B5%9B2023/20230831/%E4%B8%89%E6%96%B9%E5%BA%93%E7%A7%BB%E5%8A%A8%E7%AB%AF.png",
+    "https://images.openharmony.cn/%E6%B4%BB%E5%8A%A8/%E5%A4%A7%E8%B5%9B20250812/%E7%AC%AC%E4%B8%89%E5%B1%8A%E5%BC%80%E6%BA%90%E9%B8%BF%E8%92%99%E5%88%9B%E6%96%B0%E5%BA%94%E7%94%A8%E6%8C%91%E6%88%98%E8%B5%9B-%20750%20350.jpg",
+    "https://images.openharmony.cn/%E6%B4%BB%E5%8A%A8/%E6%8A%80%E6%9C%AF%E5%A4%A7%E4%BC%9A20250826/phone%20750x350.jpg"
+  ],
+  "total": 4,
+  "message": "获取手机版Banner图片成功（缓存），共 4 张",
+  "timestamp": "2025-10-14T20:40:18.480150"
+}
+```
+
+卧槽牛逼！！！成功了我再去测试一下其他接口。
+
+![27](NowInOpenHarmonyPutaway2/27.png)
+
+nbnb。这样一来我明天就可以开始真正的修改我的客户端基地址了。
+
+![28](NowInOpenHarmonyPutaway2/28.png)
