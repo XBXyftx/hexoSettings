@@ -835,3 +835,205 @@ mkdir temp-test && tar -xzf plugin.tar.gz -C temp-test
 ```
 
 这就是为什么我在Docker部署时对tar格式"刮目相看"的原因，它不仅仅是个压缩工具，更是整个开发生态链的重要一环！
+
+## git进阶
+
+### git stash 的正确打开方式
+
+有时候改到一半突然要切分支救火？`git stash` 就是你的“临时储物柜”。但用不好容易把东西“塞丢”。
+
+**常用命令速记：**
+
+```bash
+# 保存当前改动（含暂存区），并写上备注
+git stash push -m "WIP: 修复登录逻辑"
+
+# 交互式只保存部分改动（按h/?看帮助）
+git stash push -p -m "WIP: 只stash选中的hunk"
+
+# 包含未跟踪文件（新建但未git add）
+git stash push -u -m "WIP: 包含未跟踪文件"
+
+# 查看和预览差异
+git stash list
+git stash show -p stash@{0}
+
+# 取回改动（apply保留stash，pop取回并删除）
+git stash apply stash@{0}
+git stash pop
+
+# 还原暂存状态（连同index一起恢复）
+git stash apply --index stash@{0}
+
+# 删除指定/全部stash
+git stash drop stash@{2}
+git stash clear
+```
+
+**坑点提醒：**
+
+- `pop` 会在应用成功后删除记录，冲突中断时容易“半上不下”，稳妥选 `apply` + `drop`。
+- 混用 `-u` 可能把一堆未跟踪文件塞进来，回收时容易冲突；建议对生成物（dist、logs）用 `.gitignore` 管住。
+- 长期 stash 容易遗忘，习惯用 `-m` 写清楚缘由；超过两条就该考虑拉个临时分支提交。
+
+**更优实践：**
+
+```bash
+# 直接把当前工作变成临时分支，安全又可回溯
+git switch -c wip/fix-login
+git commit -am "wip: 半成品，先保底保存"
+```
+
+### git worktree 并行开发神器
+
+一个仓库，多处同时工作，不用来回切分支，更不需要额外 clone。
+
+```bash
+# 查看现有工作树
+git worktree list
+
+# 为功能分支创建新的工作树目录
+git worktree add ../proj-feature feature/improve-login
+
+# 基于远程分支创建并检出到新工作树
+git worktree add -b feature/abtest ../proj-abtest origin/main
+
+# 清理已合并/不再需要的工作树
+git worktree remove ../proj-feature
+```
+
+**使用场景：**
+
+- 同时修复线上 hotfix 与开发新功能，不互相打扰。
+- 本地跑两个版本的服务做 AB 对比。
+
+**注意事项：**
+
+- 新目录不能放在原仓库内部（避免嵌套）。
+- 分支在不同工作树同时检出是被禁止的（避免踩踏）。
+
+### submodule vs subtree 的取舍
+
+复用子仓库时，常见两条路：`git submodule` 和 `git subtree`。
+
+**核心区别：**
+
+- submodule：主仓库存“指针”，子仓库独立版本。更新需显式 `git submodule update`。
+- subtree：把子仓库内容合并到主仓库某目录下，可选择压缩历史（`--squash`）。
+
+**快速上手：**
+
+```bash
+# submodule
+git submodule add https://github.com/user/lib.git libs/lib
+git submodule update --init --recursive
+
+# subtree（把lib放入 libs/lib 目录，并压缩历史）
+git subtree add --prefix=libs/lib https://github.com/user/lib.git main --squash
+
+# 后续拉取上游更新
+git subtree pull --prefix=libs/lib https://github.com/user/lib.git main --squash
+```
+
+**选型建议：**
+
+- 需要独立发布/版本边界清晰/第三方库：选 submodule。
+- 倾向扁平化管理/不想额外初始化步骤：选 subtree。
+
+## 跨平台细节
+
+### 换行符 LF vs CRLF 与 .gitattributes
+
+团队跨 Windows / macOS / Linux 开发，最容易“无意义 diff”的就是换行符与编码。
+
+**推荐设置：**
+
+```gitattributes
+# 自动规范文本文件换行
+* text=auto
+
+# 强制脚本用 LF（避免Linux执行失败）
+*.sh text eol=lf
+*.bash text eol=lf
+Dockerfile text eol=lf
+
+# Windows 脚本保留 CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 二进制与图片禁止当文本处理
+*.png -text
+*.jpg -text
+*.gif -text
+*.pdf -text
+*.zip -text
+```
+
+**本地 Git 建议：**
+
+```bash
+# macOS/Linux
+git config --global core.autocrlf input   # 提交时转LF，检出不改
+
+# Windows（两种都可，二选一）
+git config --global core.autocrlf true    # 检出CRLF，提交转LF（更通用）
+# 或
+git config --global core.autocrlf input   # 避免工作区被自动改行尾
+```
+
+**编辑器对齐：**
+
+```editorconfig
+root = true
+
+[*]
+end_of_line = lf
+charset = utf-8
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+
+[*.bat]
+end_of_line = crlf
+```
+
+**修复历史被错误换行污染：**
+
+```bash
+# 新增 .gitattributes 后，重新规范索引
+git rm --cached -r .
+git reset --hard
+```
+
+## 压缩与发布进阶
+
+### tar.zst / 7z / tar.gz 该怎么选
+
+当体积和速度都很敏感时，可以考虑更现代的压缩算法。
+
+**经验结论：**
+
+- tar.zst（zstd）：压缩/解压都很快，压缩比通常优于 gzip；适合 CI 构建缓存与大体量源码归档。
+- 7z（LZMA2）：极致压缩比，但压缩慢；适合离线分发、长期归档。
+- tar.gz：生态最广、工具最友好；适合“到处都能用”的默认选择。
+
+**命令小抄：**
+
+```bash
+# zstd：-T 并发，-19 高压缩（时间更长）
+tar -I 'zstd -T0 -19' -cf archive.tar.zst src/
+tar -I zstd -xf archive.tar.zst -C /target
+
+# 7z：极限压缩
+7z a -t7z -m0=lzma2 -mx=9 -mmt=on archive.7z src/
+
+# gz：兼容性最佳
+tar -czf archive.tar.gz src/
+```
+
+**发布建议：**
+
+- 开源项目 Release：提供 `tar.gz` 为主，额外附上 `tar.zst`（写明需 zstd）。
+- 内网/CI 工具链：优先 `tar.zst` 提升速度；注意构建机需安装 zstd。
+
+以上就是这次的补充小结：把“应急的 stash”“并行的 worktree”“复用的子仓”“跨平台的换行”和“压缩选型”这几件日常高频小事盘清楚，你的团队协作和交付体验会明显顺滑起来。🎯
