@@ -814,3 +814,5 @@ Stacktrace:
 好好好，“顺手”你GPT5还是有点狂傲在里面的，算然确实是顺手的事，但Claude可不会这么说。
 
 对于这个需求来说GPT5的high模式使用体感和Claude很类似，插件的便捷程度和界面的美观程度更胜于Claude，等我再多用一用再去进行评价吧，现在先再次部署进行轮播图接口的测试。
+
+![25](NowInOpenHarmonyPutaway2/25.png)
