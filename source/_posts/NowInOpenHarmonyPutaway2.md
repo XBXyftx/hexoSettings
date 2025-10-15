@@ -3432,3 +3432,188 @@ http://113.47.8.204:32776/api/banner/mobile
 nbnb。这样一来我明天就可以开始真正的修改我的客户端基地址了。
 
 ![28](NowInOpenHarmonyPutaway2/28.png)
+
+### CPU负载问题
+
+在昨天顺利解决了我们的容器部署问题以及服务器WebDriver失效的问题之后，我本来以为万事大吉了就没有再管他，结果今天我上宝塔面板一看发现卧槽2核CPU持续性的维持在100%，连短暂的掉到99% 98%都没有出现，我赶紧关停了两个docker容器，服务器的CPU占用率终于是降下来了。我对于服务器的经验并不多，我也不确定这种情况是否正常，所以我决定先给GPT看看。
+
+![29](NowInOpenHarmonyPutaway2/29.jpg)
+
+在GPT生成回复的过程中我也是上网去进行了一下检索。
+
+这种现象是明显不正常的，有可能是死循环代码，内存泄漏，不合理的先乘除配置，为优化的数据库查询，第三方API调用超时堆积，DDoS攻击，爬虫滥用等等很多的情况，这些都可能会导致我的服务器CPU跑满的情况。
+
+这并不是直接购买一个新CPU可以解决的问题，我平常仅仅运行我博客网站的Nginx的过程中CPU占用率仅维持在4%左右，所以说明它基本上将两个核的CPU资源全都耗尽了，我怀疑的问题是我的爬虫程序运行时开了很多的线程去进行爬取，在本地的多核CPU运行起来并不是什么负担，但是在服务器上的2核小CPU上去运行就是一个巨大的负担了。
+
+让我们先来看看GPT的建议。
+
+```bash
+结论与现状
+
+现在功能正常：日志已切到远程 WebDriver，并能定位到轮播元素。
+CPU 100%并非常态，但在“初始大爬取 + Selenium 渲染页面”阶段，2 核机型确实会被打满一段时间。若任务结束很久仍 100%，需要定位哪个容器在持续占用。
+先快速定位“谁在吃 CPU”
+
+看容器资源占用
+docker stats
+进一步看容器内最耗 CPU 的进程
+App 容器: docker exec -it NIOHServer sh -lc "ps -eo pid,cmd,%cpu --sort=-%cpu | head"
+浏览器容器: docker exec -it selenium sh -lc "ps -eo pid,cmd,%cpu --sort=-%cpu | head"
+立即止血的几种安全操作
+
+给容器加 CPU 上限（不重建也可生效）
+docker update --cpus=0.8 NIOHServer
+docker update --cpus=0.8 selenium
+临时关闭定时任务，改为按需触发（避免后台并发）
+先停容器：docker stop NIOHServer
+以禁用调度器的方式启动（只保留手动触发）：docker run -d --name NIOHServer --network ohnet -p 32776:8001 --shm-size=1g -e TZ=Asia/Shanghai -e ENABLE_SCHEDULER=false -e BANNER_USE_ENHANCED=true -e SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub -e SELENIUM_USE_USER_DATA_DIR=false openharmony-server:latest
+手动触发时再调用：curl -X POST "http://127.0.0.1:32776/api/banner/crawl?use_enhanced=true"
+不用 Selenium 时，把浏览器容器停掉，空闲时 0 负载
+docker stop selenium
+需要增强版再启动：docker start selenium
+为什么会打满
+
+初始新闻爬取解析 400+ 篇页面 + BeautifulSoup 解析会占满 2 核（短时内算正常）。
+Selenium/Chromium 渲染 Nuxt 动态页消耗较高，且我们默认每 3 小时有一次轮播图定时任务（与你的新闻定时任务同时开始，叠加负载）。
+线程池并发（当前 max_workers=6）也会放大 CPU 峰值。
+建议的稳态运行配置
+
+错峰调度：避免新闻和轮播图同一时刻启动（后续我可以把 banner 任务延后 10 分钟或加随机抖动）。
+控制并发：将线程池降到 2（需要我改 core/scheduler.py 的 max_workers=2）。
+资源限额：持续使用 docker update 或在 compose 里写死资源限制（cpus/mem/shm_size）。
+按需 Selenium：默认停 selenium，调用增强版接口时再启动，完毕后自动停（我可以在代码里做“按需启动/停止”集成）。
+你现在可以做的最小变更
+
+先看“谁在吃 CPU”：docker stats
+如果 selenium 持续高：docker update --cpus=0.6 selenium 或直接 docker stop selenium（用 Nuxt 兜底或传统解析）
+如果 app 持续高：用禁用调度器的方式重启 app，只在需要时手动触发；或者我把线程池降到 2 并提交。
+需要我：
+
+降低线程池并发（max_workers=2）并提交？
+将 banner 定时任务与新闻错峰（例如 banner 延后 10 分钟）？
+在增强版里补上 CSS 背景图提取（提升取图成功率，同时减少多次重试的渲染开销）？
+```
+
+GPT给出的观点和我的观点一致，这并非常态，理论上来讲我们的程序只应该是在爬取新闻的过程中CPU才会飙高，这是正常的，但是当时我上到后台一看100%后只等待了不到一分钟左右的时间看占用率依旧是没有下降就直接去将两个容器停止了运行，所以说我目前并不清楚当前的爬虫进程是否是正处于爬取状态还是常态。所以我考虑的方案是先让GPT给我一套启动这两个镜像的命令，将两个容器启动并且确认轮播图功能正常之后立刻去查看两个容器分别的CPU占用率，等待第一轮爬取结束后再去分别观察CPU的占用率。
+
+```bash
+给你一套可直接执行的命令：启动两个容器→确认轮播图→立刻看 CPU→等待首轮结束后再看 CPU。我已按你环境填好值（容器名 NIOHServer、镜像 openharmony-server:latest、对外端口 32776、网络 ohnet、远程 WebDriver selenium:4444）。
+
+启动与健康检查
+创建网络 + 启动/复用 Selenium + 等就绪 + 启动/复用 API
+bash
+docker network create ohnet || true
+启动/复用 selenium（远程 WebDriver）
+if ! docker ps -a --format '{{.Names}}' | grep -q '^selenium$'; then
+docker run -d --name selenium --network ohnet
+-p 4444:4444 --shm-size=2g --restart unless-stopped
+selenium/standalone-chromium:latest
+else
+docker start selenium
+fi
+
+等待 WebDriver 就绪
+until curl -sf http://127.0.0.1:4444/status | grep -E -qi '"ready"[[:space:]]*:[[:space:]]*true'; do
+echo "Waiting for Selenium remote WebDriver on :4444 ..."; sleep 2;
+done
+
+启动/复用 API 容器（使用远程 WebDriver）
+if ! docker ps -a --format '{{.Names}}' | grep -q '^NIOHServer$'; then
+docker run -d --name NIOHServer --network ohnet
+-p 32776:8001 --shm-size=1g
+-e TZ=Asia/Shanghai
+-e ENABLE_SCHEDULER=true
+-e BANNER_USE_ENHANCED=true
+-e SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub
+-e SELENIUM_USE_USER_DATA_DIR=false
+openharmony-server:latest
+else
+docker start NIOHServer
+fi
+
+健康检查
+echo; echo "API health:"; curl -s http://127.0.0.1:32776/health || true
+echo; echo "Selenium status:"; curl -s http://127.0.0.1:4444/status || true
+
+触发轮播图并立刻查看 CPU
+bash
+手动触发增强版轮播图爬取
+echo; echo "Trigger banner crawl:";
+curl -s -X POST "http://127.0.0.1:32776/api/banner/crawl?use_enhanced=true" || true
+
+立即查看两个容器的 CPU/内存
+echo; echo "Instant CPU snapshot:";
+docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.PIDs}}' | egrep 'NIOHServer|selenium' || true
+
+各自容器内最耗CPU进程（便于诊断）
+echo; echo "[Top procs] NIOHServer:";
+docker exec -it NIOHServer sh -lc "ps -eo pid,comm,%cpu,%mem --sort=-%cpu | head" || true
+echo; echo "[Top procs] selenium:";
+docker exec -it selenium sh -lc "ps -eo pid,comm,%cpu,%mem --sort=-%cpu | head" || true
+
+等待首轮爬取结束，再次采样 CPU
+以轮播图缓存 READY 为“首轮结束”标志（若 grep 不准，可用 Ctrl+C 中断）
+bash
+echo; echo "Waiting for banner cache READY ... (Ctrl+C to abort)";
+until curl -sf "http://127.0.0.1:32776/api/banner/status" | grep -qi '"status"[[:space:]]:[[:space:]]"ready"'; do
+sleep 5; done
+READY 后再取一次 CPU 快照与图片列表
+echo; echo "CPU snapshot after first crawl:";
+docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.PIDs}}' | egrep 'NIOHServer|selenium' || true
+
+echo; echo "Banner images:";
+curl -s "http://127.0.0.1:32776/api/banner/mobile" || true
+
+如需持续观察（2秒一次，随时 Ctrl+C 停止）
+watch -n 2 'docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}" | egrep "NIOHServer|selenium"'
+说明
+
+以上命令会优先复用已存在容器；若不存在则自动 run。
+远程 WebDriver 地址固定用 http://selenium:4444/wd/hub（在 ohnet 网络内）。
+如果 READY 后 CPU 仍长期 >80%，告诉我结果；我再给你：降并发（线程池改 6→2）、错峰调度（banner 晚新闻10分钟启动）、或加 docker 资源上限（docker update --cpus）。
+```
+
+```bash
+docker network create ohnet || true
+```
+
+```bash
+docker rm -f selenium 2>/dev/null || true && docker run -d --name selenium --network ohnet -p 4444:4444 --shm-size=2g --restart unless-stopped selenium/standalone-chromium:latest
+
+```bash
+until curl -sf http://127.0.0.1:4444/status | grep -E -qi '"ready"[[:space:]]*:[[:space:]]*true'; do echo "Waiting for Selenium remote WebDriver on :4444 ..."; sleep 2; done
+```
+
+```bash
+docker rm -f NIOHServer 2>/dev/null || true && docker run -d --name NIOHServer --network ohnet -p 32776:8001 --shm-size=1g -e TZ=Asia/Shanghai -e ENABLE_SCHEDULER=true -e BANNER_USE_ENHANCED=true -e SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub -e SELENIUM_USE_USER_DATA_DIR=false openharmony-server:latest
+```
+
+到这一步之后就是成功启动了。
+
+```bash
+curl -s -X POST "http://127.0.0.1:32776/api/banner/crawl?use_enhanced=true"
+```
+
+```bash
+docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.PIDs}}' | egrep 'NIOHServer|selenium'
+```
+
+```bash
+docker exec -it NIOHServer sh -lc "ps -eo pid,comm,%cpu,%mem --sort=-%cpu | head"
+```
+
+```bash
+docker exec -it selenium sh -lc "ps -eo pid,comm,%cpu,%mem --sort=-%cpu | head"
+```
+
+```bash
+until curl -sf "http://127.0.0.1:32776/api/banner/status" | grep -qi '"status"[[:space:]]:[[:space:]]"ready"'; do sleep 5; done
+```
+
+```bash
+docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.PIDs}}' | egrep 'NIOHServer|selenium'
+```
+
+```bash
+curl -s "http://127.0.0.1:32776/api/banner/mobile"
+```
