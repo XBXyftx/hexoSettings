@@ -1,4 +1,4 @@
----
+﻿---
 title: NowInOpenHarmony上架笔记之再起新征程
 date: 2025-10-12 14:17:05
 tags:
@@ -3654,3 +3654,159 @@ root@hcss-ecs-2ad2:~#
 总占用率也是正常的，这还是在同时支持宝塔面板的服务状态下。
 
 持续观察了一会儿发现占用率在持续走低，这更解释不了之前出现的情况了。我猜测可能是我的爬虫逻辑在运行了一段时间之后出现了类似死锁或者是线程池的无限制扩张问题导致了我们的服务CPU占用率飙升。那这就需要等待一天后再来看一看我们的服务器数据了，现在我先让GPT帮我检查一下代码中是否存在这种问题的隐患。并将更新时间拉长到6小时一更新，来减少我的流量开销。
+
+```bash
+我做了两件事：
+
+代码体检要点
+
+线程池不会无限扩张：TaskScheduler 固定 max_workers=6，api/banner.py 单独线程池为2；不存在“无限增长”模式。core/scheduler.py:1, api/banner.py:31
+竞态/叠加风险较低：APScheduler 为同一 id 的任务 replace_existing；默认 max_instances=1，且我们每次只提交一次后台线程任务，不会无限并发叠加。core/scheduler.py:20, 100
+死锁风险较低：缓存使用 RLock，set_updating 内部调用 set_status 仍是同一可重入锁，没问题。core/cache.py:34
+峰值来源合理：初始大爬取 400+ 篇 + Selenium 渲染动态页会打满 2 核；若下一次定时与手工触发重叠，也可能短时拉高整体负载。
+已按你的要求把定时更新改为每 6 小时一次
+
+修改：新闻与轮播图的定时任务 IntervalTrigger 从 3 小时 → 6 小时
+文件：core/scheduler.py
+提交：chore(scheduler): extend update interval to every 6 hours for news and banner to reduce load and traffic
+当前分支：feature/docker-containerization-deployment-issue-4
+建议的观察步骤
+
+现在的配置下，启动后只会在初始化阶段有短时 CPU 抬升；后续每 6h 触发一次。
+若再出现长时间 100%，立刻执行：
+docker stats —锁定耗CPU容器
+docker exec -it <容器> ps -eo pid,comm,%cpu,%mem --sort=-%cpu | head —锁定进程
+我可以继续：
+将线程池并发从 6 降到 2（更稳、更省CPU）
+错峰调度（banner 比新闻晚 10 分钟启动，避免同一时刻峰值）
+增强 Selenium 提取 CSS 背景图，减少多次重试造成的渲染开销
+需要哪一个，直接回我编号即可。
+```
+
+嗯，看起来Claude留下来的代码还是质量挺高的，GPT给出的建议也都很有道理，这样的话我觉得这三条建议都可以执行。
+
+```bash
+已全部执行并提交到 feature/docker-containerization-deployment-issue-4。
+
+并发下调
+
+线程池 max_workers: 6 → 2
+文件: core/scheduler.py
+错峰调度
+
+新闻每 6 小时
+轮播图每 6 小时但首发延迟 10 分钟（与新闻错峰）
+文件: core/scheduler.py
+增强版爬虫优化
+
+增加 CSS background-image 抓取（computedStyle），补齐只用 img 时漏抓的问题
+统一对 JS 返回的 URL 做绝对化、去重
+文件: services/enhanced_mobile_banner_crawler.py
+提交记录
+
+chore(scheduler): extend update interval to every 6 hours for news and banner to reduce load and traffic
+perf(scheduler): reduce thread pool to 2 and stagger banner job by 10min; perf(banner/selenium): extract CSS background-image via computed style and normalize URLs
+下一步
+
+重建并启动服务以生效最近两次改动
+docker rm -f NIOHServer || true
+docker run -d --name NIOHServer --network ohnet -p 32776:8001 --shm-size=1g -e TZ=Asia/Shanghai -e ENABLE_SCHEDULER=true -e BANNER_USE_ENHANCED=true -e SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub -e SELENIUM_USE_USER_DATA_DIR=false openharmony-server:latest
+触发并观察
+curl -s -X POST "http://127.0.0.1:32776/api/banner/crawl?use_enhanced=true"
+docker stats —观察 NIOHServer/selenium CPU
+curl -s "http://127.0.0.1:32776/api/banner/mobile" —确认有图
+如果还需更激进的限流（比如给容器加 cpus=0.6），告诉我，我给出一键 update/run 命令。
+```
+
+这一次完整的重新部署之后我像往常一样只间隔了一分钟就去测试获取轮播图的接口发现失败了，吓我一跳，仔细一想好像是因为线程池的总量被限制了，导致爬虫的运行被减慢或者滞后了，所以我多等了几分钟再次进行测试总算是成功了，吓我一跳。
+
+出去吃个饭回来又持续的观察了一段时间发现我后端服务容器占用率始终为0.1%，而Selenium容器占用率始终为0.2%，仅仅是维持着最基础的进程生命周期，完全没有出现任何异常波动，再加上此前GPT已经针对于我们的代码进行了检查和优化，我不能理解为什么那天出现了CPU占用拉满的情况，现在只能是再等一等去进行进一步的观察了。
+
+先让我们向下一步推进吧。
+
+### 合并分支并完成issue
+
+终于是到了合并分支的时刻了，这场小闹剧已经持续太久了，该让他结束了。
+
+<div style="
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  border: 1px solid #404040;
+  border-left: 4px solid #28a745;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  max-width: 500px;
+">
+<div style="display: flex; align-items: center; margin-bottom: 12px;">
+<svg style="width: 20px; height: 20px; margin-right: 8px; fill: #28a745;" viewBox="0 0 16 16">
+<path d="M8 9.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+<path fill-rule="evenodd" d="M8 0a8 8 0 100 16A8 8 0 008 0zM1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0z"/>
+</svg>
+<span style="color: #28a745; font-size: 12px; font-weight: 600; margin-right: 8px;">OPEN</span>
+<div style="margin: 0; color: #ffffff; font-size: 16px; font-weight: 600;">
+<a href="https://github.com/ifLabVibe/NowInOpenHarmony/issues/4" style="color: #ffffff; text-decoration: none;">
+后端docker容器化部署
+</a>
+</div>
+</div>
+<div style="display: flex; align-items: center; margin-bottom: 12px;">
+<span style="color: #d4d4d4; font-size: 12px; margin-right: 16px;">
+#4
+</span>
+<span style="color: #d4d4d4; font-size: 12px; margin-right: 16px;">
+ifLabVibe/NowInOpenHarmony
+</span>
+</div>
+<p style="color: #d4d4d4; margin: 0 0 16px 0; font-size: 14px; line-height: 1.5;">
+为实现NowInOpenHarmony应用的正式上架，需要完成后端服务器部署、应用商店适配、用户隐私政策制定等关键工作。这是从开源项目到商业化应用的重要里程碑。
+</p>
+<div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
+<span style="display: flex; align-items: center; color: #d4d4d4; font-size: 12px;">
+<svg style="width: 12px; height: 12px; margin-right: 4px; fill: #d4d4d4;" viewBox="0 0 16 16">
+<path d="M8 2a.75.75 0 01.75.75v3.5h3.5a.75.75 0 010 1.5h-3.5v3.5a.75.75 0 01-1.5 0v-3.5h-3.5a.75.75 0 010-1.5h3.5v-3.5A.75.75 0 018 2z"/>
+</svg>
+enhancement
+</span>
+<span style="color: #6f42c1; font-size: 12px; background: rgba(111, 66, 193, 0.1); padding: 2px 6px; border-radius: 4px;">
+应用上架
+</span>
+<span style="color: #0969da; font-size: 12px; background: rgba(9, 105, 218, 0.1); padding: 2px 6px; border-radius: 4px;">
+服务器部署
+</span>
+</div>
+<div style="margin-top: 12px;">
+<a href="https://github.com/ifLabVibe/NowInOpenHarmony/issues/4"
+style="
+color: #ffffff;
+text-decoration: none;
+font-size: 12px;
+border: 1px solid #404040;
+padding: 6px 12px;
+border-radius: 6px;
+background: rgba(255, 255, 255, 0.05);
+transition: all 0.2s ease;
+display: inline-block;
+"
+onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'"
+onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
+查看Issue
+</a>
+</div>
+</div>
+
+这是在第一篇上线笔记中开启的issue，现在该合并并关闭了。
+
+![34](NowInOpenHarmonyPutaway2/34.png)
+
+![35](NowInOpenHarmonyPutaway2/35.png)
+
+ok，这下舒服了
+
+## 客户端更换基地址
+
+哎，终于是到了这一步了，太不容易了。
+
+相当简单，但依旧规范化，先去创建issue。
