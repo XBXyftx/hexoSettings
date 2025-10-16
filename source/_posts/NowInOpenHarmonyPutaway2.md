@@ -3807,6 +3807,115 @@ ok，这下舒服了
 
 ## 客户端更换基地址
 
+### issue创建
+
 哎，终于是到了这一步了，太不容易了。
 
 相当简单，但依旧规范化，先去创建issue。
+
+<div style="
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  border: 1px solid #404040;
+  border-left: 4px solid #28a745;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  max-width: 500px;
+">
+<div style="display: flex; align-items: center; margin-bottom: 12px;">
+<svg style="width: 20px; height: 20px; margin-right: 8px; fill: #28a745;" viewBox="0 0 16 16">
+<path d="M8 9.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+<path fill-rule="evenodd" d="M8 0a8 8 0 100 16A8 8 0 008 0zM1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0z"/>
+</svg>
+<span style="color: #28a745; font-size: 12px; font-weight: 600; margin-right: 8px;">OPEN</span>
+<div style="margin: 0; color: #ffffff; font-size: 16px; font-weight: 600;">
+<a href="https://github.com/ifLabVibe/NowInOpenHarmony/issues/7" style="color: #ffffff; text-decoration: none;">
+客户端基地址更换
+</a>
+</div>
+</div>
+<div style="display: flex; align-items: center; margin-bottom: 12px;">
+<span style="color: #d4d4d4; font-size: 12px; margin-right: 16px;">
+#7
+</span>
+<span style="color: #d4d4d4; font-size: 12px; margin-right: 16px;">
+ifLabVibe/NowInOpenHarmony
+</span>
+</div>
+<p style="color: #d4d4d4; margin: 0 0 16px 0; font-size: 14px; line-height: 1.5;">
+此前客户端一致使用的是本地局域网IP，为了方便测试和临时更换服务主机。现在后端成功上线部署，该更换为服务器地址了。
+</p>
+<div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
+<span style="display: flex; align-items: center; color: #d4d4d4; font-size: 12px;">
+<svg style="width: 12px; height: 12px; margin-right: 4px; fill: #d4d4d4;" viewBox="0 0 16 16">
+<path d="M8 2a.75.75 0 01.75.75v3.5h3.5a.75.75 0 010 1.5h-3.5v3.5a.75.75 0 01-1.5 0v-3.5h-3.5a.75.75 0 010-1.5h3.5v-3.5A.75.75 0 018 2z"/>
+</svg>
+enhancement
+</span>
+<span style="color: #0366d6; font-size: 12px; background: rgba(3, 102, 214, 0.1); padding: 2px 6px; border-radius: 4px;">
+客户端配置
+</span>
+<span style="color: #ea4c89; font-size: 12px; background: rgba(234, 76, 137, 0.1); padding: 2px 6px; border-radius: 4px;">
+地址更换
+</span>
+</div>
+<div style="margin-top: 12px;">
+<a href="https://github.com/ifLabVibe/NowInOpenHarmony/issues/7"
+style="
+color: #ffffff;
+text-decoration: none;
+font-size: 12px;
+border: 1px solid #404040;
+padding: 6px 12px;
+border-radius: 6px;
+background: rgba(255, 255, 255, 0.05);
+transition: all 0.2s ease;
+display: inline-block;
+"
+onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'"
+onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
+查看Issue
+</a>
+</div>
+</div>
+
+### 基地址更换
+
+这一步真的简单到极致全要归功去此前我的规范化开发。我将全部常量都统一写到了一个文件中，同时封装了指定基地址的axios网络请求工具，这样我修改一个常量就可以直接实现全局的修改。
+
+![36](NowInOpenHarmonyPutaway2/36.png)
+
+改这一行直接秒掉。让我们测试看一看。
+
+![37](NowInOpenHarmonyPutaway2/37.png)
+
+nb直接秒掉！
+
+然后再让我降一下API为API17，来在平板上测试一下，主要是因为我的手机已经升级到鸿蒙6了，但是平板因为太新了没办法升级，所以我只好先暂时降级安装了。
+
+但是我突然发现了新的问题，这好像是虚假繁荣，我没有真正成功的去获取数据，这好像是之前我遗留的数据。我卸载重新安装一下试试。
+
+![38](NowInOpenHarmonyPutaway2/38.jpg)
+
+![39](NowInOpenHarmonyPutaway2/39.jpg)
+
+在重新安装之后我发掘了不对。手机上是轮播图数据异常，而在平板上是完全没有数据了。卧槽我直接炸缸了，我看了日志，发现全是超时，我修改了一下我axios请求工具的超时时长从三秒改到了10秒，发现依旧是超时没有什么区别。我强制自己冷静下来去思考问题可能发生的点，首先我客户端的全流程是在本地都跑通了的，同时在前面的日志截图中也可以看到在第一次测试时轮播图接口是跑通了的，我再去查看了一下我服务器的CPU占用率，发现是正常的，维持在13%的低占用率，理论上响应速度应该是很快的，随后我复制了我常量文件中的IP地址，再拼接上接口的资源路径，在浏览器中进行测试，发现也是正常的。
+
+这时我脑海中闪过一个念想就是从手机和平板的问题表现差异去展开分析。
+
+手机上在重装之前是轮播图通过日志来看是正常的，而新闻看似是正常的实则应该是之前本地测试时的数据，从新安装之后是轮播图明确的超时了，而新闻接口则是正常的。对于平板，我是直接进行了重装操作，在重装之后轮播图和新闻接口都超时了。我仔细观察了一下手机和平板的网络设置差异，当时我手机使用的是流量，平板使用的是校园网，而电脑上用浏览器测试的环境则是连接的校园网但是梯子到了美国的IP。分析一下成功的三个接口：手机上的新闻、电脑上的新闻和电脑上的轮播图，他们的共同点都是并非校园网的代理，我猜测可能是校园网的安全设置阻断了直接使用http对IP进行访问？当然这只是我的猜测，这并非是是确定的原因。
+
+就在我还在思考更加具体的排查方案时，我重新刷新了一次，结果发现两个设备都成功获取数据了，而且网络设置没有进行任何更改（？）
+
+![40](NowInOpenHarmonyPutaway2/40.jpg)
+
+![41](NowInOpenHarmonyPutaway2/41.jpg)
+
+通过多次下拉测试发现好多次报错弹窗，则说明我的后端数据获取依旧不稳定，但是在浏览器访问却是十分稳定的能够获取数据，我不太理解是为什么说实话，感觉这个稳定程度想要上线并不太可能，但至少它上线了，破破烂烂的上线了也是上线了，前后端完整的一个鸿蒙项目。
+
+### 手动PR尝试
+
+之前一致是用CC或者是codex帮我去进行分支的创建以及代码的推送，这次我向亲手尝试一下创建新分支并且提交pr。这次就先去使用DevEcoStudio自带的git工具去进行操作吧，下一次再去进行GitHub的尝试。
