@@ -3617,3 +3617,40 @@ docker stats --no-stream --format 'table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\
 ```bash
 curl -s "http://127.0.0.1:32776/api/banner/mobile"
 ```
+
+```bash
+
+        Welcome to Huawei Cloud Service
+
+Last login: Sun Oct 12 17:36:14 +0800 2025 from 127.0.0.1
+The current terminal create by BT-Panel.
+root@hcss-ecs-2ad2:~# docker network create ohnet || true
+Error response from daemon: network with name ohnet already exists
+root@hcss-ecs-2ad2:~# docker rm -f selenium 2>/dev/null || true && docker run -d --name selenium --network ohnet -p 4444:4444 --shm-size=2g --restart unless-stopped selenium/standalone-chromium:latest
+selenium
+dd4e8ae815cfdfae39b8874426f3a6f09ec02acb826971801ca35d863cb27842
+root@hcss-ecs-2ad2:~# docker rm -f NIOHServer 2>/dev/null || true && docker run -d --name NIOHServer --network ohnet -p 32776:8001 --shm-size=1g -e TZ=Asia/Shanghai -e ENABLE_SCHEDULER=true -e BANNER_USE_ENHANCED=true -e SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub -e SELENIUM_USE_USER_DATA_DIR=false openharmony-server:latest
+NIOHServer
+5e952f4766e077d3d78e07908bfb2dd23a30790e9be81a3419323cac90703cd6
+root@hcss-ecs-2ad2:~# 
+```
+
+上面这就是这次启动服务的控制台全流程，接下来我们去看一下服务的启动情况。
+
+![30](NowInOpenHarmonyPutaway2/30.png)
+
+通过接口的访问数据可以看到启动时成功的。接下来就是观察docker的CPU占用率了。
+
+![31](NowInOpenHarmonyPutaway2/31.png)
+
+![32](NowInOpenHarmonyPutaway2/32.png)
+
+我优先查看了CPU的占用率，发现没有问题，然后又通过日志确认当前就是爬取状态，爬取状态也没有，那为什么会出现飙高吃满的情况呢？这不合理啊。
+
+现在只能说是后悔当时没有第一时间去查看一下容器的占用率是否正常了，应该第一时间留存相关的监控数据以便于分析排查，而不是直接关闭了。
+
+![33](NowInOpenHarmonyPutaway2/33.png)
+
+总占用率也是正常的，这还是在同时支持宝塔面板的服务状态下。
+
+持续观察了一会儿发现占用率在持续走低，这更解释不了之前出现的情况了。我猜测可能是我的爬虫逻辑在运行了一段时间之后出现了类似死锁或者是线程池的无限制扩张问题导致了我们的服务CPU占用率飙升。那这就需要等待一天后再来看一看我们的服务器数据了，现在我先让GPT帮我检查一下代码中是否存在这种问题的隐患。并将更新时间拉长到6小时一更新，来减少我的流量开销。
