@@ -3919,3 +3919,51 @@ nb直接秒掉！
 ### 手动PR尝试
 
 之前一致是用CC或者是codex帮我去进行分支的创建以及代码的推送，这次我向亲手尝试一下创建新分支并且提交pr。这次就先去使用DevEcoStudio自带的git工具去进行操作吧，下一次再去进行命令行的尝试。
+
+#### 分支创建
+
+![42](NowInOpenHarmonyPutaway2/42.png)
+
+首先通过分支创建功能去进行一个新的分支创建，命名为“fix/client_base_address_change”。
+
+![43](NowInOpenHarmonyPutaway2/43.png)
+
+创建成功之后就会像是上图一样，在本地的分支文件夹中多出了我们新增的一个分支。由于这个属于是小的修正，所以我就直接是算在fix文件夹下了。
+
+#### commit
+
+随后我们就需要在这个分支下去进行commit，要注意一定是当前的文件夹而不是主分支文件夹。
+
+![44](NowInOpenHarmonyPutaway2/44.png)
+
+在commit的时候先看一下最上方显示的是提交到哪个分支，随后再去设置中勾选一下签名随后就可以进行commit了。
+
+在提交之后我才想起来我的作者签名好像邮箱用错了，不是我平常用的默认邮箱，所以我就想要撤销这一次提交，撤销之后进行修正并重新进行提交。
+
+![45](NowInOpenHarmonyPutaway2/45.png)
+
+右键选择撤销提交，随后再使用commit进行提交。
+
+在成功commit之后我们就可以看到当前的分支中的commit记录已经领先于主分支了。
+
+![46](NowInOpenHarmonyPutaway2/46.png)
+
+#### 分支推送与pr创建
+
+随后我们就可以将当前分支进行推送了。
+
+![47](NowInOpenHarmonyPutaway2/47.png)
+
+这里可以看到IDE会自动识别到当前本地分支在远程仓库并不存在，这样我们就可以将当前的分支进行创建并推送了。
+
+![48](NowInOpenHarmonyPutaway2/48.png)
+
+![49](NowInOpenHarmonyPutaway2/49.png)
+
+来到GitHub之后就能看到我们刚刚推送的分支，并且GitHub也是自动显示了合并提示，我们接下来点击“Compare & pull request”按钮，去进行pr的创建就可以了。
+
+![50](NowInOpenHarmonyPutaway2/50.png)
+
+自动审查代码冲突之后，我们就可以进行合并了。
+
+![51](NowInOpenHarmonyPutaway2/51.png)
