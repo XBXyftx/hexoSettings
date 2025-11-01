@@ -1,0 +1,5 @@
+---
+title: ThoughtsOnVibeCoding
+date: 2025-11-01 16:53:54
+tags:
+---
