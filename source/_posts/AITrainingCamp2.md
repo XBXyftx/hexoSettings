@@ -291,3 +291,5 @@ onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
 安装docker进行一下尝试。
 
 额依旧是无法连接。
+
+因为种种原因这个项目先暂时搁置了
