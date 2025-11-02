@@ -8,9 +8,9 @@ tags:
   - Vibe Coding
   - ClaudeCode
   - CodeX
-cover:  /imgs/ArticleTopImgs/CodeInspirationTopImg.png
-description: 对于Vibe Coding以及更泛化的（持续更新中）
-typewriter: 从Hello World到Hello Harmony，我的心路历程是复杂的，对代码的态度和对编程的看法也是反复变化的。如何从单向，再到双向再到多向编程，或许这将会是我最大的观念转变吧。这篇文章也是为了纪念成为程序员的心路历程而写，于是就有了技术向独白这样一个神奇的分类标签。
+cover:  /imgs/ArticleTopImgs/ThoughtsOnVibeCodingTopImg.png
+description: 对于Vibe Coding以及更泛化的AI使用的一些想法（持续更新中）
+typewriter: 🤖 从被 AI 填满的一天切入，我在 Vibe Coding 的高效与创作者自豪感的流失之间摇摆，既惊叹智能工具重塑影像与代码的能力，也警惕它稀释真实表达；回望靠手敲语法打底的旧日历练，我提醒自己以思考守住表达的内核，让 AI 成为延展记忆与创意的帮手，而非偷走成长的捷径。
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
