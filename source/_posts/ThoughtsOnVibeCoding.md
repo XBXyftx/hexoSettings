@@ -28,7 +28,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 <div class="quote-card" style="margin: 1.5rem 0; padding: 1.25rem 1.5rem; border-radius: 16px; background: linear-gradient(135deg, #1f1c2c 0%, #928dab 100%); color: #fff; box-shadow: 0 12px 24px rgba(31, 28, 44, 0.25); font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;">
   <div class="quote-card__text" style="font-size: 1.1rem; line-height: 1.8; font-weight: 500;">我觉得AI时代最大最大的一个区别就是你丧失了作者性的自豪感和珍贵性，因为你知道随时会有另外一张图可以更好地替代它，因为提示词就摆在你手上。其实你握住了下一次再产生一个机会的可能性。</div>
-  <div class="quote-card__author" style="margin-top: 1rem; font-size: 0.95rem; font-weight: 600; text-align: right;">— 影视剧风Tim</div>
+  <div class="quote-card__author" style="margin-top: 1rem; font-size: 0.95rem; font-weight: 600; text-align: right;">— 影视飓风Tim</div>
 </div>
 
 从人类的技术开始能够记录影像，能够修改影像，再到如今，拍完的那一刻AI就会在你的手机相册去接管你的视觉，你看到的影响都是在AI一次又一次的修改后呈现的，照片已经不再是纯粹的光学影像了，而是一种用于欺骗你对于世界真实感受于认知的工具了。
@@ -41,7 +41,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 <div class="quote-card" style="margin: 1.5rem 0; padding: 1.25rem 1.5rem; border-radius: 16px; background: linear-gradient(135deg, #4b23ffff 0%, #9900f1ff 100%); color: #fff; box-shadow: 0 12px 24px rgba(31, 28, 44, 0.25); font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;">
   <div class="quote-card__text" style="font-size: 1.1rem; line-height: 1.8; font-weight: 500;">我觉得AI在以后不一定是谁取代谁，更像是一种平行的选择，一种负责见证世界，另一种负责帮你创造错过的瞬间。</div>
-  <div class="quote-card__author" style="margin-top: 1rem; font-size: 0.95rem; font-weight: 600; text-align: right;">— 影视剧风Tim</div>
+  <div class="quote-card__author" style="margin-top: 1rem; font-size: 0.95rem; font-weight: 600; text-align: right;">— 影视飓风Tim</div>
 </div>
 
 对啊，摄影中很重要的一点就是在于拍到有时候远比拍好要重要，很多时候我们不可能说是随时随地，双击一下太阳穴，眼睛就会自动为你截图并导出眼前的画面一样，或许未来脑机接口真的普及之后，这会成为现时，但至少现在以及未来的十年内是不太可能的。人的一生很短，人生的每个阶段就真的是宛如秋叶飘落一般，转瞬即逝，我们真正能开怀大笑的瞬间能有多少？能及时掏出相机记录下其中一个碎片的机会又会有多少？我们脑海中能够记住那一刻的画面，要么你会画画，把它画下来，要么就只能是永远的封存在记忆中，随着时间的流逝，逐渐淡去。但AI确实是给了我们这个机会，去用人类当下能做到的输出方式“文字”来去还原出那一刻的画面。
@@ -71,3 +71,11 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 那时的我一直没有打消过对于“小冰”是人的这个猜想，不过时间一长也就失去了兴致，这件事也被我随之抛在脑后。
 
 人工智能，依旧只是人们生活中的一点小插曲。
+
+### 高中时期的作文素材
+
+我们这一级是20年中考升上的高中，随着新冠一起到来的还有ChatGPT的问世。
+
+![3](ThoughtsOnVibeCoding/3.png)
+
+起初我没认为这个东西有什么了不起的，因为一开始我只知道它是个很厉害的能和人聊天的大模型，但又因为它是国外的模型，当时我并不会科学上网，所以整个高中时期都没有亲身体验它的机会。
