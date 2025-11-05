@@ -55,7 +55,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 Logger日志工具这属于是我们更古不变的东西了，每个开发者都应该是有这样一套日志工具的，标志着自己的识别码、负责的业务功能分区识别码等。这里我们直接复制过去就行。
 
-```json
+```ts
 import { hilog } from '@kit.PerformanceAnalysisKit'
 import { LOGGER_TAG } from '../../modules/enums'
 
@@ -94,3 +94,5 @@ class Logger{
 
 export const logger:Logger = new Logger(0x1234,LOGGER_TAG.XBX_LOGGER_TAG)
 ```
+
+从这里的话其实也可以看出我们相比于上一次开发鸿小易的时候，也进行了一些改进，我将“XBXyftx”的这个log tag给封装到了一个枚举类中，对于这个项目我们虽然大概率只是我一个人的的工作，但还有可能会有我团队的其他人的加入，再加入新人在之后我们就可以将他们的tag去添加到LOGGER_TAG这个枚举类型中去进行统一的管理。
