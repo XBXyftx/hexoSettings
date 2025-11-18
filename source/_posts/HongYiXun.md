@@ -1084,3 +1084,5 @@ export default class EntryAbility extends UIAbility {
   }
 }
 ```
+
+通过AppInit的源代码我们可以看到，我们所有的异步操作其实是全部被包裹在了`initPhase1`中，`initPhase1`是在`Ability`的`onCreate`中调用的，所以我们所有的异步操作都是在`Ability`的`onCreate`中完成的。但是问题在于后面的`onWindowStageCreate`窗口创建阶段与我们的`onCreate`函数是两个独立的代码块，彼此之间的局部变量并不互通，我们在`onCreate`的函数中创建的`Promise实例对象`无法在`onWindowStageCreate`中访问，所以为了保证阶段二的执行顺序，我们要将`appInit.initPhase1_BaseModules`对象的可见区域扩大，扩大至当前`EntryAbility`类的局部变量中。
