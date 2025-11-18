@@ -765,7 +765,7 @@ export const appInit = new AppInit()
 - 窗口相关模块初始化：包括窗口管理器、窗口装饰器等。这些模块依赖于基础模块，必须在窗口创建时初始化。
 - UI 依赖模块初始化：包括界面元素、事件处理等。这些模块依赖于窗口相关模块，必须在界面加载完成后初始化。
 
-#### 异步任务管理
+#### 异步任务执行顺序管理
 
 在我单独花了一段时间品读了一下Claude的代码之后才发现一段好的代码是真的可以赏心悦目，可以被称之为艺术品了。
 
@@ -1086,3 +1086,235 @@ export default class EntryAbility extends UIAbility {
 ```
 
 通过AppInit的源代码我们可以看到，我们所有的异步操作其实是全部被包裹在了`initPhase1`中，`initPhase1`是在`Ability`的`onCreate`中调用的，所以我们所有的异步操作都是在`Ability`的`onCreate`中完成的。但是问题在于后面的`onWindowStageCreate`窗口创建阶段与我们的`onCreate`函数是两个独立的代码块，彼此之间的局部变量并不互通，我们在`onCreate`的函数中创建的`Promise实例对象`无法在`onWindowStageCreate`中访问，所以为了保证阶段二的执行顺序，我们要将`appInit.initPhase1_BaseModules`对象的可见区域扩大，扩大至当前`EntryAbility`类的局部变量中。
+
+```ts
+  /**
+   * 阶段 1 初始化 Promise
+   * 
+   * 用于在窗口创建时等待阶段 1 完成，确保初始化顺序正确
+   * 
+   * @private
+   */
+  private phase1Promise: Promise<boolean> | null = null
+```
+
+将作用域提升之后，我们在`onCreate`函数中去进行promise对象的启动，将启动后的对象的引用赋值给`this.phase1Promise`，然后在`onWindowStageCreate`函数中去等待这个promise对象的完成。在完成后去调用`appInit.initPhase2_UI`函数进行阶段二的初始化。二阶段之所以是没有被单独提升作用域，这是因为二阶段和三阶段都是同步的。三阶段会很自然的排在二阶段的后面，无需额外进行更多操作。
+
+在三个阶段的初始化过程中，每一步的初始化成功之后都会在initStatus这个对象中去记录其初始化状态，如果成功就会在对应的键值中去记录为true，失败就会记录为false。随后在三个初始化阶段的最后会统一进行结果的输出。
+
+而在这个过程中，可能会出现同步进程连续执行，持续到应用准备阶段的最后也没有流出空闲去处理异步函数，导致最后输出的结果为失败是因为还没有执行（在早期版本时，我们的的确确遇到了这个问题。）
+
+```bash
+11-18 13:28:07.652   8088-8088     A00000/com.xbxy...EntryAbility  apppool               I     Ability onCreate
+11-18 13:28:07.652   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     EntryAbility: 应用启动，开始初始化流程
+11-18 13:28:07.652   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     AppInit: ========== 开始阶段 1：基础模块初始化 ==========
+11-18 13:28:07.652   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     AppInit: 步骤 1/4：初始化数据库模块...
+11-18 13:28:07.653   8088-8088     A03D00/com.xbx...ngYiXun/JSAPP  apppool               I     KVDatabase: Succeeded in creating KVManager.
+11-18 13:28:07.653   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     KVDatabase: 数据库管理对象创建成功。
+11-18 13:28:07.653   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     AppInit: ✓ KV 数据库初始化成功
+11-18 13:28:07.653   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     AppInit: ✓ 偏好设置数据库初始化成功
+11-18 13:28:07.653   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     AppInit: 步骤 2/4：加载用户配置...
+11-18 13:28:07.655   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     PreferenceDB: Has ColorMode data: true
+11-18 13:28:07.655   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               W     PreferenceDB: Get data ColorMode: 0
+11-18 13:28:07.655   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     UserConfigManager: 检测到COLOR_MODE = 0
+11-18 13:28:07.655   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               W     PreferenceDB: Get data ColorMode: 0
+11-18 13:28:07.655   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     PreferenceDB: Has FontSize data: true
+11-18 13:28:07.655   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               W     PreferenceDB: Get data FontSize: 18
+11-18 13:28:07.655   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     UserConfigManager: 检测到FONT_SIZE = 18
+11-18 13:28:07.655   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               W     PreferenceDB: Get data FontSize: 18
+11-18 13:28:07.655   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     PreferenceDB: Has FontSize data: true
+11-18 13:28:07.655   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     PreferenceDB: Has ColorMode data: true
+11-18 13:28:07.655   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               W     PreferenceDB: Get data ColorMode: 0
+11-18 13:28:07.655   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               W     PreferenceDB: Get data FontSize: 18
+11-18 13:28:07.655   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               W     UserConfigManager: 用户首选项持久化数据读取成功,colorMode=0,fontSize=18
+11-18 13:28:07.655   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     AppInit: ✓ 用户配置加载成功
+11-18 13:28:07.655   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     AppInit: 步骤 3/4：初始化业务管理器...
+11-18 13:28:07.655   8088-8088     A03D00/com.xbx...ngYiXun/JSAPP  apppool               I     KVDatabase: Succeeded in creating KVManager.
+11-18 13:28:07.655   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     KVDatabase: 数据库管理对象创建成功。
+11-18 13:28:07.665   8088-8088     A00000/com.xbxy...EntryAbility  apppool               I     Ability onWindowStageCreate
+11-18 13:28:07.665   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     EntryAbility: 窗口创建，开始窗口相关初始化
+11-18 13:28:07.666   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     AppInit: ========== 开始阶段 2：窗口相关初始化 ==========
+11-18 13:28:07.666   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     AppInit: 初始化颜色模式管理器...
+11-18 13:28:07.666   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     ColorModManager: applicationContext初始化成功
+11-18 13:28:07.666   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     ColorModManager: initColoModSetting 0: AppStorageV2colorModel = 0
+11-18 13:28:07.666   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     AppInit: ✓ 颜色模式管理器初始化成功
+11-18 13:28:07.666   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     AppInit: ========== 阶段 2 完成：窗口相关初始化成功 ==========
+11-18 13:28:07.666   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     EntryAbility: 阶段 2 初始化成功
+11-18 13:28:07.669   8088-8088     A00000/com.xbxy...EntryAbility  apppool               I     Ability onForeground
+11-18 13:28:07.669   8088-8088     A01234/com.xbx...Xun/XBXLogger  apppool               I     EntryAbility: 应用进入前台
+11-18 13:28:07.707   8088-8088     A00000/com.xbxy...EntryAbility  com.xbxyf...ongYiXun  I     Succeeded in loading the content.
+11-18 13:28:07.707   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     EntryAbility: 启动页加载成功
+11-18 13:28:07.707   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     AppInit: ========== 开始阶段 3：UI 依赖模块初始化 ==========
+11-18 13:28:07.707   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     AppInit: 初始化 Markdown 配置...
+11-18 13:28:07.707   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     AppInit: ✓ Markdown 配置成功，字体大小: 18
+11-18 13:28:07.707   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     AppInit: ✓ Markdown 配置初始化成功
+11-18 13:28:07.707   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     AppInit: ========== 阶段 3 完成：UI 依赖模块初始化成功 ==========
+11-18 13:28:07.707   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     AppInit: ========== 应用初始化全部完成 ==========
+11-18 13:28:07.707   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     AppInit: ========== 初始化状态报告 ==========
+11-18 13:28:07.707   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     AppInit: [数据库模块] ✓ 初始化成功
+11-18 13:28:07.707   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     AppInit: [用户配置] ✓ 初始化成功
+11-18 13:28:07.707   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  W     AppInit: [业务管理器] ✗ 初始化失败 - 影响：新闻数据功能不可用，请检查网络或数据库
+11-18 13:28:07.707   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     AppInit: [AppStorageV2] ✓ 初始化成功
+11-18 13:28:07.707   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     AppInit: [Markdown配置] ✓ 初始化成功
+11-18 13:28:07.707   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     AppInit: ======================================
+11-18 13:28:07.707   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     EntryAbility: 阶段 3 初始化成功
+11-18 13:28:07.707   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  W     EntryAbility: 应用初始化不完整，部分功能可能受限
+11-18 13:28:07.707   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  W     EntryAbility: 初始化状态: {"databases":true,"userConfig":true,"managers":false,"appStorageV2":true,"markdown":true}
+11-18 13:28:07.708   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     KVDatabase: 成功获取storeId:HongYiXunKVDB数据库实例对象
+11-18 13:28:07.708   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     NewsManager: init: 获取appKVDb成功
+11-18 13:28:07.708   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     AppInit: ✓ 新闻管理器初始化成功
+11-18 13:28:07.708   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     AppInit: 步骤 4/4：预加载应用数据...
+11-18 13:28:07.708   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  D     AxiosHttp: 进入AxiosHttp.request URL = /api/health
+11-18 13:28:07.721   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  D     AxiosHttp: 进入AxiosHttp.request URL = /api/banner/status
+11-18 13:28:07.722   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     AppInit: ========== 阶段 1 完成：基础模块初始化成功 ==========
+11-18 13:28:07.722   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     EntryAbility: 阶段 1 初始化成功
+11-18 13:28:07.723   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  I     EntryAbility: 窗口宽度已存储到 AppStorageV2: 1320px
+11-18 13:28:07.725   8088-8088     A01234/com.xbx...Xun/XBXLogger  com.xbxyf...ongYiXun  D     StartPage: winWidth: 440
+```
+
+```bash
+AppInit: [业务管理器] ✗ 初始化失败 - 影响：新闻数据功能不可用，请检查网络或数据库
+```
+
+从这一条和
+
+```bash
+AppInit: ✓ 新闻管理器初始化成功
+AppInit: 步骤 4/4：预加载应用数据...
+```
+
+这一条的输出顺序可以看出，异步函数的执行顺序问题是确实存在的，是需要解决的问题。
+
+所以为了程序的稳定性，我们需要手动留出一段强制空闲时间去给异步操作进行。
+
+```ts
+      // 加载启动页面
+      windowStage.loadContent('pages/StartPage', (err) => {
+        if (err.code) {
+          hilog.error(DOMAIN, TAG, 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
+          logger.error(`${LOG_TAG.ENTRY_ABILITY}页面加载失败: ${JSON.stringify(err)}`)
+          return;
+        }
+        
+        hilog.info(DOMAIN, TAG, 'Succeeded in loading the content.');
+        logger.info(`${LOG_TAG.ENTRY_ABILITY}启动页加载成功`)
+        
+        // 阶段 3：UI 依赖模块初始化
+        logger.info(`${LOG_TAG.ENTRY_ABILITY}开始阶段 3 初始化...`)
+        const phase3Success = appInit.initPhase3_UIDependent()
+        if (phase3Success) {
+          logger.info(`${LOG_TAG.ENTRY_ABILITY}✓ 阶段 3 初始化成功`)
+        } else {
+          logger.warn(`${LOG_TAG.ENTRY_ABILITY}⚠ 阶段 3 初始化失败，部分功能可能受影响`)
+        }
+        
+        // 等待所有异步操作完成后，打印最终状态报告
+        setTimeout(() => {
+          this.printFinalInitStatus()
+        }, 100) // 给异步操作留出完成时间
+      });
+```
+
+js和ts的异步逻辑是任务队列，我们通过定时器，将打印函数的调用塞在全部异步操作塞在打印之前，强制将打印函数的执行塞到任务队列的最后。这里设置为100ms是因为在正常情况下这些操作的执行总时长应该是远远低于100ms，若是高于100ms则说明他的执行过程中大概率发生了异常。
+
+随后，对于`printFinalInitStatus`，这个函数会负责统一的输出三个阶段的初始化状态报告。
+
+```ts
+  /**
+   * 打印最终初始化状态报告
+   * 
+   * 在所有初始化阶段完成后调用，输出完整的状态报告
+   * 
+   * @private
+   */
+  private printFinalInitStatus(): void {
+    logger.info(`${LOG_TAG.ENTRY_ABILITY}========================================`)
+    logger.info(`${LOG_TAG.ENTRY_ABILITY}      应用初始化完成状态报告`)
+    logger.info(`${LOG_TAG.ENTRY_ABILITY}========================================`)
+    
+    // 打印详细状态
+    appInit.printInitStatus()
+    
+    // 检查完整初始化状态
+    if (appInit.isFullyInitialized()) {
+      logger.info(`${LOG_TAG.ENTRY_ABILITY}`)
+      logger.info(`${LOG_TAG.ENTRY_ABILITY}🎉 应用完全初始化成功，所有功能可用`)
+      logger.info(`${LOG_TAG.ENTRY_ABILITY}`)
+    } else {
+      logger.warn(`${LOG_TAG.ENTRY_ABILITY}`)
+      logger.warn(`${LOG_TAG.ENTRY_ABILITY}⚠️  应用初始化不完整，部分功能可能受限`)
+      const status = appInit.getInitStatus()
+      logger.warn(`${LOG_TAG.ENTRY_ABILITY}详细状态: ${JSON.stringify(status)}`)
+      logger.warn(`${LOG_TAG.ENTRY_ABILITY}`)
+    }
+    
+    logger.info(`${LOG_TAG.ENTRY_ABILITY}========================================`)
+  }
+```
+
+`printInitStatus()`打印的是每个小模块的细则，而`isFullyInitialized()`则是检查是否所有模块都初始化成功，打印的是整体的初始化情况，两者并不一致。
+
+```bash
+Ability onCreate
+EntryAbility: 应用启动，开始初始化流程
+AppInit: ========== 开始阶段 1：基础模块初始化 ==========
+AppInit: 步骤 1/4：初始化数据库模块...
+KVDatabase: Succeeded in creating KVManager.
+KVDatabase: 数据库管理对象创建成功。
+AppInit: ✓ KV 数据库初始化成功
+AppInit: ✓ 偏好设置数据库初始化成功
+AppInit: 步骤 2/4：加载用户配置...
+PreferenceDB: Has ColorMode data: false
+PreferenceDB: Has FontSize data: false
+PreferenceDB: Has FontSize data: false
+UserConfigManager: 无用户配置持久化数据，执行默认配置设置
+PreferenceDB: Has ColorMode data: false
+UserConfigManager: preferenceDB.hasData(PreferenceEnum.COLOR_MODE)=false
+PreferenceDB: push data: key=ColorMode,value=2
+PreferenceDB: Has FontSize data: false
+UserConfigManager: preferenceDB.hasData(PreferenceEnum.FONT_SIZE)=false
+PreferenceDB: push data: key=FontSize,value=16
+PreferenceDB: Get data ColorMode: 2
+PreferenceDB: Get data FontSize: 16
+UserConfigManager: 用户首选项持久化数据读取成功,colorMode=2,fontSize=16
+AppInit: ✓ 用户配置加载成功
+AppInit: 步骤 3/4：初始化业务管理器...
+KVDatabase: Succeeded in creating KVManager.
+KVDatabase: 数据库管理对象创建成功。
+Ability onWindowStageCreate
+EntryAbility: 窗口创建，等待阶段 1 完成...
+Ability onForeground
+EntryAbility: 应用进入前台
+PreferenceDB: The key FontSize changed
+PreferenceDB: The key ColorMode changed
+KVDatabase: 成功获取storeId:HongYiXunKVDB数据库实例对象
+NewsManager: init: 获取appKVDb成功
+AppInit: ✓ 新闻管理器初始化成功
+AppInit: 步骤 4/4：预加载应用数据...
+AxiosHttp: 进入AxiosHttp.request URL = /api/health
+AxiosHttp: 进入AxiosHttp.request URL = /api/banner/status
+AppInit: ========== 阶段 1 完成：基础模块初始化成功 ==========
+EntryAbility: ✓ 阶段 1 初始化成功
+EntryAbility: 开始阶段 2 初始化...
+AppInit: ========== 开始阶段 2：窗口相关初始化 ==========
+AppInit: 初始化颜色模式管理器...
+ColorModManager: applicationContext初始化成功
+ColorModManager: initColoModSetting 2: AppStorageV2colorModel = 2
+AppInit: ✓ 颜色模式管理器初始化成功
+AppInit: ========== 阶段 2 完成：窗口相关初始化成功 ==========
+EntryAbility: ✓ 阶段 2 初始化成功
+Succeeded in loading the content.
+EntryAbility: 启动页加载成功
+EntryAbility: 开始阶段 3 初始化...
+AppInit: ========== 开始阶段 3：UI 依赖模块初始化 ==========
+AppInit: 初始化 Markdown 配置...
+AppInit: ✓ Markdown 配置成功，字体大小: 16
+AppInit: ✓ Markdown 配置初始化成功
+AppInit: ========== 阶段 3 完成：UI 依赖模块初始化成功 ==========
+EntryAbility: ✓ 阶段 3 初始化成功
+EntryAbility: 窗口宽度已存储到 AppStorageV2: 1320px
+```
+
+在经过如此处理之后，输出结果的稳定性得到了大幅提升，经过20次的启动测试均未再出现异步函数执行顺序导致的初始化状态错误。
+
+#### 异步任务管理的关键函数
