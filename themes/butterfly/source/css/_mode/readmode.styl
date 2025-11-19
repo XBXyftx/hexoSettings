@@ -1,54 +1,92 @@
 if hexo-config('readmode')
   .read-mode
-    --font-color: #4c4948
-    --readmode-light-color: #fff
-    --white: #4c4948
-    --light-grey: #4c4948
-    --gray: #d6dbdf
-    --hr-border: #d6dbdf
-    --hr-before-color: darken(#d6dbdf, 10)
-    --highlight-bg: #f7f7f7
-    --exit-btn-bg: #C0C0C0
-    --exit-btn-color: #fff
-    --exit-btn-hover: darken(#C0C0C0, 20)
+    --font-color: #2c3e50
+    --readmode-light-color: #faf8f3
+    --white: #2c3e50
+    --light-grey: #5a6c7d
+    --gray: #bdc3c7
+    --hr-border: #e0ddd5
+    --hr-before-color: #95a5a6
+    --highlight-bg: #f5f2ed
+    --exit-btn-bg: #3498db
+    --exit-btn-color: #ffffff
+    --exit-btn-hover: #2980b9
     --pseudo-hover: none
+    --link-color: #3498db
+    --link-hover-color: #2980b9
 
   [data-theme='dark']
     .read-mode
-      --font-color: rgba(255, 255, 255, .7)
-      --readmode-light-color: #0d0d0d
-      --white: rgba(255, 255, 255, .9)
-      --light-grey: rgba(255, 255, 255, .7)
-      --gray: rgba(255, 255, 255, .7)
-      --hr-border: rgba(255, 255, 255, .5)
-      --hr-before-color: rgba(255, 255, 255, .7)
-      --highlight-bg: #171717
-      --exit-btn-bg: #1f1f1f
-      --exit-btn-color: rgba(255, 255, 255, .9)
-      --exit-btn-hover: lighten(#1f1f1f, 20)
+      --font-color: rgba(230, 237, 243, 0.88)
+      --readmode-light-color: #1a1a1a
+      --white: rgba(255, 255, 255, .95)
+      --light-grey: rgba(230, 237, 243, 0.75)
+      --gray: rgba(255, 255, 255, .6)
+      --hr-border: rgba(255, 255, 255, .25)
+      --hr-before-color: rgba(255, 255, 255, .5)
+      --highlight-bg: #242424
+      --exit-btn-bg: #2980b9
+      --exit-btn-color: rgba(255, 255, 255, .95)
+      --exit-btn-hover: #3498db
+      --link-color: #5dade2
+      --link-hover-color: #85c1e9
 
   .read-mode
     background: var(--readmode-light-color)
-
+    transition: all 0.3s ease-in-out
+    
+    // 退出按钮优化
     .exit-readmode
       position: fixed
-      top: 30px
-      right: 30px
-      z-index: 100
-      width: 40px
-      height: 40px
+      top: 40px
+      right: 40px
+      z-index: 9999
+      width: 50px
+      height: 50px
       background: var(--exit-btn-bg)
       color: var(--exit-btn-color)
-      font-size: 16px
-      transition: background .3s
-      addBorderRadius(8)
+      font-size: 20px
+      border: none
+      cursor: pointer
+      transition: all .3s ease
+      addBorderRadius(50%)
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15)
+      display: flex
+      align-items: center
+      justify-content: center
+      animation: fadeInScale 0.3s ease-out
 
       +maxWidth768()
-        top: initial
-        bottom: 30px
+        top: auto
+        bottom: 40px
+        right: 20px
+        width: 45px
+        height: 45px
+        font-size: 18px
 
       &:hover
         background: var(--exit-btn-hover)
+        transform: scale(1.05)
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2)
+
+      &:active
+        transform: scale(0.95)
+    
+    @keyframes fadeInScale
+      from
+        opacity: 0
+        transform: scale(0.8)
+      to
+        opacity: 1
+        transform: scale(1)
+    
+    @keyframes fadeOutScale
+      from
+        opacity: 1
+        transform: scale(1)
+      to
+        opacity: 0
+        transform: scale(0.8)
 
     #aside-content
       display: none
@@ -62,13 +100,63 @@ if hexo-config('readmode')
       & > #post-info
         text-align: center
 
+    // 强制覆盖布局宽度
+    .layout
+      max-width: 100% !important
+      
+      & > div:first-child
+        width: 80% !important
+        max-width: 80% !important
+        
+        +maxWidth768()
+          width: 100% !important
+          max-width: 100% !important
+
+    // 文章内容区域优化
     #post
-      margin: 0 auto
+      margin: 0 auto !important
+      padding: 60px 5% 80px
       background: transparent
       box-shadow: none
+      max-width: 100% !important
+      width: 100% !important
+      
+      +maxWidth768()
+        padding: 40px 20px 60px
 
       &:hover
         box-shadow: none
+
+    // 文章内容排版优化
+    .post-content
+      font-size: 17px
+      line-height: 2
+      color: var(--font-color)
+      letter-spacing: 0.02em
+      word-spacing: 0.05em
+      
+      +maxWidth768()
+        font-size: 16px
+        line-height: 1.9
+      
+      // 段落间距
+      p
+        margin-bottom: 1.5em
+        text-align: justify
+        text-justify: inter-ideograph
+      
+      // 图片优化
+      img
+        max-width: 100%
+        height: auto
+        margin: 2em auto
+        display: block
+        border-radius: 8px
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1)
+        transition: transform 0.3s ease
+        
+        &:hover
+          transform: scale(1.02)
 
     & > canvas
       display: none !important
@@ -85,28 +173,46 @@ if hexo-config('readmode')
 
     .container
       a
-        color: #99a9bf
+        color: var(--link-color)
+        text-decoration: none
+        border-bottom: 1px solid transparent
+        transition: all 0.3s ease
+        
+        &:hover
+          color: var(--link-hover-color)
+          border-bottom-color: var(--link-hover-color)
 
+      // 代码块优化
       pre,
       .highlight:not(.js-file-line-container)
         background: var(--highlight-bg) !important
+        border-radius: 8px
+        padding: 1.2em
+        margin: 1.5em 0
+        overflow-x: auto
+        font-size: 0.9em
+        line-height: 1.6
+        border: 1px solid var(--hr-border)
 
         *
           color: var(--font-color) !important
 
       figure.highlight
-        border-radius: 0 !important
+        border-radius: 8px !important
         box-shadow: none !important
+        margin: 1.5em 0
 
         & > :not(.highlight-tools)
           display: block !important
 
         .line:before
-          color: var(--font-color) !important
+          color: var(--light-grey) !important
+          opacity: 0.6
 
         .hljs
           background: var(--highlight-bg) !important
 
+      // 标题优化
       h1,
       h2,
       h3,
@@ -114,29 +220,65 @@ if hexo-config('readmode')
       h5,
       h6
         padding: 0
+        margin-top: 2em
+        margin-bottom: 1em
+        line-height: 1.5
+        font-weight: 600
+        color: var(--white)
 
         &:before
           content: ''
 
         &:hover
           padding: 0
+      
+      h1
+        font-size: 2em
+        margin-top: 0.8em
+        padding-bottom: 0.5em
+        border-bottom: 2px solid var(--hr-border)
+      
+      h2
+        font-size: 1.65em
+        margin-top: 1.5em
+      
+      h3
+        font-size: 1.4em
+      
+      h4
+        font-size: 1.2em
+      
+      h5, h6
+        font-size: 1.1em
 
+      // 列表优化
       ul,
-      li,
       ol
-        &:hover:before
-          transform: none !important
-
-      ol,
-      li
-        &:before
-          background: transparent !important
-          color: var(--font-color) !important
-
-      ul
-        >li
+        margin: 1.5em 0
+        padding-left: 2em
+        line-height: 1.8
+        
+        li
+          margin: 0.8em 0
+          
+          &:hover:before
+            transform: none !important
+          
           &:before
-            border-color: var(--gray) !important
+            background: transparent !important
+            color: var(--font-color) !important
+
+      ul > li
+        &:before
+          border-color: var(--gray) !important
+      
+      // 有序列表编号
+      ol
+        counter-reset: li
+        
+        > li
+          position: relative
+          padding-left: 0.5em
 
       .tabs
         border: 2px solid var(--tab-border-color)
@@ -150,36 +292,174 @@ if hexo-config('readmode')
         > .tab-contents .tab-item-content.active
           animation: none
 
+      // 内联代码优化
       code
         color: var(--font-color)
+        background: var(--highlight-bg)
+        padding: 0.2em 0.5em
+        border-radius: 4px
+        font-size: 0.92em
+        border: 1px solid var(--hr-border)
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace
 
+      // 引用块优化
       blockquote
-        border-color: var(--gray)
-        background-color: var(--readmode-light-color)
+        border-left: 4px solid var(--link-color)
+        background-color: var(--highlight-bg)
+        padding: 1em 1.5em
+        margin: 1.5em 0
+        border-radius: 0 8px 8px 0
+        color: var(--light-grey)
+        font-style: italic
+        
+        p
+          margin-bottom: 0.8em
+          
+          &:last-child
+            margin-bottom: 0
+      
+      // 水平分隔线优化
+      hr
+        border: none
+        height: 2px
+        background: linear-gradient(to right, transparent, var(--hr-border), transparent)
+        margin: 3em 0
 
+      // 键盘按键样式
       kbd
+        display: inline-block
+        padding: 0.3em 0.6em
+        font-size: 0.85em
         border: 1px solid var(--gray)
-        background-color: transparent
-        box-shadow: none
+        border-radius: 4px
+        background-color: var(--highlight-bg)
+        box-shadow: 0 2px 0 var(--gray)
         color: var(--font-color)
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace
+      
+      // 表格优化
+      table
+        border-collapse: collapse
+        width: 100%
+        margin: 2em 0
+        font-size: 0.95em
+        
+        thead
+          background-color: var(--highlight-bg)
+          
+          th
+            padding: 1em
+            text-align: left
+            font-weight: 600
+            border-bottom: 2px solid var(--hr-border)
+        
+        tbody
+          tr
+            border-bottom: 1px solid var(--hr-border)
+            
+            &:hover
+              background-color: var(--highlight-bg)
+          
+          td
+            padding: 0.8em 1em
 
       .hide-toggle
         border: 1px solid var(--gray) !important
+        border-radius: 8px
 
       .hide-button,
       .btn-beautify,
       .hl-label
-        border: 1px solid var(--gray) !important
+        border: 1px solid var(--link-color) !important
         background: var(--readmode-light-color) !important
-        color: var(--font-color) !important
+        color: var(--link-color) !important
+        border-radius: 6px
+        padding: 0.5em 1em
+        transition: all 0.3s ease
+        
+        &:hover
+          background: var(--link-color) !important
+          color: var(--readmode-light-color) !important
 
       .note
         border: 2px solid var(--gray)
-        border-left-color: var(--gray) !important
+        border-left-width: 5px
+        border-left-color: var(--link-color) !important
+        border-radius: 8px
         filter: none
-        background-color: var(--readmode-light-color) !important
+        background-color: var(--highlight-bg) !important
         color: var(--font-color)
+        padding: 1em 1.5em
+        margin: 1.5em 0
 
         &:before,
         .note-icon
-          color: var(--font-color)
+          color: var(--link-color)
+      
+      // 强调文本样式
+      strong, b
+        color: var(--white)
+        font-weight: 600
+      
+      em, i
+        font-style: italic
+        color: var(--light-grey)
+      
+      mark
+        background-color: rgba(52, 152, 219, 0.2)
+        color: var(--font-color)
+        padding: 0.1em 0.3em
+        border-radius: 3px
+      
+      // 删除线
+      del, s
+        text-decoration: line-through
+        opacity: 0.6
+      
+      // 上标和下标
+      sup, sub
+        font-size: 0.75em
+    
+    // 选中文本样式
+    *::selection
+      background-color: rgba(52, 152, 219, 0.3)
+      color: var(--white)
+    
+    // 滚动条优化
+    ::-webkit-scrollbar
+      width: 10px
+      height: 10px
+    
+    ::-webkit-scrollbar-track
+      background: var(--readmode-light-color)
+    
+    ::-webkit-scrollbar-thumb
+      background: var(--gray)
+      border-radius: 5px
+      
+      &:hover
+        background: var(--light-grey)
+    
+    // 平滑滚动
+    html
+      scroll-behavior: smooth
+    
+    // 文章标题优化
+    #post-info
+      .post-title
+        font-size: 2.5em
+        line-height: 1.3
+        margin-bottom: 0.5em
+        color: var(--white)
+        font-weight: 700
+        
+        +maxWidth768()
+          font-size: 2em
+      
+      .post-meta-info
+        color: var(--light-grey)
+        font-size: 0.95em
+        
+        .meta-secondline
+          margin-top: 0.5em
+          opacity: 0.8
