@@ -12,5 +12,6 @@
     },
     "Codegeex.RepoIndex": true,
     "Codegeex.CommitMessageStyle": "Default",
-    "Codegeex.CompletionDelay": 0.3
+    "Codegeex.CompletionDelay": 0.3,
+    "kiroAgent.configureMCP": "Disabled"
 }
