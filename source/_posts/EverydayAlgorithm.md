@@ -301,4 +301,47 @@ function merge(nums1: number[], m: number, nums2: number[], n: number): void {
 
 ![15](EverydayAlgorithm/15.png)
 
+首先观察了一下这两个的测试用例的输出结果。两者的共同点在于nums2的数均没有被写进结果数组中，这说明我当前对于nums2的写入逻辑有误。
 
+但在审查了一遍之后我并不认为是对元素插入的逻辑有误，而是对于结果的修改方式有误，因为这一次我的结果是通过一个新的数组覆盖原有数组的方式实现的，虽然题目中提示了无需返回值，仅需要使nums1的值被修改为结果值就行。
+
+此前我一直是直接对nums1本身进行修改，从而忽略了一个问题，在TS语言中数组是一个引用类型，我们的变量nums1仅仅是一个引用值，我们用新的结果数组直接赋值修改的仅仅是nums1的引用，相当于全部修改都落到了新数组的内存地址上，我们需要使用深拷贝去在不改变引用的前提下，去修改nums1对应的内存值。
+
+```ts
+/**
+ Do not return anything, modify nums1 in-place instead.
+ */
+function merge(nums1: number[], m: number, nums2: number[], n: number): void {
+    let resultNumList:number[] = []
+    let pointer1:number = 0
+    let pointer2:number = 0
+    nums1.splice(m,n)
+    while(1){
+        if(pointer1>=m){
+            nums2.splice(0,pointer2)
+            resultNumList.push(...nums2)
+            break
+        }
+        if(pointer2>=n){
+            nums1.splice(0,pointer1)
+            resultNumList.push(...nums1)
+            break
+        }
+        if(nums1[pointer1]<nums2[pointer2]){
+            resultNumList.push(nums1[pointer1])
+            pointer1++
+        }else{
+            resultNumList.push(nums2[pointer2])
+            pointer2++
+        }
+    }
+    nums1.length = 0
+    nums1.push(...resultNumList)
+};
+```
+
+再次测试。
+
+![16](EverydayAlgorithm/16.png)
+
+通过了，而且这个算法的时间复杂度是m+n。
