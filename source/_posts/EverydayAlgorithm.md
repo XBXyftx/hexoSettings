@@ -222,3 +222,83 @@ function merge(nums1: number[], m: number, nums2: number[], n: number): void {
 ![13](EverydayAlgorithm/13.png)
 
 ！！！原来除了在末尾的0以外中间也会出现0。那这就意味着我不能再依赖于0的存在来判断是否需要进行批处理了，这不合理。（不要盲目依仗示范案例啊啊啊）
+
+那对于这种情况来说，我需要彻底的舍弃原有的算法思路。
+
+我顺着原本的正向对比插入的思路想到了一种方式，就是先建一个新的临时数组存储当前结果，然后仅仅去从数组一的前m项取数，设置这样一个双指针匹配插入机制。
+
+```ts
+/**
+ Do not return anything, modify nums1 in-place instead.
+ */
+function merge(nums1: number[], m: number, nums2: number[], n: number): void {
+    let resultNumList:number[] = []
+    let pointer1:number = 0
+    let pointer2:number = 0
+    nums1.splice(m,n)
+    while(1){
+        if(pointer1>m){
+            nums2.splice(0,pointer2)
+            resultNumList.push(...nums2)
+            break
+        }
+        if(pointer2>m){
+            nums1.splice(0,pointer1)
+            resultNumList.push(...nums1)
+            break
+        }
+        if(nums1[pointer1]<nums2[pointer2]){
+            resultNumList.push(nums1[pointer1])
+            pointer1++
+        }else{
+            resultNumList.push(nums2[pointer2])
+            pointer2++
+        }
+    }
+    nums1 = resultNumList
+};
+```
+
+代码很简单易懂直接执行一下进行尝试。
+
+![14](EverydayAlgorithm/14.png)
+
+这里发现全部测试用例都输出的空数组，这很不正常。肯定是在哪里出现了异常。
+
+奥，我的标识符写错了，我把数组二的标识符也写成1的了，然后判断是否遍历完成应该使用等于而不是大于，因为当其处于等于长度的时候已经越界了。修正一下。
+
+```ts
+/**
+ Do not return anything, modify nums1 in-place instead.
+ */
+function merge(nums1: number[], m: number, nums2: number[], n: number): void {
+    let resultNumList:number[] = []
+    let pointer1:number = 0
+    let pointer2:number = 0
+    nums1.splice(m,n)
+    while(1){
+        if(pointer1>=m){
+            nums2.splice(0,pointer2)
+            resultNumList.push(...nums2)
+            break
+        }
+        if(pointer2>=n){
+            nums1.splice(0,pointer1)
+            resultNumList.push(...nums1)
+            break
+        }
+        if(nums1[pointer1]<nums2[pointer2]){
+            resultNumList.push(nums1[pointer1])
+            pointer1++
+        }else{
+            resultNumList.push(nums2[pointer2])
+            pointer2++
+        }
+    }
+    nums1 = resultNumList
+};
+```
+
+![15](EverydayAlgorithm/15.png)
+
+
