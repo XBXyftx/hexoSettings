@@ -345,3 +345,194 @@ function merge(nums1: number[], m: number, nums2: number[], n: number): void {
 ![16](EverydayAlgorithm/16.png)
 
 通过了，而且这个算法的时间复杂度是m+n。
+
+#### 官方题解
+
+![17](EverydayAlgorithm/17.png)
+
+这种解法的时间复杂度较高，直接切除0再排序，但确实这种方法可能更通用一些，要是两个数组并非有序数组它就可以派上用场。
+
+```js
+var merge = function(nums1, m, nums2, n) {
+    nums1.splice(m, nums1.length - m, ...nums2);
+    nums1.sort((a, b) => a - b);
+};
+```
+
+![18](EverydayAlgorithm/18.png)
+
+![gif](https://assets.leetcode-cn.com/solution-static/88/1.gif)
+
+```js
+var merge = function(nums1, m, nums2, n) {
+    let p1 = 0, p2 = 0;
+    const sorted = new Array(m + n).fill(0);
+    var cur;
+    while (p1 < m || p2 < n) {
+        if (p1 === m) {
+            cur = nums2[p2++];
+        } else if (p2 === n) {
+            cur = nums1[p1++];
+        } else if (nums1[p1] < nums2[p2]) {
+            cur = nums1[p1++];
+        } else {
+            cur = nums2[p2++];
+        }
+        sorted[p1 + p2 - 1] = cur;
+    }
+    for (let i = 0; i != m + n; ++i) {
+        nums1[i] = sorted[i];
+    }
+};
+```
+
+复杂度分析
+
+时间复杂度：O(m+n)。
+指针移动单调递增，最多移动 m+n 次，因此时间复杂度为 O(m+n)。
+
+空间复杂度：O(m+n)。
+需要建立长度为 m+n 的中间数组 sorted。
+
+啊对的对的对的对的，这就是我用的解法。
+
+![19](EverydayAlgorithm/19.png)
+
+```js
+var merge = function(nums1, m, nums2, n) {
+    let p1 = m - 1, p2 = n - 1;
+    let tail = m + n - 1;
+    var cur;
+    while (p1 >= 0 || p2 >= 0) {
+        if (p1 === -1) {
+            cur = nums2[p2--];
+        } else if (p2 === -1) {
+            cur = nums1[p1--];
+        } else if (nums1[p1] > nums2[p2]) {
+            cur = nums1[p1--];
+        } else {
+            cur = nums2[p2--];
+        }
+        nums1[tail--] = cur;
+    }
+};
+```
+
+这个方法确实是比我的解法更加优质，它针对于当前题目的顺序数组的特点定制了从后向前倒序遍历的方式进行插入，这样既避免了nums1中包含需要合并的非占位0，同时又避免了单独创建一个临时数组提升空间复杂度。
+
+其实对于算法核心就是在于“时间”“空间”“难易度”三者之间的平衡，简单的算法必然是需要更多的时间和空间去完成，而复杂的算法则可以使用数学逻辑上的简化用更少的时间和空间去完成。最简单的暴力合并并排序，确确实实是很简单很泛用，但是它排序的过程浪费了原数组本就是有序数组的这个天然优势，造成了时间复杂度和空间复杂度的激增。而对于我的解法则是用时间换空间，用一个m+n长度的数组节省了再次排序的时间花费。最后对于双指针倒序插入的最优解则是对于数组本身的特点进行了数学推导从而获得了更加简洁高效的逻辑替代，从而在不增加空间复杂度的同时保持了时间复杂度的优势。
+
+### 移除元素
+
+![20](EverydayAlgorithm/20.png)
+
+```ts
+function removeElement(nums: number[], val: number): number {
+    let length:number = nums.length
+    let indexs:number[] = []
+    for(let i=0;i<length;i++){
+        if(nums[i]===val){
+            indexs.push(i)
+        }
+    }
+    indexs.forEach((i:number)=>{
+        nums.splice(i,1)
+    })
+    nums.length=length
+    return indexs.length
+}
+```
+
+先整体遍历一遍去除所有相同数字的索引，然后再去进行删除，最后将长度补齐。
+
+![21](EverydayAlgorithm/21.png)
+
+![22](EverydayAlgorithm/22.png)
+
+这里我很快就发现问题，当i索引被消除之后，后续的数字都会减小索引，这就导致我所消除的数字并不是我所期望的索引。
+
+```ts
+function removeElement(nums: number[], val: number): number {
+    let length:number = nums.length
+    let indexs:number[] = []
+    for(let i=0;i<length;i++){
+        if(nums[i]===val){
+            indexs.push(i)
+        }
+    }
+    indexs.forEach((i:number,index:number)=>{
+        nums.splice(i-index,1)
+    })
+    nums.length=length
+    return indexs.length
+}
+```
+
+这里我还注意到了另一个问题，就是在返回值上。题目要求的返回值是删除后剩余的数量，但是我返回的是删除的数量。
+
+```ts
+function removeElement(nums: number[], val: number): number {
+    let length:number = nums.length
+    let indexs:number[] = []
+    for(let i=0;i<length;i++){
+        if(nums[i]===val){
+            indexs.push(i)
+        }
+    }
+    indexs.forEach((i:number,index:number)=>{
+        nums.splice(i-index,1)
+    })
+    nums.length=length
+    return nums.length-indexs.length
+}
+```
+
+![23](EverydayAlgorithm/23.png)
+
+![24](EverydayAlgorithm/24.png)
+
+![25](EverydayAlgorithm/25.png)
+
+直接就是一波通过。
+
+#### 官方题解2
+
+![26](EverydayAlgorithm/26.png)
+
+哦双指针，有意思，这种方式确实是在数据结构课上提到过，我有印象。很好理解，就是一个指针用于遍历，一个指针在前面等着将后面的非删除元素拉到前面，由于后面的删除元素流出的空缺并不需要排序或是用特定方式补全，所以我只需要单纯的覆盖前面的数据就可以，连单独保留一份数据的变量内存都不需要占据。
+
+![27](EverydayAlgorithm/27.png)
+
+从两个方向向中间夹，只判定左侧是否为删除值，哇哦，这种方式确实更加快捷，两个指针合起来的总路程最大也仅仅是数组长度，而单向双指针则会出现右指针遍历一遍，最坏情况左指针也需要遍历一遍，这就导致了单向双指针的最坏时间复杂度是O(2n)，而双指针最坏时间复杂度则是O(n)。
+
+我要亲手去实验一次这个双向指针算法。
+
+```ts
+function removeElement(nums: number[], val: number): number {
+    let leftPointer:number = 0
+    let rightPointer:number = nums.length-1
+    let removeElementNum:number=0
+    while(leftPointer<=rightPointer){
+        if(nums[leftPointer]===val){
+            nums[leftPointer]=nums[rightPointer]
+            rightPointer--
+            removeElementNum++
+            continue
+        }else if(nums[leftPointer]!==val){
+            leftPointer++
+            continue
+        }
+    }
+    return nums.length-removeElementNum
+}
+```
+
+牛逼卧槽，直接一遍过，原来思路清晰解起来这么快。
+
+![28](EverydayAlgorithm/28.png)
+
+### 删除有序数组中的重复项
+
+![29](EverydayAlgorithm/29.png)
+
+```ts
