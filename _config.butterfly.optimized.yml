@@ -1,0 +1,140 @@
+# ============================================
+# Hexo Butterfly 性能优化配置示例
+# 将以下配置合并到你的 _config.butterfly.yml 中
+# ============================================
+
+# --------------------------------------
+# 背景特效优化 - 只保留一个！
+# --------------------------------------
+
+# 方案1: 只保留星空流星（推荐）
+canvas_ribbon:
+  enable: false  # 关闭
+
+canvas_fluttering_ribbon:
+  enable: false  # 关闭！这个很耗性能
+
+canvas_nest:
+  enable: false  # 关闭！99条线持续计算很耗CPU
+  # 如果一定要开启，建议：
+  # count: 30     # 减少到30条
+  # mobile: false # 移动端关闭
+
+# 鼠标点击效果 - 建议全部关闭
+fireworks:
+  enable: false
+click_heart:
+  enable: false
+clickShowText:
+  enable: false
+
+# 打字机震动效果 - 关闭
+activate_power_mode:
+  enable: false
+
+# --------------------------------------
+# 懒加载优化
+# --------------------------------------
+
+lazyload:
+  enable: true
+  field: post  # 只在文章页启用
+  placeholder: /img/loading.gif  # 使用轻量占位图
+  blur: false  # 关闭模糊效果，减少GPU占用
+
+# --------------------------------------
+# 加载动画优化
+# --------------------------------------
+
+preloader:
+  enable: true
+  load_color: '#000000'
+  load_style: default  # 使用简单的default样式，spincat/nyancat更耗性能
+  # load_style: spincat  # 如果要用spincat，建议配合优化脚本
+
+# 页面过渡动画 - 可以关闭以加快切换
+enter_transitions: false
+
+# --------------------------------------
+# 图片灯箱优化
+# --------------------------------------
+
+lightbox: false  # 关闭灯箱，或使用 medium_zoom（更轻量）
+# lightbox: medium_zoom  # 比 fancybox 轻量
+
+# --------------------------------------
+# 评论懒加载
+# --------------------------------------
+
+comments:
+  use: Twikoo
+  lazyload: true  # 开启评论懒加载！
+  count: false    # 关闭评论计数，减少请求
+
+# --------------------------------------
+# 搜索优化
+# --------------------------------------
+
+search:
+  use: local_search
+  local_search:
+    preload: false  # 不预加载搜索数据
+
+# --------------------------------------
+# CDN优化
+# --------------------------------------
+
+CDN:
+  internal_provider: local  # 本地资源
+  third_party_provider: jsdelivr  # 第三方用CDN
+  version: true  # 添加版本号，利用缓存
+
+# --------------------------------------
+# 其他优化
+# --------------------------------------
+
+# 关闭不必要的功能
+pjax:
+  enable: false  # PJAX可能导致内存泄漏，按需开启
+
+instantpage: true  # 保留，预加载链接
+
+# 关闭数学公式（如果不用）
+math:
+  use:  # 留空关闭
+
+# 关闭Mermaid图表（如果不用）
+mermaid:
+  enable: false
+
+# --------------------------------------
+# inject 优化建议
+# --------------------------------------
+
+# 原来的 inject.head 有重复和冗余，建议精简为：
+inject:
+  head:
+    # 暗黑模式初始化（只需要一次）
+    - <script>
+        (function(){
+          localStorage.setItem('theme','dark');
+          document.documentElement.setAttribute('data-theme','dark');
+        })();
+      </script>
+    # 必要的CSS
+    - <link rel="stylesheet" href="/css/universe.css">
+    - <link rel="stylesheet" href="/css/transpancy.css">
+    - <link rel="stylesheet" href="/css/styles.css">
+    - <link rel="stylesheet" href="/css/rightmenu.css">
+    # 优化版懒加载CSS
+    - <link rel="stylesheet" href="/css/lazy-loading-optimized.css">
+  
+  bottom:
+    # 星空背景（使用优化版）
+    - <canvas id="universe"></canvas>
+    - <script defer src="/js/universe-optimized.js"></script>
+    # jQuery（如果右键菜单需要）
+    - <script defer src="/js/jquery-3.6.0.min.js"></script>
+    - <script defer src="/js/rightmenu.js"></script>
+    # 优化版懒加载
+    - <script defer src="/js/lazy-loading-optimized.js"></script>
