@@ -1072,10 +1072,8 @@ inject:
    - <link rel="stylesheet" href="/css/twikoo.css">
    # 优化版懒加载样式
    - <link rel="stylesheet" href="/css/lazy-loading-optimized.css">
-   # 顺序图片加载器（如果需要保留）
-   # - <link rel="stylesheet" href="/css/sequential-loader.css">
-   # - <script src="/js/sequential-loader-config.js" defer></script>
-   # - <script src="/js/sequential-image-loader.js" defer></script>
+   # 阅读模式增强样式
+   - <link rel="stylesheet" href="/css/readmode-enhanced.css">
   bottom:
    # 星空背景 Canvas
    - <canvas id="universe"></canvas>
@@ -1088,6 +1086,8 @@ inject:
    - <script src="/js/happy-title.js" async></script>
    # 优化版懒加载
    - <script defer src="/js/lazy-loading-optimized.js"></script>
+   # 增强版图片灯箱
+   - <script defer src="/js/lightbox-enhanced.js"></script>
    # 自定义图片查看器（如果需要）
    # - <script src="/js/custom-lightbox.js" defer></script>
 # CDN Settings
