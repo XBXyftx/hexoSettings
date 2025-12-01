@@ -5,6 +5,7 @@ tags:
   - 算法
   - 技术向
 cover: /imgs/ArticleTopImgs/EverydayAlgorithmTopImg.png
+top: 18
 description: 每天都要刷算法！！！
 typewriter: 这篇文章将会记录我所刷的算法题！！！我一定要刷算法！！！
 post_copyright:
@@ -536,3 +537,170 @@ function removeElement(nums: number[], val: number): number {
 ![29](EverydayAlgorithm/29.png)
 
 ```ts
+function removeDuplicates(nums: number[]): number {
+    let leftPointer:number = 0
+    let rightPointer:number = 1
+    while(rightPointer<nums.length&&leftPointer<=rightPointer){
+        if(nums[leftPointer]===nums[rightPointer]){
+            rightPointer++
+            continue
+        }else if(nums[leftPointer]!==nums[rightPointer]){
+            nums.splice(leftPointer+1,rightPointer-leftPointer-1)
+            leftPointer++
+            continue
+        }
+    }
+    return nums.length
+};
+```
+
+在前两道题的熏陶下我第一次想到的就是使用双指针去进行处理，一个去逐一遍历，一个去标志重复的起始点。
+
+![30](EverydayAlgorithm/30.png)
+
+在测试的时候测试用例全部通过。
+
+测试用例1：`[1,1,2]`
+测试用例2：`[0,0,1,1,1,2,2,3,3,4]`
+
+这两者的测试全部通过，但是提交后我在362个用例中通过了135个案例，对于这种通过一部分另一部分没通过的情况一般来讲都是整体的算法思路没有大问题但是对于某些特殊值的特化处理出现了问题，像是边界值。
+
+我反思了一遍我对于整体指针行迹的处理，有一个问题就是在判定是否需要消除时是需要移动到连续重复数字区间后一位的位置后才会触发消除，但是这会导致最后一个延续到数组结束的重复数值区间并不会触发消除。
+
+```ts
+function removeDuplicates(nums: number[]): number {
+    let leftPointer:number = 0
+    let rightPointer:number = 1
+    while(rightPointer<nums.length&&leftPointer<=rightPointer){
+        if(rightPointer===nums.length-1){
+            nums.splice(leftPointer+1,rightPointer-leftPointer)
+            break
+        }
+        if(nums[leftPointer]===nums[rightPointer]){
+            rightPointer++
+            continue
+        }else if(nums[leftPointer]!==nums[rightPointer]){
+            nums.splice(leftPointer+1,rightPointer-leftPointer-1)
+            leftPointer++
+            continue
+        }
+    }
+    return nums.length
+};
+```
+
+![31](EverydayAlgorithm/31.png)
+
+在添加了边界控制之后发现依旧是半错半对的情况，这说明我们还没有考虑到位，但与此同时通过的测试用例个数也发生了变化，这说明我们当前的改动是有效的，但仍存在问题。
+
+![32](EverydayAlgorithm/32.png)
+
+可以看到这种边界控制是存在严重问题的。冷静分析一下，对于这种情况我们可以将达到数据边界的情况分为左右指针值相等和左右指针值不等两种情况。
+
+```ts
+function removeDuplicates(nums: number[]): number {
+    let leftPointer:number = 0
+    let rightPointer:number = 1
+    while(rightPointer<nums.length&&leftPointer<=rightPointer){
+        if(rightPointer===nums.length-1){
+            if(nums[leftPointer]===nums[rightPointer]){
+                nums.splice(leftPointer+1,rightPointer-leftPointer)
+                break
+            }else{
+                nums.splice(leftPointer+1,rightPointer-leftPointer-1)
+                break
+            }
+        }
+        if(nums[leftPointer]===nums[rightPointer]){
+            rightPointer++
+            continue
+        }else if(nums[leftPointer]!==nums[rightPointer]){
+            nums.splice(leftPointer+1,rightPointer-leftPointer-1)
+            leftPointer++
+            continue
+        }
+    }
+    return nums.length
+};
+```
+
+这一次的修改，我将边界控制的情况进行了细分，分别处理了左右指针值相等和不等的情况。
+
+相等时就删除包含右指针自身在内的值，不同则删除左右指针中间的数。
+
+![33](EverydayAlgorithm/33.png)
+
+我们通过的测试用例上涨了，说明这个改动是有效的但还是又欠缺。此时我又想到了另一个问题，就是在于将元素删除后右指针和左指针之间的间隔出现了异常的跨度。
+
+![34](EverydayAlgorithm/34.png)
+
+像是这样的情况会出现将下一个重复区间给拉到无法被监测的区间中。所以在删除完后我们还需要将右指针拉回到左指针位置。
+
+```ts
+function removeDuplicates(nums: number[]): number {
+    let leftPointer:number = 0
+    let rightPointer:number = 1
+    while(rightPointer<nums.length&&leftPointer<=rightPointer){
+        if(rightPointer===nums.length-1){
+            if(nums[leftPointer]===nums[rightPointer]){
+                nums.splice(leftPointer+1,rightPointer-leftPointer)
+                break
+            }else{
+                nums.splice(leftPointer+1,rightPointer-leftPointer-1)
+                break
+            }
+        }
+        if(nums[leftPointer]===nums[rightPointer]){
+            rightPointer++
+            continue
+        }else if(nums[leftPointer]!==nums[rightPointer]){
+            nums.splice(leftPointer+1,rightPointer-leftPointer-1)
+            leftPointer++
+            rightPointer=leftPointer
+            continue
+        }
+    }
+    return nums.length
+};
+```
+
+![35](EverydayAlgorithm/35.png)
+
+![36](EverydayAlgorithm/36.png)
+
+![37](EverydayAlgorithm/37.png)
+
+#### 官方题解3
+
+<video width="100%" controls>
+  <source src="38.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+！！！我勒个豆，在和孙妈深度的聊了一下才发现我有点过度依赖`splice`的这个内置函数了，它在处理数组时会移动大量数组元素的索引，导致索引上的异常变化，而为了处理这种异常变化我需要用大量的边界处理来去调整索引。
+
+我要回归基本功的去试试，用最基础的形式去进行一下尝试了。
+
+首先双指针是正确的，问题是在于我无需删改原本的数组长度，我只需要逐一找到不重复的元素去覆盖到前面的位置就好。
+
+```ts
+function removeDuplicates(nums: number[]): number {
+    let leftPointer:number = 0
+    let rightPointer:number = 1
+    while(rightPointer<nums.length){
+        if(nums[leftPointer]===nums[rightPointer]){
+            rightPointer++
+            continue
+        }else{
+            nums[++leftPointer]=nums[rightPointer++]
+        }
+    }
+    return leftPointer+1
+};
+```
+
+`nums[++leftPointer]=nums[rightPointer++]`超绝细节处理！！！
+
+![37](EverydayAlgorithm/39.png)
+
+两者的时间空间复杂度是一致的，和我原本程序的一样。
