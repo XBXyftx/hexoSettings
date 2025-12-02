@@ -561,13 +561,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const transaction = this.db.transaction([config.cache.storeName], 'readwrite');
         const store = transaction.objectStore(config.cache.storeName);
         const index = store.index('timestamp');
-        
         const now = Date.now();
         const expiredBefore = now - config.cache.cacheExpiry;
-        
         const range = IDBKeyRange.upperBound(expiredBefore);
         const request = index.openCursor(range);
-        
         let cleanedCount = 0;
         await new Promise((resolve) => {
           request.onsuccess = (event) => {
@@ -582,7 +579,6 @@ document.addEventListener('DOMContentLoaded', function() {
           };
           request.onerror = () => resolve();
         });
-        
         if (cleanedCount > 0) {
           console.log(`🧹 清理了 ${cleanedCount} 个过期缓存项`);
         }
@@ -595,7 +591,6 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!this.ready || !this.db) {
         return { total: urls.length, cached: 0, remaining: urls.length };
       }
-      
       try {
         const transaction = this.db.transaction([config.cache.storeName], 'readonly');
         const store = transaction.objectStore(config.cache.storeName);
