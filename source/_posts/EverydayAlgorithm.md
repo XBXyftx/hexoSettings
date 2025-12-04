@@ -661,8 +661,12 @@ function removeDuplicates(nums: number[]): number {
 
 `nums[++leftPointer]=nums[rightPointer++]`超绝细节处理！！！
 
-![37](EverydayAlgorithm/39.png)
+![39](EverydayAlgorithm/39.png)
 
 两者的时间空间复杂度是一致的，和我原本程序的一样。
 
-![41](EverydayAlgorithm/41.png)
+### 删除有序数组中的重复项2（中等）
+
+这将会是我做的第一个中等难度的题，让我来试一试。
+
+![42](EverydayAlgorithm/42.png)
