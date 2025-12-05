@@ -669,4 +669,50 @@ function removeDuplicates(nums: number[]): number {
 
 这将会是我做的第一个中等难度的题，让我来试一试。
 
-![42](EverydayAlgorithm/42.png)
+![42](EverydayAlgorithm/42.jpg)
+
+```ts
+function removeDuplicates(nums: number[]): number {
+    let rightPointer:number=0
+    let leftPointer:number=0
+
+    while(leftPointer<=rightPointer&&rightPointer<nums.length){
+        if(nums[leftPointer]===nums[rightPointer]&&leftPointer-rightPointer<2){
+            rightPointer++
+            continue
+        }else if(nums[leftPointer]===nums[rightPointer]&&leftPointer-rightPointer>=2){
+            nums.splice(rightPointer,1)
+            continue
+        }else if(nums[leftPointer]!==nums[rightPointer]){
+            leftPointer=rightPointer
+            continue
+        }
+    }
+
+    return nums.length
+};
+```
+
+我的想法是利用双指针，分别指向当前重复元素组的头和尾，当头尾距离超过1，也就是有大于两个的重复元素出现时就开始执行原地删除策略。当尾指针指向的元素和头指针指向的元素不同时，就将左指针移动到右指针位置，右指针继续向右移动。
+
+![43](EverydayAlgorithm/43.png)
+
+![44](EverydayAlgorithm/44.png)
+
+从测试用例的结果来看我的算法没有对数组进行任何有效的处理，也就是说我的算法没有起到任何作用。我需要重新审视一下我的算法。
+
+打个断点进行一下调试。
+
+![45](EverydayAlgorithm/45.png)
+
+这里可以看到左指针没有动同时右指针正常的移动到了2，两者之间相差2了理论上本次应当进入的代码块是第二块
+
+![46](EverydayAlgorithm/46.png)
+
+但实际上它进入的是第一块。？？？啊？为啥？
+
+奥原来是我的条件写错了，我的左右指针写反了。
+
+![47](EverydayAlgorithm/47.png)
+
+那没事了。
