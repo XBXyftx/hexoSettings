@@ -2752,3 +2752,189 @@ const swiperSuccess = results[0] as boolean
 - 明确需要 “清理原数组”（比如释放内存，避免大数据占用）
 
 但这种场景在实际开发中很少见，大多数情况下，我们更倾向于 “不修改原数据”（immutable 编程思想），避免副作用（比如函数调用后意外改变入参），而 slice 正是符合这种思想的安全方法。
+
+##### 总体流程控制层面
+
+对于刷新数据的总体流程控制函数是在`product/default/src/main/ets/pages/tab_contents/NewsListTabContent.ets`中的`reloadAllData`中去进行的。
+
+```ts
+  /**
+   * 两阶段刷新数据
+   * 
+   * 第一阶段：快速加载各分栏前20条 + 轮播图，立即结束刷新动画
+   * 第二阶段：后台完整加载全部数据，实时更新 UI
+   * 
+   * @returns Promise<boolean> - 第一阶段是否成功
+   */
+  async reloadAllData(): Promise<boolean> {
+    logger.info(`${LOG_TAG.NEWS_LIST}[两阶段刷新] 开始刷新`)
+    promptAction.openToast({ message: '正在快速刷新最新数据...', duration: 1500 })
+
+    try {
+      // ========== 第一阶段：快速刷新（并发加载前20条） ==========
+      const quickResult = await newsManager.quickRefreshCategories()
+
+      if (quickResult.success) {
+        // 刷新成功，重新加载轮播图数据
+        this.newsSwiperData = await newsManager.getNewsSwiperDataFromDB()
+        
+        // 触发 NewsList 组件重新加载分类数据
+        this.refreshTrigger++
+        
+        logger.info(`${LOG_TAG.NEWS_LIST}[两阶段刷新] ✓ 第一阶段完成: ${quickResult.loadedCount}个栏目`)
+        promptAction.openToast({ 
+          message: `刷新成功，已更新${quickResult.loadedCount}个栏目`, 
+          duration: 2000 
+        })
+
+        // ========== 第二阶段：后台完整刷新（逐个加载全部数据） ==========
+        // 不阻塞 UI，在后台执行
+        newsManager.fullRefreshCategories((progress) => {
+          logger.debug(`${LOG_TAG.NEWS_LIST}[两阶段刷新] [${progress.current}/${progress.total}] 【${progress.category}】完成`)
+          
+          // 每个栏目完成后触发 UI 更新
+          this.refreshTrigger++
+          
+        }).then((fullResult) => {
+          if (fullResult.success) {
+            logger.info(`${LOG_TAG.NEWS_LIST}[两阶段刷新] ✓ 第二阶段完成: ${fullResult.updatedCount}个栏目`)
+            promptAction.openToast({ 
+              message: `后台更新完成，所有数据已是最新`, 
+              duration: 2000 
+            })
+            
+            // 最后一次触发更新
+            this.refreshTrigger++
+          } else {
+            logger.warn(`${LOG_TAG.NEWS_LIST}[两阶段刷新] 第二阶段部分失败`)
+          }
+        }).catch((error: Error) => {
+          logger.error(`${LOG_TAG.NEWS_LIST}[两阶段刷新] 第二阶段异常: ${error.message}`)
+        })
+
+        return true
+      } else {
+        logger.error(`${LOG_TAG.NEWS_LIST}[两阶段刷新] 第一阶段失败`)
+        promptAction.openToast({ message: '刷新失败，请检查网络连接', duration: 2000 })
+        return false
+      }
+
+    } catch (error) {
+      logger.error(`${LOG_TAG.NEWS_LIST}[两阶段刷新] 异常: ${JSON.stringify(error)}`)
+      promptAction.openToast({ message: '刷新失败，请稍后再试', duration: 2000 })
+      return false
+    }
+  }
+```
+
+这里我们从以下三点来进行解析：
+
+1. 两阶段刷新确保速度和完整性
+2. 进度回调函数
+3. UI扳机机制
+
+首先对于两阶段刷新，我们此前的痛点就是在于我们每一次刷新都要等后端发回全部的数据，这就会导致我们的等待时间大大增加，无提示无变化的“忙等”会极大的降低用户的体验。
+
+这里我们在第一阶段完成后立即触发 UI 更新，用户可以立即看到刷新结果，而不需要等待所有数据加载完成。这里的UI更新指的并不是将`Refresh({ refreshing: $$this.isLoading })`组件所包含的刷新动画结束，而是指将`NewsList`组件所包含的分类数据刷新。也就是让用户先看到新数据，并用上方仍在旋转的刷新动画来提示用户数据正在后台刷新。这样既不用徒增用户的等待时间也能正确的告知用户当前的刷新进度。
+
+同时在这里我们也可以回顾一下对于快速刷新阶段的函数实现与全量加载的函数实现之间的区别。对于快速加载阶段我们使用的是`Promise.all`函数去进行并行加载的，因为单次请求的加载数据量小，同时核心目标是快。反之，对于全量加载阶段的函数来说，单次请求的数据量大，而且核心目标是要降低对服务器的低负荷，所以使用的是循环遍历待执行的`Promise`对象，这样一来同一时间的数据流量会被降低，同时整体的加载过程也变成了单一的线性过程，为我们下一项要说的进度回调函数打下了基础。
+
+但是两种截然不同的加载方式被包装成了结构极其相似，均为一个成功标识符和一个成功条数的对象，这就是封装的意义，去屏蔽复杂的内部逻辑，高内聚低耦合。
+
+对于第二点进度回调函数，其实之前我就有在好奇各种各样的回调箭头函数究竟是如何定义的，它又为什么能在指定的时期得到对应的参数并执行外部传入的逻辑的，这一次我得到了答案。
+
+让我们直接就着具体代码来说吧。
+
+```ts
+        newsManager.fullRefreshCategories((progress) => {
+          logger.debug(`${LOG_TAG.NEWS_LIST}[两阶段刷新] [${progress.current}/${progress.total}] 【${progress.category}】完成`)
+          
+          // 每个栏目完成后触发 UI 更新
+          this.refreshTrigger++
+          
+        })
+```
+
+```ts
+  async fullRefreshCategories(
+    onProgress?: (progress: RefreshProgress) => void
+  ): Promise<FullRefreshResult> {
+    ......
+      // 逐个加载栏目（避免并发过多导致服务器压力）
+      for (let i = 0; i < developedCategories.length; i++) {
+        const category = developedCategories[i]
+        const current = i + 1
+
+        try {
+          logger.info(`${LOG_TAG.NEWS_MANAGER}[完整刷新] [${current}/${totalCategories}] 加载【${category.displayName}】全部数据`)
+
+          // 获取该分类的所有数据
+          const allNews = await NewsListAPI.getAllNewsByCategory(category.apiCategory)
+
+          if (allNews && allNews.length > 0) {
+            // 按日期倒序排序
+            const sortedNews = allNews.sort((a: NewsArticle, b: NewsArticle): number => b.date.localeCompare(a.date))
+            
+            // 直接覆盖存储（已经是最新完整数据）
+            await this.appKVDb.put(category.dbKey, JSON.stringify(sortedNews))
+            
+            updatedCount++
+            logger.info(`${LOG_TAG.NEWS_MANAGER}[完整刷新] ✓ [${current}/${totalCategories}] 【${category.displayName}】完成: ${sortedNews.length}条`)
+
+            // 回调进度更新
+            if (onProgress) {
+              const progress: RefreshProgress = {
+                category: category.displayName,
+                current: current,
+                total: totalCategories
+              }
+              onProgress(progress)
+            }
+          } else {
+            logger.warn(`${LOG_TAG.NEWS_MANAGER}[完整刷新] [${current}/${totalCategories}] 【${category.displayName}】无数据`)
+          }
+
+        } catch (error) {
+          logger.error(`${LOG_TAG.NEWS_MANAGER}[完整刷新] [${current}/${totalCategories}] 【${category.displayName}】失败: ${JSON.stringify(error)}`)
+        }
+      }
+    ......
+  }
+```
+
+上面的两段代码并非完整代码，我仅仅截取了重要的部分。
+
+首先我们看`fullRefreshCategories`这个函数，在声明形参的时候直接声明一个箭头函数类型的形参`onProgress?: (progress: RefreshProgress) => void`。这里可以注意到一个细节，就是这个参数的声明是一个可选参数而不是一个必选参数，这就提升了这个函数的灵活性，因为这个回调函数的作用仅仅是对当前的刷新进程进行进度通知，并不是功能性上的强制要求。
+
+在加载的过程中通过向形参函数传参就可以实现将内部数据向外部暴露的除返回值以外的另一种方式。
+
+```ts
+const progress: RefreshProgress = {
+  category: category.displayName,
+  current: current,
+  total: totalCategories
+}
+onProgress(progress)
+```
+
+最后，UI扳机机制。
+
+虽然说官方的的确确提供了一些监听器还有双向绑定之类的API但是此前我已经多次因为这个深浅拷贝，监听属性的深度问题等等等而浪费太多时间去调试了，所以这一次就简简单单的去监听一个基本类型的number变量就好了。
+
+通过`this.refreshTrigger++`来触发更新，监听侧仅需要设置一个监听器以及回调函数就好。
+
+```ts
+  @Monitor('refreshTrigger')
+  onRefreshTriggered() {
+    if (this.refreshTrigger > 0) {
+      logger.info(`${LOG_TAG.NEWS_LIST}捕获到刷新触发器变化: ${this.refreshTrigger}，重新加载当前栏目数据`)
+      // 重新加载当前选中栏目的数据
+      const currentCategoryInfo = NEWS_CATEGORIES.find(cat => cat.id === this.currentCategory)
+      if (currentCategoryInfo && currentCategoryInfo.isDeveloped) {
+        this.reloadCurrentCategoryData(currentCategoryInfo)
+      }
+    }
+  }
+```
+
+就还是挺爽的一个方案。

@@ -3579,6 +3579,7 @@ docker network create ohnet || true
 
 ```bash
 docker rm -f selenium 2>/dev/null || true && docker run -d --name selenium --network ohnet -p 4444:4444 --shm-size=2g --restart unless-stopped selenium/standalone-chromium:latest
+```
 
 ```bash
 until curl -sf http://127.0.0.1:4444/status | grep -E -qi '"ready"[[:space:]]*:[[:space:]]*true'; do echo "Waiting for Selenium remote WebDriver on :4444 ..."; sleep 2; done
