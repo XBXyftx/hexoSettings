@@ -126,7 +126,7 @@ NowInOpenHarmony
 <!-- endtimeline -->
 
 <!-- timeline 08-24 -->
-8.24至结项完成最终调优与报告撰写（进行中）
+8.24至结项完成最终调优与报告撰写（完成）√
 <!-- endtimeline -->
 
 {% endtimeline %}
