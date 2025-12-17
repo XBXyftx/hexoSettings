@@ -716,3 +716,60 @@ function removeDuplicates(nums: number[]): number {
 ![47](EverydayAlgorithm/47.png)
 
 那没事了。
+
+### 多数元素（简单）
+
+![48](EverydayAlgorithm/48.png)
+
+```ts
+function majorityElement(nums: number[]): number {
+    let num:number = nums.length/2
+    let map:Map<number,number>=new Map()
+    for(let i=0;i<nums.length;i++){
+        if(map.has(nums[i])){
+            let value:number = map.get(nums[i])
+            if(++value>num){
+                return nums[i]
+            }
+            map.set(nums[i],value)
+        }else {
+            map.set(nums[i],1)
+        }
+    }
+};
+```
+
+![49](EverydayAlgorithm/49.png)
+
+这里发现当数组长度为1的时候我的算法并不能很好的去进行处理，因为我将其加入到map中之后就结束了没有返回值所以返回的是undefined。
+
+```ts
+function majorityElement(nums: number[]): number {
+    let num:number = nums.length/2
+    let map:Map<number,number>=new Map()
+    for(let i=0;i<nums.length;i++){
+        if(map.has(nums[i])){
+            let value:number = map.get(nums[i])
+            if(++value>num){
+                return nums[i]
+            }
+            map.set(nums[i],value)
+        }else {
+            map.set(nums[i],1)
+            if(1>num){
+                return nums[i]
+            }
+        }
+    }
+};
+```
+
+简单的加一个判断就可以解决。
+
+![50](EverydayAlgorithm/50.png)
+
+时间空间复杂度都是O(n)。
+
+但很显然还不是最优解。
+
+
