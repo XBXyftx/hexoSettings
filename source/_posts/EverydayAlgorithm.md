@@ -772,4 +772,48 @@ function majorityElement(nums: number[]): number {
 
 但很显然还不是最优解。
 
+### 官方题解（太高级了）
 
+没想到这道题官方题解给出了五种思路，确实是我没想到的。第一种是哈希表，是最暴力的求解就不多说了。第二种是排序，大致思路就是说排序后，众数无论是被排到哪里，数组中间的数一定是众数，而且由于众数个数是大于数组长度的一半，所以无论总长是奇是偶都可以去中值为众数。
+
+![51](EverydayAlgorithm/51.png)
+
+第三种方式就开始高级起来了。
+
+随机化。
+
+![52](EverydayAlgorithm/52.png)
+
+这种方式体现了对于数据特征的深刻理解，但也是一种双刃剑算法，虽然大多数情况都能很快的找到目标的众数，但由于是随机的，就会导致算法的效率不稳定。但这也是一种思路，我要亲自实现以下。
+
+```ts
+function majorityElement(nums: number[]): number {
+    while(1){
+        let num =nums[Math.floor(Math.random()*nums.length)]
+        if(modeJudgment(nums,num)){
+            return num
+        }
+    }
+};
+
+function modeJudgment(nums: number[],num:number):boolean{
+    let count:number=0
+    nums.forEach((i)=>{
+        if(i==num){
+            count++
+        }
+    })
+    if(count>=(nums.length/2)){
+        return true
+    }
+    return false
+}
+```
+
+![53](EverydayAlgorithm/53.png)
+
+ok，直接秒掉。不过重点还是在于掌握思路。
+
+![54](EverydayAlgorithm/54.png)
+
+分治！！！之前田老师还强调过这个来着。
