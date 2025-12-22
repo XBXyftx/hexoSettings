@@ -817,3 +817,7 @@ ok，直接秒掉。不过重点还是在于掌握思路。
 ![54](EverydayAlgorithm/54.png)
 
 分治！！！之前田老师还强调过这个来着。
+
+![55](EverydayAlgorithm/55.png)
+
+大致是这个意思，我来实现一下。
