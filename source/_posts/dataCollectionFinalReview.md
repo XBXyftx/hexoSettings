@@ -2918,3 +2918,1268 @@ data = response.json()  # 直接得到字典或列表
 ```
 
 ## 正则表达式
+
+### 从例题开始理解正则
+
+![17](dataCollectionFinalReview/17.png)
+
+**快速复盘考点：**
+
+- `re.search` 只返回**第一个匹配**
+- `\d+` 匹配**连续数字**，所以先抓到 "1000"
+- 想拿到所有数字需改用 `re.findall(r'\d+', ...)`，会得到 `['1000', '999']`
+
+```python
+import re
+
+text = "价格是1000元，原价999元"
+
+# search - 只找第一个
+result = re.search(r'\d+', text)
+print(result.group())
+# 输出: 1000
+
+# findall - 找所有
+results = re.findall(r'\d+', text)
+print(results)
+# 输出: ['1000', '999']
+```
+
+### 正则表达式是什么？
+
+**简单理解：正则表达式就是"文字查找的高级模式"**
+
+#### 生活中的比喻
+
+想象你在一本电话簿里找电话号码：
+
+- 🔍 **普通查找**："找13812345678" → 只能找到完全一样的
+- 🎯 **正则表达式**："找所有138开头的11位数字" → 能找到所有符合规则的
+
+#### 正则的作用
+
+```python
+import re
+
+# ===== 场景1：验证格式 =====
+# 判断是否为有效的手机号
+phone = "13812345678"
+if re.match(r'^1[3-9]\d{9}$', phone):
+    print("✅ 手机号格式正确")
+else:
+    print("❌ 手机号格式错误")
+# 输出: ✅ 手机号格式正确
+
+# ===== 场景2：提取信息 =====
+# 从文本中提取所有邮箱地址
+text = "联系邮箱：admin@example.com 或 support@test.com"
+emails = re.findall(r'\w+@\w+\.\w+', text)
+print(f"找到的邮箱: {emails}")
+# 输出: 找到的邮箱: ['admin@example.com', 'support@test.com']
+
+# ===== 场景3：替换内容 =====
+# 隐藏手机号中间4位
+text = "我的手机号是13812345678"
+result = re.sub(r'(\d{3})\d{4}(\d{4})', r'\1****\2', text)
+print(result)
+# 输出: 我的手机号是138****5678
+
+# ===== 场景4：分割字符串 =====
+# 用多种分隔符分割
+text = "苹果,香蕉;橙子 西瓜"
+fruits = re.split(r'[,;\s]+', text)
+print(fruits)
+# 输出: ['苹果', '香蕉', '橙子', '西瓜']
+```
+
+### 正则表达式元字符大全
+
+#### 基础元字符表
+
+| 元字符 | 含义 | 示例 | 匹配结果 | 不匹配 |
+|--------|------|------|----------|--------|
+| `.` | 任意单个字符（除换行符） | `a.c` | abc, a1c, a@c | ac, abbc |
+| `\d` | 任意数字 [0-9] | `\d\d` | 12, 99, 00 | 1, ab |
+| `\D` | 任意非数字 | `\D\D` | ab, @#, 中文 | 12, 1a |
+| `\w` | 字母、数字、下划线 | `\w+` | hello, test_123 | @#$, 空格 |
+| `\W` | 非字母数字下划线 | `\W` | @, #, 空格 | a, 1, _ |
+| `\s` | 空白字符（空格、tab、换行） | `\s+` | 一个或多个空格 | abc |
+| `\S` | 非空白字符 | `\S+` | hello, 123 | 空格, tab |
+| `^` | 字符串开头 | `^hello` | hello world | world hello |
+| `$` | 字符串结尾 | `world$` | hello world | world hello |
+
+#### 量词表
+
+| 量词 | 含义 | 示例 | 匹配结果 | 说明 |
+|------|------|------|----------|------|
+| `*` | 0次或多次 | `a*` | "", a, aa, aaa | 贪婪匹配 |
+| `+` | 1次或多次 | `a+` | a, aa, aaa | 至少1次 |
+| `?` | 0次或1次 | `a?` | "", a | 可选 |
+| `{n}` | 恰好n次 | `a{3}` | aaa | 精确匹配 |
+| `{n,}` | 至少n次 | `a{2,}` | aa, aaa, aaaa | n次以上 |
+| `{n,m}` | n到m次 | `a{2,4}` | aa, aaa, aaaa | 范围匹配 |
+| `*?` | 非贪婪（最少匹配） | `a.*?b` | 在"aabab"中匹配"aab" | 尽可能少 |
+| `+?` | 非贪婪 | `\d+?` | 在"123"中匹配"1" | 至少1次，但尽可能少 |
+
+#### 字符集合
+
+| 语法 | 含义 | 示例 | 匹配结果 |
+|------|------|------|----------|
+| `[abc]` | a或b或c | `[abc]` | a, b, c |
+| `[^abc]` | 除了a、b、c | `[^abc]` | d, e, 1, @ |
+| `[a-z]` | a到z的任意字母 | `[a-z]+` | hello, world |
+| `[A-Z]` | A到Z的大写字母 | `[A-Z]+` | HELLO, WORLD |
+| `[0-9]` | 0到9的数字（等同于\d） | `[0-9]{3}` | 123, 456 |
+| `[a-zA-Z]` | 任意字母 | `[a-zA-Z]+` | Hello, World |
+| `[a-zA-Z0-9]` | 字母或数字 | `[a-zA-Z0-9]+` | abc123 |
+
+#### 分组和引用
+
+| 语法 | 含义 | 示例 | 说明 |
+|------|------|------|------|
+| `(abc)` | 捕获分组 | `(\d+)-(\d+)` | 可通过group(1), group(2)获取 |
+| `(?:abc)` | 非捕获分组 | `(?:\d+)-(\d+)` | 不保存为分组 |
+| `\1` | 引用第1个分组 | `(\w+)\1` | 匹配重复词，如"testtest" |
+| `(?P<name>...)` | 命名分组 | `(?P<year>\d{4})` | 可通过名称获取：group('year') |
+
+### 详细示例：元字符实战
+
+#### 示例1：匹配数字 `\d`
+
+```python
+import re
+
+# ===== \d 匹配单个数字 =====
+text = "我有3个苹果和5个香蕉"
+
+# 匹配单个数字
+result = re.findall(r'\d', text)
+print(result)
+# 输出: ['3', '5']
+
+# ===== \d+ 匹配连续数字 =====
+text = "订单号：20231224001，金额：1999元"
+
+numbers = re.findall(r'\d+', text)
+print(numbers)
+# 输出: ['20231224001', '1999']
+
+# ===== \d{n} 匹配指定位数 =====
+text = "手机号：13812345678，座机：021-12345678"
+
+# 匹配11位手机号
+phone = re.search(r'\d{11}', text)
+print(f"手机号: {phone.group()}")
+# 输出: 手机号: 13812345678
+
+# 匹配区号（3位数字）
+area_code = re.search(r'\d{3}', text)
+print(f"区号: {area_code.group()}")
+# 输出: 区号: 138（注意：匹配到的是手机号前3位，不是区号！）
+
+# 正确匹配区号（需要更精确的模式）
+area_code = re.search(r'-(\d{3})-', text)  # 或 re.search(r'(\d{3,4})-', text)
+```
+
+#### 示例2：匹配字母 `\w` vs `[a-zA-Z]`
+
+```python
+import re
+
+text = "hello_world123 你好@test"
+
+# ===== \w 匹配字母、数字、下划线（不包括中文、符号）=====
+result = re.findall(r'\w+', text)
+print(result)
+# 输出: ['hello_world123', '你好', 'test']
+# 注意：\w 在Python中可以匹配Unicode字符（包括中文）
+
+# ===== [a-zA-Z] 只匹配英文字母 =====
+result = re.findall(r'[a-zA-Z]+', text)
+print(result)
+# 输出: ['hello', 'world', 'test']
+
+# ===== [a-zA-Z0-9] 匹配字母和数字 =====
+result = re.findall(r'[a-zA-Z0-9]+', text)
+print(result)
+# 输出: ['hello', 'world123', 'test']
+
+# ===== [a-zA-Z0-9_] 等价于 \w（但不含中文）=====
+result = re.findall(r'[a-zA-Z0-9_]+', text)
+print(result)
+# 输出: ['hello_world123', 'test']
+```
+
+#### 示例3：贪婪 vs 非贪婪
+
+```python
+import re
+
+html = '<div>内容1</div><div>内容2</div>'
+
+# ===== 贪婪模式（默认）- 尽可能多地匹配 =====
+result = re.findall(r'<div>.*</div>', html)
+print("贪婪模式:")
+print(result)
+# 输出: ['<div>内容1</div><div>内容2</div>']
+# 解释：.* 会一直匹配到最后一个</div>
+
+# ===== 非贪婪模式 - 尽可能少地匹配 =====
+result = re.findall(r'<div>.*?</div>', html)
+print("\n非贪婪模式:")
+print(result)
+# 输出: ['<div>内容1</div>', '<div>内容2</div>']
+# 解释：.*? 遇到第一个</div>就停止
+
+# ===== 实际对比 =====
+text = "从1000元降到999元"
+
+# 贪婪匹配数字（会尽可能匹配更多）
+result = re.search(r'\d+', text)
+print(f"\n贪婪: {result.group()}")
+# 输出: 贪婪: 1000
+
+# 非贪婪匹配数字（匹配最少）
+result = re.search(r'\d+?', text)
+print(f"非贪婪: {result.group()}")
+# 输出: 非贪婪: 1
+```
+
+#### 示例4：分组捕获
+
+```python
+import re
+
+# ===== 基本分组 =====
+text = "出生日期：1995-08-15"
+
+# 使用分组提取年月日
+match = re.search(r'(\d{4})-(\d{2})-(\d{2})', text)
+if match:
+    print(f"完整匹配: {match.group(0)}")  # group(0)是整个匹配
+    print(f"年: {match.group(1)}")         # group(1)是第一个括号
+    print(f"月: {match.group(2)}")         # group(2)是第二个括号
+    print(f"日: {match.group(3)}")         # group(3)是第三个括号
+    print(f"所有分组: {match.groups()}")   # groups()返回所有分组的元组
+# 输出:
+# 完整匹配: 1995-08-15
+# 年: 1995
+# 月: 08
+# 日: 15
+# 所有分组: ('1995', '08', '15')
+
+# ===== 命名分组（更清晰）=====
+text = "联系方式：张三 13812345678"
+
+match = re.search(r'(?P<name>\w+)\s+(?P<phone>\d{11})', text)
+if match:
+    print(f"\n姓名: {match.group('name')}")
+    print(f"手机: {match.group('phone')}")
+    print(f"字典形式: {match.groupdict()}")
+# 输出:
+# 姓名: 张三
+# 手机: 13812345678
+# 字典形式: {'name': '张三', 'phone': '13812345678'}
+
+# ===== 分组替换 =====
+text = "手机号：13812345678"
+
+# 隐藏中间4位
+result = re.sub(r'(\d{3})\d{4}(\d{4})', r'\1****\2', text)
+print(f"\n替换结果: {result}")
+# 输出: 替换结果: 手机号：138****5678
+
+# 交换年月日顺序
+date = "2023-12-24"
+new_date = re.sub(r'(\d{4})-(\d{2})-(\d{2})', r'\3/\2/\1', date)
+print(f"日期转换: {new_date}")
+# 输出: 日期转换: 24/12/2023
+```
+
+### re模块核心函数
+
+#### 函数对比表
+
+| 函数 | 返回值 | 作用 | 使用场景 | 示例 |
+|------|--------|------|----------|------|
+| `re.match()` | Match对象或None | 从**字符串开头**匹配 | 验证格式（如验证手机号） | `re.match(r'^\d+', '123abc')` |
+| `re.search()` | Match对象或None | 在**任意位置**找**第一个** | 查找特定内容 | `re.search(r'\d+', 'abc123def')` |
+| `re.findall()` | 列表 | 找到**所有**匹配项 | 提取所有符合条件的内容 | `re.findall(r'\d+', 'a1b2c3')` |
+| `re.finditer()` | 迭代器 | 找到所有，返回Match对象迭代器 | 需要详细信息（如位置） | `re.finditer(r'\d+', 'a1b2')` |
+| `re.sub()` | 字符串 | 替换匹配的内容 | 数据清洗、格式转换 | `re.sub(r'\d+', 'X', 'a1b2')` |
+| `re.split()` | 列表 | 按模式分割字符串 | 复杂分割（多种分隔符） | `re.split(r'[,;]', 'a,b;c')` |
+| `re.compile()` | Pattern对象 | 编译正则表达式 | 重复使用，提高性能 | `p = re.compile(r'\d+')` |
+
+#### 详细示例：每个函数的用法
+
+```python
+import re
+
+# ===== 1. re.match() - 从开头匹配 =====
+print("=" * 60)
+print("1. re.match() - 从开头匹配")
+print("=" * 60)
+
+# 成功：从开头就匹配
+result = re.match(r'\d+', '123abc')
+print(f"匹配'123abc': {result.group()}")
+# 输出: 匹配'123abc': 123
+
+# 失败：开头不匹配
+result = re.match(r'\d+', 'abc123')
+print(f"匹配'abc123': {result}")
+# 输出: 匹配'abc123': None
+
+# 实用：验证手机号格式
+def validate_phone(phone):
+    """验证手机号是否合法"""
+    pattern = r'^1[3-9]\d{9}$'
+    return re.match(pattern, phone) is not None
+
+print(f"13812345678是否合法: {validate_phone('13812345678')}")  # True
+print(f"12345678901是否合法: {validate_phone('12345678901')}")  # False
+
+# ===== 2. re.search() - 任意位置找第一个 =====
+print("\n" + "=" * 60)
+print("2. re.search() - 任意位置找第一个")
+print("=" * 60)
+
+text = "价格是1000元，原价999元"
+
+# 找第一个数字
+result = re.search(r'\d+', text)
+print(f"第一个数字: {result.group()}")
+# 输出: 第一个数字: 1000
+
+print(f"匹配位置: {result.span()}")
+# 输出: 匹配位置: (3, 7)  表示在索引3到7的位置
+
+# 提取价格（带单位）
+result = re.search(r'(\d+)元', text)
+print(f"价格: {result.group(1)}元")
+# 输出: 价格: 1000元
+
+# ===== 3. re.findall() - 找所有（最常用！）=====
+print("\n" + "=" * 60)
+print("3. re.findall() - 找所有")
+print("=" * 60)
+
+text = "我的手机是13812345678，备用号18987654321"
+
+# 提取所有手机号
+phones = re.findall(r'1[3-9]\d{9}', text)
+print(f"所有手机号: {phones}")
+# 输出: 所有手机号: ['13812345678', '18987654321']
+
+# 提取所有数字
+text = "苹果3个，香蕉5个，橙子10个"
+numbers = re.findall(r'\d+', text)
+print(f"所有数字: {numbers}")
+# 输出: 所有数字: ['3', '5', '10']
+
+# 提取所有邮箱
+text = "联系：admin@test.com, support@example.com"
+emails = re.findall(r'\w+@\w+\.\w+', text)
+print(f"所有邮箱: {emails}")
+# 输出: 所有邮箱: ['admin@test.com', 'support@example.com']
+
+# 使用分组提取
+text = "张三:90分，李四:85分，王五:92分"
+results = re.findall(r'(\w+):(\d+)分', text)
+print(f"所有成绩: {results}")
+# 输出: 所有成绩: [('张三', '90'), ('李四', '85'), ('王五', '92')]
+
+# ===== 4. re.finditer() - 返回迭代器 =====
+print("\n" + "=" * 60)
+print("4. re.finditer() - 返回迭代器")
+print("=" * 60)
+
+text = "价格：1000元，原价：999元"
+
+# finditer返回Match对象迭代器，可以获取更多信息
+for match in re.finditer(r'(\d+)元', text):
+    print(f"匹配内容: {match.group()}")
+    print(f"数字部分: {match.group(1)}")
+    print(f"起始位置: {match.start()}")
+    print(f"结束位置: {match.end()}")
+    print(f"位置范围: {match.span()}")
+    print()
+# 输出:
+# 匹配内容: 1000元
+# 数字部分: 1000
+# 起始位置: 3
+# 结束位置: 8
+# 位置范围: (3, 8)
+#
+# 匹配内容: 999元
+# 数字部分: 999
+# 起始位置: 13
+# 结束位置: 17
+# 位置范围: (13, 17)
+
+# ===== 5. re.sub() - 替换（数据清洗利器！）=====
+print("=" * 60)
+print("5. re.sub() - 替换")
+print("=" * 60)
+
+# 简单替换
+text = "我有3个苹果和5个香蕉"
+result = re.sub(r'\d+', 'X', text)
+print(f"替换数字: {result}")
+# 输出: 替换数字: 我有X个苹果和X个香蕉
+
+# 隐藏手机号
+text = "联系电话：13812345678"
+result = re.sub(r'(\d{3})\d{4}(\d{4})', r'\1****\2', text)
+print(f"隐藏手机号: {result}")
+# 输出: 隐藏手机号: 联系电话：138****5678
+
+# 清理多余空格
+text = "hello    world     test"
+result = re.sub(r'\s+', ' ', text)
+print(f"清理空格: {result}")
+# 输出: 清理空格: hello world test
+
+# 删除HTML标签
+html = "<p>这是<b>重点</b>内容</p>"
+result = re.sub(r'<[^>]+>', '', html)
+print(f"移除标签: {result}")
+# 输出: 移除标签: 这是重点内容
+
+# 使用函数替换（高级）
+def double(match):
+    """将匹配到的数字翻倍"""
+    num = int(match.group())
+    return str(num * 2)
+
+text = "苹果3个，香蕉5个"
+result = re.sub(r'\d+', double, text)
+print(f"数字翻倍: {result}")
+# 输出: 数字翻倍: 苹果6个，香蕉10个
+
+# ===== 6. re.split() - 分割 =====
+print("\n" + "=" * 60)
+print("6. re.split() - 分割")
+print("=" * 60)
+
+# 多种分隔符分割
+text = "苹果,香蕉;橙子|西瓜"
+result = re.split(r'[,;|]', text)
+print(f"分割结果: {result}")
+# 输出: 分割结果: ['苹果', '香蕉', '橙子', '西瓜']
+
+# 按空白字符分割
+text = "hello  world\ttab\nnewline"
+result = re.split(r'\s+', text)
+print(f"按空白分割: {result}")
+# 输出: 按空白分割: ['hello', 'world', 'tab', 'newline']
+
+# 保留分隔符（使用分组）
+text = "苹果3个，香蕉5个"
+result = re.split(r'(\d+)', text)
+print(f"保留数字: {result}")
+# 输出: 保留数字: ['苹果', '3', '个，香蕉', '5', '个']
+
+# ===== 7. re.compile() - 编译（提高性能）=====
+print("\n" + "=" * 60)
+print("7. re.compile() - 编译")
+print("=" * 60)
+
+# 需要多次使用同一个正则时，先编译可以提高性能
+pattern = re.compile(r'\d+')
+
+# 使用编译后的pattern
+text1 = "价格100元"
+text2 = "数量50个"
+
+print(f"文本1: {pattern.findall(text1)}")  # ['100']
+print(f"文本2: {pattern.findall(text2)}")  # ['50']
+# 输出:
+# 文本1: ['100']
+# 文本2: ['50']
+
+# 复杂模式的编译
+phone_pattern = re.compile(r'^1[3-9]\d{9}$')
+
+phones = ['13812345678', '12345678901', '18987654321']
+for phone in phones:
+    if phone_pattern.match(phone):
+        print(f"✅ {phone} 格式正确")
+    else:
+        print(f"❌ {phone} 格式错误")
+# 输出:
+# ✅ 13812345678 格式正确
+# ❌ 12345678901 格式错误
+# ✅ 18987654321 格式正确
+```
+
+### 常见正则表达式模式库
+
+#### 实用模式表
+
+| 需求 | 正则表达式 | 说明 | 示例 |
+|------|-----------|------|------|
+| **手机号** | `^1[3-9]\d{9}$` | 1开头，第二位3-9，共11位 | 13812345678 |
+| **邮箱** | `^\w+@\w+\.\w+$` | 简单版 | admin@test.com |
+| **邮箱（严格）** | `^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$` | 支持多级域名 | admin@mail.example.com |
+| **身份证** | `^\d{17}[\dXx]$` | 18位，最后一位可以是X | 110101199001011234 |
+| **网址** | `^https?://[\w\-.]+(:\d+)?(/.*)?$` | 支持http/https | https://example.com:8080/path |
+| **IP地址** | `^(\d{1,3}\.){3}\d{1,3}$` | 四段数字 | 192.168.1.1 |
+| **日期** | `^\d{4}-\d{2}-\d{2}$` | YYYY-MM-DD格式 | 2023-12-24 |
+| **时间** | `^\d{2}:\d{2}:\d{2}$` | HH:MM:SS格式 | 14:30:00 |
+| **中文** | `^[\u4e00-\u9fa5]+$` | 仅中文字符 | 你好世界 |
+| **数字（整数）** | `^-?\d+$` | 可选负号 | -123, 456 |
+| **数字（小数）** | `^-?\d+\.\d+$` | 带小数点 | -123.45, 0.5 |
+| **用户名** | `^[a-zA-Z0-9_]{4,16}$` | 字母数字下划线，4-16位 | user_123 |
+| **密码（强）** | `^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$` | 大小写字母+数字+特殊字符 | Pass@123 |
+| **邮政编码** | `^\d{6}$` | 6位数字 | 100000 |
+| **车牌号** | `^[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领][A-Z][A-Z0-9]{5}$` | 中国车牌 | 京A12345 |
+
+#### 实战验证函数库
+
+```python
+import re
+
+# ===== 手机号验证 =====
+def validate_phone(phone):
+    """验证手机号"""
+    pattern = r'^1[3-9]\d{9}$'
+    return bool(re.match(pattern, phone))
+
+print("手机号验证:")
+print(f"13812345678: {validate_phone('13812345678')}")  # True
+print(f"12345678901: {validate_phone('12345678901')}")  # False
+
+# ===== 邮箱验证 =====
+def validate_email(email):
+    """验证邮箱"""
+    pattern = r'^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$'
+    return bool(re.match(pattern, email))
+
+print("\n邮箱验证:")
+print(f"admin@test.com: {validate_email('admin@test.com')}")  # True
+print(f"invalid@@test: {validate_email('invalid@@test')}")    # False
+
+# ===== 身份证验证 =====
+def validate_idcard(idcard):
+    """验证身份证号"""
+    pattern = r'^\d{17}[\dXx]$'
+    return bool(re.match(pattern, idcard))
+
+print("\n身份证验证:")
+print(f"110101199001011234: {validate_idcard('110101199001011234')}")  # True
+print(f"12345: {validate_idcard('12345')}")                            # False
+
+# ===== URL验证 =====
+def validate_url(url):
+    """验证网址"""
+    pattern = r'^https?://[\w\-.]+(:\d+)?(/.*)?$'
+    return bool(re.match(pattern, url))
+
+print("\nURL验证:")
+print(f"https://example.com: {validate_url('https://example.com')}")          # True
+print(f"http://test.com:8080/path: {validate_url('http://test.com:8080/path')}")  # True
+print(f"invalid: {validate_url('invalid')}")                                  # False
+
+# ===== 提取信息（爬虫常用）=====
+def extract_prices(text):
+    """提取所有价格"""
+    pattern = r'¥?(\d+(?:\.\d+)?)\s*元?'
+    prices = re.findall(pattern, text)
+    return [float(p) for p in prices]
+
+text = "商品A：¥99元，商品B：199.5元，商品C：299"
+print(f"\n提取价格: {extract_prices(text)}")
+# 输出: 提取价格: [99.0, 199.5, 299.0]
+
+def extract_dates(text):
+    """提取所有日期"""
+    pattern = r'\d{4}-\d{2}-\d{2}'
+    return re.findall(pattern, text)
+
+text = "发布时间：2023-12-24，更新时间：2023-12-25"
+print(f"提取日期: {extract_dates(text)}")
+# 输出: 提取日期: ['2023-12-24', '2023-12-25']
+```
+
+### 爬虫中的正则应用
+
+#### 场景1：提取网页中的图片链接
+
+```python
+import re
+import requests
+
+# 假设获取到的HTML内容
+html = """
+<div class="image-list">
+    <img src="/upload/images/pic1.jpg" alt="图片1">
+    <img src="/upload/images/pic2.png" alt="图片2">
+    <img src="https://example.com/pic3.gif" alt="图片3">
+</div>
+"""
+
+# 提取所有图片URL
+img_urls = re.findall(r'src="([^"]+\.(?:jpg|png|gif))"', html)
+print("图片链接:")
+for url in img_urls:
+    print(f"  {url}")
+# 输出:
+# 图片链接:
+#   /upload/images/pic1.jpg
+#   /upload/images/pic2.png
+#   https://example.com/pic3.gif
+
+# 更严格的匹配（只要img标签的src）
+img_pattern = r'<img[^>]+src="([^"]+)"'
+all_imgs = re.findall(img_pattern, html)
+print(f"\n所有img标签的src: {all_imgs}")
+```
+
+#### 场景2：提取商品价格
+
+```python
+import re
+
+# 爬取到的商品HTML
+html = """
+<div class="product">
+    <span class="price">¥<em>1999</em></span>
+    <span class="origin-price">原价：¥2999</span>
+    <span class="discount">6.7折</span>
+</div>
+"""
+
+# 方法1：提取所有数字（可能不准确）
+prices = re.findall(r'\d+', html)
+print(f"所有数字: {prices}")
+# 输出: 所有数字: ['1999', '2999', '6', '7']
+
+# 方法2：精确提取价格（带¥符号的）
+prices = re.findall(r'¥\s*<em>(\d+)</em>|¥(\d+)', html)
+print(f"价格（带¥）: {prices}")
+# 输出: 价格（带¥）: [('1999', ''), ('', '2999')]
+
+# 方法3：提取price类中的数字
+current_price = re.search(r'class="price"[^>]*>¥<em>(\d+)</em>', html)
+origin_price = re.search(r'原价：¥(\d+)', html)
+
+print(f"\n当前价格: ¥{current_price.group(1)}")
+print(f"原价: ¥{origin_price.group(1)}")
+# 输出:
+# 当前价格: ¥1999
+# 原价: ¥2999
+```
+
+#### 场景3：提取文章标题和日期
+
+```python
+import re
+
+# 新闻列表HTML
+html = """
+<ul class="news-list">
+    <li><a href="/news/1">重大消息！某某事件发生</a><span>2023-12-24</span></li>
+    <li><a href="/news/2">最新报道：行业动态更新</a><span>2023-12-25</span></li>
+    <li><a href="/news/3">热点追踪：市场分析</a><span>2023-12-26</span></li>
+</ul>
+"""
+
+# 提取标题和日期
+pattern = r'<a href="([^"]+)">([^<]+)</a><span>(\d{4}-\d{2}-\d{2})</span>'
+news_list = re.findall(pattern, html)
+
+print("新闻列表:")
+for url, title, date in news_list:
+    print(f"  [{date}] {title}")
+    print(f"    链接: {url}")
+    print()
+# 输出:
+# 新闻列表:
+#   [2023-12-24] 重大消息！某某事件发生
+#     链接: /news/1
+#
+#   [2023-12-25] 最新报道：行业动态更新
+#     链接: /news/2
+#
+#   [2023-12-26] 热点追踪：市场分析
+#     链接: /news/3
+```
+
+### 正则表达式练习题
+
+#### 练习1：验证输入
+
+```python
+import re
+
+def practice_validation():
+    """验证练习"""
+    
+    # 题目1：验证QQ号（5-11位数字，不能以0开头）
+    def validate_qq(qq):
+        pattern = r'^[1-9]\d{4,10}$'
+        return bool(re.match(pattern, qq))
+    
+    print("QQ号验证:")
+    test_cases = ['12345', '1234567890', '01234', '123']
+    for qq in test_cases:
+        print(f"  {qq}: {validate_qq(qq)}")
+    # 输出:
+    # QQ号验证:
+    #   12345: True
+    #   1234567890: True
+    #   01234: False（以0开头）
+    #   123: False（少于5位）
+    
+    # 题目2：验证用户名（字母开头，字母数字下划线，6-20位）
+    def validate_username(username):
+        pattern = r'^[a-zA-Z][a-zA-Z0-9_]{5,19}$'
+        return bool(re.match(pattern, username))
+    
+    print("\n用户名验证:")
+    test_cases = ['user123', 'test_user', '123user', 'ab', 'valid_username_123']
+    for username in test_cases:
+        print(f"  {username}: {validate_username(username)}")
+    # 输出:
+    # 用户名验证:
+    #   user123: True
+    #   test_user: True
+    #   123user: False（数字开头）
+    #   ab: False（少于6位）
+    #   valid_username_123: True
+
+practice_validation()
+```
+
+#### 练习2：信息提取
+
+```python
+import re
+
+def practice_extraction():
+    """提取练习"""
+    
+    # 题目1：从文本中提取所有手机号
+    text = """
+    联系方式：
+    张三：13812345678
+    李四：18987654321
+    座机：021-12345678
+    王五的手机是15912345678
+    """
+    
+    phones = re.findall(r'1[3-9]\d{9}', text)
+    print("提取手机号:")
+    for phone in phones:
+        print(f"  {phone}")
+    # 输出:
+    # 提取手机号:
+    #   13812345678
+    #   18987654321
+    #   15912345678
+    
+    # 题目2：提取HTML中的所有链接
+    html = """
+    <a href="https://example.com">示例网站</a>
+    <a href="/page/about">关于我们</a>
+    <img src="/images/logo.png">
+    <a href="http://test.com/article?id=123">文章</a>
+    """
+    
+    links = re.findall(r'<a href="([^"]+)"', html)
+    print("\n提取链接:")
+    for link in links:
+        print(f"  {link}")
+    # 输出:
+    # 提取链接:
+    #   https://example.com
+    #   /page/about
+    #   http://test.com/article?id=123
+    
+    # 题目3：提取价格并计算总价
+    text = "商品A：¥99元，商品B：¥199元，商品C：¥299元"
+    prices = re.findall(r'¥(\d+)元', text)
+    total = sum(int(p) for p in prices)
+    print(f"\n价格列表: {prices}")
+    print(f"总价: ¥{total}元")
+    # 输出:
+    # 价格列表: ['99', '199', '299']
+    # 总价: ¥597元
+
+practice_extraction()
+```
+
+### 常见错误和陷阱
+
+#### 陷阱1：贪婪匹配导致错误
+
+```python
+import re
+
+html = '<div>内容1</div><div>内容2</div>'
+
+# ❌ 错误：贪婪匹配会匹配到最后
+result = re.findall(r'<div>.*</div>', html)
+print(f"贪婪匹配: {result}")
+# 输出: 贪婪匹配: ['<div>内容1</div><div>内容2</div>']
+
+# ✅ 正确：使用非贪婪匹配
+result = re.findall(r'<div>.*?</div>', html)
+print(f"非贪婪匹配: {result}")
+# 输出: 非贪婪匹配: ['<div>内容1</div>', '<div>内容2</div>']
+```
+
+#### 陷阱2：忘记转义特殊字符
+
+```python
+import re
+
+# ❌ 错误：. 匹配任意字符，不是字面意思的点
+price = "价格是9.99元"
+result = re.search(r'\d.\d\d', price)
+print(f"错误匹配: {result.group()}")
+# 输出: 错误匹配: 9.99（恰好对了，但如果是"9X99"也会匹配）
+
+# ✅ 正确：转义点号
+result = re.search(r'\d\.\d\d', price)
+print(f"正确匹配: {result.group()}")
+# 输出: 正确匹配: 9.99
+
+# 需要转义的特殊字符：. * + ? [ ] ( ) { } ^ $ | \
+# 使用r''原始字符串可以避免双重转义
+```
+
+#### 陷阱3：分组导致返回值变化
+
+```python
+import re
+
+text = "张三:90分，李四:85分"
+
+# 不使用分组
+result = re.findall(r'\w+:\d+分', text)
+print(f"不使用分组: {result}")
+# 输出: 不使用分组: ['张三:90分', '李四:85分']
+
+# 使用分组
+result = re.findall(r'(\w+):(\d+)分', text)
+print(f"使用分组: {result}")
+# 输出: 使用分组: [('张三', '90'), ('李四', '85')]
+
+# ⚠️ 注意：findall在有分组时只返回分组内容！
+# 如果想要完整匹配又要分组，使用非捕获分组(?:...)
+result = re.findall(r'(?:\w+):(\d+)分', text)
+print(f"非捕获分组: {result}")
+# 输出: 非捕获分组: ['90', '85']
+```
+
+### 考试重点总结
+
+#### ⭐⭐⭐ 必须掌握的考点 ⭐⭐⭐
+
+```python
+# 1. 基础元字符（必考）
+\d   # 数字 [0-9]
+\w   # 字母数字下划线 [a-zA-Z0-9_]
+\s   # 空白字符（空格、tab、换行）
+.    # 任意字符（除换行符）
+^    # 开头
+$    # 结尾
+
+# 2. 量词（必考）
+*      # 0次或多次
++      # 1次或多次
+?      # 0次或1次
+{n}    # 恰好n次
+{n,m}  # n到m次
+
+# 3. re模块函数区别（⭐高频考点）
+re.search()   # 找第一个（任意位置），返回Match对象
+re.findall()  # 找所有（返回列表）
+re.match()    # 从开头找（验证格式）
+re.sub()      # 替换匹配内容
+
+# 4. 贪婪vs非贪婪（⭐易错点）
+.*    # 贪婪（尽可能多）
+.*?   # 非贪婪（尽可能少）
+
+# 5. 分组提取（⭐常考）
+(pattern)  # 捕获分组
+group(1)   # 获取第1个分组
+findall    # 有分组时只返回分组内容
+```
+
+**记忆口诀：**
+- search找第一个，findall全找到
+- 贪婪尽量多，非贪加问号
+- 分组用括号，编号从一到
+
+### 常用正则表达式速查表
+
+#### 验证格式类（用于数据验证）
+
+| 需求 | 正则表达式 | 说明 | 示例代码 |
+|------|-----------|------|----------|
+| 手机号 | `^1[3-9]\d{9}$` | 1开头，第二位3-9，共11位 | `re.match(r'^1[3-9]\d{9}$', '13812345678')` |
+| 邮箱 | `^\w+@\w+\.\w+$` | 基础版邮箱验证 | `re.match(r'^\w+@\w+\.\w+$', 'test@qq.com')` |
+| 身份证 | `^\d{17}[\dX]$` | 18位，最后一位可能是X | `re.match(r'^\d{17}[\dX]$', '110101199001011234')` |
+| 网址URL | `^https?://\S+$` | http或https开头 | `re.match(r'^https?://\S+$', 'https://baidu.com')` |
+| IP地址 | `^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$` | 简单版IP验证 | `re.match(r'^\d{1,3}(\.\d{1,3}){3}$', '192.168.1.1')` |
+| 日期 | `^\d{4}-\d{2}-\d{2}$` | YYYY-MM-DD格式 | `re.match(r'^\d{4}-\d{2}-\d{2}$', '2023-12-24')` |
+| 时间 | `^\d{2}:\d{2}:\d{2}$` | HH:MM:SS格式 | `re.match(r'^\d{2}:\d{2}:\d{2}$', '14:30:00')` |
+| 中文 | `^[\u4e00-\u9fa5]+$` | 只包含中文字符 | `re.match(r'^[\u4e00-\u9fa5]+$', '你好')` |
+| 密码 | `^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$` | 至少8位，含大小写字母和数字 | 复杂验证 |
+
+#### 提取信息类（用于爬虫数据提取）
+
+| 需求 | 正则表达式 | 说明 | 示例代码 |
+|------|-----------|------|----------|
+| 提取所有数字 | `\d+` | 连续数字 | `re.findall(r'\d+', '价格100元')` |
+| 提取所有邮箱 | `\w+@\w+\.\w+` | 基础邮箱提取 | `re.findall(r'\w+@\w+\.\w+', text)` |
+| 提取HTML标签内容 | `<(\w+)>.*?</\1>` | 提取标签及内容 | `re.findall(r'<div>(.*?)</div>', html)` |
+| 提取图片链接 | `src="([^"]+\.(?:jpg|png|gif))"` | 提取src中的图片URL | `re.findall(r'src="([^"]+\.jpg)"', html)` |
+| 提取价格 | `¥?\d+\.?\d*` | 带或不带¥符号的价格 | `re.findall(r'¥?\d+\.?\d*', '¥99.99')` |
+| 提取括号内容 | `\(([^)]+)\)` | 提取圆括号内的内容 | `re.findall(r'\(([^)]+)\)', '电话(123)')` |
+| 提取英文单词 | `[a-zA-Z]+` | 连续字母 | `re.findall(r'[a-zA-Z]+', 'hello world')` |
+
+#### 数据清洗类（用于文本处理）
+
+| 需求 | 正则表达式 | 说明 | 示例代码 |
+|------|-----------|------|----------|
+| 删除空白字符 | `\s+` | 匹配所有空白 | `re.sub(r'\s+', '', text)` |
+| 删除HTML标签 | `<[^>]+>` | 匹配所有标签 | `re.sub(r'<[^>]+>', '', html)` |
+| 删除特殊字符 | `[^\w\s]` | 只保留字母数字下划线和空格 | `re.sub(r'[^\w\s]', '', text)` |
+| 统一空白为单个空格 | `\s+` | 多个空白替换为一个空格 | `re.sub(r'\s+', ' ', text)` |
+| 删除重复词 | `\b(\w+)\s+\1\b` | 匹配连续重复的词 | `re.sub(r'\b(\w+)\s+\1\b', r'\1', text)` |
+
+### 爬虫实战应用示例
+
+#### 场景1：爬取商品价格
+
+```python
+import re
+import requests
+from bs4 import BeautifulSoup
+
+# 模拟HTML内容
+html = """
+<div class="product">
+    <span class="price">¥1999.00</span>
+    <span class="old-price">原价：¥2999.00</span>
+</div>
+"""
+
+# 方法1：使用正则直接提取
+prices = re.findall(r'¥(\d+\.?\d*)', html)
+print(f"所有价格: {prices}")
+# 输出: 所有价格: ['1999.00', '2999.00']
+
+# 方法2：结合BeautifulSoup
+soup = BeautifulSoup(html, 'html.parser')
+price_text = soup.find('span', class_='price').text
+price = re.search(r'\d+\.?\d*', price_text).group()
+print(f"当前价格: {price}")
+# 输出: 当前价格: 1999.00
+```
+
+#### 场景2：提取图片链接
+
+```python
+import re
+
+html = """
+<img src="/upload/image/product/123.jpg" alt="商品图片">
+<img src="https://cdn.example.com/img/banner.png">
+<img src="./images/logo.gif">
+"""
+
+# 提取所有图片链接
+img_urls = re.findall(r'src="([^"]+\.(?:jpg|png|gif))"', html)
+print("找到的图片:")
+for url in img_urls:
+    print(f"  - {url}")
+# 输出:
+# 找到的图片:
+#   - /upload/image/product/123.jpg
+#   - https://cdn.example.com/img/banner.png
+#   - ./images/logo.gif
+
+# 只提取完整URL（http/https开头）
+full_urls = re.findall(r'src="(https?://[^"]+)"', html)
+print(f"\n完整URL: {full_urls}")
+# 输出: 完整URL: ['https://cdn.example.com/img/banner.png']
+
+# 拼接相对路径
+base_url = "https://example.com"
+for url in img_urls:
+    if not url.startswith('http'):
+        if url.startswith('/'):
+            full_url = base_url + url
+        else:
+            full_url = base_url + '/' + url
+        print(f"拼接后: {full_url}")
+# 输出:
+# 拼接后: https://example.com/upload/image/product/123.jpg
+# 拼接后: https://example.com/./images/logo.gif
+```
+
+#### 场景3：清洗爬取的文本
+
+```python
+import re
+
+# 从网页爬取的原始文本（包含HTML标签和多余空白）
+raw_text = """
+<div>
+    产品名称：  iPhone 15    Pro  
+    
+    价格：¥7999.00
+    
+    <span>库存：100件</span>
+</div>
+"""
+
+# 步骤1：删除HTML标签
+text = re.sub(r'<[^>]+>', '', raw_text)
+print("删除标签后:")
+print(repr(text))
+# 输出: '\n    产品名称：  iPhone 15    Pro  \n    \n    价格：¥7999.00\n    \n    库存：100件\n'
+
+# 步骤2：统一空白为单个空格
+text = re.sub(r'\s+', ' ', text)
+print("\n统一空白后:")
+print(repr(text))
+# 输出: ' 产品名称： iPhone 15 Pro 价格：¥7999.00 库存：100件 '
+
+# 步骤3：去除首尾空白
+text = text.strip()
+print("\n最终结果:")
+print(text)
+# 输出: 产品名称： iPhone 15 Pro 价格：¥7999.00 库存：100件
+
+# 步骤4：提取结构化数据
+data = {}
+data['name'] = re.search(r'产品名称：\s*(.+?)\s*价格', text).group(1)
+data['price'] = re.search(r'价格：¥(\d+\.?\d*)', text).group(1)
+data['stock'] = re.search(r'库存：(\d+)件', text).group(1)
+
+print("\n结构化数据:")
+print(data)
+# 输出:
+# 结构化数据:
+# {'name': 'iPhone 15 Pro', 'price': '7999.00', 'stock': '100'}
+```
+
+#### 场景4：处理分页URL
+
+```python
+import re
+
+# 当前页面URL
+current_url = "https://example.com/products?page=1&size=20"
+
+# 提取页码
+page = re.search(r'page=(\d+)', current_url)
+if page:
+    current_page = int(page.group(1))
+    print(f"当前页: {current_page}")
+    # 输出: 当前页: 1
+    
+    # 生成下一页URL
+    next_page = current_page + 1
+    next_url = re.sub(r'page=\d+', f'page={next_page}', current_url)
+    print(f"下一页: {next_url}")
+    # 输出: 下一页: https://example.com/products?page=2&size=20
+
+# 批量生成多页URL
+base_url = "https://example.com/products?page={}&size=20"
+for page in range(1, 6):
+    url = base_url.format(page)
+    print(f"第{page}页: {url}")
+# 输出:
+# 第1页: https://example.com/products?page=1&size=20
+# 第2页: https://example.com/products?page=2&size=20
+# ...
+```
+
+### 练习题
+
+#### 练习1：提取手机号
+
+```python
+import re
+
+text = "联系我们：客服电话13812345678，投诉热线：400-123-4567，座机：010-12345678"
+
+# 要求：提取所有11位手机号
+# 你的代码：
+phones = re.findall(r'1[3-9]\d{9}', text)
+print(f"手机号: {phones}")
+# 答案: ['13812345678']
+```
+
+#### 练习2：验证邮箱格式
+
+```python
+import re
+
+emails = [
+    "test@example.com",      # 有效
+    "user.name@test.co.cn",  # 有效
+    "invalid@",              # 无效
+    "@invalid.com",          # 无效
+    "no-at-sign.com"         # 无效
+]
+
+# 要求：验证哪些是有效邮箱
+# 提示：使用re.match()和合适的正则表达式
+pattern = r'^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$'
+for email in emails:
+    if re.match(pattern, email):
+        print(f"✅ {email} 有效")
+    else:
+        print(f"❌ {email} 无效")
+```
+
+#### 练习3：提取HTML标签内容
+
+```python
+import re
+
+html = '<div class="title">Python爬虫教程</div><div class="price">¥99.00</div>'
+
+# 要求：提取所有<div>标签内的文本内容
+# 你的代码：
+contents = re.findall(r'<div[^>]*>(.*?)</div>', html)
+print(f"提取内容: {contents}")
+# 答案: ['Python爬虫教程', '¥99.00']
+```
+
+#### 练习4：替换敏感词
+
+```python
+import re
+
+text = "这个产品很垃圾，质量太差了，简直是骗钱的！"
+
+# 要求：将敏感词替换为 ***
+# 敏感词列表：垃圾、差、骗
+sensitive_words = ['垃圾', '差', '骗']
+
+# 方法1：逐个替换
+result = text
+for word in sensitive_words:
+    result = result.replace(word, '***')
+print(f"方法1: {result}")
+
+# 方法2：使用正则一次性替换
+pattern = '|'.join(sensitive_words)  # 构造：'垃圾|差|骗'
+result = re.sub(pattern, '***', text)
+print(f"方法2: {result}")
+# 输出: 这个产品很***，质量太***了，简直是***钱的！
+```
+
+### 考试必背知识卡片
+
+#### 卡片1：re模块三大核心函数
+
+```python
+import re
+
+text = "价格100元，原价200元"
+
+# 1. search - 找第一个（返回Match对象）
+result = re.search(r'\d+', text)
+print(result.group())  # 输出: 100
+
+# 2. findall - 找所有（返回列表）
+results = re.findall(r'\d+', text)
+print(results)  # 输出: ['100', '200']
+
+# 3. sub - 替换（返回新字符串）
+new_text = re.sub(r'\d+', 'X', text)
+print(new_text)  # 输出: 价格X元，原价X元
+```
+
+#### 卡片2：分组的三种用法
+
+```python
+import re
+
+text = "张三:90分"
+
+# 用法1：提取分组内容
+match = re.search(r'(\w+):(\d+)分', text)
+print(match.group(1))  # 输出: 张三
+print(match.group(2))  # 输出: 90
+
+# 用法2：替换时引用分组
+result = re.sub(r'(\w+):(\d+)分', r'\1得了\2分', text)
+print(result)  # 输出: 张三得了90分
+
+# 用法3：findall遇到分组只返回分组
+results = re.findall(r'(\w+):(\d+)分', '张三:90分，李四:85分')
+print(results)  # 输出: [('张三', '90'), ('李四', '85')]
+```
+
+#### 卡片3：贪婪vs非贪婪（必考！）
+
+```python
+import re
+
+html = '<div>内容1</div><div>内容2</div>'
+
+# 贪婪（默认）：匹配尽可能多
+greedy = re.findall(r'<div>.*</div>', html)
+print(greedy)  
+# 输出: ['<div>内容1</div><div>内容2</div>']  ← 一次性匹配到最后
+
+# 非贪婪（加?）：匹配尽可能少
+non_greedy = re.findall(r'<div>.*?</div>', html)
+print(non_greedy)  
+# 输出: ['<div>内容1</div>', '<div>内容2</div>']  ← 遇到第一个</div>就停
+```
+
+#### 卡片4：常见元字符速记
+
+```python
+# 数字相关
+\d    # 数字 [0-9]
+\D    # 非数字
+\d+   # 一个或多个数字
+\d{11} # 恰好11位数字（手机号）
+
+# 字母相关
+\w    # 字母数字下划线
+\W    # 非字母数字下划线
+[a-z] # 小写字母
+[A-Z] # 大写字母
+
+# 空白相关
+\s    # 空白字符
+\S    # 非空白字符
+
+# 位置相关
+^     # 开头
+$     # 结尾
+\b    # 单词边界
+```
+
+### 最后的叮嘱
+
+**考试时的注意事项：**
+
+1. **记得加 `r` 前缀**：`r'\d+'` 而不是 `'\d+'`
+2. **search vs findall**：
+   - 只要第一个 → `re.search()`，记得用 `.group()`
+   - 要所有的 → `re.findall()`，直接返回列表
+3. **贪婪问题**：提取HTML内容时，**必须用 `.*?` 而不是 `.*`**
+4. **分组陷阱**：`findall` 遇到分组只返回分组内容，不返回完整匹配
+5. **转义问题**：特殊字符（如`.` `?` `*` `+` `(` `)`）需要用 `\` 转义
+
+**记忆口诀（再强调一次）：**
+- search找第一个，findall全找到
+- 贪婪尽量多，非贪加问号
+- 分组用括号，编号从一到
+- 特殊字符反斜杠，原始字符r开头
