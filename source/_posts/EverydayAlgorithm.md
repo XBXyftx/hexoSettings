@@ -821,3 +821,89 @@ ok，直接秒掉。不过重点还是在于掌握思路。
 ![55](EverydayAlgorithm/55.png)
 
 大致是这个意思，我来实现一下。
+
+```ts
+function majorityElement(nums: number[]): number {
+    return split(nums,0,nums.length-1)
+};
+
+function countInArray(nums:number[],num:number,str:number,end:number):number{
+    let count:number=0
+    for(let i=str;str<=end;i++){
+        if(nums[i]===num){
+            count++
+        }
+    }
+    return count
+}
+
+function split(nums:number[],str:number,end:number):number{
+
+    if(str===end){
+        return nums[str]
+    }
+
+    let mid = Math.floor((end-str)/2+str) 
+    let left = split(nums,str,mid)
+    let righ = split(nums,mid+1,end)
+
+    if(left===righ){
+        return left
+    }
+
+    let leftCount = countInArray(nums,left,str,end)
+    let righCount = countInArray(nums,righ,str,end)
+
+    return leftCount > righCount ? left : righ
+}
+```
+
+![56](EverydayAlgorithm/56.png)
+
+？递归超时？
+
+我经过一番检查发现其实问题并不在于递归而是在于for循环。
+
+`for(let i=str;str<=end;i++)`
+
+啊，好蠢啊。
+
+```ts
+function majorityElement(nums: number[]): number {
+    return split(nums,0,nums.length-1)
+};
+
+function countInArray(nums:number[],num:number,str:number,end:number):number{
+    let count:number=0
+    for(let i=str;i<=end;i++){
+        if(nums[i]===num){
+            count++
+        }
+    }
+    return count
+}
+
+function split(nums:number[],str:number,end:number):number{
+
+    if(str===end){
+        return nums[str]
+    }
+
+    let mid = Math.floor((end-str)/2+str) 
+    let left = split(nums,str,mid)
+    let right = split(nums,mid+1,end)
+
+    if(left===right){
+        return left
+    }
+
+    let leftCount = countInArray(nums,left,str,end)
+    let righCount = countInArray(nums,right,str,end)
+
+    return leftCount > righCount ? left : right
+}
+```
+
+![57](EverydayAlgorithm/57.png)
+
+分治是个好思想但是他的时间空间好像并不是很优秀。
