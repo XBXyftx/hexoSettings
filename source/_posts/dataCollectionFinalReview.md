@@ -487,6 +487,8 @@ print(squares_dict)
 
 之所以要特别添加一个类型的讲解主要就是对于字典这个类型有一点不太确定，此前对于py的接触以及基础知识确实是有些缺失，所以要特别强化一下这块的基础知识，具体到题目的话主要是下面这题。
 
+### 真题
+
 ![1](dataCollectionFinalReview\1.png)
 
 这道题我的第一反应是要去选择 "对象" 的，但是py中好像是将对象称呼为字典？
@@ -653,6 +655,27 @@ print(tuple("abc"))
 # 转换为集合
 print(set([1, 2, 2, 3]))
 # 输出: {1, 2, 3}
+```
+
+### 真题
+
+![26](dataCollectionFinalReview\26.png)
+
+```py
+data = ((001, '大数据导论', 2),
+      (002, '大数据技术基础', 2.5),
+      (003, '数据采集与处理', 2),
+      (004, '数据挖掘', 2.5),
+      (005, '大数据分析与决策', 2),
+      (006, '大数据可视化', 2)
+       )
+#提示：输出第3行数据
+row3 = data[2]（3分）
+#提示：print(row3)的输出是(003, '数据采集与处理', 2)（3分）
+print(row3)
+#提示：输出“数据挖掘”课程的学分
+row4c2 = data[3][2]（4分）
+print(row4c2) 
 ```
 
 ## 数据采集中的两大核心数据类型`Series`和`DataFrame`
@@ -5673,3 +5696,364 @@ print("PCA 是【维度归约】，不是【数量归约】！")
 ![24](dataCollectionFinalReview/24.png)
 
 请注意这里的正确答案是B，但是数据预处理四步骤是：数据清洗—数据集成—数据变换—数据归约，并没有数据分箱这样的步骤不要被迷惑。
+
+## pymysql
+
+这一块主要是如何用py去链接数据库来进行数据的持久化存储，主要的考查形式是代码填空，属于是内种已经过时且没啥用的形式了，有点恶心人，但不得不准备一下。
+
+### pymysql的安装与导入
+
+在看了一些题后发现这一块还真得提一嘴，真的会出现这种手写命令行的题。
+
+```bash
+# 安装命令（填空题常考！）
+pip install pymysql
+```
+
+```python
+# 导入语句（注意大小写！）
+import pymysql
+```
+
+⚠️ **考点陷阱**：
+- 是 `pymysql` 不是 `PyMySQL`（导入时全小写）
+- 是 `pip install` 不是 `pip instal`（别漏字母）
+
+---
+
+### pymysql的连接与关键参数
+
+**五大核心参数（必背！）**
+
+```python
+# 建立数据库连接
+conn = pymysql.connect(
+    host='127.0.0.1',      # 主机地址（本地就是127.0.0.1或localhost）
+    port=3306,             # 端口号（MySQL默认3306，注意是整数不是字符串！）
+    user='root',           # 用户名
+    password='123456',     # 密码
+    database='mydb',       # 数据库名（考试常用：你的名字拼音）
+    charset='utf8'         # 字符集（防止中文乱码）
+)
+```
+
+**参数速记口诀**：**主-端-用-密-库**（host-port-user-password-database）
+
+| 参数 | 默认值 | 易错点 |
+|------|--------|--------|
+| `host` | `'localhost'` | 引号不能漏 |
+| `port` | `3306` | **整数类型**，不加引号！ |
+| `user` | `'root'` | 字符串 |
+| `password` | - | 字符串 |
+| `database` | - | 也可写成 `db` |
+| `charset` | - | 是 `utf8` 不是 `utf-8` |
+
+⚠️ **高频陷阱**：
+- `port=3306` ✅  vs  `port='3306'` ❌ （端口是整数！）
+- `charset='utf8'` ✅  vs  `charset='utf-8'` ❌ （没有横杠！）
+
+---
+
+### pymysql的增删改查与SQL语句
+
+**完整的增删改查模板（代码填空必考）**
+
+```python
+import pymysql
+
+# 1. 建立连接
+conn = pymysql.connect(
+    host='127.0.0.1',
+    port=3306,
+    user='root',
+    password='123456',
+    database='student_db',
+    charset='utf8'
+)
+
+# 2. 创建游标
+cursor = conn.cursor()
+
+# ========== 增（INSERT）==========
+sql_insert = "INSERT INTO student VALUES (%s, %s, %s, %s)"
+cursor.execute(sql_insert, (2019012001, '张三', '男', 1))
+conn.commit()  # 增删改必须commit！
+
+# ========== 删（DELETE）==========
+sql_delete = "DELETE FROM student WHERE id = %s"
+cursor.execute(sql_delete, (2019012001,))  # 注意：单个参数也要用元组
+conn.commit()
+
+# ========== 改（UPDATE）==========
+sql_update = "UPDATE student SET name = %s WHERE id = %s"
+cursor.execute(sql_update, ('李四', 2019012001))
+conn.commit()
+
+# ========== 查（SELECT）==========
+sql_select = "SELECT * FROM student WHERE class = %s"
+cursor.execute(sql_select, (1,))
+
+# 获取查询结果
+result = cursor.fetchall()    # 获取所有结果
+# result = cursor.fetchone()  # 获取一条结果
+# result = cursor.fetchmany(5)  # 获取5条结果
+
+for row in result:
+    print(row)
+
+# 3. 关闭连接（先关游标，再关连接）
+cursor.close()
+conn.close()
+```
+
+**SQL 语句模板（手写题常考）**
+
+```sql
+-- 插入数据
+INSERT INTO student VALUES (学号, '姓名', '性别', 班级);
+INSERT INTO student (id, name) VALUES (2019012001, '张三');
+
+-- 删除数据
+DELETE FROM student WHERE id = 2019012001;
+
+-- 更新数据
+UPDATE student SET name = '李四' WHERE id = 2019012001;
+
+-- 查询数据
+SELECT * FROM student;
+SELECT name, age FROM student WHERE class = 1;
+```
+
+**三种获取结果的方法**
+
+| 方法 | 说明 | 返回值 |
+|------|------|--------|
+| `fetchone()` | 获取一条记录 | 元组 或 None |
+| `fetchall()` | 获取所有记录 | 元组的元组 |
+| `fetchmany(n)` | 获取 n 条记录 | 元组的元组 |
+
+---
+
+### pymysql的游标与事务
+
+**游标（Cursor）是什么？**
+
+游标本质上是一个**数据库操作的"中间人"**，它在 Python 程序和 MySQL 数据库之间架起了一座桥：
+
+```
+┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+│   Python    │ ──── │   Cursor    │ ──── │   MySQL     │
+│   程序      │      │   游标       │      │   数据库    │
+└─────────────┘      └─────────────┘      └─────────────┘
+     发送SQL    →     传递/执行    →     返回结果
+                 ←     封装结果    ←
+```
+
+**为什么需要游标？**
+
+| 问题 | 游标的解决方案 |
+|------|----------------|
+| SQL 语句怎么发给数据库？ | `cursor.execute(sql)` 发送并执行 |
+| 查询结果怎么拿回来？ | `cursor.fetchall()` 获取结果 |
+| 一次查询返回多条数据怎么办？ | 游标像"指针"一样逐条读取 |
+| 怎么防止 SQL 注入？ | `cursor.execute(sql, params)` 参数化查询 |
+
+**游标的核心方法**
+
+```python
+# 1. 创建游标
+cursor = conn.cursor()
+
+# 2. 执行SQL（两种方式）
+cursor.execute(sql)                    # 直接执行
+cursor.execute(sql, (param1, param2))  # 参数化执行（推荐，防SQL注入）
+
+# 3. 获取查询结果
+result = cursor.fetchone()      # 取1条 → 返回元组
+result = cursor.fetchall()      # 取全部 → 返回元组的元组
+result = cursor.fetchmany(5)    # 取5条 → 返回元组的元组
+
+# 4. 获取影响行数（增删改时有用）
+affected_rows = cursor.rowcount
+
+# 5. 关闭游标
+cursor.close()
+```
+
+**一句话理解**：`conn` 是到数据库的"高速公路"，`cursor` 是在这条路上跑的"货车"，负责运送 SQL 和数据。
+
+---
+
+**事务三板斧（增删改必用！）**
+
+```python
+try:
+    cursor.execute(sql)
+    conn.commit()      # ✅ 提交事务（数据才真正写入数据库）
+except Exception as e:
+    conn.rollback()    # ❌ 回滚事务（出错时撤销操作）
+    print(f"错误：{e}")
+```
+
+**核心规则**：
+- **查询（SELECT）**：不需要 `commit()`，因为没有修改数据
+- **增删改（INSERT/DELETE/UPDATE）**：**必须 `commit()`**，否则数据不会保存！
+
+**为什么增删改要 commit？**
+
+```
+执行 INSERT/UPDATE/DELETE
+         ↓
+    数据暂存在"缓冲区"（还没真正写入数据库）
+         ↓
+    ┌─── commit() ───→ 确认修改，写入数据库 ✅
+    │
+    └─── rollback() ──→ 撤销修改，数据库不变 ❌
+```
+
+---
+
+**完整代码模板（代码填空万能模板）**
+
+```python
+import pymysql
+
+# 连接数据库
+conn = pymysql.connect(
+    host='127.0.0.1',
+    port=3306,
+    user='root',
+    password='123456',
+    database='mydb',
+    charset='utf8'
+)
+
+try:
+    # 创建游标
+    cursor = conn.cursor()
+    
+    # 执行SQL
+    sql = "INSERT INTO student VALUES (%s, %s, %s, %s)"
+    cursor.execute(sql, (2019012001, '张三', '男', 1))
+    
+    # 提交事务
+    conn.commit()
+    print("操作成功！")
+    
+except Exception as e:
+    # 发生错误时回滚
+    conn.rollback()
+    print(f"操作失败：{e}")
+    
+finally:
+    # 关闭连接（先游标后连接）
+    cursor.close()
+    conn.close()
+```
+
+---
+
+### pymysql 速记清单
+
+**一、安装导入**
+```python
+pip install pymysql
+import pymysql
+```
+
+**二、连接参数口诀**：**主-端-用-密-库**
+- `host` / `port` / `user` / `password` / `database`
+- 端口 `3306` 是整数，不加引号！
+
+**三、操作四步曲**
+1. `conn = pymysql.connect(...)` → 连接
+2. `cursor = conn.cursor()` → 创建游标
+3. `cursor.execute(sql)` → 执行SQL
+4. `conn.commit()` → 提交（增删改必须）
+
+**四、关闭顺序**：先 `cursor.close()`，后 `conn.close()`
+
+**五、三种取结果**：`fetchone()` / `fetchall()` / `fetchmany(n)`
+
+---
+
+### 考点自测
+
+**填空题：**
+```python
+import ______①______
+
+conn = pymysql.______②______(
+    host='127.0.0.1',
+    ______③______=3306,
+    user='root',
+    password='123456',
+    database='test'
+)
+
+cursor = conn.______④______()
+sql = "INSERT INTO user VALUES (%s, %s)"
+cursor.______⑤______(sql, (1, '张三'))
+conn.______⑥______()
+
+cursor.close()
+conn.close()
+```
+
+**答案**：
+① `pymysql`  ② `connect`  ③ `port`  ④ `cursor`  ⑤ `execute`  ⑥ `commit`
+
+### 真题
+
+![25](dataCollectionFinalReview/25.png)
+
+```py
+# 导入pymysql模块
+（1）       
+#创建数据库连接
+conn = pymysql.connect(
+（2）       
+（3）      
+（4）       
+（5）       
+（6）       
+#创建游标
+cur = （7）      
+#插入你的信息，学号，姓名，性别，班级名称
+（8）           
+#执行SQL语句
+ret =（9）         
+#提交操作结果
+（10）        
+# 关闭游标
+cur.close()
+# 关闭连接
+conn.close()
+```
+
+```py
+# 导入pymysql模块
+import pymysql
+#创建数据库连接
+conn = pymysql.connect(
+    host = "127.0.0.1",
+    port = 3306,
+    user = "root",
+    password = "123456",
+    database ="zhangsan")
+#创建游标
+cur = conn.cursor()
+#插入你的信息，学号，姓名，性别，班级名称
+SQL='''
+INSERT INTO zhangsan.`student` VALUES 
+(2020001, '张三', '男', 2001);
+'''
+#执行SQL语句
+ret = cur.execute(SQL)
+#提交操作结果
+conn.commit()
+# 关闭游标
+cur.close()
+# 关闭连接
+conn.close() 
+```
