@@ -2305,20 +2305,20 @@ print("图片下载成功！")
 
 | 状态码 | 类型 | 名称 | 含义 | 常见原因 | 爬虫应对策略 |
 |--------|------|------|------|----------|--------------|
-| **2xx 成功** |||||
+| **2xx 成功** ||||||
 | 200 | ✅ 成功 | OK | 请求成功 | 正常访问 | 直接处理数据 |
 | 201 | ✅ 成功 | Created | 资源已创建 | POST请求成功 | 确认资源已创建 |
-| **3xx 重定向** |||||
+| **3xx 重定向** ||||||
 | 301 | 🔄 重定向 | Moved Permanently | 永久移动 | 网站改版、域名变更 | 更新URL为新地址 |
 | 302 | 🔄 重定向 | Found | 临时移动 | 短链接跳转、临时维护 | 跟随重定向 |
 | 304 | 🔄 重定向 | Not Modified | 资源未修改 | 缓存有效 | 使用本地缓存 |
-| **4xx 客户端错误** |||||
+| **4xx 客户端错误** ||||||
 | 400 | ❌ 客户端错误 | Bad Request | 请求错误 | 参数格式错误 | 检查请求参数 |
 | 401 | 🔐 客户端错误 | Unauthorized | 未授权 | 需要登录/token | 添加认证信息 |
 | 403 | 🚫 客户端错误 | Forbidden | 禁止访问 | 没权限、被封IP | 添加User-Agent，更换IP |
 | 404 | ❌ 客户端错误 | Not Found | 未找到 | URL错误、页面删除 | 检查URL是否正确 |
 | 429 | ⏱️ 客户端错误 | Too Many Requests | 请求过多 | 频率限制 | 降低请求速度，添加延时 |
-| **5xx 服务器错误** |||||
+| **5xx 服务器错误** ||||||
 | 500 | ⚠️ 服务器错误 | Internal Server Error | 内部错误 | 服务器bug、数据库故障 | 稍后重试，记录日志 |
 | 502 | ⚠️ 服务器错误 | Bad Gateway | 网关错误 | 代理服务器问题 | 更换代理或稍后重试 |
 | 503 | ⚠️ 服务器错误 | Service Unavailable | 服务不可用 | 服务器维护、过载 | 等待一段时间后重试 |
@@ -4183,3 +4183,1032 @@ $     # 结尾
 - 贪婪尽量多，非贪加问号
 - 分组用括号，编号从一到
 - 特殊字符反斜杠，原始字符r开头
+
+## Scrapy框架
+
+这个框架可谓是重中之重一定要好好读。
+
+![18](dataCollectionFinalReview/18.png)
+
+### Scrapy是什么？
+
+**简单理解：Scrapy是一个专业的爬虫框架，就像是"爬虫界的生产流水线"**
+
+#### 生活中的比喻
+
+想象一个快递分拣中心：
+
+- 🎯 **Scrapy Engine（引擎）**：总指挥（调度所有环节）
+- 📋 **Scheduler（调度器）**：任务清单（记录哪些包裹要处理）
+- 🚚 **Downloader（下载器）**：快递员（去各地取包裹）
+- 🔍 **Spider（爬虫）**：分拣员（打开包裹，提取有用信息）
+- 📦 **Item Pipeline（管道）**：打包员（整理数据，存入仓库）
+
+### 五大核心组件详解
+
+#### 组件架构图
+
+```plantext
+        ┌─────────────────────────────────────────────┐
+        │                                             │
+        │         Scrapy Engine (核心引擎)            │
+        │              总指挥官                        │
+        │                                             │
+        └─────┬───────┬───────┬───────┬───────────────┘
+              │       │       │       │
+              ↓       ↓       ↓       ↓
+         Scheduler Downloader Spider  Item Pipeline
+         (调度器)   (下载器)  (爬虫)  (数据管道)
+         任务队列   下载网页   解析数据  存储数据
+```
+
+#### 数据流向（⭐⭐⭐ 必考）
+
+```python
+# 完整的数据流转过程（8步循环）
+
+# 第1步：Spider生成初始URL
+# Spider → Engine
+spider.start_urls = ['https://example.com']
+
+# 第2步：Engine将URL发送给Scheduler
+# Engine → Scheduler
+scheduler.enqueue_request(request)  # 放入队列
+
+# 第3步：Scheduler返回下一个要爬取的URL
+# Scheduler → Engine
+next_request = scheduler.next_request()
+
+# 第4步：Engine将URL发送给Downloader
+# Engine → Downloader
+downloader.fetch(request)
+
+# 第5步：Downloader下载网页并返回Response
+# Downloader → Engine
+# 
+# 实际的下载过程：
+import requests
+http_response = requests.get(request.url)  # Downloader发起HTTP请求
+html = http_response.content  # 获取响应体的原始bytes数据
+# html 现在包含：
+#   - 如果是网页：网页的HTML源代码（bytes格式）
+#   - 如果是图片：图片的二进制数据（bytes格式）
+#   - 如果是JSON：JSON字符串的bytes格式
+
+# Downloader将下载的数据封装成Scrapy的Response对象
+response = Response(url=request.url, body=html)  # 将bytes数据传给body参数
+# body参数说明：
+#   - body 接收的是响应体的**原始字节数据（bytes）**
+#   - 不仅限于HTML，也可以是JSON、图片、视频等任何类型的响应内容
+#   - 对于HTML页面：body 包含网页的源代码（以bytes形式存储）
+#   - 对于图片：body 包含图片的二进制数据
+#   - 对于JSON API：body 包含JSON字符串的bytes形式
+#   
+#   在Scrapy中：
+#   response.body → bytes类型的原始数据
+#   response.text → 解码后的字符串（自动处理编码）
+#   
+#   例如：
+#   response.body = b'<html><body>Hello</body></html>'  # bytes类型
+#   response.text = '<html><body>Hello</body></html>'   # str类型
+
+# 第6步：Engine将Response发送给Spider
+# Engine → Spider
+# 
+# Engine收到Response后，会将其传递给Spider的回调函数进行解析
+spider.parse(response)
+# parse方法说明：
+#   - parse 是Spider中的默认回调函数（callback）
+#   - 接收参数：response（包含下载的网页数据）
+#   - 主要任务：
+#     1. 解析网页内容，提取目标数据
+#     2. 生成新的URL请求（如果需要继续爬取）
+#   
+#   response对象的常用属性和方法：
+#   response.url          # 当前页面的URL
+#   response.status       # HTTP状态码（200, 404等）
+#   response.body         # 原始bytes数据
+#   response.text         # 解码后的字符串
+#   response.xpath()      # 使用XPath选择器
+#   response.css()        # 使用CSS选择器
+#   
+#   parse方法的典型写法：
+#   def parse(self, response):
+#       # 提取数据
+#       title = response.xpath('//h1/text()').get()
+#       price = response.css('.price::text').get()
+#       
+#       # 生成Item（数据项）
+#       yield {'title': title, 'price': price}
+#       
+#       # 生成新的Request（继续爬取）
+#       next_page = response.css('a.next::attr(href)').get()
+#       if next_page:
+#           yield Request(url=next_page, callback=self.parse)
+
+# 第7步：Spider解析出数据(Item)和新URL(Request)
+# Spider → Engine
+yield Item(data)         # 数据
+yield Request(new_url)   # 新URL（回到第2步）
+
+# 第8步：Engine将Item发送给Pipeline
+# Engine → Pipeline
+pipeline.process_item(item)
+```
+
+---
+
+### 1. Scrapy Engine（引擎）⭐⭐⭐
+
+**角色定位：总指挥官、核心控制器**
+
+#### 功能描述
+
+```python
+# Engine的职责（不需要我们编写，框架自动完成）
+
+class Engine:
+    """引擎负责协调所有组件的工作"""
+    
+    def __init__(self):
+        self.scheduler = Scheduler()      # 调度器
+        self.downloader = Downloader()    # 下载器
+        self.spider = Spider()            # 爬虫
+        self.pipeline = Pipeline()        # 管道
+    
+    def run(self):
+        """引擎的主要工作流程"""
+        # 1. 获取Spider的初始请求
+        for request in self.spider.start_requests():
+            # 2. 发送给Scheduler
+            self.scheduler.enqueue(request)
+        
+        while True:
+            # 3. 从Scheduler获取下一个请求
+            request = self.scheduler.dequeue()
+            if not request:
+                break
+            
+            # 4. 发送给Downloader下载
+            response = self.downloader.fetch(request)
+            
+            # 5. 将Response发送给Spider解析
+            for item_or_request in self.spider.parse(response):
+                if isinstance(item_or_request, Item):
+                    # 6. 如果是Item，发送给Pipeline
+                    self.pipeline.process_item(item_or_request)
+                else:
+                    # 7. 如果是Request，发送给Scheduler
+                    self.scheduler.enqueue(item_or_request)
+```
+
+#### 在整体中的作用
+
+| 作用 | 说明 | 重要性 |
+|------|------|--------|
+| **协调中心** | 连接所有组件，负责组件间的通信 | ⭐⭐⭐⭐⭐ |
+| **流程控制** | 控制整个爬取流程的执行顺序 | ⭐⭐⭐⭐⭐ |
+| **异常处理** | 处理爬取过程中的各种异常情况 | ⭐⭐⭐⭐ |
+
+**⚠️ 考点：Engine是唯一的通信枢纽，所有组件都不能直接互相通信！**
+
+---
+
+### 2. Scheduler（调度器）⭐⭐⭐
+
+**角色定位：任务管理员、URL队列管理器**
+
+#### 功能描述
+
+```python
+# Scheduler的核心功能
+
+class Scheduler:
+    """调度器负责管理待爬取的URL队列"""
+    
+    def __init__(self):
+        self.queue = []           # URL队列（FIFO或优先级队列）
+        self.visited = set()      # 已访问的URL集合（去重）
+    
+    def enqueue(self, request):
+        """将新的请求加入队列"""
+        # 1. 去重检查
+        if request.url not in self.visited:
+            # 2. 加入队列
+            self.queue.append(request)
+            self.visited.add(request.url)
+            print(f"✅ 添加到队列: {request.url}")
+        else:
+            print(f"⚠️ URL已存在，跳过: {request.url}")
+    
+    def dequeue(self):
+        """从队列中取出下一个请求"""
+        if self.queue:
+            request = self.queue.pop(0)  # 先进先出
+            print(f"📤 从队列取出: {request.url}")
+            return request
+        return None
+    
+    def is_empty(self):
+        """检查队列是否为空"""
+        return len(self.queue) == 0
+```
+
+#### 在整体中的作用
+
+| 作用 | 说明 | 示例 |
+|------|------|------|
+| **URL管理** | 维护待爬取的URL队列 | 存储从Spider提取的新链接 |
+| **去重** | 避免重复爬取相同的URL | 通过集合记录已访问URL |
+| **优先级调度** | 支持按优先级爬取 | 重要页面优先爬取 |
+| **持久化** | 支持断点续爬 | 将队列保存到磁盘/Redis |
+
+#### 实际应用示例
+
+```python
+# 在Spider中生成多个URL
+class MySpider(scrapy.Spider):
+    name = 'example'
+    start_urls = ['https://example.com/page/1']
+    
+    def parse(self, response):
+        # 提取数据
+        for item in response.css('.item'):
+            yield {
+                'title': item.css('.title::text').get()
+            }
+        
+        # 生成下一页的URL（这些会被Scheduler管理）
+        for page in range(2, 11):
+            next_page = f'https://example.com/page/{page}'
+            yield scrapy.Request(next_page, callback=self.parse)
+            # ↑ 这个Request会：
+            # 1. 先发送给Engine
+            # 2. Engine发送给Scheduler
+            # 3. Scheduler检查是否重复，不重复则加入队列
+```
+
+**⚠️ 考点：Scheduler负责存储URL和去重，是爬虫的"待办事项清单"**
+
+---
+
+### 3. Downloader（下载器）⭐⭐⭐
+
+**角色定位：网页下载专员、HTTP请求执行者**
+
+#### 功能描述
+
+```python
+# Downloader的核心功能
+
+class Downloader:
+    """下载器负责发送HTTP请求并获取响应"""
+    
+    def __init__(self):
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0 ...'
+        }
+    
+    def fetch(self, request):
+        """下载网页"""
+        print(f"🌐 正在下载: {request.url}")
+        
+        try:
+            # 1. 发送HTTP请求
+            response = requests.get(
+                url=request.url,
+                headers=self.headers,
+                timeout=30
+            )
+            
+            # 2. 检查状态码
+            if response.status_code == 200:
+                print(f"✅ 下载成功: {request.url}")
+                return Response(
+                    url=request.url,
+                    body=response.content,
+                    status=200
+                )
+            else:
+                print(f"❌ 下载失败: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            print(f"💥 下载出错: {e}")
+            return None
+    
+    def can_download(self, request):
+        """检查是否可以下载（遵守robots.txt）"""
+        # 检查robots.txt规则
+        return True
+```
+
+#### 在整体中的作用
+
+| 作用 | 说明 | 特点 |
+|------|------|------|
+| **发送请求** | 向目标服务器发送HTTP请求 | 支持GET、POST等方法 |
+| **获取响应** | 接收服务器返回的网页内容 | 返回HTML、JSON、图片等 |
+| **处理异常** | 处理网络异常、超时等问题 | 支持重试机制 |
+| **遵守规则** | 遵守robots.txt和爬取延迟 | 避免被封禁 |
+
+#### Downloader中间件的作用
+
+```python
+class DownloaderMiddleware:
+    """下载器中间件：在请求发送前/响应返回后进行处理"""
+    
+    def process_request(self, request, spider):
+        """请求发送前的处理"""
+        # 1. 添加或修改请求头
+        request.headers['User-Agent'] = 'Custom User Agent'
+        
+        # 2. 使用代理
+        request.meta['proxy'] = 'http://proxy.example.com:8080'
+        
+        # 3. 添加Cookie
+        request.cookies = {'session': 'abc123'}
+        
+        return None  # 继续处理
+    
+    def process_response(self, request, response, spider):
+        """响应返回后的处理"""
+        # 1. 检查响应状态
+        if response.status == 403:
+            print("⚠️ 被封禁，更换User-Agent重试")
+            # 返回新的Request重新下载
+            return request.replace(dont_filter=True)
+        
+        # 2. 解压缩响应内容
+        if response.headers.get('Content-Encoding') == 'gzip':
+            response = decompress(response)
+        
+        return response  # 返回处理后的响应
+```
+
+**⚠️ 考点：Downloader负责实际的HTTP请求，是爬虫的"外勤人员"**
+
+---
+
+### 4. Spider（爬虫）⭐⭐⭐⭐⭐
+
+**角色定位：数据解析专家、核心业务逻辑**
+
+#### 功能描述
+
+```python
+import scrapy
+
+class ExampleSpider(scrapy.Spider):
+    """Spider负责定义爬取逻辑和数据解析"""
+    
+    # 1. 基本属性
+    name = 'example'  # 爬虫名称（必须唯一）
+    allowed_domains = ['example.com']  # 允许爬取的域名
+    start_urls = ['https://example.com']  # 起始URL
+    
+    # 2. 生成初始请求
+    def start_requests(self):
+        """生成初始请求（可选，默认使用start_urls）"""
+        for url in self.start_urls:
+            yield scrapy.Request(
+                url=url,
+                callback=self.parse,  # 指定回调函数
+                headers={'User-Agent': '...'}
+            )
+    
+    # 3. 解析响应（核心方法）
+    def parse(self, response):
+        """解析网页内容"""
+        # ===== 提取数据 =====
+        for item in response.css('.product'):
+            yield {
+                # CSS选择器语法详解：
+                # .title::text  → 选择class="title"的元素的文本内容
+                #   .title     → CSS选择器，定位元素
+                #   ::text     → Scrapy扩展，提取文本内容
+                #   .get()     → 获取第一个匹配结果（返回str或None）
+                'title': item.css('.title::text').get(),
+                
+                # .price::text  → 选择class="price"的元素的文本内容
+                'price': item.css('.price::text').get(),
+                
+                # .rating::text → 选择class="rating"的元素的文本内容
+                'rating': item.css('.rating::text').get()
+            }
+        
+        # ===== 生成新的请求（翻页）=====
+        # a.next::attr(href) → 选择class="next"的<a>标签的href属性
+        #   a.next         → 选择<a class="next">元素
+        #   ::attr(href)   → Scrapy扩展，提取href属性值
+        #   .get()         → 获取第一个匹配结果
+        next_page = response.css('a.next::attr(href)').get()
+        if next_page:
+            # 方式1：相对URL自动补全
+            yield response.follow(next_page, callback=self.parse)
+            
+            # 方式2：完整URL
+            # yield scrapy.Request(
+            #     url=response.urljoin(next_page),
+            #     callback=self.parse
+            # )
+        
+        # ===== 调用其他解析方法 =====
+        detail_url = item.css('a::attr(href)').get()
+        yield scrapy.Request(
+            url=detail_url,
+            callback=self.parse_detail  # 不同的回调
+        )
+    
+    def parse_detail(self, response):
+        """解析详情页"""
+        yield {
+            'description': response.css('.desc::text').get(),
+            'images': response.css('img::attr(src)').getall()
+        }
+```
+
+#### 在整体中的作用
+
+| 作用 | 说明 | 重要性 |
+|------|------|--------|
+| **定义起始URL** | 设置爬虫的入口点 | ⭐⭐⭐⭐⭐ |
+| **解析网页** | 从HTML中提取需要的数据 | ⭐⭐⭐⭐⭐ |
+| **生成新请求** | 提取新的链接继续爬取 | ⭐⭐⭐⭐⭐ |
+| **数据清洗** | 对提取的数据进行初步处理 | ⭐⭐⭐⭐ |
+
+#### Spider的常用选择器
+
+##### 📚 Scrapy CSS选择器完整语法讲解
+
+**基本格式：`response.css('CSS选择器::Scrapy扩展').get()/getall()`**
+
+---
+
+**第一部分：标准CSS选择器（定位元素）**
+
+| 选择器 | 说明 | HTML示例 | 用法 |
+|--------|------|----------|------|
+| `.class` | 按类名选择 | `<div class="title">` | `response.css('.title')` |
+| `#id` | 按ID选择 | `<div id="header">` | `response.css('#header')` |
+| `tag` | 按标签名选择 | `<h1>标题</h1>` | `response.css('h1')` |
+| `tag.class` | 标签+类名 | `<a class="next">` | `response.css('a.next')` |
+| `parent > child` | 直接子元素 | `<div><span></span></div>` | `response.css('div > span')` |
+| `parent child` | 所有后代 | `<div><p><span></span></p></div>` | `response.css('div span')` |
+| `[attr]` | 有属性的元素 | `<a href="...">` | `response.css('a[href]')` |
+| `[attr="value"]` | 属性值匹配 | `<div class="box">` | `response.css('div[class="box"]')` |
+
+---
+
+**第二部分：Scrapy扩展语法（提取内容）**
+
+| 扩展 | 作用 | 返回内容 | 示例 |
+|------|------|----------|------|
+| `::text` | 提取文本 | 元素的**直接文本**内容 | `'.title::text'` |
+| `::attr(属性名)` | 提取属性值 | 指定属性的值 | `'a::attr(href)'` |
+| 无扩展 | 返回选择器对象 | Selector对象（需进一步操作） | `'.title'` |
+
+**重要区别：**
+```python
+# ::text 只提取直接文本（不包括子标签的文本）
+# HTML: <div class="title">标题<span>副标题</span></div>
+response.css('.title::text').get()      # 返回: "标题"（不包括span里的）
+response.css('.title::text').getall()   # 返回: ["标题"]（列表形式）
+
+# 如果想提取所有文本（包括子标签）：
+response.css('.title *::text').getall() # 返回: ["标题", "副标题"]
+# 或者用XPath：
+response.xpath('//div[@class="title"]//text()').getall()
+```
+
+---
+
+**第三部分：提取方法（获取结果）**
+
+| 方法 | 返回类型 | 说明 | 使用场景 |
+|------|----------|------|----------|
+| `.get()` | `str` 或 `None` | 获取**第一个**匹配结果 | 只需要一个值（标题、价格等） |
+| `.getall()` | `list` | 获取**所有**匹配结果 | 需要多个值（所有图片、所有链接） |
+| `.get(default='默认值')` | `str` | 第一个结果，没有则返回默认值 | 避免返回None |
+
+```python
+# 示例：
+response.css('.price::text').get()           # "99.9"（单个字符串）
+response.css('.price::text').getall()        # ["99.9"]（列表）
+response.css('.price::text').get(default='0') # 如果没找到，返回'0'
+
+response.css('img::attr(src)').getall()      # ["img1.jpg", "img2.jpg", ..."]（所有图片）
+```
+
+---
+
+##### 💡 实战示例详解
+
+假设有如下HTML结构：
+
+```html
+<div class="product">
+    <h2 class="title">商品标题</h2>
+    <span class="price">¥99.9</span>
+    <div class="rating">
+        <span>4.5分</span>
+    </div>
+    <a class="detail" href="/product/123">查看详情</a>
+</div>
+<a class="next" href="/page/2">下一页</a>
+```
+
+**Scrapy代码解析：**
+
+```python
+# 示例1：提取文本内容
+item.css('.title::text').get()
+# 分解：
+#   .title         → 定位到 <h2 class="title">
+#   ::text         → 提取文本内容
+#   .get()         → 获取第一个结果
+# 结果："商品标题"
+
+# 示例2：提取文本内容（带默认值）
+item.css('.price::text').get()
+# 结果："¥99.9"
+
+# 示例3：提取嵌套文本
+item.css('.rating::text').get()
+# 注意：这会返回 None！
+# 因为 .rating 的直接文本是空的，文本在子元素 <span> 中
+
+# 正确写法：
+item.css('.rating span::text').get()      # 方法1：定位到span
+# 或
+item.css('.rating *::text').get()         # 方法2：获取所有子元素文本
+# 结果："4.5分"
+
+# 示例4：提取属性值
+response.css('a.next::attr(href)').get()
+# 分解：
+#   a.next         → 定位到 <a class="next">
+#   ::attr(href)   → 提取 href 属性的值
+#   .get()         → 获取第一个结果
+# 结果："/page/2"
+
+# 示例5：提取多个属性
+item.css('a::attr(href)').getall()
+# 结果：["/product/123"]（列表形式）
+
+# 示例6：链式选择
+item.css('.detail').css('::attr(href)').get()
+# 等同于：
+item.css('.detail::attr(href)').get()
+# 结果："/product/123"
+```
+
+---
+
+##### 📋 常见选择器速查表
+
+| 需求 | CSS选择器写法 | HTML示例 |
+|------|---------------|----------|
+| 提取标题文本 | `.title::text` | `<h1 class="title">标题</h1>` |
+| 提取链接地址 | `a::attr(href)` | `<a href="/page">链接</a>` |
+| 提取图片地址 | `img::attr(src)` | `<img src="1.jpg">` |
+| 提取所有图片 | `img::attr(src)` + `.getall()` | 多个`<img>`标签 |
+| 提取data属性 | `div::attr(data-id)` | `<div data-id="123">` |
+| 提取类名 | `div::attr(class)` | `<div class="box">` |
+| 提取第N个元素 | `.item::text` + `[n]` | 用`.getall()[n]` |
+| 判断元素是否存在 | `.item` + `bool()` | `bool(response.css('.item'))` |
+
+---
+
+##### ⚠️ 常见陷阱
+
+```python
+# 陷阱1：忘记加 ::text 或 ::attr()
+response.css('.title')        # ❌ 返回Selector对象，不是文本！
+response.css('.title::text')  # ✅ 返回文本内容
+
+# 陷阱2：.get() 和 .getall() 混淆
+response.css('.title::text').get()     # 返回 str 或 None
+response.css('.title::text').getall()  # 返回 list（可能是空列表）
+
+# 陷阱3：嵌套文本提取
+# HTML: <div class="box">外层<span>内层</span></div>
+response.css('.box::text').get()       # ❌ 只返回"外层"
+response.css('.box *::text').getall()  # ✅ 返回["外层", "内层"]
+
+# 陷阱4：属性名写错
+response.css('a::attr(herf)').get()    # ❌ herf 拼写错误！
+response.css('a::attr(href)').get()    # ✅ 正确
+
+# 陷阱5：相对路径和绝对路径
+response.css('a::attr(href)').get()    # 可能返回"/page/2"（相对路径）
+response.urljoin(href)                 # 需要手动拼接成完整URL
+# 或使用：
+response.follow(href, callback=self.parse)  # Scrapy自动处理
+```
+
+---
+
+##### 🎯 考试重点
+
+1. **CSS选择器三件套**：
+   - 定位元素：`.class`、`#id`、`tag`
+   - 提取内容：`::text`、`::attr()`
+   - 获取结果：`.get()`、`.getall()`
+
+2. **`::text` vs `::attr()`**：
+   - `::text` → 提取文本
+   - `::attr(属性名)` → 提取属性值
+
+3. **`.get()` vs `.getall()`**：
+   - `.get()` → 单个结果（str 或 None）
+   - `.getall()` → 所有结果（list）
+
+4. **嵌套文本提取**：
+   - `父元素::text` → 只提取直接文本
+   - `父元素 *::text` → 提取所有子元素文本
+
+---
+
+**XPath选择器对比：**
+
+```python
+# CSS选择器
+response.css('.title::text').get()          # 获取第一个
+response.css('.title::text').getall()       # 获取所有
+response.css('a::attr(href)').get()         # 获取属性
+
+# XPath选择器（功能更强大，但语法复杂）
+response.xpath('//div[@class="title"]/text()').get()
+response.xpath('//a/@href').getall()
+
+# 正则表达式
+response.css('.price::text').re(r'\d+\.?\d*')  # 提取数字
+response.css('.price::text').re_first(r'\d+')  # 提取第一个数字
+```
+
+**⚠️ 考点：Spider是唯一需要程序员编写的组件，定义了"爬什么、怎么爬"**
+
+---
+
+### 5. Item Pipeline（数据管道）⭐⭐⭐
+
+**角色定位：数据处理专员、数据存储管理器**
+
+#### 功能描述
+
+```python
+# pipelines.py
+
+class DataCleanPipeline:
+    """管道1：数据清洗"""
+    
+    def process_item(self, item, spider):
+        """处理每个Item"""
+        # 1. 清洗价格（去除符号）
+        if 'price' in item:
+            price_str = item['price']
+            item['price'] = float(price_str.replace('¥', '').replace(',', ''))
+        
+        # 2. 清洗标题（去除空白）
+        if 'title' in item:
+            item['title'] = item['title'].strip()
+        
+        # 3. 验证必填字段
+        if not item.get('title'):
+            raise DropItem(f"缺少标题: {item}")
+        
+        return item  # 返回处理后的item
+
+
+class DuplicatesPipeline:
+    """管道2：去重"""
+    
+    def __init__(self):
+        self.ids_seen = set()
+    
+    def process_item(self, item, spider):
+        """检查并去重"""
+        item_id = item.get('id')
+        if item_id in self.ids_seen:
+            raise DropItem(f"重复的ID: {item_id}")
+        else:
+            self.ids_seen.add(item_id)
+            return item
+
+
+class SaveToFilePipeline:
+    """管道3：保存到文件"""
+    
+    def open_spider(self, spider):
+        """爬虫启动时执行"""
+        self.file = open('data.json', 'w', encoding='utf-8')
+        self.file.write('[\n')
+    
+    def close_spider(self, spider):
+        """爬虫关闭时执行"""
+        self.file.write('\n]')
+        self.file.close()
+    
+    def process_item(self, item, spider):
+        """保存每个item"""
+        import json
+        line = json.dumps(dict(item), ensure_ascii=False) + ',\n'
+        self.file.write(line)
+        return item
+
+
+class SaveToMySQLPipeline:
+    """管道4：保存到数据库"""
+    
+    def open_spider(self, spider):
+        """建立数据库连接"""
+        import pymysql
+        self.conn = pymysql.connect(
+            host='localhost',
+            user='root',
+            password='123456',
+            database='scrapy_data'
+        )
+        self.cursor = self.conn.cursor()
+    
+    def close_spider(self, spider):
+        """关闭连接"""
+        self.conn.close()
+    
+    def process_item(self, item, spider):
+        """插入数据库"""
+        sql = """
+        INSERT INTO products (title, price, rating)
+        VALUES (%s, %s, %s)
+        """
+        self.cursor.execute(sql, (
+            item['title'],
+            item['price'],
+            item['rating']
+        ))
+        self.conn.commit()
+        return item
+```
+
+#### 在整体中的作用
+
+| 作用 | 说明 | 示例 |
+|------|------|------|
+| **数据清洗** | 去除多余字符、格式化数据 | 去除价格中的符号 |
+| **数据验证** | 检查数据完整性和合法性 | 验证必填字段 |
+| **去重** | 避免重复数据 | 基于ID去重 |
+| **数据存储** | 保存到文件或数据库 | JSON、MySQL、MongoDB |
+| **数据转换** | 转换数据格式 | 时间戳转日期 |
+
+#### Pipeline的配置
+
+```python
+# settings.py
+
+# 启用Pipeline（数字越小优先级越高）
+ITEM_PIPELINES = {
+    'myproject.pipelines.DataCleanPipeline': 100,      # 先清洗
+    'myproject.pipelines.DuplicatesPipeline': 200,     # 再去重
+    'myproject.pipelines.SaveToFilePipeline': 300,     # 然后保存文件
+    'myproject.pipelines.SaveToMySQLPipeline': 400,    # 最后保存数据库
+}
+
+# 数字越小，优先级越高，越先执行
+# 范围：0-1000
+```
+
+**⚠️ 考点：Pipeline负责数据的后处理和存储，是爬虫的"数据加工厂"**
+
+---
+
+### 组件间的完整交互流程
+
+#### 流程图（必须理解）
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Scrapy架构图                            │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌──────────┐      ①初始URL      ┌──────────────────┐      │
+│  │          │ ──────────────────→ │                  │      │
+│  │  Spider  │                     │  Scrapy Engine   │      │
+│  │  (爬虫)  │ ←──────────────────│    (引擎)        │      │
+│  │          │      ⑥Response      │                  │      │
+│  └──────────┘                     └──────────────────┘      │
+│       │                                  │    ↑             │
+│       │⑦提取数据和URL                    │    │             │
+│       ↓                                  ↓    │             │
+│  ┌──────────┐                     ┌──────────────┐         │
+│  │   Item   │      ⑧传递Item      │  Scheduler   │         │
+│  │  (数据)  │ ←─────┐             │  (调度器)    │         │
+│  └──────────┘       │             └──────────────┘         │
+│       │             │                    ↑   │             │
+│       │             │              ②入队 │   │ ③出队      │
+│       ↓             │                    │   ↓             │
+│  ┌──────────────────┴──┐          ┌──────────────┐        │
+│  │  Item Pipeline      │          │  Downloader  │        │
+│  │  (数据管道)         │          │  (下载器)    │        │
+│  └─────────────────────┘          └──────────────┘        │
+│                                          ↑    │            │
+│                                    ④请求 │    │ ⑤响应     │
+│                                          │    ↓            │
+│                                    ┌─────────────┐         │
+│                                    │  Internet   │         │
+│                                    │  (互联网)   │         │
+│                                    └─────────────┘         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### 详细步骤说明
+
+```python
+# ===== 完整的数据流转过程（8步） =====
+
+# 步骤①：Spider生成初始Request
+# Spider → Engine
+request = scrapy.Request(url='https://example.com', callback=self.parse)
+# 说明：Spider告诉Engine"我要爬这个网址"
+
+# 步骤②：Engine将Request发送给Scheduler
+# Engine → Scheduler
+scheduler.enqueue(request)
+# 说明：Engine告诉Scheduler"把这个URL加入待办清单"
+
+# 步骤③：Engine从Scheduler获取下一个Request
+# Scheduler → Engine
+next_request = scheduler.dequeue()
+# 说明：Engine问Scheduler"下一个要爬哪个？"
+
+# 步骤④：Engine将Request发送给Downloader
+# Engine → Downloader
+downloader.fetch(next_request)
+# 说明：Engine告诉Downloader"去下载这个网页"
+
+# 步骤⑤：Downloader下载网页并返回Response
+# Downloader → Engine
+response = Response(url=url, body=html, status=200)
+# 说明：Downloader告诉Engine"网页下载好了"
+
+# 步骤⑥：Engine将Response发送给Spider
+# Engine → Spider
+spider.parse(response)
+# 说明：Engine告诉Spider"网页下载好了，你来解析"
+
+# 步骤⑦：Spider解析Response，提取Item和新的Request
+# Spider → Engine
+yield Item({'title': '商品1', 'price': 99})  # 提取的数据
+yield Request(url='https://example.com/page2')  # 新的URL
+# 说明：Spider告诉Engine"我提取了数据，还有新的URL要爬"
+
+# 步骤⑧：Engine将Item发送给Pipeline，Request回到步骤②
+# Engine → Pipeline
+pipeline.process_item(item)
+# Engine → Scheduler（新的Request回到步骤②）
+scheduler.enqueue(new_request)
+# 说明：数据交给Pipeline处理，新URL回到调度队列
+```
+
+**⚠️⚠️⚠️ 考试必考：所有组件的通信都必须经过Engine，不能直接互相通信！**
+
+---
+
+### 考试重点总结
+
+#### 核心考点速记表
+
+| 组件 | 主要作用 | 考试要点 | 记忆口诀 |
+|------|----------|----------|----------|
+| **Engine** | 总调度、通信枢纽 | 所有通信都经过它 | 引擎是核心，万事不离它 |
+| **Scheduler** | 管理URL队列、去重 | 存储待爬URL | 调度管任务，队列不重复 |
+| **Downloader** | 下载网页 | 发送HTTP请求 | 下载跑腿忙，请求它来扛 |
+| **Spider** | 解析网页、提取数据 | **唯一需要编写** | 爬虫是关键，解析全靠它 |
+| **Pipeline** | 处理和存储数据 | 清洗、去重、保存 | 管道做清洗，数据存储它 |
+
+#### 数据流向（⭐⭐⭐ 必背）
+
+```
+1. Spider → Engine → Scheduler        (生成URL，加入队列)
+2. Scheduler → Engine → Downloader    (取出URL，下载网页)
+3. Downloader → Engine → Spider       (返回网页，解析数据)
+4. Spider → Engine → Pipeline         (提取数据，处理存储)
+```
+
+**记忆口诀：**
+- 爬虫生URL，引擎送调度
+- 调度给引擎，引擎传下载
+- 下载回引擎，引擎给爬虫
+- 爬虫出数据，引擎交管道
+
+#### 判断题（常考）
+
+```python
+# ❌ 错误：Spider可以直接把数据发送给Pipeline
+# ✅ 正确：Spider必须通过Engine将数据发送给Pipeline
+
+# ❌ 错误：Downloader可以直接从Scheduler获取URL
+# ✅ 正确：所有通信都必须经过Engine
+
+# ❌ 错误：一个Scrapy项目只能有一个Spider
+# ✅ 正确：可以有多个Spider，通过name区分
+
+# ❌ 错误：Pipeline的优先级数字越大越先执行
+# ✅ 正确：数字越小优先级越高（100在200之前）
+```
+
+#### 填空题（常考）
+
+1. Scrapy的核心组件通信中心是：**Scrapy Engine（引擎）**
+2. 负责管理待爬取URL队列的组件是：**Scheduler（调度器）**
+3. 负责实际下载网页的组件是：**Downloader（下载器）**
+4. 负责解析网页和提取数据的组件是：**Spider（爬虫）**
+5. 负责处理和存储数据的组件是：**Item Pipeline（数据管道）**
+6. Scrapy中唯一需要程序员编写的核心组件是：**Spider（爬虫）**
+
+#### 简答题（高频）
+
+**Q: Scrapy的数据流向是什么？请按顺序说明。**
+
+A: Scrapy的数据流向分为4个主要步骤：
+1. **Spider → Engine → Scheduler**：Spider生成初始URL，Engine将其发送给Scheduler加入队列
+2. **Scheduler → Engine → Downloader**：Engine从Scheduler取出URL，发送给Downloader下载
+3. **Downloader → Engine → Spider**：Downloader下载网页后，Engine将Response发送给Spider解析
+4. **Spider → Engine → Pipeline**：Spider提取数据后，Engine将Item发送给Pipeline处理
+
+**关键点**：所有通信都必须经过Engine，组件之间不能直接通信。
+
+#### 真题
+
+![19](dataCollectionFinalReview/19.png)
+
+第一步，爬虫首先通过引擎将起始的url提交到调度器。第二步，调度器将url通过引擎提交给下载器，下载器根据url去下载指定内容。第三步，下载器将下载好的数据通过引擎移交给爬虫，爬虫将下载好的数据进行指定格式的解析。第四步，爬虫将解析好的数据通过引擎移交给管道进行持久化存储。
+
+![18](dataCollectionFinalReview/18.png)
+
+```bash
+pip instal scrapy
+scrapy startproject 2019012001
+cd 2019012001
+scrapy genspider myquotes sina.com.cn
+```
+
+![20](dataCollectionFinalReview/20.png)
+
+![21](dataCollectionFinalReview/21.png)
+
+---
+
+### 实战示例：完整的Scrapy项目
+
+```python
+# ===== spider文件：myspider.py =====
+import scrapy
+
+class MySpider(scrapy.Spider):
+    name = 'myspider'
+    start_urls = ['https://example.com/products']
+    
+    def parse(self, response):
+        """解析商品列表页"""
+        # 提取每个商品的信息
+        for product in response.css('.product'):
+            # 生成Item（会被发送给Pipeline）
+            yield {
+                'title': product.css('.title::text').get(),
+                'price': product.css('.price::text').get(),
+                'rating': product.css('.rating::text').get()
+            }
+        
+        # 翻页（会被发送给Scheduler）
+        next_page = response.css('a.next::attr(href)').get()
+        if next_page:
+            yield response.follow(next_page, callback=self.parse)
+
+
+# ===== Pipeline文件：pipelines.py =====
+class MyPipeline:
+    def process_item(self, item, spider):
+        """处理Item"""
+        # 清洗价格
+        item['price'] = float(item['price'].replace('¥', ''))
+        return item
+
+
+# ===== 配置文件：settings.py =====
+ITEM_PIPELINES = {
+    'myproject.pipelines.MyPipeline': 300,
+}
+
+# 下载延迟（避免被封）
+DOWNLOAD_DELAY = 1
+
+# User-Agent
+USER_AGENT = 'Mozilla/5.0 ...'
+
+
+# ===== 运行爬虫 =====
+# scrapy crawl myspider -o output.json
+```
+
+这就是Scrapy的五大核心组件！记住：**Engine是核心，Spider是关键，其他都是辅助！**
