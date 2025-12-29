@@ -8848,6 +8848,60 @@ hdfs dfs -cat /output/part-00000
 
 ## HDFS：Hadoop分布式文件系统
 
+![41](dataCollectionFinalReview/41.png)
+
+---
+
+### 📌 .sh 和 .cmd 文件的区别
+
+在Hadoop、Kafka、Flume等大数据框架中，经常会看到 `.sh` 和 `.cmd` 两种脚本文件，它们的区别如下：
+
+| 对比项 | .sh 文件 | .cmd 文件 |
+|--------|---------|----------|
+| **操作系统** | Linux / macOS / Unix | Windows |
+| **Shell解释器** | Bash / sh | cmd.exe / PowerShell |
+| **用途** | Linux系统下执行的脚本 | Windows系统下执行的脚本 |
+| **执行方式** | `./start-dfs.sh` 或 `sh start-dfs.sh` | `start-dfs.cmd` 或 `.\start-dfs.cmd` |
+| **示例命令** | `#!/bin/bash`<br>`java -jar hadoop.jar` | `@echo off`<br>`java -jar hadoop.jar` |
+
+**常见示例对比**：
+
+```bash
+# Linux系统（.sh文件）
+# 启动HDFS
+./sbin/start-dfs.sh
+
+# 启动Kafka
+./bin/kafka-server-start.sh config/server.properties
+
+# 启动Flume
+./bin/flume-ng agent --conf ./conf --conf-file ./conf/flume.conf --name a1
+```
+
+```cmd
+REM Windows系统（.cmd文件）
+REM 启动HDFS
+.\sbin\start-dfs.cmd
+
+REM 启动Kafka
+.\bin\windows\kafka-server-start.bat .\config\server.properties
+
+REM 启动Flume
+.\bin\flume-ng.cmd agent --conf .\conf --conf-file .\conf\flume.conf --name a1
+```
+
+**记忆技巧**：
+- **.sh = Shell**（Linux的Shell脚本）
+- **.cmd = Command**（Windows的命令脚本）
+- Windows还常用 `.bat`（批处理文件，功能与`.cmd`类似）
+
+**考试注意**：
+- 题目如果说"安装在Windows系统"，要用 `.cmd` 或 `.bat`
+- 题目如果说"安装在Linux系统"，要用 `.sh`
+- 路径分隔符也不同：Windows用 `\`，Linux用 `/`
+
+---
+
 ### 1️⃣ 定义与本质
 
 **HDFS = Hadoop Distributed File System**
@@ -9687,13 +9741,13 @@ a1.sinks.k1.hdfs.filePrefix = test
 
 ---
 
-### 📖 真题详解
+#### 📖 真题详解
 
 这是一道**综合性大题**，考查了**Kafka + Flume + HDFS**的完整数据采集链路，涉及配置文件解读、架构理解、命令执行等多个知识点。
 
 ---
 
-#### 第(1)题详解：识别组件类型 ✅
+##### 第(1)题详解：识别组件类型 ✅
 
 **题目**：Flume的Source、Sink、Channel分别是什么类型？（6分）
 
@@ -9734,7 +9788,7 @@ a1.channels.c1.type = memory
 
 ---
 
-#### 第(2)题详解：技术架构图 ✅
+##### 第(2)题详解：技术架构图 ✅
 
 **题目**：请分别画出Kafka与Flume的技术架构图。（8分）
 
@@ -9801,7 +9855,7 @@ Flume Agent数据流架构
 
 ---
 
-#### 第(3)题详解：HDFS路径配置（⭐重点）✅
+##### 第(3)题详解：HDFS路径配置（⭐重点）✅
 
 **题目**：写出将HDFS的存储路径设为"主机名/你的学号/年-月-日/时-分"的配置内容。（3分）
 
@@ -9813,9 +9867,9 @@ a1.sinks.k1.hdfs.path = hdfs://localhost:9000/2020001/%Y-%m-%d/%H-%M
 
 ---
 
-### 🔥 HDFS路径语法规则详解（核心知识点）
+##### 🔥 HDFS路径语法规则详解（核心知识点）
 
-#### 1️⃣ 完整语法结构
+###### 1️⃣ 完整语法结构
 
 ```conf
 a1.sinks.k1.hdfs.path = hdfs://主机名:端口/目录路径/时间占位符
@@ -9835,7 +9889,7 @@ a1.sinks.k1.hdfs.path = hdfs://主机名:端口/目录路径/时间占位符
 
 ---
 
-#### 2️⃣ 时间占位符完整列表（⭐⭐⭐考试重点）
+###### 2️⃣ 时间占位符完整列表（⭐⭐⭐考试重点）
 
 Flume的HDFS Sink支持**类似Java SimpleDateFormat的时间占位符**：
 
@@ -9855,7 +9909,7 @@ Flume的HDFS Sink支持**类似Java SimpleDateFormat的时间占位符**：
 
 ---
 
-#### 3️⃣ 实际路径示例
+###### 3️⃣ 实际路径示例
 
 假设当前时间是：**2025年12月29日 14时30分45秒**
 
@@ -9915,7 +9969,7 @@ hdfs://localhost:9000/2020001/2025/12/29/14/30
 
 ---
 
-#### 4️⃣ 时间占位符的关键参数
+###### 4️⃣ 时间占位符的关键参数
 
 要让时间占位符生效，必须配置：
 
@@ -9944,7 +9998,7 @@ a1.sinks.k1.hdfs.useLocalTimeStamp = false
 
 ---
 
-#### 5️⃣ 为什么需要时间分区？
+###### 5️⃣ 为什么需要时间分区？
 
 **原因分析**：
 
@@ -9980,7 +10034,7 @@ a1.sinks.k1.hdfs.useLocalTimeStamp = false
 
 ---
 
-#### 6️⃣ 时间分区的粒度选择
+###### 6️⃣ 时间分区的粒度选择
 
 | 粒度 | 配置 | 适用场景 |
 |------|------|---------|
@@ -9993,7 +10047,7 @@ a1.sinks.k1.hdfs.useLocalTimeStamp = false
 
 ---
 
-#### 7️⃣ 配置示例对比表
+###### 7️⃣ 配置示例对比表
 
 | 需求 | 配置 | 生成路径示例 |
 |------|------|-------------|
@@ -10005,7 +10059,7 @@ a1.sinks.k1.hdfs.useLocalTimeStamp = false
 
 ---
 
-#### 8️⃣ 常见错误示例
+###### 8️⃣ 常见错误示例
 
 ```conf
 # ❌ 错误1：缺少等号左边
@@ -10030,7 +10084,7 @@ a1.sinks.k1.hdfs.path = hdfs://localhost:9000/2020001/%Y-%m-%d/%H-%M
 
 ---
 
-#### 9️⃣ 完整配置示例
+###### 9️⃣ 完整配置示例
 
 ```conf
 # ========== HDFS Sink完整配置 ==========
@@ -10083,7 +10137,7 @@ a1.sinks.k1.hdfs.writeFormat = Text            # 文本格式
 
 ---
 
-#### 第(4)题详解：文件前缀配置 ✅
+##### 第(4)题详解：文件前缀配置 ✅
 
 **题目**：写出存储在HDFS中的文件以"test"为前缀的配置内容。（3分）
 
@@ -10140,7 +10194,7 @@ a1.sinks.k1.hdfs.fileSuffix = .log
 
 ---
 
-#### 第(5)题详解：完整数据流程（⭐综合题）✅
+##### 第(5)题详解：完整数据流程（⭐综合题）✅
 
 **题目**：利用上述数据采集框架，写出Kafka生产者产生数据"it is the final test"存储到HDFS的全过程，包括执行的命令行。（10分）
 
@@ -10550,3 +10604,563 @@ Kafka数据采集记心间，
 ## 爬虫策略（深度优先 vs 广度优先）
 
 这俩其实没啥可讲的，在数据结构课上已经不知道练了多少次了但题中出现了还让我犹豫了，那就不得不写一下了。
+
+![38](dataCollectionFinalReview/38.png)
+
+深度优先爬取顺序：A、B、E、F、G、C、H、J、D、I
+广度优先爬取顺序：A、B、C、D、E、F、H、I、G、J
+
+## ETL 流程（Extract-Transform-Load）
+
+### 1️⃣ ETL的定义与本质
+
+**ETL = Extract（抽取）+ Transform（转换）+ Load（加载）**
+
+> **核心比喻**：ETL就像一个**智能搬家公司**
+> - **Extract（抽取）** = 从旧房子打包物品
+> - **Transform（转换）** = 清洗整理物品、重新分类
+> - **Load（加载）** = 搬到新房子、按规则摆放
+
+**定义**：ETL是一种**数据迁移和集成技术**，用于从多个异构数据源中抽取数据，经过清洗、转换、整合后，加载到目标数据仓库中。
+
+---
+
+### 2️⃣ ETL的三大核心阶段
+
+```plaintext
+ETL完整流程图：
+
++----------------+     Extract      +-------------+
+|  数据源1       | ───────────────> |             |
+|  (MySQL)       |                  |             |
++----------------+                  |   临时存储   |
+                                    |   (Staging)  |
++----------------+     Extract      |             |
+|  数据源2       | ───────────────> |             |
+|  (Oracle)      |                  +-------------+
++----------------+                        ↓
+                                    Transform
++----------------+     Extract      (清洗、转换、整合)
+|  数据源3       | ───────────────>      ↓
+|  (Excel/CSV)   |                  +-------------+
++----------------+                  |    目标      |
+                                    |  数据仓库    |
+                                    |   (Hive)    |
+                                    +-------------+
+                                          ↑
+                                        Load
+                                    (加载数据)
+```
+
+---
+
+### 3️⃣ 详细讲解：Extract（抽取）
+
+**定义**：从不同类型的数据源中**提取**所需的原始数据。
+
+**常见数据源**：
+
+| 数据源类型 | 示例 | 抽取方式 |
+|-----------|------|---------|
+| **关系型数据库** | MySQL、Oracle、PostgreSQL | SQL查询、JDBC连接 |
+| **NoSQL数据库** | MongoDB、Redis | API接口 |
+| **文件系统** | CSV、Excel、JSON、XML | 文件读取 |
+| **API接口** | REST API、Web Service | HTTP请求 |
+| **日志文件** | 应用日志、Web日志 | 文件监听 |
+| **实时流** | Kafka、Flume | 消息队列 |
+
+**抽取策略**：
+
+```plaintext
+1. 全量抽取（Full Extraction）
+   - 每次抽取所有数据
+   - 适用场景：数据量小、首次导入
+   
+   MySQL: SELECT * FROM orders;
+   
+2. 增量抽取（Incremental Extraction）
+   - 只抽取新增或修改的数据
+   - 适用场景：数据量大、定期更新
+   
+   MySQL: SELECT * FROM orders WHERE updated_at > '2025-12-28';
+   
+3. 实时抽取（Real-time Extraction）
+   - 监听数据变化，实时抓取
+   - 适用场景：实时数仓、流处理
+   
+   使用：Kafka、Flume、Canal（MySQL binlog）
+```
+
+**Python抽取示例**：
+
+```python
+import pandas as pd
+import pymysql
+from sqlalchemy import create_engine
+
+# ========== 示例1：从MySQL抽取数据 ==========
+# 创建数据库连接
+engine = create_engine('mysql+pymysql://root:123456@localhost:3306/mydb')
+
+# 全量抽取
+df_full = pd.read_sql('SELECT * FROM orders', engine)
+print(f"全量抽取：{len(df_full)} 条数据")
+print(df_full.head())
+
+# 输出：
+# 全量抽取：10000 条数据
+#    order_id  user_id  amount       created_at
+# 0         1      101   99.99  2025-01-01 10:00:00
+# 1         2      102  199.99  2025-01-01 11:00:00
+# 2         3      103   49.99  2025-01-01 12:00:00
+
+
+# 增量抽取（只抽取昨天的数据）
+sql_incremental = """
+    SELECT * FROM orders 
+    WHERE DATE(created_at) = '2025-12-28'
+"""
+df_incremental = pd.read_sql(sql_incremental, engine)
+print(f"增量抽取：{len(df_incremental)} 条数据")
+
+# 输出：
+# 增量抽取：150 条数据
+
+
+# ========== 示例2：从CSV文件抽取数据 ==========
+df_csv = pd.read_csv('sales.csv', encoding='utf-8')
+print(f"从CSV抽取：{len(df_csv)} 条数据")
+
+# 输出：
+# 从CSV抽取：5000 条数据
+
+
+# ========== 示例3：从API抽取数据 ==========
+import requests
+import json
+
+response = requests.get('https://api.example.com/users')
+data = response.json()
+df_api = pd.DataFrame(data['results'])
+print(f"从API抽取：{len(df_api)} 条数据")
+
+# 输出：
+# 从API抽取：100 条数据
+```
+
+---
+
+### 4️⃣ 详细讲解：Transform（转换）
+
+**定义**：对抽取的原始数据进行**清洗、转换、整合**，使其符合目标数据仓库的要求。
+
+**转换操作分类**：
+
+#### 📌 数据清洗（Data Cleaning）
+
+| 清洗操作 | 说明 | 示例 |
+|---------|------|------|
+| **去重** | 删除重复记录 | `df.drop_duplicates()` |
+| **填充缺失值** | 处理NULL值 | `df.fillna(0)` |
+| **删除缺失值** | 删除不完整记录 | `df.dropna()` |
+| **异常值处理** | 处理错误数据 | 年龄>150 → NULL |
+| **格式统一** | 统一数据格式 | "男"、"M"、"Male" → "M" |
+
+```python
+# ========== 数据清洗示例 ==========
+import pandas as pd
+import numpy as np
+
+# 原始数据（脏数据）
+df = pd.DataFrame({
+    'order_id': [1, 2, 2, 3, 4, 5],  # 第2、3行重复
+    'user_id': [101, 102, 102, 103, None, 105],  # 第5行缺失
+    'amount': [99.99, -50, -50, 199.99, 299.99, None],  # 负数异常、缺失
+    'age': [25, 30, 30, 200, 28, 35],  # 200是异常值
+    'gender': ['男', 'M', 'M', '女', 'F', 'Male']  # 格式不统一
+})
+
+print("原始数据：")
+print(df)
+# 输出：
+#    order_id  user_id  amount  age gender
+# 0         1    101.0   99.99   25     男
+# 1         2    102.0  -50.00   30      M
+# 2         2    102.0  -50.00   30      M
+# 3         3    103.0  199.99  200     女
+# 4         4      NaN  299.99   28      F
+# 5         5    105.0     NaN   35   Male
+
+
+# 1. 去重
+df = df.drop_duplicates()
+
+# 2. 填充缺失的user_id（用0填充）
+df['user_id'] = df['user_id'].fillna(0)
+
+# 3. 删除amount缺失的行
+df = df.dropna(subset=['amount'])
+
+# 4. 处理异常值：金额不能为负数
+df.loc[df['amount'] < 0, 'amount'] = None
+
+# 5. 处理异常值：年龄不能超过120
+df.loc[df['age'] > 120, 'age'] = None
+
+# 6. 格式统一：性别统一为M/F
+gender_map = {'男': 'M', 'M': 'M', 'Male': 'M', '女': 'F', 'F': 'F', 'Female': 'F'}
+df['gender'] = df['gender'].map(gender_map)
+
+print("\n清洗后数据：")
+print(df)
+# 输出：
+#    order_id  user_id  amount   age gender
+# 0         1    101.0   99.99  25.0      M
+# 3         3    103.0  199.99   NaN      F
+# 4         4      0.0  299.99  28.0      F
+```
+
+#### 📌 数据转换（Data Transformation）
+
+| 转换操作 | 说明 | 示例 |
+|---------|------|------|
+| **类型转换** | 改变数据类型 | 字符串 → 日期 |
+| **计算派生字段** | 创建新字段 | 总价 = 单价 × 数量 |
+| **数据标准化** | 统一单位/量纲 | cm → m |
+| **数据分箱** | 连续值离散化 | 年龄 → 年龄段 |
+| **编码转换** | 类别编码 | "北京" → 1 |
+
+```python
+# ========== 数据转换示例 ==========
+df = pd.DataFrame({
+    'order_date': ['2025-01-01', '2025-01-02', '2025-01-03'],
+    'price': ['99.99', '199.99', '49.99'],  # 字符串类型
+    'quantity': [2, 1, 3],
+    'age': [25, 35, 45],
+    'city': ['北京', '上海', '深圳']
+})
+
+# 1. 类型转换：字符串 → 日期
+df['order_date'] = pd.to_datetime(df['order_date'])
+
+# 2. 类型转换：字符串 → 数值
+df['price'] = df['price'].astype(float)
+
+# 3. 计算派生字段：总价 = 单价 × 数量
+df['total_amount'] = df['price'] * df['quantity']
+
+# 4. 提取日期字段
+df['year'] = df['order_date'].dt.year
+df['month'] = df['order_date'].dt.month
+df['day'] = df['order_date'].dt.day
+
+# 5. 数据分箱：年龄 → 年龄段
+df['age_group'] = pd.cut(df['age'], bins=[0, 30, 40, 100], labels=['青年', '中年', '老年'])
+
+# 6. 编码转换：城市名 → 城市代码
+city_code = {'北京': 1, '上海': 2, '深圳': 3}
+df['city_code'] = df['city'].map(city_code)
+
+print(df)
+# 输出：
+#   order_date   price  quantity  total_amount  year  month  day age_group  city  city_code
+# 0 2025-01-01   99.99         2        199.98  2025      1    1      青年  北京          1
+# 1 2025-01-02  199.99         1        199.99  2025      1    2      中年  上海          2
+# 2 2025-01-03   49.99         3        149.97  2025      1    3      中年  深圳          3
+```
+
+#### 📌 数据整合（Data Integration）
+
+| 整合操作 | 说明 | 示例 |
+|---------|------|------|
+| **表连接** | 关联多个表 | JOIN、MERGE |
+| **数据聚合** | 汇总统计 | GROUP BY |
+| **维度展开** | 宽表转长表 | UNPIVOT |
+| **数据追加** | 合并多个数据源 | UNION |
+
+```python
+# ========== 数据整合示例 ==========
+
+# 数据源1：订单表
+orders = pd.DataFrame({
+    'order_id': [1, 2, 3],
+    'user_id': [101, 102, 103],
+    'amount': [99.99, 199.99, 49.99]
+})
+
+# 数据源2：用户表
+users = pd.DataFrame({
+    'user_id': [101, 102, 103],
+    'name': ['张三', '李四', '王五'],
+    'city': ['北京', '上海', '深圳']
+})
+
+# 1. 表连接：订单表 + 用户表
+df_merged = pd.merge(orders, users, on='user_id', how='left')
+print("表连接结果：")
+print(df_merged)
+# 输出：
+#    order_id  user_id  amount name city
+# 0         1      101   99.99  张三  北京
+# 1         2      102  199.99  李四  上海
+# 2         3      103   49.99  王五  深圳
+
+
+# 2. 数据聚合：按城市统计订单金额
+df_agg = df_merged.groupby('city').agg({
+    'order_id': 'count',  # 订单数量
+    'amount': 'sum'        # 总金额
+}).rename(columns={'order_id': 'order_count', 'amount': 'total_amount'})
+print("\n数据聚合结果：")
+print(df_agg)
+# 输出：
+#      order_count  total_amount
+# city                          
+# 上海            1        199.99
+# 北京            1         99.99
+# 深圳            1         49.99
+```
+
+---
+
+### 5️⃣ 详细讲解：Load（加载）
+
+**定义**：将转换后的数据**加载**到目标数据仓库中。
+
+**加载策略**：
+
+| 加载方式 | 说明 | 适用场景 |
+|---------|------|---------|
+| **全量加载** | 删除旧数据，导入全部新数据 | 数据量小、周期性全量更新 |
+| **增量加载** | 只加载新增或修改的数据 | 数据量大、实时更新 |
+| **追加加载** | 在原有数据基础上追加新数据 | 日志、历史数据 |
+| **覆盖加载** | 覆盖指定分区的数据 | 按日期分区的数据 |
+
+**加载方式对比**：
+
+```python
+# ========== 加载方式示例 ==========
+import pandas as pd
+from sqlalchemy import create_engine
+
+# 目标数据仓库连接（假设用Hive或MySQL）
+engine = create_engine('mysql+pymysql://root:123456@localhost:3306/data_warehouse')
+
+# 转换后的数据
+df_clean = pd.DataFrame({
+    'order_id': [1, 2, 3],
+    'user_id': [101, 102, 103],
+    'total_amount': [199.98, 199.99, 149.97],
+    'order_date': ['2025-01-01', '2025-01-02', '2025-01-03']
+})
+
+# ========== 方式1：全量加载（replace） ==========
+# 删除表中所有旧数据，导入全部新数据
+df_clean.to_sql('orders_fact', engine, if_exists='replace', index=False)
+print("全量加载完成！")
+
+
+# ========== 方式2：追加加载（append） ==========
+# 在原有数据基础上追加新数据
+df_clean.to_sql('orders_fact', engine, if_exists='append', index=False)
+print("追加加载完成！")
+
+
+# ========== 方式3：增量加载（手动实现） ==========
+# 先查询已有的order_id
+existing_ids = pd.read_sql('SELECT order_id FROM orders_fact', engine)['order_id'].tolist()
+
+# 只插入新增的订单
+df_new = df_clean[~df_clean['order_id'].isin(existing_ids)]
+df_new.to_sql('orders_fact', engine, if_exists='append', index=False)
+print(f"增量加载完成！新增 {len(df_new)} 条数据")
+```
+
+**加载到Hive示例**：
+
+```python
+# ========== 使用Sqoop加载到Hive ==========
+import subprocess
+
+# 方法1：使用Sqoop从MySQL导入到Hive
+sqoop_cmd = """
+sqoop import \
+  --connect jdbc:mysql://localhost:3306/mydb \
+  --username root \
+  --password 123456 \
+  --table orders_clean \
+  --hive-import \
+  --hive-table orders_fact \
+  --hive-overwrite
+"""
+subprocess.run(sqoop_cmd, shell=True)
+
+
+# 方法2：使用Python直接写入HDFS/Hive
+from hdfs import InsecureClient
+
+# 连接HDFS
+client = InsecureClient('http://localhost:9870', user='hadoop')
+
+# 将DataFrame转换为CSV格式
+csv_data = df_clean.to_csv(index=False)
+
+# 写入HDFS
+with client.write('/user/hive/warehouse/orders_fact/data.csv', encoding='utf-8') as writer:
+    writer.write(csv_data)
+
+print("数据已加载到Hive！")
+```
+
+---
+
+### 6️⃣ ETL体系结构图
+
+#### 标准ETL流程图
+
+![39](dataCollectionFinalReview/39.png)
+
+**流程说明**：
+1. **数据源层**：RDBMS数据源、遗留系统数据源、其他数据源
+2. **抽取层**：从各个数据源抽取原始数据
+3. **转换层**：数据转换 → 数据清洗 → 数据加载
+4. **目标层**：目标数据库/数据仓库
+
+---
+
+### 7️⃣ ETL vs ELT
+
+**新兴模式：ELT（Extract-Load-Transform）**
+
+| 对比项 | ETL | ELT |
+|--------|-----|-----|
+| **转换位置** | 在加载前转换（独立ETL工具） | 在加载后转换（利用数据仓库计算能力） |
+| **适用场景** | 传统数据仓库（Oracle、MySQL） | 大数据平台（Hive、Spark、Snowflake） |
+| **处理速度** | 慢（ETL工具性能限制） | 快（利用分布式计算） |
+| **存储成本** | 低（只存储转换后的数据） | 高（存储原始数据+转换后数据） |
+| **灵活性** | 低（转换逻辑固定） | 高（可以随时重新转换） |
+| **代表工具** | Kettle、Informatica | Hadoop、Spark、Presto |
+
+```plaintext
+ETL流程：
+数据源 → Extract → Transform（独立服务器）→ Load → 数据仓库
+
+ELT流程：
+数据源 → Extract → Load → 数据仓库 → Transform（在数据仓库内部）
+```
+
+---
+
+### 8️⃣ 常用ETL工具
+
+| 工具类型 | 工具名称 | 特点 |
+|---------|---------|------|
+| **开源工具** | Kettle (PDI) | 可视化、易上手、免费 |
+| **开源工具** | Apache NiFi | 实时数据流、可视化 |
+| **开源工具** | Talend | 功能强大、社区活跃 |
+| **商业工具** | Informatica | 企业级、功能全面、昂贵 |
+| **商业工具** | DataStage (IBM) | 高性能、企业级 |
+| **大数据工具** | Sqoop | Hadoop生态、批量导入 |
+| **大数据工具** | Flume | 日志采集、实时流 |
+| **编程实现** | Python + Pandas | 灵活、可定制 |
+
+---
+
+### 9️⃣ ETL的应用场景
+
+| 场景 | 说明 |
+|------|------|
+| **数据仓库建设** | 从业务系统（MySQL、Oracle）导入数据到数据仓库（Hive、Snowflake） |
+| **数据迁移** | 系统升级时，从旧系统迁移数据到新系统 |
+| **数据集成** | 整合多个分散的数据源（订单系统、物流系统、财务系统） |
+| **数据分析** | 为BI系统、报表系统提供清洗后的干净数据 |
+| **实时数据同步** | 从生产数据库实时同步到分析数据库 |
+
+---
+
+### 🔟 考试重点总结
+
+#### 📌 必记知识点
+
+1. **ETL的定义**：Extract（抽取）、Transform（转换）、Load（加载）
+2. **三大阶段的作用**：
+   - Extract：从数据源获取数据
+   - Transform：清洗、转换、整合数据
+   - Load：加载到目标数据仓库
+3. **转换包括的操作**：清洗、去重、填充缺失值、格式统一、类型转换、计算派生字段
+4. **加载策略**：全量加载、增量加载、追加加载
+
+#### 📌 常见考题
+
+**题目1**：ETL是对数据进行（ABC）的过程。
+- A. 抽取
+- B. 转换
+- C. 加载
+- D. 读取
+
+**答案**：ABC
+
+![40](dataCollectionFinalReview/40.png)
+
+---
+
+**题目2**：简述ETL的体系结构。（5分）
+
+**参考答案**：
+ETL是指Extract、Transform、Load三个英文单词的首字母，意为抽取、转换、加载，是一种数据迁移技术。
+- **抽取**：从操作型数据源（RDBMS、遗留系统、文件系统等）获取原始数据
+- **转换**：对数据进行清洗、转换、整合，使数据的形式和结构适用于查询与分析（去重、填充缺失值、类型转换、数据聚合等）
+- **加载**：将转换后的数据导入到最终的目标数据仓库中（全量加载或增量加载）
+
+ETL体系结构包括：数据源层 → 数据抽取层 → 数据转换层 → 数据加载层 → 目标数据仓库。
+
+---
+
+**题目3**：请写出至少3种数据清洗的操作。
+
+**参考答案**：
+1. **去重**：删除重复的记录
+2. **填充缺失值**：对NULL值进行填充（如用0、平均值、中位数填充）
+3. **删除缺失值**：删除数据不完整的记录
+4. **异常值处理**：处理不合理的数据（如年龄>150、金额为负数）
+5. **格式统一**：统一数据格式（如性别"男"、"M"、"Male"统一为"M"）
+
+---
+
+#### 📌 记忆口诀
+
+**ETL三阶段**：
+> 抽取数据源头找，
+> 转换清洗很重要，
+> 加载仓库存放好！
+
+**Transform包含内容**：
+> 清洗去重填缺失，
+> 格式统一类型换，
+> 计算派生聚合表，
+> 数据整合连接忙！
+
+**ETL vs ELT**：
+> ETL先转后加载，
+> ELT先加后转换，
+> 前者传统后者新，
+> 大数据用ELT欢！
+
+---
+
+### 💡 自测题
+
+1. ETL中的"T"代表什么？它包括哪些操作？
+2. 全量加载和增量加载的区别是什么？
+3. 数据清洗中常见的操作有哪些？
+4. ETL和ELT的主要区别是什么？
+5. Sqoop属于ETL流程中的哪个阶段？
+
+**答案**：
+1. Transform（转换），包括清洗、去重、填充缺失值、类型转换、计算派生字段、数据聚合等
+2. 全量加载是删除旧数据导入全部新数据；增量加载是只加载新增或修改的数据
+3. 去重、填充缺失值、删除缺失值、异常值处理、格式统一
+4. ETL是先转换后加载，ELT是先加载后转换（在数据仓库内部转换）
+5. Extract（抽取）和Load（加载）阶段（Sqoop用于数据导入导出）
+
+---
