@@ -6062,6 +6062,8 @@ conn.close()
 
 首先我们要搞清楚这三者的主要作用主要的数据结构，以及其在数据采集整体流程中的地位与应用场景。
 
+![28](dataCollectionFinalReview/28.png)
+
 ---
 
 ### 三大框架总览：数据搬运工的不同分工
@@ -6311,6 +6313,21 @@ sqoop export \
 | **离线数据仓库** | 每天凌晨把MySQL的订单数据导入Hive进行分析 |
 | **历史数据迁移** | 把旧系统数据库的数据一次性迁移到Hadoop |
 | **数据同步** | 定期把大数据平台的分析结果导出到MySQL供业务系统使用 |
+
+#### Sqoop真题
+
+![33](dataCollectionFinalReview/33.png)
+
+```bash
+sqoop export \
+--connect jdbc:mysql://hadoop01:3306/userdb \ 连接MySQL数据库
+--username root \ 指定连接数据库的用户名
+--password 123123 \ 指定连接数据库的密码
+--table hadoop_sql \ 指定准备接收数据的MySQL数据库中的表
+--export-dir /mysqoopresul 导出HDFS目录mysqoopresult中的文件
+或者
+--export-dir /mysqoopresult/part-m-0000  导出HDFS目录mysqoopresult中的文件
+```
 
 ---
 
@@ -6600,6 +6617,10 @@ for message in consumer:
 ---
 
 ### Flume：日志采集的流水线
+
+![29](dataCollectionFinalReview/29.png)
+
+![30](dataCollectionFinalReview/30.png)
 
 #### 1️⃣ 定义与本质
 
@@ -6941,6 +6962,18 @@ agent.sinks.avroSink.channel = memChannel
 ```
 
 ---
+
+### Flume真题
+
+用文字和示意图说明Flume采集框架的负载均衡和故障恢复是如何实现的。
+
+![31](dataCollectionFinalReview/31.png)
+
+（1）Agent1是一个路由节点，负责将Channel暂存的Event均衡到对应的多个Sink组件上，而每个Sink组件分别连接到一个独立的Agent上 ，这样可以实现负载均衡。
+
+（2）当Agent2、Agent3、Agent4其中一个节点出现故障时，Agent1与之对应的输出可以转移到其他节点上，这样可以实现故障转移。
+
+![32](dataCollectionFinalReview/32.png)
 
 ### 三大框架对比速查表
 
@@ -9560,6 +9593,89 @@ print("目录删除成功！")
 3. 熟悉HDFS的读写流程（画图理解）
 4. 记住HDFS的优缺点和适用场景
 5. 掌握常用的HDFS命令
+
+### HDFS Flume Kafka真题
+
+1、一个日志采集系统，利用Kafka作为日志的缓存，利用Flume从Kafka中采集日志，最后存储到HDFS分布式文件系统中。假设Kafka、Flume与Hadoop均安装在Windows系统C盘根目录下。
+
+Flume配置文件kafka_flume_hdfs.conf如下：
+
+```conf
+#设置名称
+a1.sources=r1
+a1.sinks=k1
+a1.channels=c1
+#配置Source
+a1.sources.r1.type = org.apache.flume.source.kafka.KafkaSource
+a1.sources.r1.batchSize = 500
+a1.sources.r1.batchDurationMillis = 2000
+a1.sources.r1.kafka.bootstrap.servers = localhost:9092
+a1.sources.r1.kafka.topics = flume
+#配置Sink
+a1.sinks.k1.type = hdfs
+a1.sinks.k1.hdfs.path = hdfs://localhost:9000/fromkafka/%Y%m%d/
+a1.sinks.k1.hdfs.filePrefix = kafka_log
+a1.sinks.k1.hdfs.maxOpenFiles=5000
+a1.sinks.k1.hdfs.fileType = DataStream
+a1.sinks.k1.hdfs.batchSize = 100
+a1.sinks.k1.hdfs.writeFormat=Text
+a1.sinks.k1.hdfs.rollInterval = 60
+a1.sinks.k1.hdfs.rollSize = 102400
+a1.sinks.k1.hdfs.rollCount = 100000
+a1.sinks.k1.hdfs.round = true
+a1.sinks.k1.hdfs.roundValue = 10
+a1.sinks.k1.hdfs.roundUnit = minute
+a1.sinks.k1.hdfs.useLocalTimeStamp = true
+#配置channels
+a1.channels.c1.type=memory
+a1.channels.c1.keep-alive=120
+a1.channels.c1.capacity=500000
+a1.channels.c1.transactionCapacity=600
+#绑定sink source到channels上
+a1.sources.r1.channels=c1
+a1.sinks.k1.channel=c1
+```
+
+根据以上内容回答以下问题：
+（1）Flume的Source、Sink、Channel分别是什么类型？（6分）
+（2）请分别画出Kafka与Flume的技术架构图。（8分）
+（3）写出将HDFS的存储路径设为“主机名/你的学号/年-月-日/时-分”的配置内容。（3分）
+（4）写出存储在HDFS中的文件以“test”为前缀的配置内容。（3分）
+（5）利用上述数据采集框架，写出Kafka生产者产生数据“it is the final test”存储到HDFS的全过程，包括执行的命令行。（10分）
+
+(1)
+
+Flume的Source类型是KafkaSource或Kafka，Flume的Sink类型是hdfs，Flume的Channel类型是memory。
+
+(2)
+
+![34](dataCollectionFinalReview/34.png)
+
+![35](dataCollectionFinalReview/35.png)
+
+(3)
+
+假设该学生学号为2020001（学号不是本人学号扣3分，年月日、小时、分钟格式不对扣1分，缺少等号左边内容扣1分）
+a1.sinks.k1.hdfs.path = hdfs://localhost:9000/2020001/%Y-%m-%d/%H-%M
+
+(4)等号左边内容错误扣3分）
+
+a1.sinks.k1.hdfs.filePrefix = test
+
+(5)
+
+第一步：启动zookeeper，启动kafka，启动hdfs
+>.\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
+>.\bin\windows\kafka-server-start.bat .\config\server.properties
+>.\sbin\ start-dfs.cmd
+第二步：创建Kafka的topic，生成数据
+>.\bin\windows\kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic flume
+第三步：启动Kafka生产者，向topic中发送消息
+>.\bin\windows\kafka-console-producer.bat --broker-list localhost:9092 -topic flume
+>it is the final test
+第四步：创建Flume的配置文件kafka_flume_hdfs.conf，放置在Flume安装目录的conf目录下
+第五步：启动Flume将消息存入HDFS
+.\bin\flume-ng agent --conf .\conf --conf-file .\conf\kafka_flume_hdfs.conf --name a1 -property flume.root.logger=INFO,console
 
 ---
 
