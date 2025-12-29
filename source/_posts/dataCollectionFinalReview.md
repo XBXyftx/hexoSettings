@@ -3101,7 +3101,20 @@ print(f"区号: {area_code.group()}")
 # 输出: 区号: 138（注意：匹配到的是手机号前3位，不是区号！）
 
 # 正确匹配区号（需要更精确的模式）
-area_code = re.search(r'-(\d{3})-', text)  # 或 re.search(r'(\d{3,4})-', text)
+# 思路：区号的特征是"在两个短横线之间"或"后面跟着短横线"
+# r'-(\d{3})-' 解释：
+#   - 第一个 - ：匹配区号前面的短横线（如果有的话）
+#   - (\d{3})  ：括号是"捕获组"，提取括号内匹配的内容（3位数字）
+#   - 第二个 - ：匹配区号后面的短横线
+# 问题：021-12345678 中区号前面没有短横线，所以这个模式匹配不到021
+
+# 更好的方式：匹配"3-4位数字后面跟着短横线"
+area_code = re.search(r'(\d{3,4})-', text)
+# r'(\d{3,4})-' 解释：
+#   - (\d{3,4})：匹配3到4位数字（区号可能是3位如021，也可能是4位如0755）
+#   - -        ：后面必须跟短横线（区分区号和普通数字）
+print(f"区号: {area_code.group(1)}")  # .group(1) 取第1个括号的内容
+# 输出: 区号: 021
 ```
 
 #### 示例2：匹配字母 `\w` vs `[a-zA-Z]`
@@ -3135,6 +3148,59 @@ print(result)
 
 #### 示例3：贪婪 vs 非贪婪
 
+> **核心比喻**：想象正则是一条贪吃蛇在吃字符
+> - **贪婪模式 `.*`** = 贪吃蛇：能吃多少吃多少，吃到撑才停
+> - **非贪婪模式 `.*?`** = 小鸟胃：吃一点就问"够了吗？"，尽快停下
+
+**匹配过程动画演示**：
+
+<div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 12px; padding: 20px; margin: 15px 0; font-family: 'Consolas', monospace;">
+  <div style="color: #8892b0; font-size: 14px; margin-bottom: 15px;">📍 待匹配字符串：</div>
+  <div style="background: #0d1117; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+    <code style="color: #e6edf3; font-size: 16px; letter-spacing: 1px;">&lt;div&gt;内容1&lt;/div&gt;&lt;div&gt;内容2&lt;/div&gt;</code>
+  </div>
+  <!-- 贪婪模式 -->
+  <div style="margin-bottom: 25px;">
+    <div style="color: #ff6b6b; font-weight: bold; margin-bottom: 10px;">🐍 贪婪模式 <code style="background: #ff6b6b22; padding: 2px 8px; border-radius: 4px;">&lt;div&gt;.*&lt;/div&gt;</code></div>
+    <div style="position: relative; background: #0d1117; padding: 15px; border-radius: 8px; overflow: hidden;">
+      <div style="position: relative; display: inline-block;">
+        <code style="color: #e6edf3; font-size: 16px;">&lt;div&gt;内容1&lt;/div&gt;&lt;div&gt;内容2&lt;/div&gt;</code>
+        <div style="position: absolute; top: -2px; left: 0; right: 0; height: calc(100% + 4px); background: linear-gradient(90deg, #ff6b6b55, #ff6b6b33); border: 2px solid #ff6b6b; border-radius: 4px; animation: greedy-pulse 2s ease-in-out infinite;"></div>
+      </div>
+      <div style="color: #8892b0; font-size: 12px; margin-top: 10px;">
+        → .* 从第一个 &lt;div&gt; 开始，<span style="color: #ff6b6b; font-weight: bold;">一直吃到最后一个</span> &lt;/div&gt; 才满足
+      </div>
+      <div style="color: #50fa7b; font-size: 13px; margin-top: 5px;">
+        ✅ 结果: <code style="background: #50fa7b22; padding: 2px 6px; border-radius: 3px;">['&lt;div&gt;内容1&lt;/div&gt;&lt;div&gt;内容2&lt;/div&gt;']</code> （1块）
+      </div>
+    </div>
+  </div>
+  <!-- 非贪婪模式 -->
+  <div>
+    <div style="color: #4ecdc4; font-weight: bold; margin-bottom: 10px;">🐦 非贪婪模式 <code style="background: #4ecdc422; padding: 2px 8px; border-radius: 4px;">&lt;div&gt;.*?&lt;/div&gt;</code></div>
+    <div style="position: relative; background: #0d1117; padding: 15px; border-radius: 8px; overflow: hidden;">
+      <div style="position: relative; display: inline-block;">
+        <code style="color: #e6edf3; font-size: 16px;"><span style="position: relative;"><span style="position: relative; z-index: 1;">&lt;div&gt;内容1&lt;/div&gt;</span><span style="position: absolute; top: -2px; left: 0; right: 0; height: calc(100% + 4px); background: #4ecdc433; border: 2px solid #4ecdc4; border-radius: 4px; animation: nongreedy-pulse1 2s ease-in-out infinite;"></span></span><span style="position: relative;"><span style="position: relative; z-index: 1;">&lt;div&gt;内容2&lt;/div&gt;</span><span style="position: absolute; top: -2px; left: 0; right: 0; height: calc(100% + 4px); background: #4ecdc433; border: 2px solid #4ecdc4; border-radius: 4px; animation: nongreedy-pulse2 2s ease-in-out infinite 0.5s;"></span></span></code>
+      </div>
+      <div style="color: #8892b0; font-size: 12px; margin-top: 10px;">
+        → .*? 遇到<span style="color: #4ecdc4; font-weight: bold;">第一个</span> &lt;/div&gt; 就停，然后继续找下一个匹配
+      </div>
+      <div style="color: #50fa7b; font-size: 13px; margin-top: 5px;">
+        ✅ 结果: <code style="background: #50fa7b22; padding: 2px 6px; border-radius: 3px;">['&lt;div&gt;内容1&lt;/div&gt;', '&lt;div&gt;内容2&lt;/div&gt;']</code> （2块）
+      </div>
+    </div>
+  </div>
+  <style>
+    @keyframes greedy-pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+    @keyframes nongreedy-pulse1 { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+    @keyframes nongreedy-pulse2 { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+  </style>
+</div>
+
+**记忆口诀**：
+- `*` 贪婪 = 不加问号，埋头苦吃
+- `*?` 非贪婪 = 加个问号，吃一口问一下"够了吗？"
+
 ```python
 import re
 
@@ -3145,14 +3211,14 @@ result = re.findall(r'<div>.*</div>', html)
 print("贪婪模式:")
 print(result)
 # 输出: ['<div>内容1</div><div>内容2</div>']
-# 解释：.* 会一直匹配到最后一个</div>
+# 解释：.* 会一直匹配到最后一个</div>（贪吃蛇吃到撑）
 
 # ===== 非贪婪模式 - 尽可能少地匹配 =====
 result = re.findall(r'<div>.*?</div>', html)
 print("\n非贪婪模式:")
 print(result)
 # 输出: ['<div>内容1</div>', '<div>内容2</div>']
-# 解释：.*? 遇到第一个</div>就停止
+# 解释：.*? 遇到第一个</div>就停止（小鸟胃吃一点就饱）
 
 # ===== 实际对比 =====
 text = "从1000元降到999元"
@@ -3218,6 +3284,240 @@ new_date = re.sub(r'(\d{4})-(\d{2})-(\d{2})', r'\3/\2/\1', date)
 print(f"日期转换: {new_date}")
 # 输出: 日期转换: 24/12/2023
 ```
+
+---
+
+### 🎯 常见正则匹配动画演示
+
+> 下面用动画拆解5种最常用的正则表达式，**每个字符是什么意思一目了然**！
+
+<div style="background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); border-radius: 16px; padding: 25px; margin: 20px 0; font-family: 'Consolas', 'Monaco', monospace;">
+<!-- ========== 手机号 ========== -->
+<div style="margin-bottom: 30px; background: #ffffff08; border-radius: 12px; padding: 20px; border-left: 4px solid #00d4ff;">
+  <div style="display: flex; align-items: center; margin-bottom: 15px;">
+    <span style="font-size: 28px; margin-right: 12px;">📱</span>
+    <span style="color: #00d4ff; font-size: 18px; font-weight: bold;">手机号匹配</span>
+  </div>
+  <div style="background: #0d1117; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+    <div style="color: #8b949e; font-size: 12px; margin-bottom: 8px;">正则表达式：</div>
+    <code style="font-size: 20px; letter-spacing: 2px;">
+      <span style="color: #ff7b72;">^</span><span style="color: #79c0ff;">1</span><span style="color: #a5d6ff;">[3-9]</span><span style="color: #7ee787;">\d{9}</span><span style="color: #ff7b72;">$</span>
+    </code>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
+    <div style="background: #ff7b7222; border: 1px solid #ff7b72; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #ff7b72; font-size: 16px; font-weight: bold;">^</div>
+      <div style="color: #8b949e; font-size: 11px;">开头</div>
+    </div>
+    <div style="background: #79c0ff22; border: 1px solid #79c0ff; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #79c0ff; font-size: 16px; font-weight: bold;">1</div>
+      <div style="color: #8b949e; font-size: 11px;">第1位必须是1</div>
+    </div>
+    <div style="background: #a5d6ff22; border: 1px solid #a5d6ff; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #a5d6ff; font-size: 16px; font-weight: bold;">[3-9]</div>
+      <div style="color: #8b949e; font-size: 11px;">第2位是3~9</div>
+    </div>
+    <div style="background: #7ee78722; border: 1px solid #7ee787; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #7ee787; font-size: 16px; font-weight: bold;">\d{9}</div>
+      <div style="color: #8b949e; font-size: 11px;">后9位数字</div>
+    </div>
+    <div style="background: #ff7b7222; border: 1px solid #ff7b72; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #ff7b72; font-size: 16px; font-weight: bold;">$</div>
+      <div style="color: #8b949e; font-size: 11px;">结尾</div>
+    </div>
+  </div>
+  <div style="background: #0d1117; border-radius: 8px; padding: 12px;">
+    <div style="color: #8b949e; font-size: 12px;">匹配示例：</div>
+    <code style="color: #7ee787; font-size: 14px;">
+      <span style="color: #79c0ff;">1</span><span style="color: #a5d6ff;">3</span><span style="color: #7ee787;">812345678</span>
+    </code>
+    <span style="color: #3fb950; margin-left: 10px;">✓ 匹配成功</span>
+  </div>
+</div>
+<!-- ========== 身份证号 ========== -->
+<div style="margin-bottom: 30px; background: #ffffff08; border-radius: 12px; padding: 20px; border-left: 4px solid #f0883e;">
+  <div style="display: flex; align-items: center; margin-bottom: 15px;">
+    <span style="font-size: 28px; margin-right: 12px;">🪪</span>
+    <span style="color: #f0883e; font-size: 18px; font-weight: bold;">身份证号匹配（18位）</span>
+  </div>
+  <div style="background: #0d1117; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+    <div style="color: #8b949e; font-size: 12px; margin-bottom: 8px;">正则表达式：</div>
+    <code style="font-size: 18px; letter-spacing: 1px;">
+      <span style="color: #ff7b72;">^</span><span style="color: #79c0ff;">\d{6}</span><span style="color: #a5d6ff;">\d{4}</span><span style="color: #d2a8ff;">\d{2}</span><span style="color: #ffa657;">\d{2}</span><span style="color: #7ee787;">\d{3}</span><span style="color: #ff7b72;">[\dXx]</span><span style="color: #ff7b72;">$</span>
+    </code>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
+    <div style="background: #79c0ff22; border: 1px solid #79c0ff; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #79c0ff; font-size: 16px; font-weight: bold;">\d{6}</div>
+      <div style="color: #8b949e; font-size: 11px;">地区码6位</div>
+    </div>
+    <div style="background: #a5d6ff22; border: 1px solid #a5d6ff; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #a5d6ff; font-size: 16px; font-weight: bold;">\d{4}</div>
+      <div style="color: #8b949e; font-size: 11px;">出生年4位</div>
+    </div>
+    <div style="background: #d2a8ff22; border: 1px solid #d2a8ff; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #d2a8ff; font-size: 16px; font-weight: bold;">\d{2}</div>
+      <div style="color: #8b949e; font-size: 11px;">出生月2位</div>
+    </div>
+    <div style="background: #ffa65722; border: 1px solid #ffa657; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #ffa657; font-size: 16px; font-weight: bold;">\d{2}</div>
+      <div style="color: #8b949e; font-size: 11px;">出生日2位</div>
+    </div>
+    <div style="background: #7ee78722; border: 1px solid #7ee787; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #7ee787; font-size: 16px; font-weight: bold;">\d{3}</div>
+      <div style="color: #8b949e; font-size: 11px;">顺序码3位</div>
+    </div>
+    <div style="background: #ff7b7222; border: 1px solid #ff7b72; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #ff7b72; font-size: 16px; font-weight: bold;">[\dXx]</div>
+      <div style="color: #8b949e; font-size: 11px;">校验码(数字或X)</div>
+    </div>
+  </div>
+  <div style="background: #0d1117; border-radius: 8px; padding: 12px;">
+    <div style="color: #8b949e; font-size: 12px;">匹配示例：</div>
+    <code style="font-size: 14px;">
+      <span style="color: #79c0ff;">110101</span><span style="color: #a5d6ff;">1990</span><span style="color: #d2a8ff;">01</span><span style="color: #ffa657;">01</span><span style="color: #7ee787;">123</span><span style="color: #ff7b72;">X</span>
+    </code>
+    <span style="color: #3fb950; margin-left: 10px;">✓ 匹配成功</span>
+  </div>
+</div>
+
+<!-- ========== 车牌号 ========== -->
+<div style="margin-bottom: 30px; background: #ffffff08; border-radius: 12px; padding: 20px; border-left: 4px solid #3fb950;">
+  <div style="display: flex; align-items: center; margin-bottom: 15px;">
+    <span style="font-size: 28px; margin-right: 12px;">🚗</span>
+    <span style="color: #3fb950; font-size: 18px; font-weight: bold;">车牌号匹配</span>
+  </div>
+  <div style="background: #0d1117; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+    <div style="color: #8b949e; font-size: 12px; margin-bottom: 8px;">正则表达式：</div>
+    <code style="font-size: 18px; letter-spacing: 1px;">
+      <span style="color: #ff7b72;">^</span><span style="color: #79c0ff;">[京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼]</span><span style="color: #a5d6ff;">[A-Z]</span><span style="color: #7ee787;">[A-Z0-9]{5}</span><span style="color: #ff7b72;">$</span>
+    </code>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
+    <div style="background: #79c0ff22; border: 1px solid #79c0ff; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #79c0ff; font-size: 16px; font-weight: bold;">[京津沪...]</div>
+      <div style="color: #8b949e; font-size: 11px;">省份简称1位</div>
+    </div>
+    <div style="background: #a5d6ff22; border: 1px solid #a5d6ff; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #a5d6ff; font-size: 16px; font-weight: bold;">[A-Z]</div>
+      <div style="color: #8b949e; font-size: 11px;">城市代码1位</div>
+    </div>
+    <div style="background: #7ee78722; border: 1px solid #7ee787; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #7ee787; font-size: 16px; font-weight: bold;">[A-Z0-9]{5}</div>
+      <div style="color: #8b949e; font-size: 11px;">字母或数字5位</div>
+    </div>
+  </div>
+  <div style="background: #0d1117; border-radius: 8px; padding: 12px;">
+    <div style="color: #8b949e; font-size: 12px;">匹配示例：</div>
+    <code style="font-size: 14px;">
+      <span style="color: #79c0ff;">京</span><span style="color: #a5d6ff;">A</span><span style="color: #7ee787;">12345</span>
+    </code>
+    <span style="color: #3fb950; margin-left: 10px;">✓ 匹配成功</span>
+    <span style="margin-left: 20px; color: #8b949e;">|</span>
+    <code style="font-size: 14px; margin-left: 20px;">
+      <span style="color: #79c0ff;">粤</span><span style="color: #a5d6ff;">B</span><span style="color: #7ee787;">ABC88</span>
+    </code>
+    <span style="color: #3fb950; margin-left: 10px;">✓</span>
+  </div>
+</div>
+<!-- ========== 日期/生日 ========== -->
+<div style="margin-bottom: 30px; background: #ffffff08; border-radius: 12px; padding: 20px; border-left: 4px solid #d2a8ff;">
+  <div style="display: flex; align-items: center; margin-bottom: 15px;">
+    <span style="font-size: 28px; margin-right: 12px;">🎂</span>
+    <span style="color: #d2a8ff; font-size: 18px; font-weight: bold;">日期/生日匹配 (YYYY-MM-DD)</span>
+  </div>
+  <div style="background: #0d1117; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+    <div style="color: #8b949e; font-size: 12px; margin-bottom: 8px;">正则表达式：</div>
+    <code style="font-size: 20px; letter-spacing: 2px;">
+      <span style="color: #ff7b72;">^</span><span style="color: #79c0ff;">\d{4}</span><span style="color: #8b949e;">-</span><span style="color: #a5d6ff;">(0[1-9]|1[0-2])</span><span style="color: #8b949e;">-</span><span style="color: #7ee787;">(0[1-9]|[12]\d|3[01])</span><span style="color: #ff7b72;">$</span>
+    </code>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
+    <div style="background: #79c0ff22; border: 1px solid #79c0ff; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #79c0ff; font-size: 16px; font-weight: bold;">\d{4}</div>
+      <div style="color: #8b949e; font-size: 11px;">年份4位</div>
+    </div>
+    <div style="background: #8b949e22; border: 1px solid #8b949e; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #8b949e; font-size: 16px; font-weight: bold;">-</div>
+      <div style="color: #8b949e; font-size: 11px;">分隔符</div>
+    </div>
+    <div style="background: #a5d6ff22; border: 1px solid #a5d6ff; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #a5d6ff; font-size: 14px; font-weight: bold;">(0[1-9]|1[0-2])</div>
+      <div style="color: #8b949e; font-size: 11px;">月份01-12</div>
+    </div>
+    <div style="background: #7ee78722; border: 1px solid #7ee787; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #7ee787; font-size: 12px; font-weight: bold;">(0[1-9]|[12]\d|3[01])</div>
+      <div style="color: #8b949e; font-size: 11px;">日期01-31</div>
+    </div>
+  </div>
+  <div style="background: #0d1117; border-radius: 8px; padding: 12px;">
+    <div style="color: #8b949e; font-size: 12px;">匹配示例：</div>
+    <code style="font-size: 14px;">
+      <span style="color: #79c0ff;">1995</span><span style="color: #8b949e;">-</span><span style="color: #a5d6ff;">08</span><span style="color: #8b949e;">-</span><span style="color: #7ee787;">15</span>
+    </code>
+    <span style="color: #3fb950; margin-left: 10px;">✓ 匹配成功</span>
+  </div>
+  <div style="background: #161b22; border-radius: 6px; padding: 10px; margin-top: 12px;">
+    <div style="color: #f0883e; font-size: 12px;">💡 月份解析：<code style="color: #a5d6ff;">0[1-9]</code>=01~09 | <code style="color: #a5d6ff;">1[0-2]</code>=10~12</div>
+    <div style="color: #f0883e; font-size: 12px; margin-top: 5px;">💡 日期解析：<code style="color: #7ee787;">0[1-9]</code>=01~09 | <code style="color: #7ee787;">[12]\d</code>=10~29 | <code style="color: #7ee787;">3[01]</code>=30~31</div>
+  </div>
+</div>
+<!-- ========== 邮箱 ========== -->
+<div style="background: #ffffff08; border-radius: 12px; padding: 20px; border-left: 4px solid #58a6ff;">
+  <div style="display: flex; align-items: center; margin-bottom: 15px;">
+    <span style="font-size: 28px; margin-right: 12px;">📧</span>
+    <span style="color: #58a6ff; font-size: 18px; font-weight: bold;">邮箱匹配</span>
+  </div>
+  <div style="background: #0d1117; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+    <div style="color: #8b949e; font-size: 12px; margin-bottom: 8px;">正则表达式：</div>
+    <code style="font-size: 16px; letter-spacing: 1px;">
+      <span style="color: #ff7b72;">^</span><span style="color: #79c0ff;">[a-zA-Z0-9_.+-]+</span><span style="color: #ffa657;">@</span><span style="color: #a5d6ff;">[a-zA-Z0-9-]+</span><span style="color: #8b949e;">\.</span><span style="color: #7ee787;">[a-zA-Z]{2,}</span><span style="color: #ff7b72;">$</span>
+    </code>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;">
+    <div style="background: #79c0ff22; border: 1px solid #79c0ff; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #79c0ff; font-size: 14px; font-weight: bold;">[a-zA-Z0-9_.+-]+</div>
+      <div style="color: #8b949e; font-size: 11px;">用户名部分</div>
+    </div>
+    <div style="background: #ffa65722; border: 1px solid #ffa657; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #ffa657; font-size: 16px; font-weight: bold;">@</div>
+      <div style="color: #8b949e; font-size: 11px;">必须有@</div>
+    </div>
+    <div style="background: #a5d6ff22; border: 1px solid #a5d6ff; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #a5d6ff; font-size: 14px; font-weight: bold;">[a-zA-Z0-9-]+</div>
+      <div style="color: #8b949e; font-size: 11px;">域名部分</div>
+    </div>
+    <div style="background: #8b949e22; border: 1px solid #8b949e; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #8b949e; font-size: 16px; font-weight: bold;">\.</div>
+      <div style="color: #8b949e; font-size: 11px;">点(需转义)</div>
+    </div>
+    <div style="background: #7ee78722; border: 1px solid #7ee787; border-radius: 6px; padding: 8px 12px;">
+      <div style="color: #7ee787; font-size: 14px; font-weight: bold;">[a-zA-Z]{2,}</div>
+      <div style="color: #8b949e; font-size: 11px;">后缀≥2位</div>
+    </div>
+  </div>
+  <div style="background: #0d1117; border-radius: 8px; padding: 12px;">
+    <div style="color: #8b949e; font-size: 12px;">匹配示例：</div>
+    <code style="font-size: 14px;">
+      <span style="color: #79c0ff;">test.user+123</span><span style="color: #ffa657;">@</span><span style="color: #a5d6ff;">gmail</span><span style="color: #8b949e;">.</span><span style="color: #7ee787;">com</span>
+    </code>
+    <span style="color: #3fb950; margin-left: 10px;">✓ 匹配成功</span>
+  </div>
+</div>
+
+</div>
+
+**常用正则速查表**：
+
+| 场景 | 正则表达式 | 记忆要点 |
+|------|------------|----------|
+| 手机号 | `^1[3-9]\d{9}$` | 1开头 + 3~9 + 9位数字 |
+| 身份证 | `^\d{17}[\dXx]$` | 17位数字 + 数字或X |
+| 车牌号 | `^[京津沪...][A-Z][A-Z0-9]{5}$` | 省份 + 字母 + 5位 |
+| 日期 | `^\d{4}-\d{2}-\d{2}$` | 4-2-2格式 |
+| 邮箱 | `^[\w.+-]+@[\w-]+\.\w{2,}$` | 用户名@域名.后缀 |
+
+---
 
 ### re模块核心函数
 
