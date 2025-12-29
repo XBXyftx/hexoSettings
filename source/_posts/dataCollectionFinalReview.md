@@ -6120,14 +6120,46 @@ Sqoop会把你的SQL查询任务**自动转换为MapReduce任务**，利用Hadoo
 **场景1：从MySQL导入数据到HDFS**
 
 ```bash
-# 将MySQL的user表导入到HDFS的/user/data目录
+# ========== Sqoop Import命令详解 ==========
+
+# 功能：将MySQL数据库中的user表数据批量导入到HDFS
 sqoop import \
+  # 参数1：数据库连接字符串
   --connect jdbc:mysql://localhost:3306/mydb \
+  # 解释：jdbc:mysql:// 是MySQL的JDBC协议
+  #       localhost:3306 是数据库服务器地址和端口
+  #       mydb 是数据库名称
+  
+  # 参数2：数据库用户名
   --username root \
+  # 解释：连接MySQL的账号
+  
+  # 参数3：数据库密码
   --password 123456 \
+  # 解释：连接MySQL的密码（生产环境建议用 -P 交互式输入）
+  
+  # 参数4：要导入的表名
   --table user \
+  # 解释：指定MySQL中的user表
+  
+  # 参数5：HDFS目标目录
   --target-dir /user/data/user \
+  # 解释：数据将存储在HDFS的/user/data/user目录下
+  #       目录必须不存在，否则会报错（可用--delete-target-dir强制删除）
+  
+  # 参数6：并行度（Mapper数量）
   --num-mappers 4
+  # 解释：启动4个MapReduce任务并行读取数据
+  #       4个Mapper会将user表分成4部分同时读取，大大提高速度
+  #       注意：表必须有主键，否则只能设置为1
+
+# ========== 执行流程 ==========
+# 1. Sqoop连接MySQL，读取user表的元数据（行数、主键、列类型）
+# 2. 根据主键范围将表分成4份（如id: 1-25, 26-50, 51-75, 76-100）
+# 3. 启动4个Mapper任务，每个负责一部分数据
+# 4. 每个Mapper将数据转换为文本格式（默认逗号分隔）
+# 5. 并行写入HDFS的/user/data/user目录
+# 6. 生成4个文件：part-m-00000, part-m-00001, part-m-00002, part-m-00003
 ```
 
 **执行过程**：
@@ -6143,14 +6175,50 @@ sqoop import \
 **场景2：从MySQL导入数据到Hive**
 
 ```bash
+# ========== Sqoop Import to Hive命令详解 ==========
+
+# 功能：将MySQL的user表直接导入到Hive数据仓库
 sqoop import \
+  # 参数1-3：数据库连接信息（同场景1）
   --connect jdbc:mysql://localhost:3306/mydb \
   --username root \
   --password 123456 \
+  
+  # 参数4：源表名
   --table user \
+  # 解释：MySQL中的user表
+  
+  # 参数5：开启Hive导入模式
   --hive-import \
+  # 解释：这个参数会触发以下自动操作：
+  #       1. 先将数据导入到HDFS临时目录
+  #       2. 自动在Hive中创建表（如果不存在）
+  #       3. 自动将数据加载到Hive表
+  #       4. 自动推断列类型（MySQL的INT → Hive的INT）
+  
+  # 参数6：Hive目标表名
   --hive-table user_hive \
+  # 解释：在Hive中创建/使用的表名
+  #       如果表已存在，会追加数据（默认行为）
+  #       如果想覆盖，使用 --hive-overwrite
+  
+  # 参数7：并行度
   --num-mappers 2
+  # 解释：启动2个Mapper任务
+  #       Hive导入通常不需要太高并行度
+
+# ========== 执行流程 ==========
+# 1. Sqoop连接MySQL，读取user表结构
+# 2. 在Hive中创建user_hive表（CREATE TABLE IF NOT EXISTS）
+# 3. 启动2个Mapper任务读取MySQL数据
+# 4. 数据先写入HDFS临时目录（如/user/hive/warehouse/user_hive）
+# 5. 执行Hive的LOAD DATA命令将数据加载到表中
+# 6. 完成后可以直接用HiveQL查询：SELECT * FROM user_hive
+
+# ========== 常用附加参数 ==========
+# --hive-overwrite：覆盖已有数据（默认是追加）
+# --create-hive-table：如果Hive表已存在则报错（防止误操作）
+# --hive-database：指定Hive数据库（默认是default）
 ```
 
 **执行结果**：
@@ -6161,13 +6229,57 @@ sqoop import \
 **场景3：从HDFS导出数据到MySQL**
 
 ```bash
+# ========== Sqoop Export命令详解 ==========
+
+# 功能：将HDFS中的数据批量导出到MySQL数据库
 sqoop export \
+  # 参数1-3：数据库连接信息
   --connect jdbc:mysql://localhost:3306/mydb \
   --username root \
   --password 123456 \
+  
+  # 参数4：目标MySQL表名
   --table user_export \
+  # 解释：MySQL中的user_export表
+  #       ⚠️ 注意：表必须提前创建好，Sqoop不会自动创建表！
+  #       表结构必须与HDFS数据的列数和类型匹配
+  
+  # 参数5：HDFS源目录
   --export-dir /user/data/user \
+  # 解释：从HDFS的/user/data/user目录读取数据
+  #       会读取该目录下的所有文件（part-m-*）
+  
+  # 参数6：并行度
   --num-mappers 2
+  # 解释：启动2个Mapper任务并行导出
+  #       每个Mapper处理部分文件
+
+# ========== 执行流程 ==========
+# 1. Sqoop连接MySQL，验证user_export表是否存在
+# 2. 读取HDFS目录/user/data/user下的所有数据文件
+# 3. 启动2个Mapper任务，每个读取部分文件
+# 4. 每个Mapper将数据解析后，执行INSERT语句批量插入MySQL
+# 5. 如果遇到重复主键，默认会报错（可用--update-key更新）
+
+# ========== 数据格式要求 ==========
+# HDFS文件格式（默认逗号分隔）：
+# 1,张三,25,beijing
+# 2,李四,30,shanghai
+# 3,王五,28,guangzhou
+#
+# 对应MySQL表结构：
+# CREATE TABLE user_export (
+#   id INT PRIMARY KEY,
+#   name VARCHAR(50),
+#   age INT,
+#   city VARCHAR(50)
+# );
+
+# ========== 常用附加参数 ==========
+# --update-key id：更新模式（如果主键存在则更新，不存在则插入）
+# --update-mode allowinsert：允许插入新记录
+# --input-fields-terminated-by '\t'：指定分隔符为制表符
+# --batch：批量模式，提高插入速度
 ```
 
 **执行结果**：
@@ -6253,22 +6365,76 @@ pip install kafka-python
 **场景1：生产者发送消息**
 
 ```python
+# ========== Kafka Producer（生产者）代码详解 ==========
+
+# 导入KafkaProducer类（用于发送消息到Kafka）
 from kafka import KafkaProducer
+# 导入json模块（用于将Python字典转换为JSON字符串）
 import json
 
-# 创建生产者实例
+# ========== 步骤1：创建生产者实例 ==========
 producer = KafkaProducer(
-    bootstrap_servers='localhost:9092',  # Kafka服务器地址
-    value_serializer=lambda v: json.dumps(v).encode('utf-8')  # 消息序列化
+    # 参数1：Kafka服务器地址
+    bootstrap_servers='localhost:9092',
+    # 解释：'localhost:9092' 是Kafka Broker的地址和端口
+    #       如果Kafka集群有多个节点，可以写成列表：
+    #       ['192.168.1.10:9092', '192.168.1.11:9092', '192.168.1.12:9092']
+    #       Producer会自动连接到集群，并发现其他节点
+    
+    # 参数2：消息序列化器（将Python对象转换为字节流）
+    value_serializer=lambda v: json.dumps(v).encode('utf-8')
+    # 解释：这是一个匿名函数（lambda），执行流程：
+    #       1. v 是要发送的Python字典，如 {'user_id': 0, 'action': 'login'}
+    #       2. json.dumps(v) 将字典转换为JSON字符串：'{"user_id": 0, "action": "login"}'
+    #       3. .encode('utf-8') 将字符串编码为字节流：b'{"user_id": 0, "action": "login"}'
+    #       4. Kafka只能传输字节流，所以必须序列化
+    #
+    # 为什么需要序列化？
+    # - Kafka是跨语言的消息队列，消费者可能是Java、Python、Go等
+    # - 统一用JSON字符串（字节流）作为传输格式，方便解析
 )
 
-# 发送消息
+# ========== 步骤2：循环发送5条消息 ==========
 for i in range(5):
+    # 构造消息内容（Python字典）
     message = {'user_id': i, 'action': 'login'}
-    producer.send('user_log', value=message)  # 发送到user_log主题
+    # 示例：{'user_id': 0, 'action': 'login'}
+    
+    # 发送消息到Kafka
+    producer.send(
+        'user_log',        # 参数1：Topic名称（消息分类）
+        value=message      # 参数2：消息内容（会被value_serializer自动序列化）
+    )
+    # 解释：
+    # - 'user_log' 是Topic名称，类似于"用户日志"这个货架
+    # - value=message 会触发上面定义的序列化器
+    # - 返回值是FutureRecordMetadata对象（可以.get()等待发送完成）
+    
+    # 打印日志
     print(f"发送消息: {message}")
 
+# ========== 步骤3：关闭生产者 ==========
 producer.close()
+# 解释：
+# - 关闭生产者连接，释放资源
+# - 会等待所有未发送完的消息发送完毕
+# - 建议使用 try-finally 或 with 语句确保关闭
+
+# ========== 完整数据流 ==========
+# Python字典 → JSON字符串 → 字节流 → Kafka Topic → 磁盘持久化
+# {'user_id': 0} → '{"user_id": 0}' → b'{"user_id": 0}' → user_log → 存储7天
+
+# ========== 常见参数扩展 ==========
+# producer = KafkaProducer(
+#     bootstrap_servers='localhost:9092',
+#     value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+#     key_serializer=lambda k: k.encode('utf-8'),  # 键序列化器
+#     acks='all',           # 确认机制：'all'最安全（等待所有副本确认）
+#     retries=3,            # 失败重试次数
+#     batch_size=16384,     # 批量发送大小（字节）
+#     linger_ms=10,         # 发送延迟（毫秒），用于批量优化
+#     compression_type='gzip'  # 压缩算法（减少网络传输）
+# )
 ```
 
 **输出结果**：
@@ -6284,21 +6450,118 @@ producer.close()
 **场景2：消费者接收消息**
 
 ```python
+# ========== Kafka Consumer（消费者）代码详解 ==========
+
+# 导入KafkaConsumer类（用于从Kafka接收消息）
 from kafka import KafkaConsumer
+# 导入json模块（用于将JSON字符串转换为Python字典）
 import json
 
-# 创建消费者实例
+# ========== 步骤1：创建消费者实例 ==========
 consumer = KafkaConsumer(
-    'user_log',  # 订阅user_log主题
+    # 参数1：订阅的Topic名称
+    'user_log',
+    # 解释：订阅名为'user_log'的主题
+    #       可以订阅多个Topic：KafkaConsumer('topic1', 'topic2', 'topic3', ...)
+    #       也可以用正则订阅：consumer.subscribe(pattern='^user_.*')
+    
+    # 参数2：Kafka服务器地址
     bootstrap_servers='localhost:9092',
-    value_deserializer=lambda m: json.loads(m.decode('utf-8')),  # 消息反序列化
-    auto_offset_reset='earliest',  # 从最早的消息开始消费
-    enable_auto_commit=True  # 自动提交消费位移
+    # 解释：连接到Kafka Broker
+    #       同生产者，支持多个地址的列表
+    
+    # 参数3：消息反序列化器（将字节流转换为Python对象）
+    value_deserializer=lambda m: json.loads(m.decode('utf-8')),
+    # 解释：这是一个匿名函数，执行流程：
+    #       1. m 是从Kafka接收的字节流：b'{"user_id": 0, "action": "login"}'
+    #       2. m.decode('utf-8') 将字节流解码为字符串：'{"user_id": 0, "action": "login"}'
+    #       3. json.loads(...) 将JSON字符串解析为Python字典：{'user_id': 0, 'action': 'login'}
+    #
+    # 这个过程和生产者的序列化是相反的：
+    # 字节流 → 字符串 → Python字典
+    
+    # 参数4：自动偏移量重置策略
+    auto_offset_reset='earliest',
+    # 解释：当消费者组第一次启动，或者offset失效时，从哪里开始消费
+    #       - 'earliest'：从Topic的最早消息开始（从头开始）
+    #       - 'latest'：从最新消息开始（只消费新产生的消息）
+    #       - 'none'：如果没有offset则抛出异常
+    #
+    # 使用场景：
+    # - 'earliest'：适合离线分析，需要处理所有历史数据
+    # - 'latest'：适合实时监控，只关心新产生的数据
+    
+    # 参数5：自动提交消费位移
+    enable_auto_commit=True
+    # 解释：是否自动提交offset（消费进度）
+    #       - True：每隔5秒（默认）自动提交offset到Kafka
+    #       - False：需要手动调用consumer.commit()提交
+    #
+    # offset的作用：
+    # - 记录消费者已经消费到哪里了
+    # - 消费者重启后，可以从上次的位置继续消费（不会重复消费）
+    # - offset存储在Kafka的内部Topic：__consumer_offsets
+    #
+    # 为什么需要offset？
+    # - 防止消息丢失：消费者宕机重启后，能继续消费
+    # - 防止重复消费：不会从头开始消费所有消息
 )
 
-# 接收消息
+# ========== 步骤2：循环接收消息 ==========
 for message in consumer:
+    # 解释：consumer是一个可迭代对象，会持续监听Topic
+    #       有新消息时，会返回ConsumerRecord对象
+    
+    # 打印消息内容
     print(f"收到消息: {message.value}")
+    # 解释：
+    # - message 是ConsumerRecord对象，包含以下属性：
+    #   * message.value：消息的值（已反序列化为Python字典）
+    #   * message.key：消息的键（如果有）
+    #   * message.topic：消息所属的Topic
+    #   * message.partition：消息所在的分区编号
+    #   * message.offset：消息在分区中的偏移量
+    #   * message.timestamp：消息的时间戳
+    
+    # 示例：完整打印消息信息
+    # print(f"Topic: {message.topic}")
+    # print(f"Partition: {message.partition}")
+    # print(f"Offset: {message.offset}")
+    # print(f"Timestamp: {message.timestamp}")
+    # print(f"Value: {message.value}")
+
+# ========== 消费者工作流程 ==========
+# 1. 消费者启动，连接到Kafka集群
+# 2. 加入消费者组（默认组名是None，会自动生成）
+# 3. 订阅'user_log' Topic
+# 4. 从Kafka拉取消息（拉取模式，不是推送）
+# 5. 消息反序列化：字节流 → 字符串 → Python字典
+# 6. 处理消息（这里是打印）
+# 7. 自动提交offset（每5秒）
+# 8. 继续拉取下一批消息（循环）
+
+# ========== 消费者组（Consumer Group）==========
+# 消费者组是Kafka实现并行消费的关键机制：
+# - 同一个消费者组内的多个消费者，会分摊Topic的分区
+# - 例如：Topic有3个分区，消费者组有3个消费者
+#   消费者1 消费 Partition 0
+#   消费者2 消费 Partition 1
+#   消费者3 消费 Partition 2
+# - 不同消费者组之间互不影响，可以重复消费同一个Topic
+
+# ========== 常见参数扩展 ==========
+# consumer = KafkaConsumer(
+#     'user_log',
+#     bootstrap_servers='localhost:9092',
+#     value_deserializer=lambda m: json.loads(m.decode('utf-8')),
+#     group_id='my_consumer_group',  # 消费者组ID（重要！）
+#     auto_offset_reset='earliest',
+#     enable_auto_commit=True,
+#     auto_commit_interval_ms=5000,  # 自动提交间隔（毫秒）
+#     max_poll_records=500,          # 每次拉取的最大消息数
+#     session_timeout_ms=30000,      # 会话超时时间（毫秒）
+#     fetch_max_bytes=52428800       # 单次拉取最大字节数（50MB）
+# )
 ```
 
 **输出结果**：
@@ -6379,46 +6642,216 @@ Flume Agent架构：
 创建配置文件 `flume-hdfs.conf`：
 
 ```properties
-# 定义Agent名称
+# ========== Flume配置文件详解 ==========
+
+# ========== 第一部分：定义Agent的组件 ==========
+# Agent是Flume的运行实例，每个Agent包含Source、Channel、Sink三大组件
+
+# 定义Agent名称为agent1
+# 为agent1定义一个Source，名称为source1
 agent1.sources = source1
+# 解释：sources后面可以跟多个Source名称，用空格分隔
+#       例如：agent1.sources = source1 source2 source3
+
+# 为agent1定义一个Channel，名称为channel1
 agent1.channels = channel1
+# 解释：Channel是Source和Sink之间的缓冲区
+#       可以定义多个：agent1.channels = channel1 channel2
+
+# 为agent1定义一个Sink，名称为sink1
 agent1.sinks = sink1
+# 解释：Sink负责将数据从Channel取出并发送到目的地
+#       可以定义多个：agent1.sinks = sink1 sink2
 
-# 配置Source（监听日志文件）
+
+# ========== 第二部分：配置Source（数据源）==========
+# Source负责从外部采集数据，并将数据放入Channel
+
+# 设置source1的类型为exec
 agent1.sources.source1.type = exec
+# 解释：exec类型的Source会执行一个系统命令，并持续读取命令的输出
+#       常用于监听日志文件的实时变化
+#       其他类型：spooldir（监听目录）、netcat（监听端口）、avro（接收Avro数据）
+
+# 设置exec类型要执行的命令
 agent1.sources.source1.command = tail -F /var/log/app.log
-# 解释：使用exec类型的Source，执行tail -F命令实时监听日志文件
-
-# 配置Channel（内存缓冲区）
-agent1.channels.channel1.type = memory
-agent1.channels.channel1.capacity = 10000
-agent1.channels.channel1.transactionCapacity = 1000
-# 解释：使用内存型Channel，容量10000条消息，每次事务处理1000条
-
-# 配置Sink（写入HDFS）
-agent1.sinks.sink1.type = hdfs
-agent1.sinks.sink1.hdfs.path = hdfs://localhost:9000/flume/logs/%Y-%m-%d
-agent1.sinks.sink1.hdfs.filePrefix = app-log-
-agent1.sinks.sink1.hdfs.fileSuffix = .log
-agent1.sinks.sink1.hdfs.rollInterval = 3600
 # 解释：
-# - 数据写入HDFS的/flume/logs目录，按日期分区（%Y-%m-%d）
-# - 文件前缀为app-log-，后缀为.log
-# - 每3600秒（1小时）滚动生成新文件
+# - tail -F：Linux命令，实时监听文件的新增内容
+# - -F 参数：即使文件被删除重建，也会继续监听（比 -f 更健壮）
+# - /var/log/app.log：要监听的日志文件路径
+#
+# 工作流程：
+# 1. Flume启动时，执行 tail -F /var/log/app.log
+# 2. tail命令持续输出新增的日志行
+# 3. Source读取tail的输出，逐行解析
+# 4. 每一行日志作为一个Event放入Channel
 
-# 将Source、Channel、Sink绑定
+
+# ========== 第三部分：配置Channel（缓冲区）==========
+# Channel是Source和Sink之间的缓冲队列，防止数据丢失
+
+# 设置channel1的类型为memory
+agent1.channels.channel1.type = memory
+# 解释：memory类型将数据缓存在内存中
+#       优点：速度快，吞吐量高
+#       缺点：Flume重启会丢失数据
+#       其他类型：file（文件缓存，可靠但慢）、kafka（Kafka作为缓冲）
+
+# 设置Channel的容量
+agent1.channels.channel1.capacity = 10000
+# 解释：Channel最多可以缓存10000个Event（消息）
+#       如果Channel满了，Source会暂停采集（背压机制）
+#       建议根据数据量和处理速度调整
+
+# 设置事务容量
+agent1.channels.channel1.transactionCapacity = 1000
+# 解释：每次事务（Transaction）处理的最大Event数
+#       Flume的Source和Sink都是事务性的：
+#       - Source一次性放入1000个Event到Channel
+#       - Sink一次性从Channel取出1000个Event
+#       - 如果失败，整个事务回滚（保证数据不丢失）
+#       注意：transactionCapacity ≤ capacity
+
+
+# ========== 第四部分：配置Sink（目的地）==========
+# Sink负责从Channel取出数据，并发送到最终目的地
+
+# 设置sink1的类型为hdfs
+agent1.sinks.sink1.type = hdfs
+# 解释：hdfs类型的Sink将数据写入HDFS
+#       其他类型：logger（打印到日志）、kafka（写入Kafka）、file_roll（本地文件）
+
+# 设置HDFS的目标路径
+agent1.sinks.sink1.hdfs.path = hdfs://localhost:9000/flume/logs/%Y-%m-%d
+# 解释：
+# - hdfs://localhost:9000：HDFS的NameNode地址
+# - /flume/logs/：HDFS上的目录
+# - %Y-%m-%d：时间格式占位符，会自动替换为当前日期
+#   例如：2025-12-29 → /flume/logs/2025-12-29
+#   支持的占位符：%Y（年）、%m（月）、%d（日）、%H（时）、%M（分）、%S（秒）
+#
+# 按日期分区的好处：
+# - 方便管理和查询（每天一个目录）
+# - 避免单个目录文件过多
+
+# 设置HDFS文件的前缀
+agent1.sinks.sink1.hdfs.filePrefix = app-log-
+# 解释：生成的文件名前缀
+#       例如：app-log-1735459200000.log.tmp
+
+# 设置HDFS文件的后缀
+agent1.sinks.sink1.hdfs.fileSuffix = .log
+# 解释：生成的文件名后缀
+#       完整文件名：app-log-1735459200000.log
+
+# 设置文件滚动间隔（秒）
+agent1.sinks.sink1.hdfs.rollInterval = 3600
+# 解释：每3600秒（1小时）生成一个新文件
+#       防止单个文件过大
+#       其他滚动策略：
+#       - hdfs.rollSize：按文件大小滚动（字节）
+#       - hdfs.rollCount：按Event数量滚动
+#       - 0 表示禁用该策略
+
+
+# ========== 第五部分：绑定Source、Channel、Sink ==========
+# 将三大组件连接起来，形成数据流
+
+# 将source1绑定到channel1
 agent1.sources.source1.channels = channel1
+# 解释：source1采集的数据会放入channel1
+#       一个Source可以绑定多个Channel（数据复制）：
+#       agent1.sources.source1.channels = channel1 channel2
+
+# 将sink1绑定到channel1
 agent1.sinks.sink1.channel = channel1
+# 解释：sink1从channel1取出数据
+#       一个Sink只能绑定一个Channel
+#       但多个Sink可以绑定同一个Channel（负载均衡）
+
+
+# ========== 完整数据流 ==========
+# 1. tail -F 监听 /var/log/app.log 文件
+# 2. 有新日志时，Source读取日志行，封装成Event
+# 3. Event放入memory类型的Channel（内存队列）
+# 4. Sink从Channel取出Event
+# 5. 每1000个Event（事务）一起写入HDFS
+# 6. HDFS文件按日期分区，每小时滚动一次
+
+# ========== Flume Event结构 ==========
+# Event是Flume的基本数据单位，包含两部分：
+# - Headers（头部）：键值对，存储元数据（如时间戳、主机名）
+# - Body（主体）：字节数组，存储实际数据（如日志内容）
+#
+# 示例Event：
+# Headers: {timestamp=1735459200000, host=server1}
+# Body: [50, 48, 46, 49, 54, ...] (对应 "2025-12-29 10:00:00 user login" 的字节)
 ```
 
 **启动Flume Agent**：
 
 ```bash
+# ========== Flume启动命令详解 ==========
+
+# 命令：flume-ng agent
+# 功能：启动一个Flume Agent实例
 flume-ng agent \
+  # 参数1：配置文件目录
   --conf /opt/flume/conf \
+  # 解释：指定Flume的配置文件目录（包含flume-env.sh等）
+  #       这个目录包含Flume的通用配置（如JVM参数、日志配置）
+  
+  # 参数2：Agent配置文件
   --conf-file /opt/flume/conf/flume-hdfs.conf \
+  # 解释：指定Agent的具体配置文件（包含Source、Channel、Sink配置）
+  #       这是我们上面编写的配置文件
+  
+  # 参数3：Agent名称
   --name agent1 \
+  # 解释：指定要启动的Agent名称，必须与配置文件中的名称一致
+  #       配置文件中定义的是 agent1.sources = ...
+  #       所以这里必须是 --name agent1
+  
+  # 参数4：日志级别配置
   -Dflume.root.logger=INFO,console
+  # 解释：设置Flume的日志输出
+  #       - INFO：日志级别（DEBUG < INFO < WARN < ERROR）
+  #       - console：输出到控制台（方便调试）
+  #       - 也可以输出到文件：-Dflume.root.logger=INFO,LOGFILE
+
+# ========== 启动流程 ==========
+# 1. flume-ng命令启动JVM进程
+# 2. 加载 /opt/flume/conf/flume-hdfs.conf 配置文件
+# 3. 解析配置，找到名为agent1的Agent定义
+# 4. 初始化Source（执行 tail -F /var/log/app.log）
+# 5. 初始化Channel（创建内存队列，容量10000）
+# 6. 初始化Sink（连接HDFS）
+# 7. 启动数据流：Source → Channel → Sink
+# 8. 进入运行状态，持续采集数据
+
+# ========== 常见启动选项 ==========
+# 1. 后台运行（生产环境推荐）：
+#    nohup flume-ng agent --conf /opt/flume/conf \
+#      --conf-file /opt/flume/conf/flume-hdfs.conf \
+#      --name agent1 \
+#      -Dflume.root.logger=INFO,LOGFILE > /dev/null 2>&1 &
+#
+# 2. 调试模式（打印详细日志）：
+#    flume-ng agent --conf /opt/flume/conf \
+#      --conf-file /opt/flume/conf/flume-hdfs.conf \
+#      --name agent1 \
+#      -Dflume.root.logger=DEBUG,console
+
+# ========== 验证启动成功 ==========
+# 1. 查看进程：
+#    ps -ef | grep flume
+#
+# 2. 查看日志：
+#    tail -f /opt/flume/logs/flume.log
+#
+# 3. 测试数据流：
+#    echo "test log" >> /var/log/app.log
+#    然后检查HDFS目录：hdfs dfs -ls /flume/logs/2025-12-29/
 ```
 
 **执行结果**：
