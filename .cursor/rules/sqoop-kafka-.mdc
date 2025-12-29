@@ -1,0 +1,596 @@
+---
+alwaysApply: true
+---
+
+## 数据采集框架（Sqoop / Kafka / Flume）
+
+首先我们要搞清楚这三者的主要作用主要的数据结构，以及其在数据采集整体流程中的地位与应用场景。
+
+---
+
+### 三大框架总览：数据搬运工的不同分工
+
+> **核心比喻**：想象一个大型物流系统
+> **Sqoop** = 跨国货运公司（专门做两国之间的大批量货物对接）
+> **Kafka** = 快递中转站（高速分发、缓冲、多个配送员可以同时取货）
+> **Flume** = 流水线传送带（源源不断地把货物从生产线送到仓库）
+
+```plaintext
+数据采集生态系统全景图：
+                                    
+    关系型数据库(MySQL)                         HDFS / Hive
+           ↕                                      ↑
+         Sqoop ← ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+      (双向批量导入导出)
+
+    
+    Web日志/API数据                           HDFS / Kafka
+           ↓                                     ↑
+         Flume ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─┘
+      (实时采集流式数据)
+
+    
+    应用系统A → Kafka → 应用系统B/C/D
+              (消息队列)  (多个消费者并行消费)
+```
+
+---
+
+### Sqoop：关系型数据库与大数据平台的搬运工
+
+#### 1️⃣ 定义与本质
+
+**Sqoop = SQL to Hadoop**
+
+> **比喻**：Sqoop就像一个**跨境物流公司**，专门负责在**传统数据库（关系型数据库）**和**大数据平台（Hadoop/HDFS）**之间搬运数据。它会说两种"语言"：一边是SQL，一边是MapReduce。
+
+**核心功能**：
+
+- **Import**：把关系型数据库的数据 → 导入到 HDFS/Hive/HBase
+- **Export**：把 HDFS 的数据 → 导出到关系型数据库
+
+---
+
+#### 2️⃣ 工作原理（一句话版）
+
+Sqoop会把你的SQL查询任务**自动转换为MapReduce任务**，利用Hadoop的**并行处理能力**，多个Mapper同时从数据库的不同分区读取数据，效率极高。
+
+> **比喻**：一个人搬砖太慢，Sqoop会叫10个工人同时搬，每人负责一部分。
+
+---
+
+#### 3️⃣ 常用命令示例
+
+**场景1：从MySQL导入数据到HDFS**
+
+```bash
+# 将MySQL的user表导入到HDFS的/user/data目录
+sqoop import \
+  --connect jdbc:mysql://localhost:3306/mydb \
+  --username root \
+  --password 123456 \
+  --table user \
+  --target-dir /user/data/user \
+  --num-mappers 4
+```
+
+**执行过程**：
+
+```plaintext
+1. Sqoop连接MySQL数据库
+2. 读取user表的元数据（有多少行、主键是什么）
+3. 启动4个Mapper任务
+4. 每个Mapper读取1/4的数据
+5. 并行写入HDFS的/user/data/user目录
+```
+
+**场景2：从MySQL导入数据到Hive**
+
+```bash
+sqoop import \
+  --connect jdbc:mysql://localhost:3306/mydb \
+  --username root \
+  --password 123456 \
+  --table user \
+  --hive-import \
+  --hive-table user_hive \
+  --num-mappers 2
+```
+
+**执行结果**：
+```plaintext
+在Hive中自动创建user_hive表，并把数据导入
+```
+
+**场景3：从HDFS导出数据到MySQL**
+
+```bash
+sqoop export \
+  --connect jdbc:mysql://localhost:3306/mydb \
+  --username root \
+  --password 123456 \
+  --table user_export \
+  --export-dir /user/data/user \
+  --num-mappers 2
+```
+
+**执行结果**：
+```plaintext
+将HDFS的/user/data/user目录的数据导出到MySQL的user_export表
+```
+
+---
+
+#### 4️⃣ 核心参数速记表
+
+| 参数 | 作用 | 记忆技巧 |
+|------|------|----------|
+| `--connect` | 数据库连接URL | **连**接数据库 |
+| `--username` / `--password` | 数据库账号密码 | 身份验证 |
+| `--table` | 要导入的表名 | 目标**表** |
+| `--target-dir` | HDFS目标目录 | 数据存放**目录** |
+| `--num-mappers` | 并行任务数 | 开几个**搬运工** |
+| `--hive-import` | 导入到Hive | 直达**Hive** |
+| `--where` | SQL过滤条件 | 只搬符合条件的数据 |
+| `--columns` | 指定列 | 只搬某几**列** |
+
+---
+
+#### 5️⃣ 应用场景
+
+| 场景 | 说明 |
+|------|------|
+| **离线数据仓库** | 每天凌晨把MySQL的订单数据导入Hive进行分析 |
+| **历史数据迁移** | 把旧系统数据库的数据一次性迁移到Hadoop |
+| **数据同步** | 定期把大数据平台的分析结果导出到MySQL供业务系统使用 |
+
+---
+
+### Kafka：高速消息队列与数据管道
+
+#### 1️⃣ 定义与本质
+
+**Kafka = 分布式消息队列**
+
+> **比喻**：Kafka就像一个**超大型快递中转站**
+> **生产者（Producer）** = 快递员送货到中转站
+> **消息队列（Topic）** = 中转站的货架
+> **消费者（Consumer）** = 配送员从货架取货送给客户
+
+> **关键特点**：
+>
+> 1. 货物（消息）不会丢失，可以存储7天
+> 2. 多个配送员可以同时从同一个货架取货（多消费者）
+> 3. 吞吐量超高，每秒可以处理百万级消息
+
+---
+
+#### 2️⃣ 核心概念
+
+```plaintext
+Kafka架构图：
+
+    Producer1 ──┐
+    Producer2 ──┼─→ [Topic: user_log] ─┬─→ Consumer1
+    Producer3 ──┘       (Partition0)    ├─→ Consumer2
+                        (Partition1)    └─→ Consumer3
+                        (Partition2)
+
+📌 核心术语：
+- Topic（主题）：消息的分类标签，如"用户日志"、"订单数据"
+- Partition（分区）：Topic的物理分片，提高并行度
+- Producer（生产者）：发送消息的应用
+- Consumer（消费者）：接收消息的应用
+- Broker（代理）：Kafka服务器节点
+```
+
+---
+
+#### 3️⃣ Python操作示例
+
+**安装依赖**：
+
+```bash
+pip install kafka-python
+```
+
+**场景1：生产者发送消息**
+
+```python
+from kafka import KafkaProducer
+import json
+
+# 创建生产者实例
+producer = KafkaProducer(
+    bootstrap_servers='localhost:9092',  # Kafka服务器地址
+    value_serializer=lambda v: json.dumps(v).encode('utf-8')  # 消息序列化
+)
+
+# 发送消息
+for i in range(5):
+    message = {'user_id': i, 'action': 'login'}
+    producer.send('user_log', value=message)  # 发送到user_log主题
+    print(f"发送消息: {message}")
+
+producer.close()
+```
+
+**输出结果**：
+
+```
+发送消息: {'user_id': 0, 'action': 'login'}
+发送消息: {'user_id': 1, 'action': 'login'}
+发送消息: {'user_id': 2, 'action': 'login'}
+发送消息: {'user_id': 3, 'action': 'login'}
+发送消息: {'user_id': 4, 'action': 'login'}
+```
+
+**场景2：消费者接收消息**
+
+```python
+from kafka import KafkaConsumer
+import json
+
+# 创建消费者实例
+consumer = KafkaConsumer(
+    'user_log',  # 订阅user_log主题
+    bootstrap_servers='localhost:9092',
+    value_deserializer=lambda m: json.loads(m.decode('utf-8')),  # 消息反序列化
+    auto_offset_reset='earliest',  # 从最早的消息开始消费
+    enable_auto_commit=True  # 自动提交消费位移
+)
+
+# 接收消息
+for message in consumer:
+    print(f"收到消息: {message.value}")
+```
+
+**输出结果**：
+
+```
+收到消息: {'user_id': 0, 'action': 'login'}
+收到消息: {'user_id': 1, 'action': 'login'}
+收到消息: {'user_id': 2, 'action': 'login'}
+收到消息: {'user_id': 3, 'action': 'login'}
+收到消息: {'user_id': 4, 'action': 'login'}
+```
+
+---
+
+#### 4️⃣ Kafka的核心优势
+
+| 特性 | 说明 | 比喻 |
+|------|------|------|
+| **高吞吐量** | 单机每秒处理百万级消息 | 超宽高速公路 |
+| **持久化** | 消息存储在磁盘，不会丢失 | 快递中转站有监控录像 |
+| **分布式** | 多台服务器组成集群 | 多个中转站协同工作 |
+| **可扩展** | 可以动态增加服务器 | 业务增长了就多开几个中转站 |
+| **解耦** | 生产者和消费者互不干扰 | 快递员和配送员不需要见面 |
+
+---
+
+#### 5️⃣ 应用场景
+
+| 场景 | 说明 |
+|------|------|
+| **实时日志收集** | 各个服务器的日志发送到Kafka，统一处理 |
+| **消息通知系统** | 用户下单后，Kafka通知库存、支付、物流多个系统 |
+| **流式数据处理** | 结合Spark Streaming进行实时数据分析 |
+| **系统解耦** | 订单系统和推荐系统通过Kafka通信，互不影响 |
+
+---
+
+### Flume：日志采集的流水线
+
+#### 1️⃣ 定义与本质
+
+**Flume = 分布式日志采集系统**
+
+> **比喻**：Flume就像一个**传送带流水线**
+> - **Source（数据源）** = 传送带的起点（可以是文件、端口、Kafka等）
+> - **Channel（通道）** = 传送带本身（缓冲区，防止数据丢失）
+> - **Sink（目的地）** = 传送带的终点（可以是HDFS、Kafka、数据库等）
+
+---
+
+#### 2️⃣ 核心架构
+
+```plaintext
+Flume Agent架构：
+
+    +---------------------------------------------------+
+    |                  Flume Agent                      |
+    |                                                   |
+    |  [Source] ──→ [Channel] ──→ [Sink]              |
+    |  (数据源)      (缓冲区)      (目的地)              |
+    |                                                   |
+    |  例如：                                            |
+    |  监听日志文件 → 内存队列 → 写入HDFS                 |
+    +---------------------------------------------------+
+
+📌 三大组件：
+1. Source：从哪里采集数据（exec、spooldir、netcat、kafka等）
+2. Channel：数据缓冲区（memory、file、kafka等）
+3. Sink：数据发送到哪里（hdfs、logger、kafka、avro等）
+```
+
+---
+
+#### 3️⃣ 配置示例
+
+**场景：监听日志文件，写入HDFS**
+
+创建配置文件 `flume-hdfs.conf`：
+
+```properties
+# 定义Agent名称
+agent1.sources = source1
+agent1.channels = channel1
+agent1.sinks = sink1
+
+# 配置Source（监听日志文件）
+agent1.sources.source1.type = exec
+agent1.sources.source1.command = tail -F /var/log/app.log
+# 解释：使用exec类型的Source，执行tail -F命令实时监听日志文件
+
+# 配置Channel（内存缓冲区）
+agent1.channels.channel1.type = memory
+agent1.channels.channel1.capacity = 10000
+agent1.channels.channel1.transactionCapacity = 1000
+# 解释：使用内存型Channel，容量10000条消息，每次事务处理1000条
+
+# 配置Sink（写入HDFS）
+agent1.sinks.sink1.type = hdfs
+agent1.sinks.sink1.hdfs.path = hdfs://localhost:9000/flume/logs/%Y-%m-%d
+agent1.sinks.sink1.hdfs.filePrefix = app-log-
+agent1.sinks.sink1.hdfs.fileSuffix = .log
+agent1.sinks.sink1.hdfs.rollInterval = 3600
+# 解释：
+# - 数据写入HDFS的/flume/logs目录，按日期分区（%Y-%m-%d）
+# - 文件前缀为app-log-，后缀为.log
+# - 每3600秒（1小时）滚动生成新文件
+
+# 将Source、Channel、Sink绑定
+agent1.sources.source1.channels = channel1
+agent1.sinks.sink1.channel = channel1
+```
+
+**启动Flume Agent**：
+
+```bash
+flume-ng agent \
+  --conf /opt/flume/conf \
+  --conf-file /opt/flume/conf/flume-hdfs.conf \
+  --name agent1 \
+  -Dflume.root.logger=INFO,console
+```
+
+**执行结果**：
+
+```plaintext
+1. Flume启动，监听/var/log/app.log文件
+2. 每当有新日志写入app.log
+3. Source读取新日志 → Channel缓冲 → Sink写入HDFS
+4. HDFS中生成文件：
+   /flume/logs/2025-12-29/app-log-1735459200000.log
+```
+
+---
+
+#### 4️⃣ 常用Source类型
+
+| Source类型 | 说明 | 应用场景 |
+|-----------|------|----------|
+| **exec** | 执行系统命令获取数据 | `tail -F`监听日志文件 |
+| **spooldir** | 监听目录，自动读取新文件 | 采集批量生成的日志文件 |
+| **netcat** | 监听TCP端口 | 接收网络传输的数据 |
+| **avro** | 接收Avro格式数据 | 多级Flume串联 |
+| **kafka** | 从Kafka读取数据 | 与Kafka配合使用 |
+
+---
+
+#### 5️⃣ 常用Channel类型
+
+| Channel类型 | 说明 | 优缺点 |
+|------------|------|--------|
+| **memory** | 内存缓冲 | 速度快，但重启会丢失数据 |
+| **file** | 文件缓冲 | 可靠性高，但速度慢 |
+| **kafka** | 使用Kafka作为缓冲 | 高可靠、高吞吐 |
+
+---
+
+#### 6️⃣ 常用Sink类型
+
+| Sink类型 | 说明 | 应用场景 |
+|---------|------|----------|
+| **hdfs** | 写入HDFS | 最常用，离线数据分析 |
+| **kafka** | 写入Kafka | 实时流处理 |
+| **logger** | 打印到日志 | 调试使用 |
+| **avro** | 发送到另一个Flume Agent | 多级采集架构 |
+| **file_roll** | 写入本地文件 | 本地备份 |
+
+---
+
+#### 7️⃣ Flume多级架构
+
+**场景：多台服务器的日志汇总到HDFS**
+
+```plaintext
+  Web服务器1                                 汇总服务器
+  ┌─────────────┐                           ┌──────────────┐
+  │  Flume Agent │ ──(avro)──┐             │ Flume Agent  │
+  └─────────────┘            │             └──────────────┘
+                             │                     ↓
+  Web服务器2                 ├─→ [Avro Source] → [HDFS Sink]
+  ┌─────────────┐            │
+  │  Flume Agent │ ──(avro)──┘
+  └─────────────┘
+```
+
+**配置示例（Web服务器的Agent）**：
+
+```properties
+agent.sources = logSource
+agent.channels = memChannel
+agent.sinks = avroSink
+
+# Source：监听日志文件
+agent.sources.logSource.type = exec
+agent.sources.logSource.command = tail -F /var/log/web.log
+
+# Channel：内存缓冲
+agent.channels.memChannel.type = memory
+
+# Sink：发送到汇总服务器的Flume
+agent.sinks.avroSink.type = avro
+agent.sinks.avroSink.hostname = 192.168.1.100
+agent.sinks.avroSink.port = 4545
+
+# 绑定
+agent.sources.logSource.channels = memChannel
+agent.sinks.avroSink.channel = memChannel
+```
+
+---
+
+### 三大框架对比速查表
+
+| 对比维度 | Sqoop | Kafka | Flume |
+|---------|-------|-------|-------|
+| **定位** | 数据导入导出工具 | 消息队列 | 日志采集系统 |
+| **数据流向** | 双向（RDBMS ↔ Hadoop） | 多对多（生产者 → 消费者） | 单向（Source → Sink） |
+| **数据类型** | 结构化数据（数据库表） | 任意类型（字节流） | 半结构化（日志） |
+| **处理方式** | 批量（定时任务） | 实时流 | 实时流 |
+| **主要场景** | 数据库与Hadoop互导 | 消息通信、流处理 | 日志采集 |
+| **核心技术** | MapReduce | 分区、副本、消费者组 | Source-Channel-Sink |
+| **记忆比喻** | 跨国物流公司 | 快递中转站 | 传送带流水线 |
+
+---
+
+### 考点总结：数据采集框架必考知识卡
+
+#### 🎯 考点1：Sqoop的核心命令
+
+**必记**：
+- `import`：数据库 → Hadoop
+- `export`：Hadoop → 数据库
+- `--num-mappers`：控制并行度
+
+**常见题型**：
+- 判断题：Sqoop只能从数据库导入数据到HDFS（**❌ 可以双向导入导出**）
+- 填空题：Sqoop的`--______`参数用于指定HDFS目标目录（`target-dir`）
+
+---
+
+#### 🎯 考点2：Kafka的核心概念
+
+**必记**：
+- Topic：消息分类
+- Partition：提高并行度
+- Producer/Consumer：生产者/消费者
+- 支持**多消费者**同时消费
+
+**常见题型**：
+- 选择题：Kafka的数据存储在哪里？（**磁盘**）
+- 简答题：Kafka如何保证高吞吐量？（分区并行、批量处理、零拷贝）
+
+---
+
+#### 🎯 考点3：Flume的三大组件
+
+**必记口诀**："源-道-地"（Source-Channel-Sink）
+
+**必记搭配**：
+- exec Source + memory Channel + hdfs Sink（最常用）
+
+**常见题型**：
+- 填空题：Flume的______组件负责缓冲数据（Channel）
+- 简答题：简述Flume的工作流程（Source采集 → Channel缓冲 → Sink发送）
+
+---
+
+#### 🎯 考点4：三者选型
+
+**题目**：以下场景应该选择哪个工具？
+1. 每天定时把MySQL订单表导入Hive → **Sqoop**
+2. 实时采集Web服务器的访问日志 → **Flume**
+3. 订单系统通知库存系统、物流系统 → **Kafka**
+
+---
+
+### 自测题
+
+#### 判断题
+
+1. Sqoop可以将数据从HDFS导出到MySQL（ ）
+2. Kafka的消息存储在内存中（ ）
+3. Flume的Channel只能使用内存类型（ ）
+4. Kafka不支持多个消费者同时消费同一个Topic（ ）
+5. Sqoop使用MapReduce实现并行导入（ ）
+
+**答案**：
+1. ✅（Sqoop支持export）
+2. ❌（存储在磁盘）
+3. ❌（还有file、kafka等类型）
+4. ❌（支持多消费者）
+5. ✅（通过--num-mappers控制）
+
+---
+
+#### 简答题
+
+**题目1**：简述Sqoop、Kafka、Flume三者的主要区别和应用场景。
+
+**参考答案**：
+- **Sqoop**：用于关系型数据库与Hadoop之间的**批量数据导入导出**，适合离线数据仓库场景。
+- **Kafka**：高吞吐量的**分布式消息队列**，适合实时消息通信、系统解耦、流式数据处理。
+- **Flume**：专注于**日志采集**的流式数据传输系统，适合实时采集Web日志、应用日志。
+
+**题目2**：写出一个Sqoop命令，将MySQL的`students`表导入到HDFS的`/data/students`目录。
+
+**参考答案**：
+
+```bash
+sqoop import \
+  --connect jdbc:mysql://localhost:3306/school \
+  --username root \
+  --password 123456 \
+  --table students \
+  --target-dir /data/students \
+  --num-mappers 2
+```
+
+---
+
+### 期末复习记忆口诀
+
+**三大框架定位**：
+- Sqoop：**库-湖搬运工**（数据库 ↔ 数据湖）
+- Kafka：**消息中转站**（生产者 → 消费者）
+- Flume：**日志流水线**（Source → Channel → Sink）
+
+**Sqoop记忆**：
+- `import` = 进口（数据库 → Hadoop）
+- `export` = 出口（Hadoop → 数据库）
+- `--num-mappers` = 开几个搬运工
+
+**Kafka记忆**：
+- Topic = 货架分类
+- Partition = 货架分区
+- Producer = 快递员
+- Consumer = 配送员
+
+**Flume记忆**：
+- Source = 水源
+- Channel = 水渠
+- Sink = 水槽
+
+---
+
+**🎓 复习建议**：
+1. 重点掌握Sqoop的`import/export`命令
+2. 理解Kafka的Topic、Partition概念
+3. 记住Flume的Source-Channel-Sink架构
+4. 能够根据场景选择合适的工具
+
+---
