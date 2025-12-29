@@ -6111,6 +6111,8 @@ conn.close()
 
 #### 2️⃣ 工作原理（一句话版）
 
+![37](dataCollectionFinalReview/37.png)
+
 Sqoop会把你的SQL查询任务**自动转换为MapReduce任务**，利用Hadoop的**并行处理能力**，多个Mapper同时从数据库的不同分区读取数据，效率极高。
 
 > **比喻**：一个人搬砖太慢，Sqoop会叫10个工人同时搬，每人负责一部分。
