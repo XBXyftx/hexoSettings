@@ -7084,3 +7084,1288 @@ sqoop import \
 
 ---
 
+## Hadoop：大数据处理的基石
+
+### 1️⃣ 定义与本质
+
+**Hadoop = 分布式大数据处理框架**
+
+> **核心比喻**：Hadoop就像一个**超大型图书馆管理系统**
+> - 传统数据库 = 一个小书架（容量有限，数据量大了就崩溃）
+> - Hadoop = 一整栋图书馆大楼（可以容纳海量书籍,多个管理员并行工作）
+
+**一句话定义**：Hadoop是一个开源的、用于**存储海量数据**和**并行处理海量数据**的分布式系统框架。
+
+---
+
+### 2️⃣ Hadoop的核心组成：三大支柱
+
+```plaintext
+Hadoop生态系统架构：
+
+    +-------------------------------------------------------+
+    |                   Hadoop核心三大件                      |
+    |                                                       |
+    |  +-----------------+  +------------------+           |
+    |  |     HDFS        |  |      YARN        |           |
+    |  | (分布式文件系统)  |  |  (资源调度器)     |           |
+    |  |                 |  |                  |           |
+    |  | NameNode        |  | ResourceManager  |           |
+    |  | DataNode        |  | NodeManager      |           |
+    |  +-----------------+  +------------------+           |
+    |                                                       |
+    |  +-----------------------------------------------+    |
+    |  |              MapReduce                        |    |
+    |  |          (分布式计算框架)                       |    |
+    |  |                                               |    |
+    |  |     Map任务 → Shuffle → Reduce任务            |    |
+    |  +-----------------------------------------------+    |
+    |                                                       |
+    +-------------------------------------------------------+
+```
+
+---
+
+### 3️⃣ 核心组件详解
+
+#### ① HDFS（Hadoop Distributed File System）
+
+> **比喻**：HDFS就像一个**超大型云盘**，可以存储PB级的数据
+
+**核心特点**：
+- **分布式存储**：一个大文件切成多个小块（Block），分散存储在多台机器上
+- **高容错性**：每个数据块默认备份3份，某台机器挂了也不怕
+- **高吞吐量**：多台机器并行读写，速度快
+
+**适用场景**：
+- 一次写入，多次读取（不适合频繁修改的数据）
+- 大文件存储（GB、TB级别的日志、图片、视频）
+
+---
+
+#### ② YARN（Yet Another Resource Negotiator）
+
+> **比喻**：YARN就像一个**智能资源分配管家**
+
+**核心功能**：
+- 管理整个集群的计算资源（CPU、内存）
+- 为不同的应用程序分配资源
+- 监控任务执行状态
+
+**工作流程**：
+
+```plaintext
+1. 应用程序提交任务 → ResourceManager
+2. ResourceManager分配资源 → NodeManager
+3. NodeManager在节点上启动任务
+4. 任务执行完毕，释放资源
+```
+
+---
+
+#### ③ MapReduce（分布式计算模型）
+
+> **比喻**：MapReduce就像一个**工厂流水线**
+> - **Map阶段** = 拆分任务（把大批货物分配给多个工人处理）
+> - **Reduce阶段** = 汇总结果（每个工人完成后，统一汇总到仓库）
+
+**核心思想**：
+1. **分而治之**：把大任务拆成小任务，分发到多台机器并行计算
+2. **汇总合并**：每台机器计算完后，把结果汇总
+
+**经典案例：WordCount（单词计数）**
+
+```plaintext
+输入数据：
+  文件1: Hello World
+  文件2: Hello Hadoop
+  文件3: Hadoop World
+
+Map阶段（拆分统计）：
+  Mapper1: (Hello, 1), (World, 1)
+  Mapper2: (Hello, 1), (Hadoop, 1)
+  Mapper3: (Hadoop, 1), (World, 1)
+
+Shuffle阶段（按key分组）：
+  Hello → [1, 1]
+  World → [1, 1]
+  Hadoop → [1, 1]
+
+Reduce阶段（汇总）：
+  Reducer1: (Hello, 2)
+  Reducer2: (World, 2)
+  Reducer3: (Hadoop, 2)
+
+最终输出：
+  Hello   2
+  World   2
+  Hadoop  2
+```
+
+---
+
+### 4️⃣ Hadoop的优势与局限
+
+#### 优势：
+
+| 优势 | 说明 | 比喻 |
+|------|------|------|
+| **高扩展性** | 可以轻松增加服务器节点 | 图书馆不够用了就多建几层楼 |
+| **高容错性** | 数据多副本备份，节点故障自动恢复 | 书籍有备份，丢了可以从其他地方拿 |
+| **低成本** | 运行在普通商用硬件上 | 不需要买超级计算机 |
+| **海量数据处理** | 可处理PB级数据 | 存储整个互联网的数据都没问题 |
+
+#### 局限：
+
+| 局限 | 说明 |
+|------|------|
+| **不适合实时计算** | MapReduce启动慢，延迟高（秒级、分钟级） |
+| **不适合小文件** | 大量小文件会增加NameNode负担 |
+| **不适合随机读写** | 适合批量处理，不适合数据库式的频繁修改 |
+
+---
+
+### 5️⃣ Hadoop生态系统
+
+```plaintext
+Hadoop完整生态圈：
+
+    数据采集层：    Flume    Sqoop    Kafka
+                     ↓        ↓        ↓
+    存储层：         +--------------------+
+                     |       HDFS         |
+                     +--------------------+
+                              ↓
+    资源调度层：     +--------------------+
+                     |       YARN         |
+                     +--------------------+
+                              ↓
+    数据处理层：     MapReduce  Spark  Hive  HBase
+                              ↓
+    数据查询层：              Hive  Pig
+                              ↓
+    可视化层：           Zeppelin  Tableau
+```
+
+---
+
+### 6️⃣ Hadoop应用场景
+
+| 场景 | 说明 | 示例 |
+|------|------|------|
+| **离线数据分析** | 每天凌晨分析前一天的用户行为日志 | 电商网站分析用户购买偏好 |
+| **数据仓库** | 存储历史数据，供BI分析 | 银行存储多年的交易记录 |
+| **日志分析** | 分析网站访问日志、服务器日志 | 分析哪些页面访问量最高 |
+| **推荐系统** | 基于用户行为数据计算推荐结果 | 淘宝的"猜你喜欢" |
+| **机器学习** | 训练大规模机器学习模型 | 图像识别、自然语言处理 |
+
+---
+
+### 7️⃣ Hadoop与传统数据库对比
+
+| 对比维度 | 传统数据库（MySQL） | Hadoop |
+|---------|-------------------|--------|
+| **数据规模** | GB级 | PB级 |
+| **数据类型** | 结构化数据（表） | 半结构化/非结构化（日志、文本） |
+| **访问方式** | 随机读写、频繁修改 | 批量读取、一次写入 |
+| **响应速度** | 毫秒级 | 秒级/分钟级 |
+| **使用场景** | 在线交易、订单管理 | 离线分析、数据挖掘 |
+| **成本** | 高（需要高性能服务器） | 低（普通服务器） |
+
+---
+
+### 8️⃣ Hadoop快速入门示例
+
+**场景：统计日志文件中的IP访问次数**
+
+**步骤1：准备数据文件 `access.log`**
+
+```plaintext
+192.168.1.1 访问了首页
+192.168.1.2 访问了商品页
+192.168.1.1 访问了购物车
+192.168.1.3 访问了首页
+192.168.1.2 访问了首页
+```
+
+**步骤2：上传到HDFS**
+
+```bash
+# 创建HDFS目录
+hdfs dfs -mkdir /input
+# 解释：在HDFS根目录下创建input文件夹
+
+# 上传文件到HDFS
+hdfs dfs -put access.log /input/
+# 解释：将本地的access.log文件上传到HDFS的/input目录
+```
+
+**步骤3：编写MapReduce程序（Python版，使用Streaming）**
+
+**Mapper（mapper.py）**：
+
+```python
+#!/usr/bin/env python3
+# ========== Hadoop Streaming Mapper 详解 ==========
+
+# 导入sys模块（用于读取标准输入）
+import sys
+
+# ========== Mapper的核心任务：拆分和映射 ==========
+# 功能：从每一行日志中提取IP地址，输出 (IP, 1) 键值对
+
+# 从标准输入读取每一行
+# Hadoop会将输入文件的每一行通过标准输入传递给Mapper
+for line in sys.stdin:
+    # 去除首尾空格和换行符
+    line = line.strip()
+    # 示例：line = "192.168.1.1 访问了首页"
+    
+    # 按空格分割字符串，提取第一个元素（IP地址）
+    ip = line.split()[0]
+    # 解释：split() 将字符串按空格分割成列表
+    #       [0] 取第一个元素（IP地址）
+    # 示例：ip = "192.168.1.1"
+    
+    # 输出键值对：IP \t 1
+    print(f"{ip}\t1")
+    # 解释：
+    # - 输出格式：key \t value（用制表符 \t 分隔）
+    # - key = IP地址
+    # - value = 1（表示这个IP出现了1次）
+    # 输出示例：192.168.1.1	1
+
+# ========== 完整数据流 ==========
+# 输入："192.168.1.1 访问了首页"
+# 处理：提取"192.168.1.1"
+# 输出："192.168.1.1	1"
+#
+# 所有输入行处理完后，输出类似：
+# 192.168.1.1	1
+# 192.168.1.2	1
+# 192.168.1.1	1
+# 192.168.1.3	1
+# 192.168.1.2	1
+```
+
+**Reducer（reducer.py）**：
+
+```python
+#!/usr/bin/env python3
+# ========== Hadoop Streaming Reducer 详解 ==========
+
+# 导入sys模块
+import sys
+
+# ========== Reducer的核心任务：汇总和聚合 ==========
+# 功能：将相同IP的计数累加，输出最终统计结果
+
+# 初始化变量
+current_ip = None      # 当前正在处理的IP
+current_count = 0      # 当前IP的计数
+
+# ========== 重要前提 ==========
+# Hadoop的Shuffle阶段会自动将相同key的数据分组并排序
+# 所以Reducer接收到的数据是按key排序的：
+# 192.168.1.1	1
+# 192.168.1.1	1
+# 192.168.1.2	1
+# 192.168.1.2	1
+# 192.168.1.3	1
+
+# 从标准输入读取Mapper的输出
+for line in sys.stdin:
+    # 去除首尾空格
+    line = line.strip()
+    # 示例：line = "192.168.1.1	1"
+    
+    # 按制表符分割，获取IP和计数
+    ip, count = line.split('\t')
+    count = int(count)
+    # 解释：
+    # - split('\t') 按制表符分割
+    # - ip = "192.168.1.1"
+    # - count = 1
+    
+    # 判断是否是同一个IP
+    if current_ip == ip:
+        # 如果是同一个IP，累加计数
+        current_count += count
+        # 示例：第二次遇到"192.168.1.1"时，current_count = 1 + 1 = 2
+    else:
+        # 如果是新的IP
+        if current_ip:
+            # 输出上一个IP的统计结果
+            print(f"{current_ip}\t{current_count}")
+            # 示例：输出 "192.168.1.1	2"
+        
+        # 开始统计新的IP
+        current_ip = ip
+        current_count = count
+        # 示例：current_ip = "192.168.1.2", current_count = 1
+
+# ========== 输出最后一个IP的统计结果 ==========
+# 循环结束后，还有最后一个IP没有输出
+if current_ip:
+    print(f"{current_ip}\t{current_count}")
+
+# ========== 完整数据流 ==========
+# 输入（Mapper的输出，经过Shuffle排序）：
+# 192.168.1.1	1
+# 192.168.1.1	1
+# 192.168.1.2	1
+# 192.168.1.2	1
+# 192.168.1.3	1
+#
+# 处理流程：
+# 第1行：current_ip=None → 设置current_ip="192.168.1.1", current_count=1
+# 第2行：current_ip="192.168.1.1" == ip → current_count=2
+# 第3行：current_ip="192.168.1.1" != ip="192.168.1.2" → 输出"192.168.1.1	2"
+#        设置current_ip="192.168.1.2", current_count=1
+# 第4行：current_ip="192.168.1.2" == ip → current_count=2
+# 第5行：current_ip="192.168.1.2" != ip="192.168.1.3" → 输出"192.168.1.2	2"
+#        设置current_ip="192.168.1.3", current_count=1
+# 循环结束：输出"192.168.1.3	1"
+#
+# 最终输出：
+# 192.168.1.1	2
+# 192.168.1.2	2
+# 192.168.1.3	1
+```
+
+**步骤4：运行MapReduce任务**
+
+```bash
+# ========== Hadoop Streaming 运行命令详解 ==========
+
+# 赋予Python脚本执行权限
+chmod +x mapper.py reducer.py
+
+# 运行Hadoop Streaming任务
+hadoop jar $HADOOP_HOME/share/hadoop/tools/lib/hadoop-streaming-*.jar \
+  # 参数1：输入文件路径
+  -input /input/access.log \
+  # 解释：指定HDFS上的输入文件
+  
+  # 参数2：输出目录路径
+  -output /output \
+  # 解释：指定HDFS上的输出目录（必须不存在，否则报错）
+  
+  # 参数3：Mapper脚本
+  -mapper mapper.py \
+  # 解释：指定Mapper程序（本地文件）
+  
+  # 参数4：Reducer脚本
+  -reducer reducer.py \
+  # 解释：指定Reducer程序（本地文件）
+  
+  # 参数5：传输Mapper文件到集群
+  -file mapper.py \
+  # 解释：将本地的mapper.py文件分发到所有计算节点
+  
+  # 参数6：传输Reducer文件到集群
+  -file reducer.py
+  # 解释：将本地的reducer.py文件分发到所有计算节点
+
+# ========== 执行流程 ==========
+# 1. Hadoop读取/input/access.log文件
+# 2. 将文件内容分配给多个Mapper任务（并行）
+# 3. 每个Mapper执行mapper.py，输出(IP, 1)键值对
+# 4. Shuffle阶段：将相同IP的数据分组并排序
+# 5. 将分组后的数据分配给Reducer任务
+# 6. 每个Reducer执行reducer.py，汇总计数
+# 7. 将结果写入/output目录
+# 8. 任务完成
+
+# ========== 输出文件 ==========
+# /output/
+#   ├── _SUCCESS          (成功标志文件)
+#   ├── part-00000        (Reducer0的输出)
+#   ├── part-00001        (Reducer1的输出，如果有多个Reducer)
+#   └── ...
+```
+
+**步骤5：查看结果**
+
+```bash
+# 查看输出目录
+hdfs dfs -ls /output/
+# 输出：
+# -rw-r--r--   3 user supergroup          0 2025-12-29 10:00 /output/_SUCCESS
+# -rw-r--r--   3 user supergroup         42 2025-12-29 10:00 /output/part-00000
+
+# 查看结果文件内容
+hdfs dfs -cat /output/part-00000
+# 输出：
+# 192.168.1.1	2
+# 192.168.1.2	2
+# 192.168.1.3	1
+```
+
+**输出结果解释**：
+
+```
+192.168.1.1    2    ← IP地址192.168.1.1出现了2次
+192.168.1.2    2    ← IP地址192.168.1.2出现了2次
+192.168.1.3    1    ← IP地址192.168.1.3出现了1次
+```
+
+---
+
+### 9️⃣ 考点总结：Hadoop必考知识卡
+
+#### 🎯 考点1：Hadoop三大核心组件
+
+**必记**：
+- **HDFS**：分布式文件系统（存储）
+- **YARN**：资源调度器（管理）
+- **MapReduce**：分布式计算框架（计算）
+
+**记忆口诀**："存-管-算"
+
+**常见题型**：
+- 填空题：Hadoop的核心组件包括______、______、______（HDFS、YARN、MapReduce）
+- 选择题：Hadoop的分布式文件系统是？（**HDFS**）
+
+---
+
+#### 🎯 考点2：MapReduce的工作流程
+
+**必记三阶段**：
+1. **Map**：并行处理，拆分任务
+2. **Shuffle**：按key分组排序
+3. **Reduce**：汇总结果
+
+**常见题型**：
+- 简答题：简述MapReduce的执行流程
+- 判断题：MapReduce适合实时计算（**❌ 适合批处理**）
+
+---
+
+#### 🎯 考点3：Hadoop的优势
+
+**必记4点**：
+1. 高扩展性（可横向扩展）
+2. 高容错性（数据多副本）
+3. 低成本（普通硬件）
+4. 海量数据处理（PB级）
+
+**常见题型**：
+- 简答题：Hadoop有哪些优势？
+- 选择题：Hadoop默认的数据副本数是？（**3**）
+
+---
+
+#### 🎯 考点4：Hadoop vs 传统数据库
+
+**核心区别**：
+
+| 维度 | 传统数据库 | Hadoop |
+|------|-----------|--------|
+| 数据规模 | GB | PB |
+| 访问方式 | 随机读写 | 批量读取 |
+| 响应速度 | 毫秒级 | 秒级 |
+
+**常见题型**：
+- 选择题：以下哪种场景适合用Hadoop？
+  - A. 银行转账（❌）
+  - B. 日志分析（✅）
+  - C. 在线订单（❌）
+
+---
+
+### 🔟 自测题
+
+#### 判断题
+
+1. Hadoop只能运行在Linux系统上（ ）
+2. MapReduce的Map阶段可以并行执行（ ）
+3. Hadoop适合处理小文件（ ）
+4. YARN负责资源调度和管理（ ）
+5. Hadoop的数据默认备份1份（ ）
+
+**答案**：
+1. ❌（也可以运行在Windows上）
+2. ✅（Map任务并行执行）
+3. ❌（不适合大量小文件）
+4. ✅（YARN是资源管理器）
+5. ❌（默认备份3份）
+
+---
+
+#### 简答题
+
+**题目1**：简述Hadoop的三大核心组件及其作用。
+
+**参考答案**：
+1. **HDFS**：分布式文件系统，负责海量数据的存储，通过数据分块和多副本保证高容错性。
+2. **YARN**：资源调度器，负责管理集群的CPU、内存等资源，为应用程序分配计算资源。
+3. **MapReduce**：分布式计算框架，通过Map和Reduce两个阶段实现大数据的并行处理。
+
+**题目2**：说明MapReduce计算模型的工作流程。
+
+**参考答案**：
+1. **Map阶段**：将输入数据拆分成多个小块，分发到多台机器并行处理，输出中间结果（key-value对）。
+2. **Shuffle阶段**：按key对中间结果进行分组和排序，相同key的数据发送到同一个Reducer。
+3. **Reduce阶段**：对每组数据进行汇总计算，输出最终结果。
+
+---
+
+## HDFS：Hadoop分布式文件系统
+
+### 1️⃣ 定义与本质
+
+**HDFS = Hadoop Distributed File System**
+
+> **核心比喻**：HDFS就像一个**智能仓储系统**
+> - 传统硬盘 = 一个小仓库（容量有限）
+> - HDFS = 一个仓储园区（有很多个仓库，可以无限扩展）
+> - **大货物（大文件）会被拆成小包裹，分散存放在不同仓库**
+> - **每个包裹都有3份备份，防止丢失**
+
+---
+
+### 2️⃣ HDFS核心架构：主从模式
+
+```plaintext
+HDFS架构图：
+
+    +---------------------------------------------------+
+    |                   NameNode                        |
+    |              (Master / 管理者)                     |
+    |                                                   |
+    |  - 管理文件系统的元数据                             |
+    |  - 记录文件被切分成哪些Block                       |
+    |  - 记录每个Block存储在哪些DataNode上               |
+    |  - 处理客户端的读写请求                            |
+    +---------------------------------------------------+
+              ↓                ↓               ↓
+    +-------------+   +-------------+   +-------------+
+    |  DataNode1  |   |  DataNode2  |   |  DataNode3  |
+    | (Slave/工人) |   | (Slave/工人) |   | (Slave/工人) |
+    |             |   |             |   |             |
+    | 存储Block1  |   | 存储Block1  |   | 存储Block2  |
+    | 存储Block3  |   | 存储Block2  |   | 存储Block3  |
+    +-------------+   +-------------+   +-------------+
+
+    +---------------------------------------------------+
+    |          SecondaryNameNode                        |
+    |         (NameNode的备份助手)                       |
+    |                                                   |
+    |  - 定期合并NameNode的元数据                        |
+    |  - 辅助NameNode恢复                               |
+    +---------------------------------------------------+
+```
+
+---
+
+### 3️⃣ HDFS三大核心组件
+
+#### ① NameNode（主节点/管理者）
+
+> **比喻**：NameNode就像**仓库管理员**，负责记录所有货物的位置
+
+**核心职责**：
+1. **管理文件系统元数据**：
+   - 文件目录结构（类似于文件夹树）
+   - 文件权限（谁可以读、写、执行）
+   
+2. **管理Block映射关系**：
+   - 文件A被切分成哪些Block
+   - 每个Block存储在哪些DataNode上
+   
+3. **处理客户端请求**：
+   - 接收读写请求
+   - 返回数据存储位置
+
+**重要特点**：
+- **单点**：整个集群只有一个NameNode（所以要保护好它！）
+- **内存存储元数据**：快速响应，但重启会丢失（所以需要持久化）
+
+---
+
+#### ② DataNode（从节点/工人）
+
+> **比喻**：DataNode就像**仓库工人**，负责实际存储货物
+
+**核心职责**：
+1. **存储数据块（Block）**：
+   - 每个Block默认128MB或256MB
+   - 实际存储在本地磁盘
+
+2. **定期向NameNode汇报**：
+   - 心跳机制（每3秒发送一次心跳）
+   - 块汇报（告诉NameNode自己存储了哪些Block）
+
+3. **执行读写操作**：
+   - 接收客户端的数据读写请求
+   - 执行数据块的复制任务
+
+---
+
+#### ③ SecondaryNameNode（备份助手）
+
+> **比喻**：SecondaryNameNode就像**仓库管理员的助理**，帮忙整理台账
+
+**核心职责**：
+1. **定期合并元数据**：
+   - NameNode的元数据分为两部分：`fsimage`（镜像）和`edits`（日志）
+   - SecondaryNameNode定期将它们合并，减轻NameNode负担
+
+2. **辅助灾难恢复**：
+   - 保存元数据的备份
+   - NameNode崩溃时可以用来恢复（但不是实时的！）
+
+**⚠️ 易错点**：SecondaryNameNode **不是** NameNode的热备份（不能自动接管）！
+
+---
+
+### 4️⃣ HDFS的核心概念
+
+#### Block（数据块）
+
+> **比喻**：Block就像**快递包裹的最小单位**
+
+**核心特点**：
+- **默认大小**：Hadoop 2.x是128MB，Hadoop 3.x是256MB
+- **为什么要分块？**
+  - 支持超大文件（单个文件可以大于任何一台机器的磁盘容量）
+  - 提高并行度（多个Block可以并行读写）
+  - 简化容错（Block级别的备份和恢复）
+
+**示例**：
+
+```plaintext
+文件大小：400MB
+Block大小：128MB
+
+切分结果：
+  Block1: 128MB
+  Block2: 128MB
+  Block3: 128MB
+  Block4: 16MB  ← 最后一个Block不满128MB
+
+存储方式（假设副本数=3）：
+  Block1 → DataNode1, DataNode2, DataNode3
+  Block2 → DataNode2, DataNode3, DataNode4
+  Block3 → DataNode1, DataNode3, DataNode4
+  Block4 → DataNode1, DataNode2, DataNode4
+```
+
+---
+
+#### Replication（副本机制）
+
+> **比喻**：就像**重要文件要多打印几份存档**
+
+**核心特点**：
+- **默认副本数**：3份
+- **副本放置策略**（Rack Awareness）：
+  - 第1个副本：放在客户端所在节点（或随机节点）
+  - 第2个副本：放在不同机架的节点
+  - 第3个副本：放在第2个副本所在机架的不同节点
+
+**为什么是3份？**
+- 1份：不安全，机器故障数据就丢了
+- 2份：还是不够，同时故障概率虽低但存在
+- 3份：平衡了可靠性和存储成本
+- 更多份：浪费存储空间
+
+---
+
+### 5️⃣ HDFS读写流程
+
+#### 写入流程（上传文件）
+
+```plaintext
+Step1: 客户端向NameNode请求上传文件
+   Client → NameNode: "我要上传 file.txt (300MB)"
+
+Step2: NameNode检查权限和目录
+   NameNode: "OK，允许上传，文件切成3个Block"
+
+Step3: NameNode返回DataNode列表
+   NameNode → Client: 
+     "Block1 → DataNode1, DataNode2, DataNode3
+      Block2 → DataNode2, DataNode3, DataNode4
+      Block3 → DataNode1, DataNode3, DataNode4"
+
+Step4: 客户端向DataNode写入数据（Pipeline管道方式）
+   Client → DataNode1 → DataNode2 → DataNode3  (写入Block1)
+   
+   (每个DataNode接收到数据后，一边存储，一边转发给下一个)
+
+Step5: 写入完成，DataNode确认
+   DataNode3 → DataNode2 → DataNode1 → Client: "写入成功"
+
+Step6: 客户端通知NameNode完成
+   Client → NameNode: "上传完成"
+```
+
+---
+
+#### 读取流程（下载文件）
+
+```plaintext
+Step1: 客户端向NameNode请求读取文件
+   Client → NameNode: "我要下载 file.txt"
+
+Step2: NameNode返回Block位置信息
+   NameNode → Client:
+     "Block1 在 DataNode1, DataNode2, DataNode3
+      Block2 在 DataNode2, DataNode3, DataNode4
+      Block3 在 DataNode1, DataNode3, DataNode4"
+
+Step3: 客户端选择最近的DataNode读取
+   Client → DataNode1: "给我 Block1"
+   Client → DataNode2: "给我 Block2"
+   Client → DataNode1: "给我 Block3"
+
+Step4: DataNode返回数据
+   DataNode1 → Client: Block1数据
+   DataNode2 → Client: Block2数据
+   DataNode1 → Client: Block3数据
+
+Step5: 客户端合并数据
+   Client: 将Block1 + Block2 + Block3 合并成完整文件
+```
+
+**优化点**：
+- 客户端会选择**网络距离最近**的DataNode读取
+- 读取失败会自动切换到其他副本
+- 支持并行读取多个Block（提高速度）
+
+---
+
+### 6️⃣ HDFS常用命令
+
+#### 基础命令速查表
+
+| 命令 | 作用 | 示例 |
+|------|------|------|
+| `hdfs dfs -ls` | 查看目录 | `hdfs dfs -ls /user` |
+| `hdfs dfs -mkdir` | 创建目录 | `hdfs dfs -mkdir /data` |
+| `hdfs dfs -put` | 上传文件 | `hdfs dfs -put file.txt /data/` |
+| `hdfs dfs -get` | 下载文件 | `hdfs dfs -get /data/file.txt .` |
+| `hdfs dfs -cat` | 查看文件内容 | `hdfs dfs -cat /data/file.txt` |
+| `hdfs dfs -rm` | 删除文件 | `hdfs dfs -rm /data/file.txt` |
+| `hdfs dfs -rmr` | 删除目录 | `hdfs dfs -rmr /data` |
+| `hdfs dfs -cp` | 复制文件 | `hdfs dfs -cp /data/a.txt /backup/` |
+| `hdfs dfs -mv` | 移动文件 | `hdfs dfs -mv /data/a.txt /backup/` |
+| `hdfs dfs -du` | 查看文件大小 | `hdfs dfs -du -h /data` |
+
+---
+
+#### 实战示例
+
+**场景1：上传本地文件到HDFS**
+
+```bash
+# ========== 上传文件到HDFS ==========
+
+# 步骤1：创建HDFS目录
+hdfs dfs -mkdir -p /user/data
+# 解释：
+# - mkdir：创建目录命令
+# - -p：如果父目录不存在，递归创建（类似于Linux的mkdir -p）
+# - /user/data：HDFS上的目录路径
+
+# 步骤2：上传文件
+hdfs dfs -put /home/user/access.log /user/data/
+# 解释：
+# - put：上传命令
+# - /home/user/access.log：本地文件路径
+# - /user/data/：HDFS目标目录
+#
+# 上传过程：
+# 1. HDFS客户端读取本地文件
+# 2. 向NameNode请求上传
+# 3. NameNode返回DataNode列表
+# 4. 客户端将文件切分成Block，上传到DataNode
+# 5. 每个Block备份3份
+
+# 步骤3：查看文件
+hdfs dfs -ls /user/data/
+# 输出：
+# -rw-r--r--   3 user supergroup    1048576 2025-12-29 10:00 /user/data/access.log
+#
+# 字段解释：
+# -rw-r--r--  ：文件权限
+# 3           ：副本数（3份）
+# user        ：文件所有者
+# supergroup  ：文件所属组
+# 1048576     ：文件大小（字节）
+# 2025-12-29 10:00 ：上传时间
+# /user/data/access.log ：文件路径
+```
+
+**输出结果**：
+
+```
+-rw-r--r--   3 user supergroup    1048576 2025-12-29 10:00 /user/data/access.log
+```
+
+---
+
+**场景2：查看文件内容**
+
+```bash
+# ========== 查看HDFS文件内容 ==========
+
+# 方式1：查看整个文件
+hdfs dfs -cat /user/data/access.log
+# 解释：cat命令会读取整个文件并输出到终端
+# 输出：
+# 192.168.1.1 访问了首页
+# 192.168.1.2 访问了商品页
+# 192.168.1.1 访问了购物车
+# ...
+
+# 方式2：查看文件前10行
+hdfs dfs -cat /user/data/access.log | head -10
+# 解释：使用管道符 | 将cat的输出传递给head命令
+# 输出：前10行日志
+
+# 方式3：查看文件尾部
+hdfs dfs -tail /user/data/access.log
+# 解释：tail命令显示文件的最后1KB内容
+# 输出：最后几行日志
+```
+
+---
+
+**场景3：下载文件到本地**
+
+```bash
+# ========== 从HDFS下载文件 ==========
+
+# 方式1：下载单个文件
+hdfs dfs -get /user/data/access.log /home/user/
+# 解释：
+# - get：下载命令
+# - /user/data/access.log：HDFS上的文件路径
+# - /home/user/：本地目标目录
+#
+# 下载过程：
+# 1. 客户端向NameNode请求文件位置
+# 2. NameNode返回各个Block的DataNode列表
+# 3. 客户端从最近的DataNode下载每个Block
+# 4. 客户端合并Block，还原成完整文件
+# 5. 保存到本地目录
+
+# 方式2：下载整个目录
+hdfs dfs -get /user/data /home/user/backup/
+# 解释：递归下载整个目录及其子文件
+
+# 方式3：使用copyToLocal（等同于get）
+hdfs dfs -copyToLocal /user/data/access.log /home/user/
+```
+
+---
+
+**场景4：删除文件**
+
+```bash
+# ========== 删除HDFS文件 ==========
+
+# 删除单个文件
+hdfs dfs -rm /user/data/access.log
+# 解释：
+# - rm：删除文件命令
+# - 文件会被移到回收站（.Trash目录），默认保留7天
+# 输出：Moved: '/user/data/access.log' to trash at: /user/.Trash/Current
+
+# 删除目录（递归删除）
+hdfs dfs -rm -r /user/data
+# 解释：
+# - -r：递归删除（删除目录及其所有子文件）
+# 输出：Deleted /user/data
+
+# 永久删除（跳过回收站）
+hdfs dfs -rm -skipTrash /user/data/access.log
+# 解释：直接删除，无法恢复
+
+# 清空回收站
+hdfs dfs -expunge
+# 解释：立即清空回收站，释放存储空间
+```
+
+---
+
+### 7️⃣ Python操作HDFS
+
+**安装依赖**：
+
+```bash
+# 安装hdfs库
+pip install hdfs
+# 解释：hdfs是一个Python的HDFS客户端库
+#       提供了简洁的API来操作HDFS
+```
+
+---
+
+#### 示例1：连接HDFS并上传文件
+
+```python
+# ========== Python操作HDFS：上传文件 ==========
+
+# 导入InsecureClient类（不需要Kerberos认证的客户端）
+from hdfs import InsecureClient
+
+# ========== 步骤1：创建HDFS客户端 ==========
+client = InsecureClient('http://localhost:50070', user='hadoop')
+# 解释：
+# - 'http://localhost:50070'：NameNode的Web UI地址
+#   NameNode默认在50070端口提供Web界面和REST API
+# - user='hadoop'：指定操作HDFS的用户名
+#   文件的所有者会是这个用户
+
+# ========== 步骤2：上传文件 ==========
+client.upload('/user/data/test.txt', '/home/user/test.txt', overwrite=True)
+# 解释：
+# - 参数1：HDFS路径 /user/data/test.txt
+# - 参数2：本地文件路径 /home/user/test.txt
+# - overwrite=True：如果HDFS上已存在同名文件，则覆盖
+#   默认False（不覆盖，会抛出异常）
+#
+# 执行流程：
+# 1. 读取本地文件 /home/user/test.txt
+# 2. 通过REST API将文件内容发送到NameNode
+# 3. NameNode返回DataNode列表
+# 4. 文件被切分成Block，上传到DataNode
+# 5. 上传完成
+
+print("文件上传成功！")
+# 输出：文件上传成功！
+```
+
+**输出结果**：
+
+```
+文件上传成功！
+```
+
+---
+
+#### 示例2：读取HDFS文件
+
+```python
+# ========== Python操作HDFS：读取文件 ==========
+
+from hdfs import InsecureClient
+
+# 创建客户端
+client = InsecureClient('http://localhost:50070', user='hadoop')
+
+# ========== 读取文件内容 ==========
+with client.read('/user/data/test.txt', encoding='utf-8') as reader:
+    # 解释：
+    # - client.read()：打开HDFS文件，返回文件对象
+    # - '/user/data/test.txt'：HDFS文件路径
+    # - encoding='utf-8'：指定文件编码（默认是二进制）
+    # - with语句：确保文件正确关闭
+    
+    # 读取文件内容
+    content = reader.read()
+    # 解释：
+    # - reader.read()：读取全部内容（返回字符串）
+    # - 也可以用 reader.readlines()：返回行列表
+    # - 或用 for line in reader：逐行读取
+    
+    # 打印内容
+    print(content)
+
+# ========== 执行流程 ==========
+# 1. 客户端向NameNode请求文件位置
+# 2. NameNode返回Block位置信息
+# 3. 客户端从DataNode读取各个Block
+# 4. 客户端合并Block，解码为字符串
+# 5. 返回文件内容
+```
+
+**输出结果**（假设test.txt内容）：
+
+```
+这是测试文件的内容
+第二行数据
+第三行数据
+```
+
+---
+
+#### 示例3：列出目录内容
+
+```python
+# ========== Python操作HDFS：列出目录 ==========
+
+from hdfs import InsecureClient
+
+# 创建客户端
+client = InsecureClient('http://localhost:50070', user='hadoop')
+
+# ========== 列出目录 ==========
+files = client.list('/user/data')
+# 解释：
+# - client.list()：返回目录下的文件/子目录名称列表
+# - '/user/data'：HDFS目录路径
+# - 返回值：['test.txt', 'access.log', 'output']
+
+# 遍历打印
+for file in files:
+    print(file)
+
+# ========== 获取详细信息 ==========
+# 如果需要文件的详细信息（大小、修改时间等）：
+status = client.status('/user/data/test.txt')
+# 解释：
+# - client.status()：返回文件/目录的详细信息字典
+# - 包含：type（文件类型）、length（大小）、modificationTime（修改时间）等
+
+print(f"文件大小：{status['length']} 字节")
+# 输出：文件大小：1234 字节
+```
+
+**输出结果**：
+
+```
+test.txt
+access.log
+output
+文件大小：1234 字节
+```
+
+---
+
+#### 示例4：下载文件
+
+```python
+# ========== Python操作HDFS：下载文件 ==========
+
+from hdfs import InsecureClient
+
+# 创建客户端
+client = InsecureClient('http://localhost:50070', user='hadoop')
+
+# ========== 下载文件 ==========
+client.download('/user/data/test.txt', '/home/user/download/', overwrite=True)
+# 解释：
+# - 参数1：HDFS文件路径
+# - 参数2：本地目录路径（注意是目录，不是文件路径！）
+# - overwrite=True：如果本地文件存在则覆盖
+#
+# 执行流程：
+# 1. 客户端向NameNode请求文件位置
+# 2. NameNode返回Block位置
+# 3. 客户端从DataNode下载各个Block
+# 4. 客户端合并Block
+# 5. 保存到本地 /home/user/download/test.txt
+
+print("文件下载成功！")
+# 输出：文件下载成功！
+```
+
+**输出结果**：
+
+```
+文件下载成功！
+```
+
+---
+
+#### 示例5：删除文件
+
+```python
+# ========== Python操作HDFS：删除文件 ==========
+
+from hdfs import InsecureClient
+
+# 创建客户端
+client = InsecureClient('http://localhost:50070', user='hadoop')
+
+# ========== 删除文件 ==========
+client.delete('/user/data/test.txt')
+# 解释：
+# - 删除指定路径的文件
+# - 返回值：True（删除成功）或抛出异常
+print("文件删除成功！")
+# 输出：文件删除成功！
+
+# ========== 删除目录（递归删除）==========
+client.delete('/user/data/temp', recursive=True)
+# 解释：
+# - recursive=True：递归删除目录及其所有内容
+# - 如果目录不为空且recursive=False，会抛出异常
+print("目录删除成功！")
+# 输出：目录删除成功！
+```
+
+**输出结果**：
+
+```
+文件删除成功！
+目录删除成功！
+```
+
+---
+
+### 8️⃣ HDFS的特点总结
+
+#### 优点：
+
+| 优点 | 说明 |
+|------|------|
+| **高容错性** | 数据多副本，自动故障恢复 |
+| **高吞吐量** | 适合批量数据处理，流式读取速度快 |
+| **可扩展性** | 可轻松添加DataNode节点扩展容量 |
+| **低成本** | 运行在普通商用硬件上 |
+
+---
+
+#### 缺点/局限：
+
+| 缺点 | 说明 | 解决方案 |
+|------|------|----------|
+| **不适合小文件** | 大量小文件会增加NameNode内存负担 | 合并小文件、使用HBase |
+| **不支持随机写** | 只能追加写入，不能修改已有数据 | 使用HBase |
+| **延迟高** | 不适合低延迟数据访问 | 使用HBase、Redis |
+| **NameNode单点** | NameNode故障会导致整个集群不可用 | 配置HA高可用 |
+
+---
+
+### 9️⃣ 考点总结：HDFS必考知识卡
+
+#### 🎯 考点1：HDFS三大组件
+
+**必记**：
+- **NameNode**：管理元数据（主节点）
+- **DataNode**：存储数据块（从节点）
+- **SecondaryNameNode**：辅助NameNode合并元数据（不是热备份！）
+
+**记忆口诀**："管-存-辅"
+
+**常见题型**：
+- 填空题：HDFS的主节点是______（NameNode）
+- 判断题：SecondaryNameNode是NameNode的热备份（**❌**）
+
+---
+
+#### 🎯 考点2：Block和副本
+
+**必记**：
+- Block默认大小：**128MB**（Hadoop 2.x）或 **256MB**（Hadoop 3.x）
+- 默认副本数：**3份**
+- 副本放置策略：不同节点、不同机架
+
+**常见题型**：
+- 选择题：HDFS默认的Block大小是？（**128MB**）
+- 选择题：HDFS默认的副本数是？（**3**）
+
+---
+
+#### 🎯 考点3：HDFS读写流程
+
+**写入流程**：客户端 → NameNode（请求） → 返回DataNode列表 → Pipeline写入 → 确认
+
+**读取流程**：客户端 → NameNode（请求） → 返回Block位置 → 选择最近的DataNode读取
+
+**常见题型**：
+- 简答题：简述HDFS的文件写入流程
+- 选择题：HDFS读取数据时，客户端直接从哪里读取？（**DataNode**）
+
+---
+
+#### 🎯 考点4：HDFS的优缺点
+
+**优点**：高容错、高吞吐、可扩展、低成本
+
+**缺点**：不适合小文件、不支持随机写、延迟高
+
+**常见题型**：
+- 简答题：HDFS有哪些优缺点？
+- 判断题：HDFS适合存储大量小文件（**❌**）
+
+---
+
+### 🔟 自测题
+
+#### 判断题
+
+1. HDFS的NameNode存储实际的文件数据（ ）
+2. HDFS的Block默认大小是128MB（ ）
+3. SecondaryNameNode可以直接替代NameNode工作（ ）
+4. HDFS支持文件的随机写入和修改（ ）
+5. HDFS的副本数可以通过命令调整（ ）
+
+**答案**：
+1. ❌（NameNode只存储元数据，DataNode存储实际数据）
+2. ✅（Hadoop 2.x默认128MB）
+3. ❌（SecondaryNameNode不是热备份）
+4. ❌（只支持追加写入）
+5. ✅（可以用`hdfs dfs -setrep`命令调整）
+
+---
+
+#### 简答题
+
+**题目1**：简述HDFS的架构组成及各组件的作用。
+
+**参考答案**：
+1. **NameNode**：主节点，负责管理文件系统的元数据（目录结构、文件权限、Block映射关系），处理客户端的读写请求。
+2. **DataNode**：从节点，负责存储实际的数据块（Block），定期向NameNode汇报心跳和块信息，执行数据的读写操作。
+3. **SecondaryNameNode**：辅助节点，定期合并NameNode的元数据（fsimage和edits），减轻NameNode负担，辅助灾难恢复（但不是热备份）。
+
+**题目2**：说明HDFS的文件写入流程。
+
+**参考答案**：
+1. 客户端向NameNode发送上传文件请求。
+2. NameNode检查权限和目录，将文件切分成多个Block，返回每个Block应该存储的DataNode列表。
+3. 客户端采用Pipeline（管道）方式将数据写入DataNode，数据依次传递（如DataNode1 → DataNode2 → DataNode3）。
+4. 所有副本写入完成后，DataNode向客户端确认。
+5. 客户端通知NameNode写入完成。
+
+**题目3**：为什么HDFS不适合存储小文件？如何解决？
+
+**参考答案**：
+- **原因**：HDFS的NameNode将所有文件的元数据存储在内存中，大量小文件会占用大量内存，增加NameNode负担，降低性能。
+- **解决方案**：
+  1. 合并小文件：使用SequenceFile、HAR（Hadoop Archive）等技术将小文件打包。
+  2. 使用HBase：HBase适合存储海量小数据。
+  3. 使用HDFS Federation：配置多个NameNode分担压力。
+
+---
+
+### 🎓 期末复习记忆口诀
+
+**HDFS架构记忆**：
+- NameNode = **大管家**（管理元数据）
+- DataNode = **搬运工**（存储数据）
+- SecondaryNameNode = **记账员**（合并元数据）
+
+**HDFS核心数字**：
+- Block大小：**128MB**
+- 副本数：**3份**
+- 心跳间隔：**3秒**
+
+**HDFS读写记忆**：
+- **写入**：客户端 → NameNode → Pipeline写入DataNode
+- **读取**：客户端 → NameNode → 选最近的DataNode读取
+
+**HDFS常用命令记忆**：
+- 上传：`hdfs dfs -put`
+- 下载：`hdfs dfs -get`
+- 查看：`hdfs dfs -cat`
+- 列表：`hdfs dfs -ls`
+- 删除：`hdfs dfs -rm`
+
+---
+
+**🎓 复习建议**：
+1. 重点掌握HDFS的三大组件及其作用
+2. 理解Block和副本机制
+3. 熟悉HDFS的读写流程（画图理解）
+4. 记住HDFS的优缺点和适用场景
+5. 掌握常用的HDFS命令
+
+---
+
