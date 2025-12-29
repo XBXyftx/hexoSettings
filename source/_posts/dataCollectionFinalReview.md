@@ -6348,6 +6348,8 @@ sqoop export \
 > 2. 多个配送员可以同时从同一个货架取货（多消费者）
 > 3. 吞吐量超高，每秒可以处理百万级消息
 
+![34](dataCollectionFinalReview/34.png)
+
 ---
 
 #### 2️⃣ 核心概念
@@ -6613,6 +6615,10 @@ for message in consumer:
 | **消息通知系统** | 用户下单后，Kafka通知库存、支付、物流多个系统 |
 | **流式数据处理** | 结合Spark Streaming进行实时数据分析 |
 | **系统解耦** | 订单系统和推荐系统通过Kafka通信，互不影响 |
+
+#### 真题
+
+![36](dataCollectionFinalReview/36.png)
 
 ---
 
