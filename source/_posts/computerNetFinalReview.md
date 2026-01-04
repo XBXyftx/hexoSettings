@@ -1191,7 +1191,7 @@ OSI/RM七层协议的层级从低到高依次为：
 
 ![67](computerNetFinalReview/67.png)
 
-能够使用此协议的最短帧长为{% 20000 bit 作奸 orange %}或{% label 2500 字节 orange %}2500 字节。
+能够使用此协议的最短帧长为{% label 20000 bit 作奸 orange %}或{% label 2500 字节 orange %}2500 字节。
 
 ---
 
