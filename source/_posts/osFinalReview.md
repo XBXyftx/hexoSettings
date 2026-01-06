@@ -98,4 +98,45 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ---
 
+核心四向量：
 
+- `Available`：可用资源向量，表示系统中每种资源可用的数量
+- `Max`：最大{% label 需求 blue %}矩阵，表示每个进程对每种资源的最大需求量
+- `Allocation`：分配矩阵，表示系统当前已分配给每个进程的资源数
+- `Need`：需求矩阵，表示每个进程尚需的资源数
+
+{% label Need[i,j] = Max[i,j] - Allocation[i,j] orange %}
+
+{% note success flat %}
+银行家算法的核心思想是：在进程申请资源时，先判断系统是否安全，再决定是否分配资源。
+
+> 安全状态：系统中的所有进程都能按照某种顺序完成，即系统处于安全状态。
+> 申请的总资源数 ≤ 可用资源数 + 已分配资源数
+> 单次申请的资源数 ≤ 进程尚需资源数 ≤ 可用资源数
+{% endnote %}
+
+---
+
+![4](osFinalReview/4.png)
+
+![5](osFinalReview/5.png)
+
+T1时刻安全吗？
+
+![6](osFinalReview/6.png)
+
+由此可得安全序列 {B, A, C, D}
+
+{% note danger flat %}
+安全序列并不唯一！！！
+
+{B, D, C ,A}  {B,C,D,A}  {B, C, A, D}都是可以的！！！
+{% endnote %}
+
+若此时进程A发出请求Request（1, 0, 1）,资源分配数据就会变成如下情况。
+
+![7](osFinalReview/7.png)
+
+> Available(0,1,1)不能满足任何进程的需要，故进入不安全状态，系统不分配资源。
+
+---
