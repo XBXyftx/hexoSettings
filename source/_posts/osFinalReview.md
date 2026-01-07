@@ -188,6 +188,14 @@ while (1) {
 
 ---
 
+![54](osFinalReview/54.png)
+
+---
+
+![55](osFinalReview/55.png)
+
+---
+
 ## 核心知识点速过
 
 ### 操作系统的特点
