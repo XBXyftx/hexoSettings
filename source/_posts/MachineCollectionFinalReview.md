@@ -18,6 +18,8 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ### 作业1
 
+#### 连续属性与离散属性
+
 ![1](MachineCollectionFinalReview/1.png)
 
 1. 正确选项：A、C
@@ -37,6 +39,8 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ---
 
+#### 离群点（Outliers）
+
 ![2](MachineCollectionFinalReview/2.png)
 
 1. 正确选项：B、C
@@ -49,6 +53,8 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
    - D. 错误：离群点是合法数据，并非必须滤除。
 
 ---
+
+#### 数据挖掘的定义
 
 ![3](MachineCollectionFinalReview/3.png)
 
@@ -87,6 +93,8 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ---
 
+#### 均值与中值
+
 ![4](MachineCollectionFinalReview/4.png)
 
 1. 均值计算：
@@ -97,6 +105,8 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 3. 答案：均值是20，中值是6
 
 ---
+
+#### 混淆矩阵：精度与召回率
 
 ![5](MachineCollectionFinalReview/5.png)
 
@@ -117,6 +127,8 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 ---
 
 ### 作业2
+
+#### 离散属性编码
 
 ![6](MachineCollectionFinalReview/6.png)
 
@@ -183,6 +195,8 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 ![16](MachineCollectionFinalReview/16.png)
 
 ---
+
+#### PR曲线与ROC曲线
 
 ![17](MachineCollectionFinalReview/17.png)
 
@@ -290,6 +304,8 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ### 作业3
 
+#### 线性回归中的属性处理
+
 ![24](MachineCollectionFinalReview/24.png)
 
 - 答案：正确选项是AD
@@ -311,6 +327,8 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 | 对应选项正确性 | A正确、B错误       | D正确、C错误       |
 
 ---
+
+#### 线性回归与RANSAC算法
 
 ![25](MachineCollectionFinalReview/25.png)
 
@@ -374,6 +392,8 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 - 答案：正确选项是D
 
 ---
+
+#### 正则化方法
 
 ![29](MachineCollectionFinalReview/29.png)
 
@@ -473,6 +493,8 @@ $$\text{Loss} = \frac{1}{2n} ||y - Xw||_2^2 + \lambda_1 ||w||_1 + \lambda_2 ||w|
 
 ---
 
+#### 正则化参数λ的影响
+
 ![34](MachineCollectionFinalReview/34.png)
 
 - 答案：
@@ -485,6 +507,8 @@ $$\text{Loss} = \frac{1}{2n} ||y - Xw||_2^2 + \lambda_1 ||w||_1 + \lambda_2 ||w|
 ---
 
 ### 作业4-1
+
+#### 决策树划分准则
 
 ![35](MachineCollectionFinalReview/35.png)
 
@@ -670,6 +694,8 @@ $$Entropy(t) = -\sum_{j=0}^{c-1} p(j|t) \log_2 p(j|t)$$
 
 ---
 
+#### 不纯度度量：熵与分类误差
+
 ![37](MachineCollectionFinalReview/37.png)
 
 **题目**：（填空题）按照某个属性分为3类，分别有200、400、200条记录，作为该属性不纯性的度量，熵（Entropy）为___，分类误差（classification error）为___。
@@ -735,6 +761,8 @@ $$Classification\ Error = 1 - 0.5 = 0.5$$
 - 分类误差为0.5，表示如果将所有样本都预测为最多的类别C2，仍有50%的样本会被错误分类
 
 ---
+
+#### 二元划分
 
 ![38](MachineCollectionFinalReview/38.png)
 
@@ -846,3 +874,5 @@ $$\text{二元划分数} = 4 - 1 = 3$$
    - 对于无序属性，需要尝试所有 $2^{n-1} - 1$ 种划分，计算复杂度为 $O(2^n)$
    - 对于有序属性，只需尝试 $n-1$ 种划分，计算复杂度为 $O(n)$
    - 因此，识别有序属性可以显著降低决策树构建的计算成本
+
+
