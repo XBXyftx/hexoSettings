@@ -115,3 +115,18 @@ deploy:
   
 mermaid:
   enable: true
+
+# # MathJax配置
+# mathjax:
+#   enable: true
+#   per_page: true  # 仅在需要渲染公式的页面加载（优化速度）
+#   cdn: /js/mathjax.js
+
+kramed:
+  gfm: true
+  pedantic: false
+  sanitize: false
+  tables: true
+  breaks: true
+  smartLists: true
+  smartypants: true

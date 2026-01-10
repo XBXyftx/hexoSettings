@@ -482,14 +482,13 @@ math:
   # 设置为空以禁用数学公式功能，避免加载CSS文件
   # Choose: mathjax, katex
   # Leave it empty if you don't need math
-  use:
+  use: mathjax
   mathjax:
-    src: #https://cdn.bootcdn.net/ajax/libs/mathjax/3.2.2/es5/a11y/assistive-mml.js
-    config:
-      tex2jax:
-        inlineMath: [ ['$','$'], ["\\(","\\)"] ]
-        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
-        processEscapes: true
+    # Enable the contextual menu
+    enableMenu: true
+    # Choose: all / ams / none, This controls whether equations are numbered and how
+    tags: none
+
 
   katex:
     # Enable the copy KaTeX formula
