@@ -1199,7 +1199,7 @@ CDN:
     translate: https://cdn1.tianli0.top/npm/js-heo@1.0.6/translate/tw_cn.js
     # twikoo: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/twikoo/1.4.18/twikoo.all.min.js
     twikoo: /js/twikoo.js
-    typed: https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/typed.js/2.0.12/typed.min.js
+    typed: /js/typed.umd.js
     # utils:
     # valine:
     # waline_css:
