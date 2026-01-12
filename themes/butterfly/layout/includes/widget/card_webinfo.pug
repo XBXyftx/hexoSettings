@@ -50,7 +50,7 @@ script.
                 const element = mutation.target;
                 const currentValue = parseInt(element.textContent);
                 if (!isNaN(currentValue)) {
-                    element.textContent = currentValue + parseInt(#{theme.busuanzi.init_pv}); 
+                    element.textContent = currentValue + initValue; 
                     observer.disconnect();
                 }
             });
@@ -67,8 +67,7 @@ script.
     }
 
     // 初始化访问量统计
-    initCounter('busuanzi_value_site_pv');
+    initCounter('busuanzi_value_site_pv', #{theme.busuanzi.init_pv || 0});
     // 初始化访客量统计 
-    initCounter('busuanzi_value_site_uv');
-script checkUv()
+    initCounter('busuanzi_value_site_uv', #{theme.busuanzi.init_uv || 0});
 

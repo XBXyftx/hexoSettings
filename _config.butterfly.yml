@@ -470,7 +470,7 @@ busuanzi:
   site_pv: true
   page_pv: true
   init_pv: 33130
-  init_uv: 40000
+  init_uv: 40123
 
 # --------------------------------------
 # Math
