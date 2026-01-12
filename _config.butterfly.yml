@@ -484,6 +484,7 @@ math:
   # Choose: mathjax, katex
   # Leave it empty if you don't need math
   use: mathjax
+  per_page: false
   mathjax:
     # Enable the contextual menu
     enableMenu: true
@@ -1181,7 +1182,7 @@ CDN:
     # local_search:
     # main:
     # main_css:
-    mathjax: /js/MathJax-4.1.0/tex-mml-chtml.js
+    mathjax: /js/MathJax-3.2.2/es5/tex-mml-chtml.js
     medium_zoom: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/medium-zoom/1.0.6/medium-zoom.min.js
     # Mermaid (markdwon to flow chart, seq chart, class chart ...)
     # mermaid chart  
