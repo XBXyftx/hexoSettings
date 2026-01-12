@@ -14,6 +14,204 @@ copyright_url: https://xbxyftx.top
 copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自原作者
 ---
 
+## 知识点速过表
+
+### 1. 机器学习本质
+
+| 概念 | 说明 | 关键公式/方法 |
+|------|------|--------------|
+| 核心思想 | 用数据自动找规律 → 预测/决策 | - |
+| 三大范式 | 监督学习、无监督学习、强化学习 | - |
+| 过拟合 | 模型在训练集上表现好，测试集差（死记硬背） | 正则化、早停、交叉验证 |
+| 欠拟合 | 模型在训练集和测试集上都表现差（没学透） | 增加特征、提高模型复杂度 |
+
+---
+
+### 2. 数据基础
+
+| 概念 | 说明 | 关键公式/方法 |
+|------|------|--------------|
+| 数据集划分 | 训练集（练）、验证集（调）、测试集（考） | 常见比例：6:2:2 或 7:1.5:1.5 |
+| 属性类型 | 离散属性（类别）vs 连续属性（数值） | - |
+| 数据清洗 | 处理缺失值、噪声、离群点 | 删除、填充（均值/中位数/众数）、插值 |
+| 归一化（Normalization） | 将数据缩放到[0,1] | $x' = \frac{x - \min}{\max - \min}$ |
+| 标准化（Standardization） | 将数据转换为均值0、方差1 | $x' = \frac{x - \mu}{\sigma}$ |
+| One-Hot编码（独热编码） | 离散属性转二元向量 | n个类别 → n维向量 |
+| 降维（Dimensionality Reduction） | 减少特征维度 | PCA（主成分分析）：$Z = XW$ |
+
+---
+
+### 3. 监督学习 - 回归
+
+| 算法 | 说明 | 关键公式 |
+|------|------|---------|
+| 线性回归（Linear Regression） | 预测连续值，拟合直线/平面 | $y = w_0 + w_1x_1 + ... + w_nx_n$<br>损失函数：$L = \frac{1}{2n}\sum(y_i - \hat{y}_i)^2$ |
+| 岭回归（Ridge Regression） | 线性回归 + L2正则化，防止过拟合 | $L = \frac{1}{2n}\sum(y_i - \hat{y}_i)^2 + \lambda\sum w_j^2$ |
+| LASSO回归（Lasso Regression） | 线性回归 + L1正则化，自动特征选择 | $L = \frac{1}{2n}\sum(y_i - \hat{y}_i)^2 + \lambda\sum \lvert w_j\rvert$ |
+
+---
+
+### 4. 监督学习 - 分类
+
+| 算法 | 说明 | 关键公式/特点 |
+|------|------|--------------|
+| 逻辑回归（Logistic Regression） | 二分类，输出概率 | $P(y=1&#124;x) = \frac{1}{1+e^{-(w^Tx+b)}}$ |
+| KNN（K近邻） | K近邻投票，懒惰学习 | 距离：$d = \sqrt{\sum(x_i-y_i)^2}$<br>K值选择：奇数，通常3/5/7 |
+| 决策树（Decision Tree） | 树形结构，可解释性强 | 信息增益、Gini指数、增益率 |
+| 朴素贝叶斯（Naive Bayes） | 基于概率，假设特征独立 | $P(C&#124;X) = \frac{P(X&#124;C)P(C)}{P(X)}$ |
+| SVM（支持向量机） | 最大间隔分类器 | 间隔最大化、核技巧 |
+
+**分类评估指标**：
+
+| 指标 | 公式 | 说明 |
+|------|------|------|
+| 准确率（Accuracy） | $\frac{TP+TN}{TP+TN+FP+FN}$ | 预测正确的比例 |
+| 精确率/查准率（Precision） | $\frac{TP}{TP+FP}$ | 预测为正例中真正例的比例 |
+| 召回率/查全率（Recall） | $\frac{TP}{TP+FN}$ | 真正例中被预测出的比例 |
+| F1分数（F1-Score） | $\frac{2 \times Precision \times Recall}{Precision + Recall}$ | 精确率和召回率的调和平均 |
+
+**混淆矩阵**：
+
+|  | 预测正例 | 预测反例 |
+|--|---------|---------|
+| 实际正例 | TP（真正例） | FN（假反例） |
+| 实际反例 | FP（假正例） | TN（真反例） |
+
+---
+
+### 5. 决策树关键指标
+
+| 指标 | 公式 | 特点 |
+|------|------|------|
+| 熵（Entropy） | $Entropy = -\sum\_{i=1}^{c} p_i \log_2 p_i$ | 越大越混乱，ID3算法使用 |
+| Gini指数（Gini Index） | $Gini = 1 - \sum\_{i=1}^{c} p_i^2$ | 越大越不纯，CART算法使用 |
+| 信息增益（Information Gain） | $Gain = Entropy(父) - \sum \frac{n_i}{n}Entropy(子_i)$ | 选择增益最大的属性 |
+| 增益率（Gain Ratio） | $GainRatio = \frac{Gain}{SplitInfo}$ | 惩罚高基数属性，C4.5使用 |
+
+---
+
+### 6. 无监督学习 - 聚类
+
+| 算法 | 说明 | 关键公式/特点 |
+|------|------|--------------|
+| K-means（K均值） | 划分式聚类，球形簇 | 目标：$\min \sum\_{i=1}^{k}\sum\_{x \in C_i}\lVert x-\mu_i\rVert^2$<br>需指定K，对初值敏感 |
+| DBSCAN（基于密度的聚类） | 密度聚类，任意形状 | 参数：$\epsilon$（邻域半径）、MinPts（最小点数）<br>能识别噪声点 |
+| 层次聚类（Hierarchical Clustering） | 凝聚/分裂，树状图 | 单链（最小距离）、全链（最大距离）、平均链 |
+
+**聚类评估**：
+
+| 指标 | 说明 |
+|------|------|
+| 轮廓系数（Silhouette Coefficient） | 衡量簇内紧密度和簇间分离度，[-1, 1]，越大越好 |
+| DB指数（Davies-Bouldin Index） | 簇内距离/簇间距离，越小越好 |
+
+---
+
+### 7. 关联规则挖掘
+
+| 概念 | 公式 | 说明 |
+|------|------|------|
+| 支持度（Support） | $Support(X) = \frac{包含X的事务数}{总事务数}$ | 项集的流行度 |
+| 置信度（Confidence） | $Confidence(X \rightarrow Y) = \frac{Support(X \cup Y)}{Support(X)}$ | 规则的可靠性 |
+| 提升度（Lift） | $Lift(X \rightarrow Y) = \frac{Support(X \cup Y)}{Support(X) \times Support(Y)}$ | >1正相关，=1独立，<1负相关 |
+| 频繁项集（Frequent Itemset） | Support ≥ min_support | Apriori算法基础 |
+| 强规则（Strong Rule） | Support ≥ min_support 且 Confidence ≥ min_confidence | 高置信度规则 |
+
+**Apriori先验原理**：
+- 频繁项集的子集必然频繁
+- 非频繁项集的超集必然非频繁
+
+---
+
+### 8. 序列模式挖掘
+
+| 概念 | 说明 | 示例 |
+|------|------|------|
+| 序列（Sequence） | 按时间顺序排列的项集序列 | $<\{1,2\} \{3\} \{4,5\}>$ |
+| 单项集序列 | 所有事件在同一时刻 | $<\{3,4\}>$：3和4同时发生 |
+| 多项集序列 | 事件在不同时刻按顺序 | $<\{3\} \{4\}>$：3先发生，后4发生 |
+| 序列支持度 | $\frac{包含该序列的对象数}{总对象数}$ | 与关联规则类似 |
+
+---
+
+### 9. 集成学习
+
+| 方法 | 说明 | 代表算法 |
+|------|------|---------|
+| Bagging（装袋法） | 并行训练，投票/平均 | 随机森林（Random Forest）：树+样本随机+特征随机 |
+| Boosting（提升法） | 串行训练，加权组合 | AdaBoost：错误样本权重↑<br>GBDT（梯度提升决策树） |
+| Stacking（堆叠法） | 多层模型，元学习器 | 第一层多个模型，第二层组合 |
+
+---
+
+### 10. 模型评估与选择
+
+| 方法 | 说明 | 优缺点 |
+|------|------|--------|
+| 留出法 | 直接划分训练集和测试集 | 简单但结果不稳定 |
+| K折交叉验证 | 数据分K份，轮流做测试集 | 稳定但计算量大，常用K=5或10 |
+| 留一法 | K=n的交叉验证 | 最准确但计算量最大 |
+| 自助法 | 有放回抽样 | 适合小数据集 |
+
+**偏差-方差权衡**：
+
+| 概念 | 说明 |
+|------|------|
+| 偏差 | 模型预测值与真实值的偏离程度，简单模型偏差大（欠拟合） |
+| 方差 | 模型对训练集变化的敏感程度，复杂模型方差大（过拟合） |
+| 总误差 | $Error = Bias^2 + Variance + Noise$ |
+
+---
+
+### 11. 异常检测
+
+| 方法 | 说明 |
+|------|------|
+| 统计方法（Statistical Methods） | 箱线图（IQR）、3σ原则（正态分布） |
+| 距离方法（Distance-based） | 基于KNN，距离远的为异常 |
+| 密度方法（Density-based） | LOF（局部离群因子），密度低的为异常 |
+| 聚类方法（Clustering-based） | 小簇或不属于任何簇的点为异常 |
+
+**离群点 vs 噪声**：
+- 离群点（Outlier）：合法但特殊的数据
+- 噪声（Noise）：错误的数据
+
+---
+
+### 12. 数据挖掘四大任务
+
+| 任务 | 说明 | 典型算法 |
+|------|------|---------|
+| 预测建模（Predictive Modeling） | 回归（连续值）、分类（类别） | 线性回归、逻辑回归、决策树、SVM |
+| 聚类（Clustering） | 无监督分组 | K-means、DBSCAN、层次聚类 |
+| 关联规则（Association Rules） | 发现项之间的关联 | Apriori、FP-Growth |
+| 异常检测（Anomaly Detection） | 识别异常数据 | LOF、Isolation Forest（孤立森林） |
+
+---
+
+### 13. 重要公式速记
+
+**距离度量**：
+
+- 欧氏距离（Euclidean Distance）：$d = \sqrt{\sum(x_i-y_i)^2}$
+- 曼哈顿距离（Manhattan Distance）：$d = \sum\lvert x_i-y_i\rvert$
+- 余弦相似度（Cosine Similarity）：$sim = \frac{x \cdot y}{\lVert x\rVert \cdot \lVert y\rVert}$
+
+**正则化**：
+
+- L1正则（LASSO）：$\lambda\sum\lvert w_j\rvert$（产生稀疏解）
+- L2正则（Ridge）：$\lambda\sum w_j^2$（参数平滑）
+
+**贝叶斯定理**：
+$$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
+
+**决策树剪枝**：
+
+- 先剪枝（Pre-pruning）：生长时提前停止
+- 后剪枝（Post-pruning）：先完全生长再修剪（泛化能力更好）
+
+---
+
 ## 作业题汇总
 
 ### 作业1
@@ -438,7 +636,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 **Lasso回归（Lasso Regression）**
 
-- **正则化项**：L1范数 $\lambda \sum_{j=1}^{p} |w_j|$
+- **正则化项**：L1范数 $\lambda \sum_{j=1}^{p} \lvert w_j\rvert$
 - **几何解释**：约束条件为菱形区域，容易在顶点处产生稀疏解
 - **参数特点**：部分参数会被压缩至0，实现自动特征选择
 - **适用场景**：特征维度高，需要筛选重要特征并简化模型
@@ -458,7 +656,7 @@ $$\hat{w}_{ridge} = (X^TX + \lambda I)^{-1}X^Ty$$
 **Lasso回归的优化**：
 由于L1范数不可导，通常使用：
 - **坐标下降法**：逐个优化参数
-- **软阈值算子**：$S_{\lambda}(z) = \text{sign}(z) \max(|z| - \lambda, 0)$
+- **软阈值算子**：$S_{\lambda}(z) = \text{sign}(z) \max(\lvert z\rvert - \lambda, 0)$
 
 ##### 正则化参数λ的选择
 
@@ -579,9 +777,9 @@ $$\text{Loss} = \frac{1}{2n} \lVert y - Xw \rVert_2^2 + \lambda_1 \lVert w \rVer
 ##### 计算Gini的例子
 
 **Gini指数计算公式**：
-$$GINI(t) = 1 - \sum_{j} [p(j|t)]^2$$
+$$GINI(t) = 1 - \sum_{j} [p(j&#124;t)]^2$$
 
-其中$p(j|t)$表示节点$t$中类别$j$的样本比例。
+其中$p(j&#124;t)$表示节点$t$中类别$j$的样本比例。
 
 **示例1：完全纯净的节点**
 
@@ -640,12 +838,12 @@ $$GINI(t) = 1 - \sum_{j} [p(j|t)]^2$$
 熵（Entropy）是信息论中用于度量数据集纯度的指标，表示数据集的不确定性或混乱程度。
 
 **熵的计算公式**：
-$$Entropy(t) = -\sum_{j=0}^{c-1} p(j|t) \log_2 p(j|t)$$
+$$Entropy(t) = -\sum_{j=0}^{c-1} p(j&#124;t) \log_2 p(j&#124;t)$$
 
 其中：
-- $p(j|t)$表示节点$t$中类别$j$的样本比例
+- $p(j&#124;t)$表示节点$t$中类别$j$的样本比例
 - $c$是类别总数
-- 当$p(j|t) = 0$时，定义$p(j|t) \log_2 p(j|t) = 0$
+- 当$p(j&#124;t) = 0$时，定义$p(j&#124;t) \log_2 p(j&#124;t) = 0$
 
 **熵的计算示例**：
 
