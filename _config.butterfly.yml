@@ -1153,7 +1153,8 @@ CDN:
         placeholder: /img/link.png #link_card标签默认的图标图片
       CDN:
         anima: https://npm.elemecdn.com/hexo-butterfly-tag-plugins-plus@latest/lib/assets/font-awesome-animation.min.css #动画标签  anima的依赖
-        jquery: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/jquery/3.6.0/jquery.min.js #issues标签依赖
+        # jquery: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/jquery/3.6.0/jquery.min.js #issues标签依赖 # 404 - bytecdntp.com failed
+        jquery: https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js #issues标签依赖
         issues: https://npm.elemecdn.com/hexo-butterfly-tag-plugins-plus@latest/lib/assets/issues.js #issues标签依赖
         iconfont: //at.alicdn.com/t/font_2032782_8d5kxvn09md.js #参看https://akilar.top/posts/d2ebecef/
         carousel: https://npm.elemecdn.com/hexo-butterfly-tag-plugins-plus@latest/lib/assets/carousel-touch.js
@@ -1166,24 +1167,29 @@ CDN:
     # docsearch_css:
     # docsearch_js:
     egjs_infinitegrid: ''
-    fancybox: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/fancybox/3.5.7/jquery.fancybox.min.js
-    fancybox_css: https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/fancybox/3.5.7/jquery.fancybox.min.css
+    # fancybox: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/fancybox/3.5.7/jquery.fancybox.min.js # 404 - bytecdntp.com failed
+    fancybox: https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js
+    # fancybox_css: https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/fancybox/3.5.7/jquery.fancybox.min.css # 404 - bytecdntp.com failed
+    fancybox_css: https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css
     # fireworks:
     # fontawesome: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/font-awesome/6.0.0/css/all.min.css
     fontawesome: https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css
     # gitalk:
     # gitalk_css:
     # giscus:
-    instantpage: https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/instant.page/5.1.0/instantpage.min.js
+    # instantpage: https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/instant.page/5.1.0/instantpage.min.js # 404 - bytecdntp.com failed
+    instantpage: https://cdnjs.cloudflare.com/ajax/libs/instant.page/5.1.0/instantpage.min.js
     # instantsearch:
     # katex:
     # katex_copytex:
-    lazyload: https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/vanilla-lazyload/17.3.1/lazyload.iife.min.js
+    # lazyload: https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/vanilla-lazyload/17.3.1/lazyload.iife.min.js # 404 - bytecdntp.com failed
+    lazyload: https://cdnjs.cloudflare.com/ajax/libs/vanilla-lazyload/17.3.1/lazyload.min.js
     # local_search:
     # main:
     # main_css:
     mathjax: /js/MathJax-3.2.2/es5/tex-mml-chtml.js
-    medium_zoom: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/medium-zoom/1.0.6/medium-zoom.min.js
+    # medium_zoom: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/medium-zoom/1.0.6/medium-zoom.min.js # 404 - bytecdntp.com failed
+    medium_zoom: https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.6/medium-zoom.min.js
     # Mermaid (markdwon to flow chart, seq chart, class chart ...)
     # mermaid chart  
     mermaid: ## mermaid url https://github.com/knsv/mermaid  
@@ -1196,8 +1202,10 @@ CDN:
     pjax: https://lib.baomitu.com/pjax/0.2.8/pjax.min.js
     sharejs: https://lib.baomitu.com/social-share.js/1.0.16/js/social-share.min.js
     sharejs_css: https://lib.baomitu.com/social-share.js/1.0.16/css/share.min.css
-    snackbar: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/node-snackbar/0.1.16/snackbar.min.js
-    snackbar_css: https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/node-snackbar/0.1.16/snackbar.min.css
+    # snackbar: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/node-snackbar/0.1.16/snackbar.min.js # 404 - bytecdntp.com failed
+    snackbar: https://cdnjs.cloudflare.com/ajax/libs/node-snackbar/0.1.16/snackbar.min.js
+    # snackbar_css: https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/node-snackbar/0.1.16/snackbar.min.css # 404 - bytecdntp.com failed
+    snackbar_css: https://cdnjs.cloudflare.com/ajax/libs/node-snackbar/0.1.16/snackbar.min.css
     translate: https://cdn1.tianli0.top/npm/js-heo@1.0.6/translate/tw_cn.js
     # twikoo: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/twikoo/1.4.18/twikoo.all.min.js
     twikoo: /js/twikoo.js
@@ -1205,7 +1213,8 @@ CDN:
     # utils:
     # valine:
     # waline_css:
-    waline_js: https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/waline/1.5.4/Waline.min.js
+    # waline_js: https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/waline/1.5.4/Waline.min.js # 404 - bytecdntp.com failed
+    waline_js: https://cdnjs.cloudflare.com/ajax/libs/waline/1.5.4/Waline.min.js
 
 
 # envelope_comment
