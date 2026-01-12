@@ -469,8 +469,8 @@ busuanzi:
   site_uv: true
   site_pv: true
   page_pv: true
-  init_pv: 33130
-  init_uv: 40123
+  init_pv: 40123
+  init_uv: 37211
 
 # --------------------------------------
 # Math
