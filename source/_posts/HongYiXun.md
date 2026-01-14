@@ -4917,6 +4917,16 @@ onColorRangeChange(): void {
 
 ---
 
-#### 热力数据核心数据结构与数据更新机制架构
+#### 热力数据核心数据结构与数据解析存储算法
+
+我们当前应用使用的是键值数据库
+
+{% mermaid %}
+flowchart TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Continue]
+    B -->|No| D[Stop]
+{% endmermaid %}
+
 
 
