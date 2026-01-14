@@ -2086,7 +2086,6 @@ setTimeout(() => {
 ```
 
 这种设计虽然看起来不够优雅，但在复杂的异步场景中是必要的容错机制。
-<<<<<<< HEAD
 
 ##### 对于AI辅助开发的思考
 
@@ -2967,6 +2966,1540 @@ onProgress(progress)
 
 当然与此同时我也考虑到GitHub模式的热力日历有一个更加严峻的问题就是在于日期的难以辨认，这对于任何人来说都不可能直接在GitHub的热力日历图上随手指出一个指定的日期，所以我们还需要做另一版的常规日历图，这样我们就可以兼顾GitHub热力日历的强成就感渲染模式，同时可以更详细具体的按照常规月份日历的日期进行查看和数据的渲染。为此我想的方案是在展开的页面中去放入一个常规日历图，与此同时要使用共享元素转场来去符合鸿蒙的丝滑UI体验。
 
+{% note success flat %}
+这个功能的实现肯定是大部分的Vibe Coding实现啦，借助我们 Claude Opus 4，时至今日我们早就无需纠结于你能不能“纯手搓”出来这个功能了，Vibe Coding能力的进化只会越来越夸张，所以大胆的放手，扩大视野到功能、用户体验、架构设计才是我们更应做的。
+{% endnote %}
+
 #### 成品效果图
+
+![4](HongYiXun/4.jpg)
+
+![5](HongYiXun/5.jpg)
+
+![6](HongYiXun/6.jpg)
+
+![7](HongYiXun/7.jpg)
+
+看起来还是挺简洁美观的。
+
+---
+
+#### 文件架构
+
+```plantext
+commons/common/src/main/ets/
+├── modules/
+│   ├── models/
+│   │   └── DailyReadingStats.ets    # 每日阅读统计数据模型
+│   ├── config/
+│   │   └── UserConfigViewModel.ets  # 用户配置（含热力日历配置）
+│   └── enums.ets                    # 枚举定义（含热力日历相关枚举）
+
+features/feature/src/main/ets/
+├── managers/
+│   ├── HistoryManager.ets           # 历史记录管理器（含每日统计功能）
+│   └── UserConfigManager.ets        # 用户配置管理器（含配置持久化）
+
+product/default/src/main/ets/
+├── pages/
+│   ├── tab_contents/
+│   │   └── CalenderTabContent.ets   # 热力日历主页面
+│   └── nav_pages/
+│       ├── HeatmapSettingsPage.ets  # 热力日历设置页面
+│       ├── DateHistoryPage.ets      # 按日期查看历史记录页面
+│       └── SettingsPage.ets         # 设置页面（含清理数据功能）
+└── resources/rawfile/
+    └── calendar_icon.svg            # 日历图标
+```
+
+---
+
+#### 核心渲染算法
+
+我们这里着重关注一下核心算法的实现。在Vibe Coding时代常规的代码已经没有去读的必要了，我们只用关心核心算法以及对于算法的优化就好了。
+
+```ts
+/**
+ * Copyright (c) 2025 XBXyftx
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {
+  DEVICE_TYPES,
+  NAV_DESTS,
+  APP_STORAGE_KEYS,
+  UserConfigViewModel,
+  DailyReadingStats,
+  HeatmapColorScheme,
+  HistoryUpdateTrigger
+} from "common"
+import { deviceInfo } from "@kit.BasicServicesKit"
+import { historyManager } from "feature"
+import { AppStorageV2 } from "@kit.ArkUI"
+
+// 共享元素转场ID
+const HEATMAP_SHARED_ID = 'heatmap_shared_element'
+
+/**
+ * 热力日历单元格数据
+ */
+interface HeatmapCell {
+  dateStr: string
+  count: number
+  color: string
+  dayOfWeek: number
+  dayOfMonth: number
+  month: number
+}
+
+/**
+ * 月历日期单元格
+ */
+interface CalendarDayCell {
+  day: number
+  dateStr: string
+  count: number
+  color: string
+  isCurrentMonth: boolean
+  isToday: boolean
+}
+
+@ComponentV2
+export struct CalenderTabContent {
+  @Local deviceType: DEVICE_TYPES =
+    deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
+  @Local navPathStuck: NavPathStack =
+    AppStorageV2.connect(NavPathStack, APP_STORAGE_KEYS.NAV_PATH_STUCK, () => new NavPathStack())!
+  @Local userConfig: UserConfigViewModel =
+    AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!
+  @Local historyUpdateTrigger: HistoryUpdateTrigger =
+    AppStorageV2.connect(HistoryUpdateTrigger, APP_STORAGE_KEYS.HISTORY_UPDATE_TRIGGER, () => new HistoryUpdateTrigger())!
+  @Local dailyStats: DailyReadingStats[] = []
+  @Local heatmapCells: HeatmapCell[] = []
+  @Local isLoading: boolean = false
+  @Local totalReadCount: number = 0
+  // 全屏模态控制
+  @Local isFullscreenShow: boolean = false
+  @Local cardAlpha: number = 1
+  // 月历相关
+  @Local currentYear: number = new Date().getFullYear()
+  @Local currentMonth: number = new Date().getMonth() + 1
+  @Local calendarDays: CalendarDayCell[] = []
+  @Local statsMap: Map<string, number> = new Map()
+  async aboutToAppear(): Promise<void> {
+    await this.loadDailyStats()
+    this.generateCalendarDays()
+  }
+
+  /**
+   * 下拉刷新空内容Builder
+   */
+  @Builder
+  refreshingBuilder() {
+    Stack() {
+    }.width('100%')
+  }
+
+
+  @Monitor('historyUpdateTrigger.trigger')
+  async onHistoryUpdate(): Promise<void> {
+    await this.loadDailyStats()
+    this.generateCalendarDays()
+  }
+
+  @Monitor('userConfig.heatmapTimeRange')
+  async onTimeRangeChange(): Promise<void> {
+    await this.loadDailyStats()
+  }
+
+  @Monitor('userConfig.heatmapColorRange')
+  onColorRangeChange(): void {
+    this.generateHeatmapCells()
+    this.generateCalendarDays()
+  }
+
+  @Monitor('userConfig.heatmapColorScheme')
+  onColorSchemeChange(): void {
+    this.generateHeatmapCells()
+    this.generateCalendarDays()
+  }
+
+  @Monitor('currentMonth')
+  onMonthChange(): void {
+    this.generateCalendarDays()
+  }
+
+  @Monitor('currentYear')
+  onYearChange(): void {
+    this.generateCalendarDays()
+  }
+
+  async loadDailyStats(): Promise<void> {
+    this.isLoading = true
+    try {
+      // 加载365天的数据用于月历显示
+      this.dailyStats = await historyManager.getDailyStatsInRange(365)
+      this.statsMap.clear()
+      this.dailyStats.forEach(stat => {
+        if (stat.count > 0) {
+          this.statsMap.set(stat.dateStr, stat.count)
+        }
+      })
+      this.generateHeatmapCells()
+      this.totalReadCount = this.dailyStats
+        .filter(stat => {
+          const date = new Date(stat.dateStr)
+          const today = new Date()
+          const diffDays = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+          return diffDays < this.userConfig.heatmapTimeRange
+        })
+        .reduce((sum, stat) => sum + stat.count, 0)
+    } catch (error) {
+      console.error('加载每日统计失败:', JSON.stringify(error))
+    } finally {
+      this.isLoading = false
+    }
+  }
+
+  generateHeatmapCells(): void {
+    const newCells: HeatmapCell[] = []
+    const today = new Date()
+    const timeRange = this.userConfig.heatmapTimeRange
+
+    for (let i = timeRange - 1; i >= 0; i--) {
+      const date = new Date(today)
+      date.setDate(today.getDate() - i)
+      const dateStr = this.formatDate(date)
+      const count = this.statsMap.get(dateStr) || 0
+
+      newCells.push({
+        dateStr: dateStr,
+        count: count,
+        color: this.getColorForCount(count),
+        dayOfWeek: date.getDay(),
+        dayOfMonth: date.getDate(),
+        month: date.getMonth() + 1
+      })
+    }
+    this.heatmapCells = newCells
+  }
+
+  generateCalendarDays(): void {
+    const days: CalendarDayCell[] = []
+    const today = new Date()
+    const todayStr = this.formatDate(today)
+
+    const firstDay = new Date(this.currentYear, this.currentMonth - 1, 1)
+    const lastDay = new Date(this.currentYear, this.currentMonth, 0)
+    const firstDayOfWeek = firstDay.getDay()
+    const daysInMonth = lastDay.getDate()
+
+    const prevMonthLastDay = new Date(this.currentYear, this.currentMonth - 1, 0)
+    const prevMonthDays = prevMonthLastDay.getDate()
+
+    // 填充上个月的日期
+    for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+      const day = prevMonthDays - i
+      const date = new Date(this.currentYear, this.currentMonth - 2, day)
+      const dateStr = this.formatDate(date)
+      const count = this.statsMap.get(dateStr) || 0
+      days.push({
+        day: day,
+        dateStr: dateStr,
+        count: count,
+        color: this.getColorForCount(count),
+        isCurrentMonth: false,
+        isToday: dateStr === todayStr
+      })
+    }
+
+    // 填充当月日期
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(this.currentYear, this.currentMonth - 1, day)
+      const dateStr = this.formatDate(date)
+      const count = this.statsMap.get(dateStr) || 0
+      days.push({
+        day: day,
+        dateStr: dateStr,
+        count: count,
+        color: this.getColorForCount(count),
+        isCurrentMonth: true,
+        isToday: dateStr === todayStr
+      })
+    }
+
+    // 填充下个月的日期
+    const remainingDays = 42 - days.length
+    for (let day = 1; day <= remainingDays; day++) {
+      const date = new Date(this.currentYear, this.currentMonth, day)
+      const dateStr = this.formatDate(date)
+      const count = this.statsMap.get(dateStr) || 0
+      days.push({
+        day: day,
+        dateStr: dateStr,
+        count: count,
+        color: this.getColorForCount(count),
+        isCurrentMonth: false,
+        isToday: dateStr === todayStr
+      })
+    }
+
+    this.calendarDays = days
+  }
+
+  formatDate(date: Date): string {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  getColorForCount(count: number): string {
+    const maxRange = this.userConfig.heatmapColorRange
+    const ratio = Math.min(count / maxRange, 1)
+    const scheme = this.userConfig.heatmapColorScheme
+
+    if (scheme === HeatmapColorScheme.BLUE) {
+      const blueColors = ['#2d333b', '#1e3a5f', '#2563eb', '#60a5fa', '#93c5fd']
+      if (count === 0) return blueColors[0]
+      if (ratio <= 0.25) return blueColors[1]
+      if (ratio <= 0.5) return blueColors[2]
+      if (ratio <= 0.75) return blueColors[3]
+      return blueColors[4]
+    }
+
+    const colorSchemes: Record<string, string[]> = {
+      [HeatmapColorScheme.GREEN]: ['#2d333b', '#0e4429', '#006d32', '#26a641', '#39d353'],
+      [HeatmapColorScheme.RED]: ['#2d333b', '#5c2121', '#8b3d3d', '#d35f5f', '#ff8080'],
+      [HeatmapColorScheme.GRAY]: ['#2d333b', '#404040', '#606060', '#909090', '#c0c0c0']
+    }
+
+    const colors = colorSchemes[scheme] || colorSchemes[HeatmapColorScheme.GREEN]
+    if (count === 0) return colors[0]
+    if (ratio <= 0.25) return colors[1]
+    if (ratio <= 0.5) return colors[2]
+    if (ratio <= 0.75) return colors[3]
+    return colors[4]
+  }
+
+  getLegendColors(): string[] {
+    const scheme = this.userConfig.heatmapColorScheme
+    if (scheme === HeatmapColorScheme.BLUE) {
+      return ['#2d333b', '#1e3a5f', '#2563eb', '#60a5fa', '#93c5fd']
+    }
+    const colorSchemes: Record<string, string[]> = {
+      [HeatmapColorScheme.GREEN]: ['#2d333b', '#0e4429', '#006d32', '#26a641', '#39d353'],
+      [HeatmapColorScheme.RED]: ['#2d333b', '#5c2121', '#8b3d3d', '#d35f5f', '#ff8080'],
+      [HeatmapColorScheme.GRAY]: ['#2d333b', '#404040', '#606060', '#909090', '#c0c0c0']
+    }
+    return colorSchemes[scheme] || colorSchemes[HeatmapColorScheme.GREEN]
+  }
+
+  onCellClick(cell: HeatmapCell): void {
+    if (this.userConfig.heatmapClickToHistory && cell.count > 0) {
+      // 如果全屏模态打开，先收起再导航
+      if (this.isFullscreenShow) {
+        this.onFullscreenBack()
+      }
+      this.navPathStuck.replacePath({
+        name: NAV_DESTS.DATE_HISTORY,
+        param: cell.dateStr
+      })
+    }
+  }
+
+  onCalendarCellClick(dateStr: string, count: number): void {
+    if (this.userConfig.heatmapClickToHistory && count > 0) {
+      // 如果全屏模态打开，先收起再导航
+      if (this.isFullscreenShow) {
+        this.onFullscreenBack()
+      }
+      this.navPathStuck.replacePath({
+        name: NAV_DESTS.DATE_HISTORY,
+        param: dateStr
+      })
+    }
+  }
+
+  getWeekColumns(): HeatmapCell[][] {
+    const weeks: HeatmapCell[][] = []
+    if (this.heatmapCells.length === 0) return weeks
+
+    const firstDayOfWeek = this.heatmapCells[0].dayOfWeek
+    let currentWeek: HeatmapCell[] = []
+
+    for (let i = 0; i < firstDayOfWeek; i++) {
+      currentWeek.push({
+        dateStr: '',
+        count: 0,
+        color: 'transparent',
+        dayOfWeek: i,
+        dayOfMonth: 0,
+        month: 0
+      })
+    }
+
+    for (const cell of this.heatmapCells) {
+      currentWeek.push(cell)
+      if (currentWeek.length === 7) {
+        weeks.push(currentWeek)
+        currentWeek = []
+      }
+    }
+
+    if (currentWeek.length > 0) {
+      while (currentWeek.length < 7) {
+        currentWeek.push({
+          dateStr: '',
+          count: 0,
+          color: 'transparent',
+          dayOfWeek: currentWeek.length,
+          dayOfMonth: 0,
+          month: 0
+        })
+      }
+      weeks.push(currentWeek)
+    }
+    return weeks
+  }
+
+  prevMonth(): void {
+    if (this.currentMonth === 1) {
+      this.currentMonth = 12
+      this.currentYear--
+    } else {
+      this.currentMonth--
+    }
+  }
+
+  nextMonth(): void {
+    if (this.currentMonth === 12) {
+      this.currentMonth = 1
+      this.currentYear++
+    } else {
+      this.currentMonth++
+    }
+  }
+
+  /**
+   * 点击展开全屏
+   */
+  private onExpandClick(): void {
+    this.getUIContext()?.animateTo({
+      duration: 350,
+      curve: Curve.Friction
+    }, () => {
+      this.isFullscreenShow = true
+      this.cardAlpha = 0
+    })
+  }
+
+  /**
+   * 从全屏返回
+   */
+  private onFullscreenBack(): void {
+    this.getUIContext()?.animateTo({
+      duration: 350,
+      curve: Curve.Friction
+    }, () => {
+      this.isFullscreenShow = false
+      this.cardAlpha = 1
+    })
+  }
+
+
+  @Builder
+  HeatmapCellBuilder(cell: HeatmapCell, index: number) {
+    Column() {
+    }
+    .width(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16)
+    .height(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16)
+    .backgroundColor(cell.color)
+    .borderRadius(2)
+    .margin(1)
+    .onClick(() => this.onCellClick(cell))
+  }
+
+  @Builder
+  LegendBuilder() {
+    Row() {
+      Text('少')
+        .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 10 : 12)
+        .fontColor($r('app.color.text_secondary'))
+        .margin({ right: 4 })
+
+      ForEach(this.getLegendColors(), (color: string) => {
+        Column()
+          .width(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16)
+          .height(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16)
+          .backgroundColor(color)
+          .borderRadius(2)
+          .margin({ right: 2 })
+      })
+
+      Text('多')
+        .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 10 : 12)
+        .fontColor($r('app.color.text_secondary'))
+        .margin({ left: 4 })
+    }
+    .justifyContent(FlexAlign.Center)
+    .margin({ top: 16 })
+  }
+
+  @Builder
+  CalendarDayCellBuilder(cell: CalendarDayCell) {
+    Column() {
+      Text(`${cell.day}`)
+        .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
+        .fontWeight(cell.isToday ? FontWeight.Bold : FontWeight.Normal)
+        .fontColor(cell.isCurrentMonth ? $r('app.color.text_primary') : $r('app.color.text_secondary'))
+    }
+    .width('100%')
+    .aspectRatio(1)
+    .justifyContent(FlexAlign.Center)
+    .backgroundColor(cell.count > 0 ? cell.color : Color.Transparent)
+    .borderRadius(this.deviceType === DEVICE_TYPES.PHONE ? 8 : 12)
+    .border({
+      width: cell.isToday ? 2 : 0,
+      color: $r('app.color.brand')
+    })
+    .onClick(() => this.onCalendarCellClick(cell.dateStr, cell.count))
+  }
+
+  /**
+   * 全屏模态页面内容Builder
+   */
+  @Builder
+  fullscreenContentBuilder() {
+    GridRow({ columns: { sm: 4, md: 8, lg: 12 } }) {
+      GridCol({ span: { sm: 4, md: 6, lg: 6 }, offset: { sm: 0, md: 1, lg: 3 } }) {
+        Column() {
+          // 标题栏
+          Row() {
+            Text('阅读热力日历')
+              .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 26)
+              .fontWeight(FontWeight.Bold)
+              .fontColor($r('app.color.text_primary'))
+              .layoutWeight(1)
+
+            // 关闭按钮
+            SymbolGlyph($r('sys.symbol.arrow_down_right_and_arrow_up_left'))
+              .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32)
+              .fontColor([$r('app.color.text_primary')])
+              .onClick(() => this.onFullscreenBack())
+          }
+          .width('100%')
+          .padding({
+            left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+            right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+            top: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16,
+            bottom: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16
+          })
+          .margin({ top: 48 }) // 固定顶部边距，避开状态栏
+
+          // 使用Refresh组件实现下拉返回手势
+          Refresh({ refreshing: false, builder: this.refreshingBuilder, offset: 4 }) {
+            Scroll() {
+              Column() {
+                // 统计信息卡片
+                Column() {
+                  Text(`最近 ${this.userConfig.heatmapTimeRange} 天共阅读`)
+                    .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
+                    .fontColor($r('app.color.text_secondary'))
+
+                  Row() {
+                    Text(`${this.totalReadCount}`)
+                      .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 36 : 48)
+                      .fontWeight(FontWeight.Bold)
+                      .fontColor($r('app.color.brand'))
+
+                    Text(' 篇文章')
+                      .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
+                      .fontColor($r('app.color.text_primary'))
+                      .margin({ bottom: 4 })
+                  }
+                  .alignItems(VerticalAlign.Bottom)
+                }
+                .width('100%')
+                .padding(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 28)
+                .backgroundColor($r('app.color.news_list_item_bg'))
+                .borderRadius(16)
+                .alignItems(HorizontalAlign.Start)
+                .margin({
+                  left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+                  right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24
+                })
+
+                // 热力日历网格 - 共享元素
+                Column() {
+                  // 热力格子
+                  Scroll() {
+                    Row() {
+                      // 星期标签列
+                      Column() {
+                        ForEach(['', '一', '', '三', '', '五', ''], (day: string) => {
+                          Text(day)
+                            .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 9 : 11)
+                            .fontColor($r('app.color.text_secondary'))
+                            .height(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
+                            .width(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
+                            .textAlign(TextAlign.End)
+                            .margin({ right: 4 })
+                        })
+                      }
+
+                      // 热力格子网格
+                      Scroll() {
+                        Row() {
+                          ForEach(this.getWeekColumns(), (weekCells: HeatmapCell[], weekIndex: number) => {
+                            Column() {
+                              ForEach(weekCells, (cell: HeatmapCell, dayIndex: number) => {
+                                this.HeatmapCellBuilder(cell, weekIndex * 7 + dayIndex)
+                              }, (cell: HeatmapCell, dayIdx: number) => `fs_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}`)
+                            }
+                          }, (weekCells: HeatmapCell[], idx: number) => `fs_week_${idx}`)
+                        }
+                      }
+                      .scrollable(ScrollDirection.Horizontal)
+                      .scrollBar(BarState.Off)
+                      .layoutWeight(1)
+                    }
+                  }
+                  .scrollable(ScrollDirection.Horizontal)
+                  .scrollBar(BarState.Off)
+                  .width('100%')
+
+                  // 图例
+                  this.LegendBuilder()
+
+                  // 范围说明
+                  Text(`颜色范围: 0 - ${this.userConfig.heatmapColorRange} 篇`)
+                    .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 10 : 12)
+                    .fontColor($r('app.color.text_secondary'))
+                    .margin({ top: 8 })
+                }
+                .width('100%')
+                .padding(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24)
+                .backgroundColor($r('app.color.news_list_item_bg'))
+                .borderRadius(16)
+                .margin({
+                  top: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16,
+                  left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+                  right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24
+                })
+                // 共享元素转场 - 与卡片的id对应
+                .geometryTransition(HEATMAP_SHARED_ID)
+                .transition(TransitionEffect.OPACITY.animation({ duration: 350, curve: Curve.Friction }))
+
+                // 月历视图
+                Column() {
+                  // 月份导航
+                  Row() {
+                    Image($r('sys.media.ohos_ic_public_arrow_left'))
+                      .width(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32)
+                      .height(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32)
+                      .fillColor($r('app.color.text_primary'))
+                      .onClick(() => this.prevMonth())
+
+                    Text(`${this.currentYear}年${this.currentMonth}月`)
+                      .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 24)
+                      .fontWeight(FontWeight.Bold)
+                      .fontColor($r('app.color.text_primary'))
+                      .layoutWeight(1)
+                      .textAlign(TextAlign.Center)
+
+                    Image($r('sys.media.ohos_ic_public_arrow_right'))
+                      .width(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32)
+                      .height(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32)
+                      .fillColor($r('app.color.text_primary'))
+                      .onClick(() => this.nextMonth())
+                  }
+                  .width('100%')
+                  .padding({ bottom: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24 })
+
+                  // 星期标题
+                  Row() {
+                    ForEach(['日', '一', '二', '三', '四', '五', '六'], (day: string) => {
+                      Text(day)
+                        .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 14)
+                        .fontColor($r('app.color.text_secondary'))
+                        .width('14.28%')
+                        .textAlign(TextAlign.Center)
+                    })
+                  }
+                  .width('100%')
+                  .padding({ bottom: this.deviceType === DEVICE_TYPES.PHONE ? 8 : 12 })
+
+                  // 日期网格
+                  Grid() {
+                    ForEach(this.calendarDays, (cell: CalendarDayCell, index: number) => {
+                      GridItem() {
+                        this.CalendarDayCellBuilder(cell)
+                      }
+                    }, (cell: CalendarDayCell, idx: number) => `cal_${cell.dateStr}_${idx}`)
+                  }
+                  .columnsTemplate('1fr 1fr 1fr 1fr 1fr 1fr 1fr')
+                  .rowsGap(this.deviceType === DEVICE_TYPES.PHONE ? 4 : 8)
+                  .columnsGap(this.deviceType === DEVICE_TYPES.PHONE ? 4 : 8)
+                  .width('100%')
+                }
+                .width('100%')
+                .padding(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24)
+                .backgroundColor($r('app.color.news_list_item_bg'))
+                .borderRadius(16)
+                .margin({
+                  top: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16,
+                  left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+                  right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24
+                })
+
+                // 提示文字
+                if (this.userConfig.heatmapClickToHistory) {
+                  Text('点击有阅读记录的日期可查看当天阅读的文章')
+                    .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 14)
+                    .fontColor($r('app.color.text_secondary'))
+                    .margin({
+                      top: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16,
+                      left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+                      right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+                      bottom: this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32
+                    })
+                }
+              }
+            }
+            .scrollable(ScrollDirection.Vertical)
+            .scrollBar(BarState.Off)
+            .edgeEffect(EdgeEffect.None)
+            .width('100%')
+            .height('100%')
+          }
+          .onRefreshing(() => {
+            // 下拉刷新时触发返回
+            this.onFullscreenBack()
+          })
+        }
+        .width('100%')
+        .height('100%')
+      }
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor($r('app.color.page_background'))
+    // 只扩展底部安全区域，顶部保持避开状态栏
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
+    .transition(TransitionEffect.asymmetric(
+      TransitionEffect.opacity(1),
+      TransitionEffect.OPACITY
+    ))
+  }
+
+
+  build() {
+    Column() {
+      // 标题栏
+      Row() {
+        Text('阅读热力日历')
+          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 28 : 34)
+          .fontWeight(700)
+          .fontColor($r('app.color.text_primary'))
+      }
+      .width('100%')
+      .padding({
+        left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+        right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+        top: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 28,
+        bottom: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20
+      })
+
+      if (this.isLoading) {
+        Column() {
+          LoadingProgress()
+            .width(this.deviceType === DEVICE_TYPES.PHONE ? 40 : 50)
+            .height(this.deviceType === DEVICE_TYPES.PHONE ? 40 : 50)
+        }
+        .width('100%')
+        .layoutWeight(1)
+        .justifyContent(FlexAlign.Center)
+      } else {
+        Scroll() {
+          Column() {
+            // 统计信息卡片
+            Column() {
+              Text(`最近 ${this.userConfig.heatmapTimeRange} 天共阅读`)
+                .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
+                .fontColor($r('app.color.text_secondary'))
+
+              Row() {
+                Text(`${this.totalReadCount}`)
+                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 36 : 48)
+                  .fontWeight(700)
+                  .fontColor($r('app.color.brand'))
+
+                Text(' 篇文章')
+                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
+                  .fontColor($r('app.color.text_primary'))
+                  .margin({ bottom: 4 })
+              }
+              .alignItems(VerticalAlign.Bottom)
+            }
+            .width('100%')
+            .padding(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 28)
+            .backgroundColor($r('app.color.news_list_item_bg'))
+            .borderRadius(16)
+            .alignItems(HorizontalAlign.Start)
+
+            // 热力日历网格 - 添加共享元素转场
+            Stack({ alignContent: Alignment.TopEnd }) {
+              Column() {
+                // 热力格子 - 使用Grid布局，每行7天
+                Scroll() {
+                  Row() {
+                    // 星期标签列
+                    Column() {
+                      ForEach(['', '一', '', '三', '', '五', ''], (day: string, index: number) => {
+                        Text(day)
+                          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 9 : 11)
+                          .fontColor($r('app.color.text_secondary'))
+                          .height(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
+                          .width(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
+                          .textAlign(TextAlign.End)
+                          .margin({ right: 4 })
+                      })
+                    }
+
+                    // 热力格子网格
+                    Scroll() {
+                      Row() {
+                        ForEach(this.getWeekColumns(), (weekCells: HeatmapCell[], weekIndex: number) => {
+                          Column() {
+                            ForEach(weekCells, (cell: HeatmapCell, dayIndex: number) => {
+                              this.HeatmapCellBuilder(cell, weekIndex * 7 + dayIndex)
+                            }, (cell: HeatmapCell, dayIdx: number) => `${this.userConfig.heatmapTimeRange}_${this.userConfig.heatmapColorRange}_${this.userConfig.heatmapColorScheme}_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}_${cell.color}`)
+                          }
+                        }, (weekCells: HeatmapCell[], idx: number) => `${this.userConfig.heatmapTimeRange}_${this.userConfig.heatmapColorRange}_${this.userConfig.heatmapColorScheme}_week_${idx}_${weekCells.length}`)
+                      }
+                    }
+                    .scrollable(ScrollDirection.Horizontal)
+                    .scrollBar(BarState.Off)
+                    .layoutWeight(1)
+                  }
+                }
+                .scrollable(ScrollDirection.Horizontal)
+                .scrollBar(BarState.Off)
+                .width('100%')
+
+                // 图例
+                this.LegendBuilder()
+
+                // 范围说明
+                Text(`颜色范围: 0 - ${this.userConfig.heatmapColorRange} 篇`)
+                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 10 : 12)
+                  .fontColor($r('app.color.text_secondary'))
+                  .margin({ top: 8 })
+              }
+              .width('100%')
+              .padding(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24)
+              .padding({ top: this.deviceType === DEVICE_TYPES.PHONE ? 40 : 48 })
+
+              // 全屏按钮 - 右上角
+              Row() {
+                SymbolGlyph($r('sys.symbol.arrow_up_left_and_arrow_down_right'))
+                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 22)
+                  .fontColor([$r('app.color.text_secondary')])
+              }
+              .width(this.deviceType === DEVICE_TYPES.PHONE ? 32 : 40)
+              .height(this.deviceType === DEVICE_TYPES.PHONE ? 32 : 40)
+              .borderRadius(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
+              .backgroundColor($r('app.color.card_bg'))
+              .justifyContent(FlexAlign.Center)
+              .margin({
+                top: this.deviceType === DEVICE_TYPES.PHONE ? 8 : 12,
+                right: this.deviceType === DEVICE_TYPES.PHONE ? 8 : 12
+              })
+              .onClick(() => this.onExpandClick())
+            }
+            .width('100%')
+            .backgroundColor($r('app.color.news_list_item_bg'))
+            .borderRadius(16)
+            .margin({ top: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16 })
+            .clip(true)
+            // 共享元素转场 - follow: true 表示跟随目标组件
+            .geometryTransition(HEATMAP_SHARED_ID, { follow: true })
+            .transition(TransitionEffect.OPACITY.animation({ duration: 350, curve: Curve.Friction }))
+
+            // 提示文字
+            if (this.userConfig.heatmapClickToHistory) {
+              Text('点击有阅读记录的日期可查看当天阅读的文章')
+                .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 14)
+                .fontColor($r('app.color.text_secondary'))
+                .margin({ top: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16 })
+            }
+          }
+          .padding({
+            left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+            right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+            bottom: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24
+          })
+        }
+        .layoutWeight(1)
+        .scrollBar(BarState.Auto)
+        .edgeEffect(EdgeEffect.Spring)
+      }
+    }
+    .width('100%')
+    .height('100%')
+    .expandSafeArea()
+    .opacity(this.cardAlpha)
+    // 绑定全屏模态页面
+    .bindContentCover(
+      this.isFullscreenShow,
+      this.fullscreenContentBuilder(),
+      {
+        modalTransition: ModalTransition.NONE,
+        onWillDisappear: () => {
+          this.isFullscreenShow = false
+          this.cardAlpha = 1
+        }
+      }
+    )
+  }
+}
+
+```
+
+上面这是完整的代码接下来我们仅分析核心部分
+
+整个热力日历的渲染核心可以拆分为三个关键算法：
+
+1. **GitHub风格热力图生成** (`generateHeatmapCells`) - 按时间线性排列的热力格子
+2. **月历视图生成** (`generateCalendarDays`) - 传统月历布局的日期格子
+3. **周列转换算法** (`getWeekColumns`) - 将线性数据转换为按周分列的二维数组
+
+##### 1. GitHub风格热力图生成算法
+
+这个算法的核心思路是**从今天往前推N天，生成一个线性的日期数组**，每个日期对应一个格子。
+
+```ts
+generateHeatmapCells(): void {
+  const newCells: HeatmapCell[] = []
+  const today = new Date()
+  const timeRange = this.userConfig.heatmapTimeRange  // 用户配置的时间范围，如90天、180天、365天
+
+  // 关键：倒序遍历，从 timeRange-1 天前到今天
+  for (let i = timeRange - 1; i >= 0; i--) {
+    const date = new Date(today)
+    date.setDate(today.getDate() - i)  // 计算目标日期
+    const dateStr = this.formatDate(date)
+    const count = this.statsMap.get(dateStr) || 0  // 从统计数据Map中获取阅读量
+
+    newCells.push({
+      dateStr: dateStr,
+      count: count,
+      color: this.getColorForCount(count),  // 根据阅读量计算颜色
+      dayOfWeek: date.getDay(),  // 0-6，用于后续按周分列
+      dayOfMonth: date.getDate(),
+      month: date.getMonth() + 1
+    })
+  }
+  this.heatmapCells = newCells
+}
+```
+
+**算法亮点分析：**
+
+这里有个很巧妙的设计，就是**倒序遍历**的方式。为什么要从`timeRange - 1`倒着数到0，而不是从0正着数到`timeRange - 1`呢？
+
+```ts
+// 方案A：正序遍历（直觉写法）
+for (let i = 0; i < timeRange; i++) {
+  const date = new Date(today)
+  date.setDate(today.getDate() - (timeRange - 1 - i))  // 需要反向计算
+}
+
+// 方案B：倒序遍历（实际采用）
+for (let i = timeRange - 1; i >= 0; i--) {
+  const date = new Date(today)
+  date.setDate(today.getDate() - i)  // 直接减去偏移量
+}
+```
+
+倒序遍历的好处在于：
+
+- **计算更直观**：`today - i` 天就是目标日期，不需要额外的`timeRange - 1 - i`这种反向计算
+- **语义更清晰**：i 的值直接代表"距离今天的天数"，比如 i=7 就是7天前
+- **调试更友好**：打印 i 的值就能直接知道是哪一天
+
+同时这里使用了`statsMap`这个Map结构来存储每日统计数据，而不是数组：
+
+```ts
+// 数据加载时构建Map
+this.statsMap.clear()
+this.dailyStats.forEach(stat => {
+  if (stat.count > 0) {
+    this.statsMap.set(stat.dateStr, stat.count)
+  }
+})
+
+// 查询时O(1)复杂度
+const count = this.statsMap.get(dateStr) || 0
+```
+
+如果用数组存储，每次查询都需要遍历整个数组找到对应日期，时间复杂度是O(n)。而Map的查询是O(1)，在生成365天的热力图时，性能差异会非常明显：
+
+- **数组方案**：365次查询 × 平均遍历182次 = 约66,430次比较操作
+- **Map方案**：365次查询 × 1次哈希查找 = 365次操作
+
+性能提升了约180倍！
+
+##### 2. 月历视图生成算法
+
+月历视图的难点在于**需要填充上月和下月的日期**，让日历始终保持完整的6行×7列（42个格子）布局。
+
+```ts
+generateCalendarDays(): void {
+  const days: CalendarDayCell[] = []
+  const today = new Date()
+  const todayStr = this.formatDate(today)
+
+  // 计算当月的关键日期
+  const firstDay = new Date(this.currentYear, this.currentMonth - 1, 1)  // 当月第一天
+  const lastDay = new Date(this.currentYear, this.currentMonth, 0)       // 当月最后一天
+  const firstDayOfWeek = firstDay.getDay()  // 第一天是星期几（0-6）
+  const daysInMonth = lastDay.getDate()     // 当月有多少天
+
+  // 计算上个月的最后一天
+  const prevMonthLastDay = new Date(this.currentYear, this.currentMonth - 1, 0)
+  const prevMonthDays = prevMonthLastDay.getDate()
+
+  // 阶段1：填充上个月的日期（填充第一行的空白）
+  for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+    const day = prevMonthDays - i  // 倒推上月日期
+    const date = new Date(this.currentYear, this.currentMonth - 2, day)
+    const dateStr = this.formatDate(date)
+    const count = this.statsMap.get(dateStr) || 0
+    days.push({
+      day: day,
+      dateStr: dateStr,
+      count: count,
+      color: this.getColorForCount(count),
+      isCurrentMonth: false,  // 标记为非当月
+      isToday: dateStr === todayStr
+    })
+  }
+
+  // 阶段2：填充当月日期
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(this.currentYear, this.currentMonth - 1, day)
+    const dateStr = this.formatDate(date)
+    const count = this.statsMap.get(dateStr) || 0
+    days.push({
+      day: day,
+      dateStr: dateStr,
+      count: count,
+      color: this.getColorForCount(count),
+      isCurrentMonth: true,  // 标记为当月
+      isToday: dateStr === todayStr
+    })
+  }
+
+  // 阶段3：填充下个月的日期（补齐到42个格子）
+  const remainingDays = 42 - days.length
+  for (let day = 1; day <= remainingDays; day++) {
+    const date = new Date(this.currentYear, this.currentMonth, day)
+    const dateStr = this.formatDate(date)
+    const count = this.statsMap.get(dateStr) || 0
+    days.push({
+      day: day,
+      dateStr: dateStr,
+      count: count,
+      color: this.getColorForCount(count),
+      isCurrentMonth: false,  // 标记为非当月
+      isToday: dateStr === todayStr
+    })
+  }
+
+  this.calendarDays = days
+}
+```
+
+{% note primary flat %}
+这里着重解释一下JS、TS、ArkTS中的Date对象的参数用法。
+
+在JavaScript/TypeScript/ArkTS中，`Date`对象的构造函数有一个非常巧妙的特性，理解它对于日期计算至关重要。
+
+**Date构造函数的基本语法：**
+
+```ts
+new Date(year, monthIndex, day, hours, minutes, seconds, milliseconds)
+```
+
+关键点：
+- `year`：四位数年份（如 2025）
+- `monthIndex`：**月份索引，从0开始**（0=1月，1=2月，...，11=12月）
+- `day`：日期（1-31）
+
+**核心特性：自动溢出处理**
+
+Date对象会自动处理参数溢出，这是它最强大的特性：
+
+```ts
+// 示例1：月份溢出
+new Date(2025, 12, 1)  // 月份12溢出 → 2026年1月1日
+new Date(2025, -1, 1)  // 月份-1溢出 → 2024年12月1日
+
+// 示例2：日期溢出
+new Date(2025, 1, 0)   // 2月的第0天 → 2025年1月31日（上月最后一天）
+new Date(2025, 1, -1)  // 2月的第-1天 → 2025年1月30日
+new Date(2025, 1, 32)  // 2月的第32天 → 2025年3月4日（2月只有28天）
+```
+
+**在月历算法中的应用：**
+
+在日历组件中，我们需要频繁计算月份的边界日期。以下三个表达式是核心：
+
+**表达式1：`new Date(this.currentYear, this.currentMonth - 1, 1)`**
+
+这个表达式用于获取**当前月份的第一天**。
+
+```ts
+// 假设当前是2025年3月
+this.currentYear = 2025
+this.currentMonth = 3  // 注意：这里的3表示3月（人类习惯的1-12）
+
+// 构造过程：
+new Date(2025, 3 - 1, 1)
+→ new Date(2025, 2, 1)  // monthIndex=2表示3月（计算机的0-11）
+→ 2025年3月1日 星期六
+
+// 用途：确定日历网格的起始日期
+// 通过 firstDay.getDay() 可以知道这个月1号是星期几
+// 从而计算出需要补充多少个上月的日期
+```
+
+**表达式2：`new Date(this.currentYear, this.currentMonth, 0)`**
+
+这个表达式用于获取**当前月份的最后一天**（利用日期溢出特性）。
+
+```ts
+// 假设当前是2025年3月
+this.currentYear = 2025
+this.currentMonth = 3
+
+// 构造过程：
+new Date(2025, 3, 0)
+→ new Date(2025, 3, 0)  // monthIndex=3表示4月，但day=0
+→ 4月的第0天 = 3月的最后一天
+→ 2025年3月31日 星期一
+
+// 关键理解：
+// - monthIndex=3 指向4月
+// - day=0 表示"4月的前一天"
+// - 结果就是3月的最后一天
+
+// 用途：
+// 1. 通过 lastDay.getDate() 获取当月天数（31天）
+// 2. 确定日历网格中当月部分的结束位置
+```
+
+**表达式3：`new Date(this.currentYear, this.currentMonth - 1, 0)`**
+
+这个表达式用于获取**上个月的最后一天**。
+
+```ts
+// 假设当前是2025年3月
+this.currentYear = 2025
+this.currentMonth = 3
+
+// 构造过程：
+new Date(2025, 3 - 1, 0)
+→ new Date(2025, 2, 0)  // monthIndex=2表示3月，但day=0
+→ 3月的第0天 = 2月的最后一天
+→ 2025年2月28日 星期五
+
+// 关键理解：
+// - monthIndex=2 指向3月
+// - day=0 表示"3月的前一天"
+// - 结果就是2月的最后一天
+
+// 用途：
+// 1. 通过 prevLastDay.getDate() 获取上月天数（28天）
+// 2. 计算日历网格中需要填充的上月日期
+//    例如：如果3月1日是星期六（getDay()=6），
+//         需要填充上月的最后6天：23,24,25,26,27,28
+```
+
+**三个表达式的对比总结：**
+
+| 表达式 | monthIndex | day | 结果 | 用途 |
+|--------|-----------|-----|------|------|
+| `new Date(year, month-1, 1)` | 当月 | 1 | 当月第一天 | 确定月份起始，计算星期几 |
+| `new Date(year, month, 0)` | 下月 | 0 | 当月最后一天 | 获取当月天数 |
+| `new Date(year, month-1, 0)` | 当月 | 0 | 上月最后一天 | 获取上月天数，填充日历前部 |
+
+**可视化理解：**
+
+```
+2025年2月          2025年3月          2025年4月
+┌─────────┐      ┌─────────┐      ┌─────────┐
+│ ...     │      │         │      │         │
+│ 28 ←────┼──────┼─ 0      │      │         │
+└─────────┘      │  1 ←────┼──────┼─ 0      │
+                 │ ...     │      │  1      │
+                 │ 31 ←────┼──────┼─ 0      │
+                 └─────────┘      └─────────┘
+                 
+表达式3           表达式1           表达式2
+month-1, 0       month-1, 1       month, 0
+上月最后天        当月第一天        当月最后天
+```
+
+**实际代码示例：**
+
+```ts
+// 完整的日历日期计算逻辑
+generateCalendar(year: number, month: number) {
+  // 1. 当月第一天（确定起始位置）
+  const firstDay = new Date(year, month - 1, 1)
+  const firstDayOfWeek = firstDay.getDay()  // 0-6，表示星期日到星期六
+  
+  // 2. 当月最后一天（确定当月天数）
+  const lastDay = new Date(year, month, 0)
+  const daysInMonth = lastDay.getDate()  // 28/29/30/31
+  
+  // 3. 上月最后一天（填充前置日期）
+  const prevLastDay = new Date(year, month - 1, 0)
+  const prevDaysInMonth = prevLastDay.getDate()
+  
+  // 计算需要填充的上月日期数量
+  const prevDaysToShow = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1
+  
+  // 生成日历数组
+  const calendar: number[] = []
+  
+  // 填充上月日期
+  for (let i = prevDaysToShow; i > 0; i--) {
+    calendar.push(prevDaysInMonth - i + 1)
+  }
+  
+  // 填充当月日期
+  for (let i = 1; i <= daysInMonth; i++) {
+    calendar.push(i)
+  }
+  
+  // 填充下月日期（补齐到42格，6行×7列）
+  const remainingDays = 42 - calendar.length
+  for (let i = 1; i <= remainingDays; i++) {
+    calendar.push(i)
+  }
+  
+  return calendar
+}
+
+// 示例：2025年3月
+// firstDayOfWeek = 6 (星期六)
+// daysInMonth = 31
+// prevDaysInMonth = 28
+// prevDaysToShow = 5
+// 
+// 日历显示：
+// 日 一 二 三 四 五 六
+// 23 24 25 26 27 28  1  ← 23-28是2月，1是3月
+//  2  3  4  5  6  7  8
+//  9 10 11 12 13 14 15
+// 16 17 18 19 20 21 22
+// 23 24 25 26 27 28 29
+// 30 31  1  2  3  4  5  ← 30-31是3月，1-5是4月
+```
+
+**为什么这样设计？**
+
+这种自动溢出处理极大简化了日期计算：
+
+```ts
+// 不使用溢出特性（复杂）
+function getLastDayOfMonth(year: number, month: number): number {
+  if (month === 2) {
+    // 判断闰年
+    return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0) ? 29 : 28
+  } else if ([4, 6, 9, 11].includes(month)) {
+    return 30
+  } else {
+    return 31
+  }
+}
+
+// 使用溢出特性（简洁）
+function getLastDayOfMonth(year: number, month: number): number {
+  return new Date(year, month, 0).getDate()  // 一行搞定！
+}
+```
+
+**实战示例：**
+
+```ts
+// 场景：计算2025年2月有多少天
+const daysInFeb2025 = new Date(2025, 2, 0).getDate()  // 28天
+
+// 场景：计算2024年2月有多少天（闰年）
+const daysInFeb2024 = new Date(2024, 2, 0).getDate()  // 29天
+
+// 场景：获取当前月份的最后一天是星期几
+const lastDay = new Date(2025, 3, 0)  // 2025年3月31日
+const dayOfWeek = lastDay.getDay()    // 1（星期一）
+```
+
+**常见陷阱：**
+
+```ts
+// 陷阱1：忘记月份从0开始
+new Date(2025, 3, 1)   // 不是3月1日，而是4月1日！
+new Date(2025, 2, 1)   // 这才是3月1日
+
+// 陷阱2：混淆monthIndex和month
+const currentMonth = 3  // 用户看到的3月
+new Date(2025, currentMonth, 1)      // 错误：会得到4月1日
+new Date(2025, currentMonth - 1, 1)  // 正确：得到3月1日
+
+// 陷阱3：日期字符串解析的时区问题
+new Date('2025-03-01')           // 可能是UTC时间
+new Date(2025, 2, 1)             // 本地时间，更可靠
+```
+
+**性能对比：**
+
+```ts
+// 方案A：手动计算（容易出错）
+let lastDay: number
+if (month === 2) {
+  lastDay = isLeapYear(year) ? 29 : 28
+} else if ([4,6,9,11].includes(month)) {
+  lastDay = 30
+} else {
+  lastDay = 31
+}
+
+// 方案B：利用Date溢出（简洁可靠）
+const lastDay = new Date(year, month, 0).getDate()
+```
+
+方案B不仅代码更简洁，而且由Date对象内部处理所有边界情况（闰年、大小月），完全不会出错。
+
+{% endnote %}
+
+**算法核心要点：**
+
+1. **为什么是42个格子？**
+
+   日历最多需要6行（某些月份第一天是周六，最后一天是周日的情况），每行7天，所以是6×7=42个格子。这样可以保证任何月份都能完整显示。
+
+2. **上月日期的倒推计算**
+
+   ```ts
+   for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+     const day = prevMonthDays - i
+   }
+   ```
+
+   假设当月1号是周三（firstDayOfWeek = 3），上月有31天：
+   - i = 2: day = 31 - 2 = 29（上月29号）
+   - i = 1: day = 31 - 1 = 30（上月30号）
+   - i = 0: day = 31 - 0 = 31（上月31号）
+
+   这样就填充了周日、周一、周二三个格子。
+
+3. **isCurrentMonth标记的妙用**
+
+   通过这个标记，我们可以在UI层对非当月日期做视觉弱化处理（比如降低透明度、改变字体颜色），让用户一眼就能区分当月和非当月的日期。
+
+##### 3. 周列转换算法
+
+GitHub风格的热力图是**按周分列**显示的，每列代表一周（7天），而我们生成的`heatmapCells`是一个线性数组。这个算法负责将线性数组转换为二维数组。
+
+```ts
+getWeekColumns(): HeatmapCell[][] {
+  const weeks: HeatmapCell[][] = []
+  if (this.heatmapCells.length === 0) return weeks
+
+  const firstDayOfWeek = this.heatmapCells[0].dayOfWeek
+  let currentWeek: HeatmapCell[] = []
+
+  // 阶段1：填充第一周的前置空白
+  for (let i = 0; i < firstDayOfWeek; i++) {
+    currentWeek.push({
+      dateStr: '',
+      count: 0,
+      color: 'transparent',  // 透明色，不显示
+      dayOfWeek: i,
+      dayOfMonth: 0,
+      month: 0
+    })
+  }
+
+  // 阶段2：遍历所有日期，按周分组
+  for (const cell of this.heatmapCells) {
+    currentWeek.push(cell)
+    if (currentWeek.length === 7) {  // 一周满了
+      weeks.push(currentWeek)
+      currentWeek = []  // 开始新的一周
+    }
+  }
+
+  // 阶段3：填充最后一周的后置空白
+  if (currentWeek.length > 0) {
+    while (currentWeek.length < 7) {
+      currentWeek.push({
+        dateStr: '',
+        count: 0,
+        color: 'transparent',
+        dayOfWeek: currentWeek.length,
+        dayOfMonth: 0,
+        month: 0
+      })
+    }
+    weeks.push(currentWeek)
+  }
+
+  return weeks
+}
+```
+
+**算法可视化示例：**
+
+假设我们有10天的数据，第一天是周三（dayOfWeek = 3）：
+
+```
+输入（线性数组）：
+[Day1(周三), Day2(周四), Day3(周五), Day4(周六), Day5(周日), Day6(周一), ...]
+
+输出（二维数组）：
+Week1: [空, 空, 空, Day1, Day2, Day3, Day4]
+Week2: [Day5, Day6, Day7, Day8, Day9, Day10, 空]
+       周日  周一  周二  周三  周四  周五  周六
+```
+
+这样在UI渲染时，我们只需要：
+
+```ts
+ForEach(this.getWeekColumns(), (weekCells: HeatmapCell[], weekIndex: number) => {
+  Column() {  // 每一列代表一周
+    ForEach(weekCells, (cell: HeatmapCell, dayIndex: number) => {
+      // 渲染单个格子
+    })
+  }
+})
+```
+
+就能自动形成GitHub风格的按周分列布局。
+
+##### 4. 颜色映射算法
+
+颜色映射是热力图的灵魂，它决定了数据的视觉呈现效果。
+
+```ts
+getColorForCount(count: number): string {
+  const maxRange = this.userConfig.heatmapColorRange  // 用户设置的最大值，如10篇
+  const ratio = Math.min(count / maxRange, 1)  // 计算比例，最大为1
+  const scheme = this.userConfig.heatmapColorScheme  // 颜色方案
+
+  // 蓝色方案的特殊处理
+  if (scheme === HeatmapColorScheme.BLUE) {
+    const blueColors = ['#2d333b', '#1e3a5f', '#2563eb', '#60a5fa', '#93c5fd']
+    if (count === 0) return blueColors[0]  // 无数据：深灰色
+    if (ratio <= 0.25) return blueColors[1]  // 0-25%：深蓝
+    if (ratio <= 0.5) return blueColors[2]   // 25-50%：中蓝
+    if (ratio <= 0.75) return blueColors[3]  // 50-75%：浅蓝
+    return blueColors[4]  // 75-100%：亮蓝
+  }
+
+  // 其他颜色方案
+  const colorSchemes: Record<string, string[]> = {
+    [HeatmapColorScheme.GREEN]: ['#2d333b', '#0e4429', '#006d32', '#26a641', '#39d353'],
+    [HeatmapColorScheme.RED]: ['#2d333b', '#5c2121', '#8b3d3d', '#d35f5f', '#ff8080'],
+    [HeatmapColorScheme.GRAY]: ['#2d333b', '#404040', '#606060', '#909090', '#c0c0c0']
+  }
+
+  const colors = colorSchemes[scheme] || colorSchemes[HeatmapColorScheme.GREEN]
+  if (count === 0) return colors[0]
+  if (ratio <= 0.25) return colors[1]
+  if (ratio <= 0.5) return colors[2]
+  if (ratio <= 0.75) return colors[3]
+  return colors[4]
+}
+```
+
+**颜色分级策略：**
+
+这里采用了**5级颜色分级**，而不是线性渐变，原因有两个：
+
+1. **视觉区分度更高**：离散的颜色级别比连续渐变更容易让用户快速识别数据差异
+2. **性能更好**：不需要实时计算RGB插值，直接返回预定义的颜色值
+
+颜色分级的阈值设计也很讲究：
+
+```
+0%        25%       50%       75%       100%
+├─────────┼─────────┼─────────┼─────────┤
+无数据    少量      中等      较多      很多
+```
+
+这种**非线性分级**更符合人类的感知习惯。比如从0篇到2篇的差异，在视觉上应该比从8篇到10篇的差异更明显，因为前者代表了"从无到有"的质变。
+
+##### 5. 性能优化要点
+
+在实际使用中，我发现了几个性能瓶颈并进行了优化：
+
+**优化1：使用Map代替数组查询**
+
+```ts
+// 优化前：O(n)查询
+const stat = this.dailyStats.find(s => s.dateStr === dateStr)
+const count = stat ? stat.count : 0
+
+// 优化后：O(1)查询
+const count = this.statsMap.get(dateStr) || 0
+```
+
+**优化2：避免重复计算**
+
+```ts
+// 在数据加载时一次性计算所有颜色
+this.dailyStats.forEach(stat => {
+  stat.color = this.getColorForCount(stat.count)  // 预计算
+})
+
+// 渲染时直接使用
+const color = stat.color  // 不需要重新计算
+```
+
+**优化3：监听器的精细化控制**
+
+```ts
+@Monitor('userConfig.heatmapTimeRange')
+async onTimeRangeChange(): Promise<void> {
+  await this.loadDailyStats()  // 需要重新加载数据
+}
+
+@Monitor('userConfig.heatmapColorRange')
+onColorRangeChange(): void {
+  this.generateHeatmapCells()  // 只需要重新计算颜色
+  this.generateCalendarDays()
+}
+```
+
+不同的配置变化触发不同级别的更新，避免不必要的数据重载。
+
+---
+
+#### 热力数据核心数据结构与数据更新机制架构
 
 
