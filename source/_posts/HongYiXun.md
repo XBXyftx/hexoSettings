@@ -4919,14 +4919,132 @@ onColorRangeChange(): void {
 
 #### 热力数据核心数据结构与数据解析存储算法
 
-我们当前应用使用的是键值数据库
+鸿蒙所给出的数据库接口中总共有三种接口，分别是关系型数据库，键值数据库以及向量数据库。向量数据库并不适用于当前的存储场景，同时剩余的两种数据库存储的本质都是一些简单类型，我们为了能存储按日期划分的历史记录数据就需要进行一些数据结构上的逻辑转化。我们当前应用使用的是键值数据库，为了应用整体的数据处理风格的一致性，我们选择使用{% label 以功能模块为键，以json字符串为值 red %}的形式去进行数据的存储。
 
-{% mermaid %}
-flowchart TD
-    A[Start] --> B{Decision}
-    B -->|Yes| C[Continue]
-    B -->|No| D[Stop]
-{% endmermaid %}
+接下来我们来分析一下核心历史记录处理函数的处理细节。
 
+![8](HongYiXun/8.png)
 
+```ts
+  /**
+   * 获取每日阅读统计 Map
+   * 
+   * @returns 日期到统计数据的 Map
+   */
+  async getDailyStatsMap(): Promise<Map<string, DailyReadingStats>> {
+    if (!this.appKVDb) {
+      await this.init()
+    }
 
+    const statsMap = new Map<string, DailyReadingStats>()
+
+    if (!this.appKVDb) {
+      return statsMap
+    }
+
+    try {
+      const data = await this.appKVDb.get(KV_DB_KEYS.DAILY_READING_STATS) as string
+      const statsArray = JSON.parse(data) as DailyReadingStats[]
+      statsArray.forEach(stats => {
+        statsMap.set(stats.dateStr, stats)
+      })
+    } catch (error) {
+      logger.info(`${LOG_TAG.HISTORY_MANAGER}每日统计数据为空或读取失败`)
+    }
+
+    return statsMap
+  }
+```
+
+```ts
+  /**
+   * 更新每日阅读统计
+   * 
+   * @param articleId - 文章 ID
+   * @param dateStr - 日期字符串 (YYYY-MM-DD)
+   */
+  async updateDailyStats(articleId: string, dateStr: string): Promise<void> {
+    if (!this.appKVDb) {
+      await this.init()
+    }
+
+    if (!this.appKVDb) {
+      logger.error(`${LOG_TAG.HISTORY_MANAGER}数据库未初始化，无法更新每日统计`)
+      return
+    }
+
+    try {
+      const statsMap = await this.getDailyStatsMap()
+      
+      if (!statsMap.has(dateStr)) {
+        statsMap.set(dateStr, {
+          dateStr: dateStr,
+          count: 0,
+          articleIds: []
+        })
+      }
+
+      const dayStats = statsMap.get(dateStr)!
+      
+      // 检查当天是否已经阅读过该文章（去重）
+      if (!dayStats.articleIds.includes(articleId)) {
+        dayStats.articleIds.push(articleId)
+        dayStats.count = dayStats.articleIds.length
+        statsMap.set(dateStr, dayStats)
+        
+        // 保存到数据库
+        const statsArray = Array.from(statsMap.values())
+        await this.appKVDb.put(KV_DB_KEYS.DAILY_READING_STATS, JSON.stringify(statsArray))
+        logger.debug(`${LOG_TAG.HISTORY_MANAGER}更新每日统计: ${dateStr}, 数量: ${dayStats.count}`)
+      }
+    } catch (error) {
+      let err = error as BusinessError
+      logger.error(`${LOG_TAG.HISTORY_MANAGER}更新每日统计失败: ${err.message}`)
+    }
+  }
+```
+
+```ts
+  /**
+   * 获取指定日期范围内的每日阅读统计
+   * 
+   * @param days - 天数范围
+   * @returns 每日统计数组
+   */
+  async getDailyStatsInRange(days: number): Promise<DailyReadingStats[]> {
+    const statsMap = await this.getDailyStatsMap()
+    const result: DailyReadingStats[] = []
+    const today = new Date()
+
+    for (let i = 0; i < days; i++) {
+      const date = new Date(today)
+      date.setDate(today.getDate() - i)
+      const dateStr = this.formatDate(date)
+      
+      if (statsMap.has(dateStr)) {
+        result.push(statsMap.get(dateStr)!)
+      } else {
+        result.push({
+          dateStr: dateStr,
+          count: 0,
+          articleIds: []
+        })
+      }
+    }
+
+    return result.reverse() // 按时间正序排列
+  }
+```
+
+```ts
+  /**
+   * 获取指定日期的历史记录
+   * 
+   * @param dateStr - 日期字符串 (YYYY-MM-DD)
+   * @returns 该日期的历史记录列表
+   */
+  async getHistoryByDate(dateStr: string): Promise<HistoryItem[]> {
+    const historyList = await this.getHistoryList()
+    return historyList.filter(item => item.dateStr === dateStr)
+  }
+```
