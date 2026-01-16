@@ -5055,6 +5055,142 @@ export interface DailyReadingStats {
 
 {% hideToggle 迭代器概念简介 %}
 
+在ArkTS以及其他大部分语言中，迭代器是一种设计模式，它提供了一种方法来访问一个容器对象中的各个元素，而不需要暴露该对象的内部表示。常见的迭代器包括数组的内置方法如`forEach`、`map`、`filter`等，以及ES6标准提供的`Iterator`接口。
+
+以下是一些ArkTS中常用的迭代器概念及其实现：
+
+一、数组迭代器方法
+
+```ts
+// 示例：使用不同迭代器方法处理数组
+let numbers = [1, 2, 3, 4, 5];
+
+// map - 转换每个元素并返回新数组
+let doubled = numbers.map(num => num * 2);
+console.log('Map result:', doubled); // 输出: [2, 4, 6, 8, 10]
+
+// filter - 筛选满足条件的元素
+let evens = numbers.filter(num => num % 2 === 0);
+console.log('Filter result:', evens); // 输出: [2, 4]
+
+// forEach - 遍历每个元素（无返回值）
+numbers.forEach((num, index) => {
+  console.log(`Index ${index}: ${num}`);
+});
+// 输出:
+// Index 0: 1
+// Index 1: 2
+// Index 2: 3
+// Index 3: 4
+// Index 4: 5
+
+// reduce - 将数组元素累积为单个值
+let sum = numbers.reduce((acc, curr) => acc + curr, 0);
+console.log('Reduce result:', sum); // 输出: 15
+```
+
+二、Map和Set的迭代器
+
+```ts
+// Map迭代器示例
+let userMap = new Map<string, number>();
+userMap.set('Alice', 25);
+userMap.set('Bob', 30);
+userMap.set('Charlie', 35);
+
+// 使用for...of遍历Map
+for (let [key, value] of userMap) {
+  console.log(`${key} is ${value} years old`);
+}
+// 输出:
+// Alice is 25 years old
+// Bob is 30 years old
+// Charlie is 35 years old
+
+// 使用keys(), values(), entries()方法
+console.log('Keys:', Array.from(userMap.keys()));     // ['Alice', 'Bob', 'Charlie']
+console.log('Values:', Array.from(userMap.values())); // [25, 30, 35]
+console.log('Entries:', Array.from(userMap.entries())); // [['Alice', 25], ['Bob', 30], ['Charlie', 35]]
+
+// Set迭代器示例
+let uniqueNumbers = new Set([1, 2, 3, 2, 1]);
+for (let num of uniqueNumbers) {
+  console.log(num);
+}
+// 输出: 1, 2, 3 (去重后的值)
+```
+
+三、自定义迭代器
+
+```ts
+// 实现一个简单的自定义迭代器
+class NumberRange {
+  constructor(private start: number, private end: number) {}
+
+  *[Symbol.iterator]() {
+    for (let i = this.start; i <= this.end; i++) {
+      yield i;
+    }
+  }
+}
+
+const range = new NumberRange(1, 5);
+for (const num of range) {
+  console.log(num);
+}
+// 输出: 1, 2, 3, 4, 5
+
+// 使用扩展运算符
+console.log([...range]); // [1, 2, 3, 4, 5]
+```
+
+**代码解释：**
+
+上面的代码演示了TypeScript中生成器函数和自定义迭代器的用法：
+
+1. **生成器函数语法 (`function*`)**：`*[Symbol.iterator]()` 中的 `*` 表示这是一个生成器函数，可以使用 `yield` 关键字暂停和恢复函数执行。
+
+2. **Symbol.iterator 接口**：这是ES6标准中定义的迭代器协议，当对象需要被迭代时（如使用 `for...of`），JavaScript引擎会自动调用这个方法。
+
+3. **yield 关键字**：类似 `return` 但不会终止函数，每次遇到 `yield` 会暂停函数并将值返回给调用者，下次迭代时从暂停处继续执行。
+
+4. **执行流程**：当使用 `for...of` 遍历 `range` 对象时，会自动触发 `Symbol.iterator` 方法，然后逐个产生从1到5的数字。
+
+四、在HarmonyOS开发中的应用
+
+在HarmonyOS的ArkTS开发中，迭代器经常用于处理UI组件的数据渲染：
+
+```ts
+// HarmonyOS ArkTS中的列表渲染示例
+@Entry
+@Component
+struct ArticleList {
+  @State articles: Article[] = [
+    { id: 1, title: '文章1', content: '内容1' },
+    { id: 2, title: '文章2', content: '内容2' },
+    { id: 3, title: '文章3', content: '内容3' }
+  ];
+
+  build() {
+    Column() {
+      // 使用foreach遍历数据创建UI组件
+      ForEach(this.articles, (item: Article) => {
+        ListItem() {
+          Text(item.title)
+            .fontSize(18)
+            .margin({ bottom: 5 })
+          Text(item.content)
+            .fontSize(14)
+            .fontColor(Color.Grey)
+        }
+      }, (item: Article) => item.id.toString())
+    }
+  }
+}
+```
+
+迭代器模式使我们可以统一访问各种集合类型的元素，让代码更简洁、可读性更强，并且可以有效地处理大量数据。
+
 {% endhideToggle %}
 
 ```ts
