@@ -5463,7 +5463,7 @@ UI 层再次转换为 Map<string, number>
 
 #### 解决方案
 
-\1. 新增优化接口
+1 新增优化接口
 
 在 `HistoryManager` 中新增 `getDailyCountMapInRange()` 方法，直接返回 `Map<string, number>`：
 
@@ -5503,7 +5503,7 @@ async getDailyCountMapInRange(days: number): Promise<Map<string, number>> {
 - 只包含有阅读记录的日期，减少内存占用
 - 避免中间数组的创建和遍历
 
-\2. 优化 UI 层数据加载
+2 优化 UI 层数据加载
 
 2.1 移除冗余状态变量
 
@@ -5594,7 +5594,7 @@ async loadDailyStats(): Promise<void> {
 - 简化 `totalReadCount` 计算，直接遍历 Map
 - 减少代码行数，提升可读性
 
-\3. 修复响应式更新机制
+3 修复响应式更新机制
 
 3.1 完善监听器
 
@@ -5689,3 +5689,11 @@ ForEach(this.calendarDays, (cell: CalendarDayCell, index: number) => {
 - 确保触发器变化时强制重新渲染
 - 统一主页面和全屏模式的 key 生成逻辑
 - 包含 `count` 和 `color` 确保数据变化时更新
+
+4 优化效果
+
+| 指标 | 优化前 | 优化后 | 提升 |
+|------|--------|--------|------|
+| 数据转换次数 | 2次 (Map→Array→Map) | 1次 (Map→Map) | 减少50% |
+| 内存占用 | 需要额外数组存储 | 只需一个 Map | 减少约50% |
+| 代码行数 | 约25行 | 约18行 | 减少28% |
