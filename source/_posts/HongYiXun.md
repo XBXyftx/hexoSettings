@@ -5195,6 +5195,93 @@ struct ArticleList {
 
 ```ts
   /**
+   * 获取指定日期的历史记录
+   * 
+   * @param dateStr - 日期字符串 (YYYY-MM-DD)
+   * @returns 该日期的历史记录列表
+   */
+  async getHistoryByDate(dateStr: string): Promise<HistoryItem[]> {
+    const historyList = await this.getHistoryList()
+    return historyList.filter(item => item.dateStr === dateStr)
+  }
+
+  /**
+ * 历史记录项接口
+ * 
+ * 用于存储用户浏览新闻的历史记录信息
+ * 
+ * @interface HistoryItem
+ * 
+ * @remarks
+ * 历史记录特点：
+ * - 自动记录：用户打开文章时自动添加
+ * - 去重机制：同一文章只保留最新的浏览记录
+ * - 时间排序：按浏览时间倒序排列
+ * - 数量限制：最多保存 100 条记录
+ * 
+ * 存储位置：
+ * - KV 数据库键：KV_DB_KEYS.READING_HISTORY
+ * - 数据格式：JSON 字符串数组
+ * 
+ * @example
+ * ```typescript
+ * const historyItem: HistoryItem = {
+ *   article: {
+ *     id: "news_001",
+ *     title: "鸿蒙系统最新更新",
+ *     date: "2025-01-15",
+ *     url: "https://example.com/news/001",
+ *     content: [...],
+ *     source: "官方资讯"
+ *   },
+ *   timestamp: 1705123456789,
+ *   dateStr: "2025-01-15 14:30:56"
+ * }
+ * ```
+ * 
+ * @see HistoryManager 历史记录管理器
+ * @see NewsArticle 新闻文章数据模型
+ */
+export interface HistoryItem {
+  /** 
+   * 新闻文章数据
+   * 
+   * 包含文章的完整信息，用于显示和跳转
+   */
+  article: NewsArticle
+  
+  /** 
+   * 浏览时间戳
+   * 
+   * Unix 时间戳（毫秒），用于排序和时间计算
+   * 
+   * @example 1705123456789
+   */
+  timestamp: number
+  
+  /** 
+   * 格式化的日期字符串
+   * 
+   * 用于界面显示的友好时间格式
+   * 
+   * @example "2025-01-15 14:30:56"
+   */
+  dateStr: string
+}
+```
+
+我将这个接口列在这里就是为了说明维护两种数据结构的目的。完整的历史记录单元不光包含完整的文章对象，更是包含了额外的时间戳信息。
+
+调用`getHistoryByDate(dateStr: string)`时获取的数据量相比于仅存储ID和简单类型的`DailyReadingStats`要大不少，所以我们仅在用户点击日历指定单元格时调用此接口拉取出单日的历史记录对象。减少内存占用。
+
+---
+
+### 热力数据结构转化接口的优化
+
+#### 问题的发现
+
+```ts
+  /**
    * 获取指定日期范围内的每日阅读统计
    * 
    * @param days - 天数范围
@@ -5225,15 +5312,380 @@ struct ArticleList {
   }
 ```
 
+这个函数在我VibeCoding结束之后我感到了一些疑惑，其基本功能很简单明了，就是单纯的将`Map`中的数据转化为数组，同时补全缺失的日期。
+
+其唯一用途是在两种日历渲染中承担一个颜色数组的数据源的功能。
+
 ```ts
   /**
-   * 获取指定日期的历史记录
-   * 
-   * @param dateStr - 日期字符串 (YYYY-MM-DD)
-   * @returns 该日期的历史记录列表
+   * 月历日期单元格
    */
-  async getHistoryByDate(dateStr: string): Promise<HistoryItem[]> {
-    const historyList = await this.getHistoryList()
-    return historyList.filter(item => item.dateStr === dateStr)
+  interface CalendarDayCell {
+    day: number
+    dateStr: string
+    count: number
+    color: string
+    isCurrentMonth: boolean
+    isToday: boolean
+  }
+
+  @Local calendarDays: CalendarDayCell[] = []
+  @Local statsMap: Map<string, number> = new Map()
+
+  async loadDailyStats(): Promise<void> {
+    this.isLoading = true
+    try {
+      // 加载365天的数据用于月历显示
+      this.dailyStats = await historyManager.getDailyStatsInRange(365)
+      this.statsMap.clear()
+      this.dailyStats.forEach(stat => {
+        if (stat.count > 0) {
+          this.statsMap.set(stat.dateStr, stat.count)
+        }
+      })
+      this.generateHeatmapCells()
+      this.totalReadCount = this.dailyStats
+        .filter(stat => {
+          const date = new Date(stat.dateStr)           // 1. 将日期字符串转为 Date 对象
+          const today = new Date()                       // 2. 获取今天的日期
+          const diffDays = Math.floor(                   // 3. 计算天数差
+            (today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24) // 1000毫秒 = 1秒 60秒 = 1分钟 60分钟 = 1小时 24小时 = 1天
+          )
+          return diffDays < this.userConfig.heatmapTimeRange  // 4. 筛选条件
+        })
+        .reduce((sum, stat) => sum + stat.count, 0)    // 5. 累加阅读数
+    } catch (error) {
+      console.error('加载每日统计失败:', JSON.stringify(error))
+    } finally {
+      this.isLoading = false
+    }
+  }
+
+
+
+  generateCalendarDays(): void {
+    const days: CalendarDayCell[] = []
+    const today = new Date()
+    const todayStr = this.formatDate(today)
+
+    const firstDay = new Date(this.currentYear, this.currentMonth - 1, 1)
+    const lastDay = new Date(this.currentYear, this.currentMonth, 0)
+    const firstDayOfWeek = firstDay.getDay()
+    const daysInMonth = lastDay.getDate()
+
+    const prevMonthLastDay = new Date(this.currentYear, this.currentMonth - 1, 0)
+    const prevMonthDays = prevMonthLastDay.getDate()
+
+    // 填充上个月的日期
+    for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+      const day = prevMonthDays - i
+      const date = new Date(this.currentYear, this.currentMonth - 2, day)
+      const dateStr = this.formatDate(date)
+      const count = this.statsMap.get(dateStr) || 0
+      days.push({
+        day: day,
+        dateStr: dateStr,
+        count: count,
+        color: this.getColorForCount(count),
+        isCurrentMonth: false,
+        isToday: dateStr === todayStr
+      })
+    }
+
+    // 填充当月日期
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(this.currentYear, this.currentMonth - 1, day)
+      const dateStr = this.formatDate(date)
+      const count = this.statsMap.get(dateStr) || 0
+      days.push({
+        day: day,
+        dateStr: dateStr,
+        count: count,
+        color: this.getColorForCount(count),
+        isCurrentMonth: true,
+        isToday: dateStr === todayStr
+      })
+    }
+
+    // 填充下个月的日期
+    const remainingDays = 42 - days.length
+    for (let day = 1; day <= remainingDays; day++) {
+      const date = new Date(this.currentYear, this.currentMonth, day)
+      const dateStr = this.formatDate(date)
+      const count = this.statsMap.get(dateStr) || 0
+      days.push({
+        day: day,
+        dateStr: dateStr,
+        count: count,
+        color: this.getColorForCount(count),
+        isCurrentMonth: false,
+        isToday: dateStr === todayStr
+      })
+    }
+
+    this.calendarDays = days
   }
 ```
+
+核心就是在于以上部分代码，只是为了中和`Map<string, number>`和`Map<string, DailyReadingStats>`之间的数据结构差异。但这却带来了一个由map转化为数组再转换为map的过程，我认为这是没必要的。
+
+我想到的解决方案是从中间层的Manager新开一个接口直接返回`Map<string, number>`，由map直接到map，同时简化product层UI渲染部分的逻辑。当然也可以直接在product层中去直接调用`getDailyStatsMap()`来去进行map到map的转化。
+
+不过这两者的核心都是省略中间数据结构“数组”来去进行内存的优化，同时简化逻辑。
+
+**原有数据流程：**
+
+```plantext
+数据库 (Map<string, DailyReadingStats>)
+  ↓
+getDailyStatsInRange() 转换为数组
+  ↓
+Array<DailyReadingStats>
+  ↓
+UI 层再次转换为 Map<string, number>
+  ↓
+渲染使用
+```
+
+在第一次VibeCoding优化后出现了以下问题：
+
+- 点击文章增加阅读量后，主页面热力日历颜色保持黑色
+- 打开全屏模式后颜色正确显示
+- 关闭全屏模式后又恢复为黑色
+
+我详细的描述了问题，让AI进行检查发现问题的原因如下：
+
+1. `@Local` 装饰的 Map 内部变化（set/delete）不会触发 UI 更新
+2. ForEach 的 key 生成逻辑未包含能反映数据变化的标识
+3. 主页面和全屏模式的 key 生成逻辑不一致
+
+---
+
+#### 解决方案
+
+\1. 新增优化接口
+
+在 `HistoryManager` 中新增 `getDailyCountMapInRange()` 方法，直接返回 `Map<string, number>`：
+
+**新增代码：**
+
+```typescript
+/**
+ * 获取指定日期范围内的阅读数量 Map（优化版）
+ * 直接返回 Map<dateStr, count>，避免不必要的数组转换
+ * 
+ * @param days - 天数范围
+ * @returns 日期到阅读数量的 Map
+ */
+async getDailyCountMapInRange(days: number): Promise<Map<string, number>> {
+  const statsMap = await this.getDailyStatsMap()
+  const result = new Map<string, number>()
+  const today = new Date()
+
+  for (let i = 0; i < days; i++) {
+    const date = new Date(today)
+    date.setDate(today.getDate() - i)
+    const dateStr = this.formatDate(date)
+    
+    const stats = statsMap.get(dateStr)
+    if (stats && stats.count > 0) {
+      result.set(dateStr, stats.count)
+    }
+  }
+
+  return result
+}
+```
+
+**优势：**
+
+- 直接返回 UI 层需要的数据结构
+- 只包含有阅读记录的日期，减少内存占用
+- 避免中间数组的创建和遍历
+
+\2. 优化 UI 层数据加载
+
+2.1 移除冗余状态变量
+
+**优化前：**
+
+```typescript
+@Local dailyStats: DailyReadingStats[] = []
+@Local statsMap: Map<string, number> = new Map()
+```
+
+**优化后：**
+
+```typescript
+// 优化：直接使用 Map 存储阅读数量，避免数组转换
+@Local statsMap: Map<string, number> = new Map()
+```
+
+2.2 简化数据加载逻辑
+
+**优化前：**
+
+```typescript
+async loadDailyStats(): Promise<void> {
+  this.isLoading = true
+  try {
+    // 加载365天的数据用于月历显示
+    this.dailyStats = await historyManager.getDailyStatsInRange(365)
+    this.statsMap.clear()
+    this.dailyStats.forEach(stat => {
+      if (stat.count > 0) {
+        this.statsMap.set(stat.dateStr, stat.count)
+      }
+    })
+    this.generateHeatmapCells()
+    this.totalReadCount = this.dailyStats
+      .filter(stat => {
+        const date = new Date(stat.dateStr)
+        const today = new Date()
+        const diffDays = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+        return diffDays < this.userConfig.heatmapTimeRange
+      })
+      .reduce((sum, stat) => sum + stat.count, 0)
+  } catch (error) {
+    console.error('加载每日统计失败:', JSON.stringify(error))
+  } finally {
+    this.isLoading = false
+  }
+}
+```
+
+**优化后：**
+
+```typescript
+async loadDailyStats(): Promise<void> {
+  this.isLoading = true
+  try {
+    // 优化：直接加载 Map，避免数组转换
+    const timeRange = this.userConfig.heatmapTimeRange
+    const newStatsMap = await historyManager.getDailyCountMapInRange(365)
+    
+    // 强制触发 Map 更新（重新赋值以触发响应式）
+    this.statsMap = newStatsMap
+    
+    this.generateHeatmapCells()
+    
+    // 计算总阅读数
+    this.totalReadCount = 0
+    const today = new Date()
+    this.statsMap.forEach((count, dateStr) => {
+      const date = new Date(dateStr)
+      const diffDays = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+      if (diffDays < timeRange) {
+        this.totalReadCount += count
+      }
+    })
+  } catch (error) {
+    console.error('加载每日统计失败:', JSON.stringify(error))
+  } finally {
+    this.isLoading = false
+  }
+}
+```
+
+**改进点：**
+
+- 直接调用新接口，省略数组中间层
+- 通过重新赋值 `this.statsMap = newStatsMap` 触发响应式更新
+- 简化 `totalReadCount` 计算，直接遍历 Map
+- 减少代码行数，提升可读性
+
+\3. 修复响应式更新机制
+
+3.1 完善监听器
+
+**优化前：**
+
+```typescript
+@Monitor('historyUpdateTrigger.trigger')
+async onHistoryUpdate(): Promise<void> {
+  await this.loadDailyStats()
+  this.generateCalendarDays()
+}
+```
+
+**优化后：**
+
+```typescript
+@Monitor('historyUpdateTrigger.trigger')
+async onHistoryUpdate(): Promise<void> {
+  await this.loadDailyStats()
+  this.generateHeatmapCells()  // 新增：确保热力格子也更新
+  this.generateCalendarDays()
+}
+```
+
+3.2 统一 ForEach Key 生成逻辑
+
+**主页面热力格子 - 优化前：**
+
+```typescript
+ForEach(weekCells, (cell: HeatmapCell, dayIndex: number) => {
+  this.HeatmapCellBuilder(cell, weekIndex * 7 + dayIndex)
+}, (cell: HeatmapCell, dayIdx: number) => 
+  `${this.userConfig.heatmapTimeRange}_${this.userConfig.heatmapColorRange}_${this.userConfig.heatmapColorScheme}_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}_${cell.color}`
+)
+```
+
+**主页面热力格子 - 优化后：**
+
+```typescript
+ForEach(weekCells, (cell: HeatmapCell, dayIndex: number) => {
+  this.HeatmapCellBuilder(cell, weekIndex * 7 + dayIndex)
+}, (cell: HeatmapCell, dayIdx: number) => 
+  `main_${this.historyUpdateTrigger.trigger}_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}_${cell.color}`
+)
+```
+
+**全屏模式热力格子 - 优化前：**
+
+```typescript
+ForEach(weekCells, (cell: HeatmapCell, dayIndex: number) => {
+  this.HeatmapCellBuilder(cell, weekIndex * 7 + dayIndex)
+}, (cell: HeatmapCell, dayIdx: number) => 
+  `fs_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}`
+)
+```
+
+**全屏模式热力格子 - 优化后：**
+
+```typescript
+ForEach(weekCells, (cell: HeatmapCell, dayIndex: number) => {
+  this.HeatmapCellBuilder(cell, weekIndex * 7 + dayIndex)
+}, (cell: HeatmapCell, dayIdx: number) => 
+  `fs_${this.historyUpdateTrigger.trigger}_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}_${cell.color}`
+)
+```
+
+**月历格子 - 优化前：**
+
+```typescript
+ForEach(this.calendarDays, (cell: CalendarDayCell, index: number) => {
+  GridItem() {
+    this.CalendarDayCellBuilder(cell)
+  }
+}, (cell: CalendarDayCell, idx: number) => `cal_${cell.dateStr}_${idx}`)
+```
+
+**月历格子 - 优化后：**
+
+```typescript
+ForEach(this.calendarDays, (cell: CalendarDayCell, index: number) => {
+  GridItem() {
+    this.CalendarDayCellBuilder(cell)
+  }
+}, (cell: CalendarDayCell, idx: number) => 
+  `cal_${this.historyUpdateTrigger.trigger}_${cell.dateStr}_${cell.count}_${cell.color}`
+)
+```
+
+**改进点：**
+
+- 所有 ForEach key 都包含 `historyUpdateTrigger.trigger`
+- 确保触发器变化时强制重新渲染
+- 统一主页面和全屏模式的 key 生成逻辑
+- 包含 `count` 和 `color` 确保数据变化时更新
