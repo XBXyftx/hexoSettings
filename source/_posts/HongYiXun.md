@@ -5703,7 +5703,19 @@ ForEach(this.calendarDays, (cell: CalendarDayCell, index: number) => {
 
 在过去大部分情况下我们使用循环渲染一般都只是使用第一和第二个参数，分别是循环渲染的数据源和渲染函数，这两者对于绝大部分的静态数据来讲都是有着很优秀的渲染表现效果的，而第三个参数则是Key的生成函数。
 
-所谓Key就是对于当前循环单元的唯一标识
+```typescript
+ForEach(this.calendarDays, (cell: CalendarDayCell, index: number) => {
+  GridItem() {
+    this.CalendarDayCellBuilder(cell)
+  }
+}, (cell: CalendarDayCell, idx: number) => 
+  `cal_${this.historyUpdateTrigger.trigger}_${cell.dateStr}_${cell.count}_${cell.color}`
+)
+```
+
+所谓Key就是对于当前循环单元的唯一标识，当这个标识发生变化的时候，渲染引擎就会强制使目标单元进行重绘，因为Key变化了，哪怕真实渲染的内容没有变化，引擎也会认为其更换了一个全新的UI元素。
+
+而在初次修改的版本中，因为我们取消了原有的数组中间结构，@Local装饰器无法再正常监听到数据的变化，所以我们需要通过Key值
 {% endnote %}
 
 4 优化效果
