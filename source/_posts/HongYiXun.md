@@ -5690,6 +5690,22 @@ ForEach(this.calendarDays, (cell: CalendarDayCell, index: number) => {
 - 统一主页面和全屏模式的 key 生成逻辑
 - 包含 `count` 和 `color` 确保数据变化时更新
 
+{% note success flat %}
+这里着重讲解一下ForEach Key的作用。
+
+```ts
+ForEach(this.calendarDays, (cell: CalendarDayCell, index: number) => {
+  GridItem() {
+    this.CalendarDayCellBuilder(cell)
+  }
+})
+```
+
+在过去大部分情况下我们使用循环渲染一般都只是使用第一和第二个参数，分别是循环渲染的数据源和渲染函数，这两者对于绝大部分的静态数据来讲都是有着很优秀的渲染表现效果的，而第三个参数则是Key的生成函数。
+
+所谓Key就是对于当前循环单元的唯一标识
+{% endnote %}
+
 4 优化效果
 
 | 指标 | 优化前 | 优化后 | 提升 |
