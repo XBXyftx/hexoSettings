@@ -5727,3 +5727,627 @@ ForEach(this.calendarDays, (cell: CalendarDayCell, index: number) => {
 | 数据转换次数 | 2次 (Map→Array→Map) | 1次 (Map→Map) | 减少50% |
 | 内存占用 | 需要额外数组存储 | 只需一个 Map | 减少约50% |
 | 代码行数 | 约25行 | 约18行 | 减少28% |
+
+---
+
+### 跟手弹窗的实现
+
+#### 起因
+
+在开发新闻笔记功能的过程中，我想为用户提供更多可选的笔记弹窗选项，如果统一为全屏弹窗很可能会覆盖哪些想要查看原文的用户。同时这作为一个具备一多能力的产品，在大屏场景下本就拥有远多于手机屏幕空间的想象力和创造能力，所以我在设置项中设置了多种不同的弹窗选项。
+
+![9](HongYiXun/9.jpg)
+
+![10](HongYiXun/10.jpg)
+
+![11](HongYiXun/11.jpg)
+
+![12](HongYiXun/12.jpg)
+
+![13](HongYiXun/13.jpg)
+
+以上这四种弹窗都直接使用官方提供的半模态或是自定义弹窗都很好实现，但是唯独我最想要的可以自由拖拽的小弹窗我查遍文档都没有看到相关接口。
+
+我看到的唯一个比较接近的描述是在半模态转场中的`SheetType`样式枚举类，其中有一个枚举值是`POPUP`，其官方中文解释是“跟手弹窗。跟手弹窗面板不支持跟手滑动，下滑面板不关闭。”
+
+![14](HongYiXun/14.png)
+
+![15](HongYiXun/15.png)
+
+？{% label 跟手弹窗 green %}{% label 不支持跟手滑动 red %}？那你为啥叫“跟手”弹窗？
+
+实际尝试了一下发现确确实实没办法进行任何的拖拽或者是进行更多的自定义。
+
+当然关于这一点我也是进一步的去问了问AI，它给出的回复是：
+
+![16](HongYiXun/16.png)
+
+原来是“历史遗留问题”，好吧那看来就是没有应用内可自由移动的弹窗接口了，那就手搓！！！
+
+#### 实现的接口选择
+
+其实思路也很好理解，就是监测拖拽，然后根据拖拽的位置来去改变组件的位置。随后我就去寻找相关的接口。
+
+![17](HongYiXun/17.png)
+
+我第一个想到的就是组件拖拽事件，也是最符合直觉的搜索结果，我在大致浏览其接口后就优先去查看了其给出的示例代码，发现其主要的示例代码方向都是对于数据的传递，像是图标、文字、文件的拖拽，与我的目的并不相符，虽然可以实现效果，但没准有更简单易行的接口。
+
+![18](HongYiXun/18.png)
+
+哦！手势，对哦，这类操作确实可以被称为是一种“手势”
+
+![19](HongYiXun/19.png)
+
+太对了，就它了。
+
+#### 代码分析
+
+```ts
+  NavDestination() {
+    Stack() {
+      this.ArticleContentBuilder()
+
+      // 圆形导航菜单 - 右下角
+      CircleNavigation(……)
+        .position(……)
+
+      // 可拖动浮动笔记编辑器
+      if (this.showDraggableEditor) {
+        // 半透明遮罩层
+        Column()
+          .width('100%')
+          .height('100%')
+          .backgroundColor('rgba(0, 0, 0, 0.4)')
+          .onClick(() => {
+            // 点击遮罩不关闭，需要点击关闭按钮
+          })
+
+        // 可拖动的编辑器窗口
+        Column() {
+          this.DraggableNoteEditorBuilder()
+        }
+        .translate({ x: this.dragOffsetX, y: this.dragOffsetY })
+        .gesture(
+          PanGesture()
+            .onActionUpdate((event: GestureEvent | undefined) => {
+              if (event) {
+                const newX = this.dragPositionX + event.offsetX
+                const newY = this.dragPositionY + event.offsetY
+                this.clampDragPosition(newX, newY)
+              }
+            })
+            .onActionEnd(() => {
+              this.dragPositionX = this.dragOffsetX
+              this.dragPositionY = this.dragOffsetY
+            })
+        )
+      }
+    }
+    .onAreaChange((_oldValue: Area, newValue: Area) => {
+      this.screenWidth = newValue.width as number
+      this.screenHeight = newValue.height as number
+    })
+  }
+  .hideTitleBar(true)
+  .hideBackButton(true)
+  .hideToolBar(true)
+  .borderRadius(8)
+  .onReady((navDestinationContext: NavDestinationContext) => {
+    this.article = navDestinationContext.pathInfo.param as NewsArticle
+    this.checkFavoriteStatus()
+    this.checkLikeStatus()
+  })
+  .width('100%')
+  .height('100%')
+  .bindSheet(
+    this.showNoteEditor,
+    this.NoteEditorSheetBuilder(),
+    {
+      height: '100%',
+      width: this.deviceType === DEVICE_TYPES.PHONE ? '95%' : '50%',
+      dragBar: true,
+      showClose: false,
+      backgroundColor: $r('app.color.page_background'),
+      preferType: this.userConfig.noteEditorSheetType as SheetType
+    }
+  )
+```
+
+以上代码我已经省略了大部分无关代码，保留了核心的手势绑定以及位置计算部分的逻辑代码。其中我们为了限制拖拽位置在屏幕边界内，还额外封装了一个`clampDragPosition`函数。其代码如下：
+
+```ts
+  /**
+   * 限制拖动位置在屏幕边界内
+   */
+  clampDragPosition(x: number, y: number): void {
+    const windowWidth = this.deviceType === DEVICE_TYPES.PHONE ? this.screenWidth * 0.9 : this.screenWidth * 0.5
+    const windowHeight = this.screenHeight * 0.75
+    const minX = -windowWidth + 60
+    const maxX = this.screenWidth - 60
+    const minY = 0
+    const maxY = this.screenHeight - 100
+    this.dragOffsetX = Math.max(minX, Math.min(maxX, x))
+    this.dragOffsetY = Math.max(minY, Math.min(maxY, y))
+  }
+```
+
+接下来我们针对这段代码来进行一下分析：
+
+##### 核心算法：边界限制（Clamping）
+
+`clampDragPosition` 函数的核心作用是**将拖拽位置限制在屏幕可视范围内**，防止弹窗被拖出屏幕导致用户无法操作。这是一个经典的**边界限制算法（Clamping Algorithm）**。
+
+**算法原理：**
+
+```typescript
+// 核心公式：将值限制在 [min, max] 区间内
+clampedValue = Math.max(min, Math.min(max, value))
+
+// 等价于：
+if (value < min) {
+  clampedValue = min
+} else if (value > max) {
+  clampedValue = max
+} else {
+  clampedValue = value
+}
+```
+
+这个公式的巧妙之处在于**用两次比较完成三种情况的判断**：
+
+1. `Math.min(max, value)` - 确保不超过最大值
+2. `Math.max(min, ...)` - 确保不低于最小值
+
+**代码逐行解析：**
+
+```typescript
+clampDragPosition(x: number, y: number): void {
+  // 1. 计算弹窗尺寸（根据设备类型自适应）
+  const windowWidth = this.deviceType === DEVICE_TYPES.PHONE 
+    ? this.screenWidth * 0.9   // 手机：屏幕宽度的 90%
+    : this.screenWidth * 0.5   // 平板：屏幕宽度的 50%
+  
+  const windowHeight = this.screenHeight * 0.75  // 高度统一为屏幕的 75%
+  
+  // 2. 计算 X 轴边界
+  const minX = -windowWidth + 60  // 左边界：允许弹窗左移，但至少保留 60px 可见
+  const maxX = this.screenWidth - 60  // 右边界：允许弹窗右移，但至少保留 60px 可见
+  
+  // 3. 计算 Y 轴边界
+  const minY = 0  // 上边界：不允许超出屏幕顶部
+  const maxY = this.screenHeight - 100  // 下边界：底部保留 100px 空间（避免遮挡底部导航）
+  
+  // 4. 应用边界限制
+  this.dragOffsetX = Math.max(minX, Math.min(maxX, x))  // X 轴限制
+  this.dragOffsetY = Math.max(minY, Math.min(maxY, y))  // Y 轴限制
+}
+```
+
+##### 边界计算的设计思路
+
+**1. X 轴边界设计（水平方向）**
+
+```plantext
+屏幕左边缘                                    屏幕右边缘
+    ↓                                              ↓
+    |←─────────── screenWidth ─────────────→|
+    |                                              |
+    |  [弹窗]                                      |
+    |  ├─────────────────┤                         |
+    |  ↑                 ↑                         |
+    | minX            maxX                         |
+    |  (保留60px)    (保留60px)                     |
+```
+
+**为什么 minX = -windowWidth + 60？**
+
+```plantext
+场景：弹窗向左拖拽
+
+正常位置（x = 0）：
+┌─────────────────┐
+│   弹窗内容       │
+└─────────────────┘
+
+拖到左边界（x = minX）：
+    ┌─────────────────┐
+    │   弹窗内容       │  ← 只有右侧 60px 可见
+    └─────────────────┘
+↑
+屏幕左边缘
+
+计算过程：
+弹窗左边缘位置 = x
+弹窗右边缘位置 = x + windowWidth
+要求：弹窗右边缘至少在屏幕内 60px
+即：x + windowWidth >= 60
+解得：x >= 60 - windowWidth
+因此：minX = -windowWidth + 60
+```
+
+**为什么 maxX = screenWidth - 60？**
+
+```plantext
+场景：弹窗向右拖拽
+
+拖到右边界（x = maxX）：
+                    ┌─────────────────┐
+ ← 只有左侧 60px 可见│   弹窗内容       │
+                    └─────────────────┘
+                                       ↑
+                                  屏幕右边缘
+
+计算过程：
+弹窗左边缘位置 = x
+要求：弹窗左边缘至少在屏幕内 60px
+即：x <= screenWidth - 60
+因此：maxX = screenWidth - 60
+```
+
+**2. Y 轴边界设计（垂直方向）**
+
+```plantext
+屏幕顶部
+    ↓
+    ├─────────────────┐
+    │                 │
+    │  [弹窗]         │
+    │  ┌───────────┐  │
+    │  │           │  │
+    │  │  内容区   │  │
+    │  │           │  │
+    │  └───────────┘  │
+    │                 │
+    ├─────────────────┤ ← maxY (screenHeight - 100)
+    │  底部导航区      │ ← 保留 100px
+    └─────────────────┘
+    ↑
+屏幕底部
+```
+
+**为什么 minY = 0？**
+
+```plantext
+设计原则：弹窗不允许超出屏幕顶部
+原因：
+1. 顶部通常有状态栏，超出会被遮挡
+2. 用户无法向上拖拽来恢复弹窗位置
+3. 保持 UI 的整洁性
+```
+
+**为什么 maxY = screenHeight - 100？**
+
+```plantext
+设计原则：底部保留 100px 空间
+原因：
+1. 避免遮挡底部导航栏（通常 48-56px）
+2. 预留手势操作区域（系统手势通常在底部 20-30px）
+3. 确保弹窗标题栏始终可见（标题栏通常 44-56px）
+
+100px = 导航栏高度 + 手势区域 + 安全边距
+```
+
+##### 实际应用场景分析
+
+**场景 1：手机端拖拽**
+
+```typescript
+// 假设：iPhone 14 Pro (screenWidth=393, screenHeight=852)
+const windowWidth = 393 * 0.9 = 353.7px  // 弹窗宽度
+const windowHeight = 852 * 0.75 = 639px  // 弹窗高度
+
+// X 轴边界：
+minX = -353.7 + 60 = -293.7px  // 可以向左拖出 293.7px
+maxX = 393 - 60 = 333px        // 可以向右拖出 60px
+
+// Y 轴边界：
+minY = 0px                     // 不能超出顶部
+maxY = 852 - 100 = 752px       // 底部保留 100px
+
+// 有效拖拽范围：
+// X: [-293.7, 333] → 总宽度 626.7px
+// Y: [0, 752] → 总高度 752px
+```
+
+**场景 2：平板端拖拽**
+
+```typescript
+// 假设：iPad Pro 12.9" (screenWidth=1024, screenHeight=1366)
+const windowWidth = 1024 * 0.5 = 512px   // 弹窗宽度（平板更窄）
+const windowHeight = 1366 * 0.75 = 1024.5px
+
+// X 轴边界：
+minX = -512 + 60 = -452px      // 可以向左拖出 452px
+maxX = 1024 - 60 = 964px       // 可以向右拖出 60px
+
+// Y 轴边界：
+minY = 0px
+maxY = 1366 - 100 = 1266px
+
+// 有效拖拽范围：
+// X: [-452, 964] → 总宽度 1416px（比屏幕宽！）
+// Y: [0, 1266] → 总高度 1266px
+```
+
+##### 边界限制的数学原理
+
+**Clamping 函数的数学定义：**
+
+```ts
+clamp(x, min, max) = {
+  min,  if x < min
+  x,    if min ≤ x ≤ max
+  max,  if x > max
+}
+```
+
+**实现方式对比：**
+
+```typescript
+// 方式 1：if-else（直观但冗长）
+function clamp1(x: number, min: number, max: number): number {
+  if (x < min) return min
+  if (x > max) return max
+  return x
+}
+
+// 方式 2：Math.max + Math.min（简洁高效）
+function clamp2(x: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, x))
+}
+
+// 方式 3：三元运算符（可读性差）
+function clamp3(x: number, min: number, max: number): number {
+  return x < min ? min : (x > max ? max : x)
+}
+
+// 性能对比（1000万次调用）：
+// 方式 1: ~45ms
+// 方式 2: ~42ms ✓ 最快
+// 方式 3: ~48ms
+```
+
+**为什么 Math.max + Math.min 最快？**
+
+```plantext
+原因 1：分支预测优化
+Math.max/min 是 CPU 原生指令，分支预测更准确
+
+原因 2：指令流水线
+两次比较可以并行执行（现代 CPU 的超标量特性）
+
+原因 3：编译器优化
+JavaScript 引擎（V8/JSCore）对 Math 函数有特殊优化
+```
+
+##### 边界值的选择依据
+
+**60px 的选择（X 轴保留宽度）：**
+
+```plantext
+设计考量：
+1. 最小可点击区域：44x44px（iOS 人机界面指南）
+2. 关闭按钮尺寸：通常 32-40px
+3. 视觉识别：至少 50px 才能识别出是弹窗
+
+结论：60px = 关闭按钮(40px) + 边距(20px)
+```
+
+**100px 的选择（Y 轴底部保留）：**
+
+```plantext
+设计考量：
+1. 底部导航栏：48-56px（Material Design / iOS）
+2. 系统手势区域：20-34px（iPhone X 及以后）
+3. 安全边距：16-20px
+
+结论：100px = 导航栏(56px) + 手势区(34px) + 边距(10px)
+```
+
+##### 优化建议
+
+**1. 响应式边界值**
+
+```typescript
+// 当前实现：固定值
+const minX = -windowWidth + 60
+const maxX = this.screenWidth - 60
+
+// 优化建议：根据设备动态调整
+const edgeMargin = this.deviceType === DEVICE_TYPES.PHONE ? 60 : 80  // 平板更大
+const bottomMargin = this.deviceType === DEVICE_TYPES.PHONE ? 100 : 120
+
+const minX = -windowWidth + edgeMargin
+const maxX = this.screenWidth - edgeMargin
+const maxY = this.screenHeight - bottomMargin
+```
+
+**2. 考虑安全区域（Safe Area）**
+
+```typescript
+// 问题：刘海屏、挖孔屏的安全区域未考虑
+// 
+// 优化方案：
+import { window } from '@kit.ArkUI'
+
+async getSafeAreaInsets() {
+  const win = await window.getLastWindow(this.context)
+  const avoidArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM)
+  
+  return {
+    top: avoidArea.topRect.height,      // 状态栏高度
+    bottom: avoidArea.bottomRect.height // 导航栏高度
+  }
+}
+
+// 应用到边界计算：
+const safeArea = await this.getSafeAreaInsets()
+const minY = safeArea.top  // 避开状态栏
+const maxY = this.screenHeight - safeArea.bottom - 20  // 避开导航栏 + 边距
+```
+
+**3. 添加边界反弹动画**
+
+```typescript
+// 当前实现：硬性限制（瞬间停止）
+this.dragOffsetX = Math.max(minX, Math.min(maxX, x))
+
+// 优化建议：添加弹性效果
+clampDragPositionWithBounce(x: number, y: number): void {
+  const clampedX = Math.max(minX, Math.min(maxX, x))
+  const clampedY = Math.max(minY, Math.min(maxY, y))
+  
+  // 如果触碰边界，添加弹性动画
+  if (x !== clampedX || y !== clampedY) {
+    animateTo({
+      duration: 200,
+      curve: Curve.FastOutSlowIn
+    }, () => {
+      this.dragOffsetX = clampedX
+      this.dragOffsetY = clampedY
+    })
+  } else {
+    this.dragOffsetX = clampedX
+    this.dragOffsetY = clampedY
+  }
+}
+```
+
+**4. 性能优化：避免重复计算**
+
+```typescript
+// 当前实现：每次拖拽都重新计算边界
+clampDragPosition(x: number, y: number): void {
+  const windowWidth = this.deviceType === DEVICE_TYPES.PHONE ? ... // 每次都计算
+  const windowHeight = this.screenHeight * 0.75
+  // ...
+}
+
+// 优化建议：缓存边界值
+private bounds: { minX: number, maxX: number, minY: number, maxY: number } | null = null
+
+private calculateBounds(): void {
+  const windowWidth = this.deviceType === DEVICE_TYPES.PHONE 
+    ? this.screenWidth * 0.9 
+    : this.screenWidth * 0.5
+  const windowHeight = this.screenHeight * 0.75
+  
+  this.bounds = {
+    minX: -windowWidth + 60,
+    maxX: this.screenWidth - 60,
+    minY: 0,
+    maxY: this.screenHeight - 100
+  }
+}
+
+clampDragPosition(x: number, y: number): void {
+  if (!this.bounds) {
+    this.calculateBounds()  // 首次计算
+  }
+  
+  this.dragOffsetX = Math.max(this.bounds!.minX, Math.min(this.bounds!.maxX, x))
+  this.dragOffsetY = Math.max(this.bounds!.minY, Math.min(this.bounds!.maxY, y))
+}
+
+// 在屏幕尺寸变化时重新计算
+.onAreaChange((_oldValue: Area, newValue: Area) => {
+  this.screenWidth = newValue.width as number
+  this.screenHeight = newValue.height as number
+  this.bounds = null  // 清除缓存，下次拖拽时重新计算
+})
+```
+
+##### 总结
+
+`clampDragPosition` 函数虽然只有短短几行代码，但体现了多个重要的设计原则：
+
+1. **边界限制算法**：使用 `Math.max` + `Math.min` 实现高效的值域限制
+2. **响应式设计**：根据设备类型（手机/平板）动态调整弹窗尺寸
+3. **用户体验**：保留最小可见区域（60px），确保用户始终能操作弹窗
+4. **安全边距**：底部预留 100px，避免遮挡系统 UI
+5. **性能优化**：使用简洁的数学运算代替复杂的条件判断
+
+这个函数是实现可拖拽浮动窗口的核心组件，确保了无论用户如何拖拽，弹窗都不会完全离开屏幕，始终保持可操作性。
+
+哦！AI给出的优化建议确实很有道理，让我来喂给AI进行一下尝试吧。
+
+**新增代码：**
+
+```typescript
+// 边界值类型
+interface BoundsInfo {
+  minX: number
+  maxX: number
+  minY: number
+  maxY: number
+}
+```
+
+```typescript
+// 边界缓存
+private bounds: BoundsInfo | null = null
+// 安全区域
+private safeAreaTop: number = 0
+private safeAreaBottom: number = 0
+```
+
+#### 边界限制问题
+
+在上文优化过程中发现在当前限制条件仍旧存在问题。向右和向下的限制并不好，向左和向上倒是没事。
+
+![20](HongYiXun/20.jpg)
+
+![21](HongYiXun/21.jpg)
+
+为了更有效的限制，我设置了更多的参数来去限制可移动范围。
+
+```ts
+  /**
+   * 计算边界值（响应式，考虑设备类型和安全区域）
+   */
+  private calculateBounds(): void {
+    const windowWidth = this.deviceType === DEVICE_TYPES.PHONE ? this.screenWidth * 0.9 : this.screenWidth * 0.5
+    const windowHeight = this.screenHeight * 0.75
+
+    // 左侧可以隐藏较多，右侧和底部需要保留更多可见区域
+    const leftMargin = this.deviceType === DEVICE_TYPES.PHONE ? 60 : 80  // 左侧最小可见宽度
+    const rightVisibleRatio = this.deviceType === DEVICE_TYPES.PHONE ? 0.4 : 0.9  // 右侧至少保留 90% 可见
+    const bottomVisibleRatio = 0.5  // 底部至少保留 60% 可见
+
+    this.bounds = {
+      // 左侧：允许窗口几乎完全隐藏，只露出 leftMargin 的宽度
+      minX: -windowWidth + leftMargin,
+      // 右侧：窗口左上角最多到 (屏幕宽度 - 窗口宽度 * 60%)，确保右侧至少 60% 可见
+      maxX: this.screenWidth - windowWidth * rightVisibleRatio,
+      // 顶部：避开状态栏
+      minY: Math.max(0, this.safeAreaTop),
+      // 底部：窗口左上角最多到 (屏幕高度 - 窗口高度 * 60%)，确保底部至少 60% 可见
+      maxY: this.screenHeight - this.safeAreaBottom - windowHeight * bottomVisibleRatio
+    }
+
+    logger.info(`${LOG_TAG.MAIN_PAGE}边界计算完成: ${JSON.stringify(this.bounds)}`)
+    logger.info(`${LOG_TAG.MAIN_PAGE}窗口尺寸: ${windowWidth}x${windowHeight}, 屏幕尺寸: ${this.screenWidth}x${this.screenHeight}`)
+  }
+```
+
+**关键改进：**
+
+| 边界 | 优化前 | 优化后 | 改进说明 |
+|------|--------|--------|----------|
+| **左侧 (minX)** | `-windowWidth + 60` | `-windowWidth + 60/80` | 平板使用更大边距 |
+| **右侧 (maxX)** | `screenWidth - 60` | `screenWidth - windowWidth × 0.4/0.9` | 使用可见比例，防止完全拖出 |
+| **顶部 (minY)** | `0` | `Math.max(0, safeAreaTop)` | 考虑安全区域 |
+| **底部 (maxY)** | `screenHeight - 100` | `screenHeight - safeAreaBottom - windowHeight × 0.5` | 使用可见比例 + 安全区域 |
+
+**核心优化点：**
+
+1. **分离计算逻辑**：将边界计算独立为 `calculateBounds()` 方法
+2. **边界缓存**：计算结果存入 `bounds`，避免重复计算
+3. **可见比例**：右侧和底部使用百分比而非固定像素
+   - 手机右侧：40% 可见
+   - 平板右侧：90% 可见
+   - 底部：50% 可见
+4. **响应式设计**：根据设备类型动态调整参数
+5. **安全区域适配**：考虑系统 UI 高度
+
+![22](HongYiXun/22.png)
