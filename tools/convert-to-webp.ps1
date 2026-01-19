@@ -21,30 +21,31 @@ $gif2webpPath = (Get-Command gif2webp -ErrorAction SilentlyContinue).Source
 foreach ($dir in $directories) {
     $fullPath = Join-Path $basePath $dir
     if (Test-Path $fullPath) {
-        Write-Host "Processing directory: $fullPath" -ForegroundColor Cyan
+        Write-Host "--- Scanning Directory: ${dir} ---" -ForegroundColor Cyan
         $files = Get-ChildItem -Path $fullPath -Recurse -File
         
+        $imgCount = 0
         foreach ($file in $files) {
             $ext = $file.Extension.ToLower()
             if ($imageExtensions -contains $ext) {
+                $imgCount++
                 $webpPath = [System.IO.Path]::ChangeExtension($file.FullName, 'webp')
                 
                 if (-not (Test-Path $webpPath) -or ($file.LastWriteTime -gt (Get-Item $webpPath).LastWriteTime)) {
                     try {
                         if ($ext -eq '.gif') {
-                            if ($gif2webpPath) { & $gif2webpPath -q 75 -mixed "$($file.FullName)" -o "$webpPath" }
+                            if ($gif2webpPath) { & "$gif2webpPath" -q 75 -mixed "$($file.FullName)" -o "$webpPath" }
                         } else {
-                            & $cwebpPath -q 75 "$($file.FullName)" -o "$webpPath"
+                            & "$cwebpPath" -q 75 "$($file.FullName)" -o "$webpPath"
                         }
-                        if ($LASTEXITCODE -eq 0) {
-                            Write-Host "Converted: $($file.Name) -> WebP" -ForegroundColor Green
-                        }
+                        Write-Host "  [OK] $($file.Name) -> WebP" -ForegroundColor Green
                     } catch {
-                        Write-Host "Failed to convert $($file.Name)" -ForegroundColor Red
+                        Write-Host "  [Failed] $($file.Name)" -ForegroundColor Red
                     }
                 }
             }
         }
+        Write-Host "Finished ${dir}. Processed ${imgCount} images." -ForegroundColor Gray
     }
 }
-Write-Host "All image assets optimized!" -ForegroundColor Yellow
+Write-Host "Success: All assets optimized!" -ForegroundColor Yellow
