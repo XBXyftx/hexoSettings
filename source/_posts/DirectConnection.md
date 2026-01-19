@@ -5,7 +5,7 @@ tags:
   - hexo博客搭建
   - netlify
   - 国内直连
-cover: /imgs/ArticleTopImgs/DirectTopImg.png
+cover: /imgs/ArticleTopImgs/DirectTopImg.webp
 description: 本文将介绍如何利用hexo+netlify+github搭建一个国内直连的博客，并且解决国内访问速度问题。
 typewriter: 🌐 破解国内博客访问难题的完美解决方案！本文详细记录了作者在探索Hexo博客国内直连过程中的各种尝试与挫折，最终找到了成功的技术路径。从GitHub Pages的访问限制到GiteePages停服，从华为云AGC到21云盒子的各种坑，作者一路踩雷后发现了Netlify+域名解析的低成本方案。通过详细的配置教程，让读者能够以极低成本（仅需域名费用）实现博客的国内高速稳定访问，彻底解决科学上网的困扰，为国内用户提供流畅的博客访问体验。
 post_copyright:
@@ -35,7 +35,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 新学期开学后的第二周，我发出了第三周的活动预告。
 
-![1](DirectConnection/1.png)
+![1](DirectConnection/1.webp)
 
 `准备好科学上网（活动期间网络问题不负责解决）`这一句被逼无奈的前置条件卡住了多少同学，也预测到了现场肯定会出现不少的网络问题。
 我为了能让更多的同学完成搭建以及学会如何写博客，我就只能对网络问题置之不理。
@@ -44,7 +44,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 登录账号，新建项目，输入域名（`.github.io`）……到这一步我就已经意识到不对了`github`提供的这个域名只是一个二级域名，并非顶级域名，能用来进行托管吗？
 
-![2](DirectConnection/2.png)
+![2](DirectConnection/2.webp)
 
 嗯很显然是不行的，我无法证明我的所有权。
 
@@ -52,13 +52,13 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 oh！我当时就兴奋起来了，立马点开了一键部署按钮。
 
-![3](DirectConnection/3.png)
+![3](DirectConnection/3.webp)
 
 然后设置设置设置…………，最后创建成功。
 
 价格嘛，一天13块钱左右。
 
-![4](DirectConnection/4.png)
+![4](DirectConnection/4.webp)
 
 确实不算贵，但和我之前提到的非刚需，尽可能低成本的理念还是相背离了，一年小5K只是为了国内能稳定访问还是有些不值当，所以我暂时将其作为一个备案，等以后有需要再考虑。
 
@@ -76,13 +76,13 @@ oh！我当时就兴奋起来了，立马点开了一键部署按钮。
 
 活动结束后的几天，我偶然发现了一套看起来可行度极高的低成本解决方案。[使用 Hexo + GitHub + Netlify + Cloudflare 搭建个人博客的全流程](https://blog.grin.cool/blog/hexo-blog#/)
 
-![5](DirectConnection/5.png)
+![5](DirectConnection/5.webp)
 
 这套方案全称只需要去买一个域名就可以，真的属于是十分诱人了。
 
 随即我开始将博客迁移到`netlify`，并尝试使用`cloudflare`进行加速。去华为云趁活动花1块钱搞了个域名，`xbxyftx.top`，然后按照教程一步步操作，却始终卡在域名的验证这一步上。
 
-![6](DirectConnection/6.png)
+![6](DirectConnection/6.webp)
 
 enm，有点难评，尝试了两天依旧不行，可能还是得有个服务器才能实现？不确定，这个方案也只能暂时搁置了。
 
@@ -91,7 +91,7 @@ enm，有点难评，尝试了两天依旧不行，可能还是得有个服务�
 我再次回到了`butterfly`主题的官方中文版配置文件去浏览，是否我遗漏了一些很重要的配置项。
 没想到还真让我看到了一个以前没注意到的点。
 
-![7](DirectConnection/7.png)
+![7](DirectConnection/7.webp)
 
 诶？分析服务设置，这不是我之前这个方案所预期的解决手段吗，而且我就是卡在了官方配置文件所提到的`Cloudflare`上。
 
@@ -124,7 +124,7 @@ microsoft_clarity:
 
 我在浏览上一个方案的解决办法的一众博客时，发现好几篇博客都提到了国内对于`netlify`的平替静态网页托管平台，`21云盒子`。
 
-![8](DirectConnection/8.png)
+![8](DirectConnection/8.webp)
 
 博客园的文章里也有对`21云盒子`的介绍,虽然它的网站看起来比`netlify`的网站要简陋许多，但我也决定先去试试。
 [21云盒子传送门](https://get-started.21cloudbox.com/)
@@ -143,7 +143,7 @@ microsoft_clarity:
 
 ## 正式解决方案
 
-![20](DirectConnection/20.png)
+![20](DirectConnection/20.webp)
 
 首先上原作者的博客和github的repo。
 
@@ -168,7 +168,7 @@ microsoft_clarity:
 这里我推荐去华为云薅一个，[传送门](https://www.huaweicloud.com/product/domain.html)
 现在华为云有首年1块钱的活动，为了降低后续的成本，建议别选`.com .cn`等热门域名，选个小众点的后续续费也比较便宜。
 
-![9](DirectConnection/9.png)
+![9](DirectConnection/9.webp)
 
 可以看到整体价格差异还是比较大的。为了符合我们低成本尽可能白嫖的中心思路我就选择了一个寓意比较好同时续费价格可接受的`.top`域名。
 
@@ -204,7 +204,7 @@ microsoft_clarity:
 * 它拥有压力较小的美国或者欧洲的路线。
 {% endnote %}
 
-![10](DirectConnection/10.png)
+![10](DirectConnection/10.webp)
 
 官方的速度平均快，但方差大，有很大概率无法连接，所以我们需要借助Netlify修改访问的节点来提升访问速度。
 
@@ -212,8 +212,8 @@ microsoft_clarity:
 
 我们直接在Netlify上创建一个项目，然后选择github上的博客仓库。
 
-![11](DirectConnection/11.png)
-![12](DirectConnection/12.png)
+![11](DirectConnection/11.webp)
+![12](DirectConnection/12.webp)
 
 然后静待Netlify自动构建我们的博客即可，这个过程是比较快的，几分钟就可以完成构建。
 
@@ -223,29 +223,29 @@ Netlify能同时托管多个静态网站，并不一定只能用启用了`github
 
 构建完成我们就可以通过Netlify为我们提供的二级子域名就可以去访问我们的博客了。
 
-![13](DirectConnection/13.png)
+![13](DirectConnection/13.webp)
 
 #### 配置自定义域名
 
 在Netlify上配置自定义域名，这里我选择的是之前在华为云上购买的`.top`域名。
 
-![14](DirectConnection/14.png)
+![14](DirectConnection/14.webp)
 
 按照Netlify的提示我们回到自己的域名供应商的控制台，添加Cname解析记录，将自定义域名指向Netlify提供的二级子域名，以验证所有权。
 
-![15](DirectConnection/15.png)
+![15](DirectConnection/15.webp)
 
 最后验证成功的界面如上图所示，随后我们就可以等待Netlify为我们迁移DNS记录，这个过程需要一天左右，我的还算比较快6个小时就完成了。
 
 随后我们回到控制台，将刚才添加的Cname记录的值修改为`netlify-cname.xingpingcn.top.`随后我们就可以实现国内的快速直连了。
 
-![16](DirectConnection/16.png)
+![16](DirectConnection/16.webp)
 
 随后我们可以利用测速工具来进行免费的测速，检测一下国内链接的延迟[传送门](https://www.boce.com/)
 
-![17](DirectConnection/17.png)
+![17](DirectConnection/17.webp)
 
-![18](DirectConnection/18.png)
+![18](DirectConnection/18.webp)
 
 可以看出来整体的连接情况还是远超github的，尤其我的手机一个移动一个联通，在北京直连github还是相当困难的。
 
@@ -260,4 +260,4 @@ Netlify能同时托管多个静态网站，并不一定只能用启用了`github
 
 这个站点我会长期维护更新，我们的征途是星辰大海，我的钻头可是突破天际的钻头！
 
-![19](DirectConnection/19.png)
+![19](DirectConnection/19.webp)

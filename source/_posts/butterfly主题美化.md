@@ -4,7 +4,7 @@ date: 2025-01-26 17:07:22
 tags:
   - hexo博客搭建
   - 主题美化
-cover:  /imgs/ArticleTopImgs/ButterTopImg.jpg
+cover: /imgs/ArticleTopImgs/ButterTopImg.webp
 description: 博客搭建教程
 typewriter: 🦋 从零开始打造属于自己的精美博客！本文提供了Hexo结合Butterfly主题的完整搭建与美化教程。从环境配置、主题安装到深度定制，涵盖了博客搭建的每一个步骤。详细介绍了主题配置、个性化定制、SEO优化、评论系统集成等关键技术点。通过图文并茂的教程和实用技巧分享，帮助读者快速搭建出功能完善、界面美观的个人博客，开启属于自己的网络写作之旅。
 post_copyright:
@@ -17,11 +17,11 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 在用了一周左右的时间搭建博客，沉浸于试效果，改bug，试效果，改bug……的先循环后我还是决定写一篇文章来记录一下，省的未来的自己再走一遍这痛苦的过程。
 
-![哭哭](butterfly主题美化/1.png)
+![哭哭](butterfly主题美化/1.webp)
 
 ### Hexo静态网页生成
 
-![cmd](butterfly主题美化/9.png)
+![cmd](butterfly主题美化/9.webp)
 
 ### nodejs安装
 
@@ -34,7 +34,7 @@ node -v
 npm -v
 ```
 
-![cmd](butterfly主题美化/2.png)
+![cmd](butterfly主题美化/2.webp)
 
 #### git安装
 
@@ -45,7 +45,7 @@ git --version
 ```
 
 正常显示版本即可
-![cmd](butterfly主题美化/3.png)
+![cmd](butterfly主题美化/3.webp)
 
 #### Hexo安装
 
@@ -63,7 +63,7 @@ hexo -v
 ```
 
 查看hexo版本，正常显示版本号说明安装成功。
-![cmd](butterfly主题美化/4.png)
+![cmd](butterfly主题美化/4.webp)
 我这里是因为已经安装了butterfly主题所以会有上面的一行，只要有下面的一大坨版本号即可。
 
 #### hexo初始化
@@ -72,7 +72,7 @@ hexo -v
 随后在该文件夹右键选择 `Git bash here`，执行`hexo init`
 执行完毕后就能看到hexo框架的文件。
 
-![cmd](butterfly主题美化/5.png)
+![cmd](butterfly主题美化/5.webp)
 紧接着我们就让他生成一个初始页面来进行测试。
 
 ```bash
@@ -80,7 +80,7 @@ hexo g && hexo s
 ```
 
 在页面启动后按住ctrl左键点击`http://localhost:4000/` 字段即可自动跳转至浏览器进行本地预览。
-![cmd](butterfly主题美化/6.png)
+![cmd](butterfly主题美化/6.webp)
 当你看到hexo从地平线升起时你就成功创建了一个本地静态博客网页。
 
 ### 部署到GitHub
@@ -97,7 +97,7 @@ ssh-keygen -t rsa -C "XXXXXXXXX@XXX.com"	           # 生成密钥
 ```
 
 在生成密钥的过程中直接全部回车直到生成成功即可。按照默认路径生成的密钥都会储存在`C:\Users\用户名\.ssh\id_rsa.pub`这个地址下，随后打开GitHub设置，添加ssh密钥，将该文件的全部内容黏贴到文本框中即可。
-![cmd](butterfly主题美化/7.png)
+![cmd](butterfly主题美化/7.webp)
 添加好后我们需要将刚生成的密钥同步添加到本地的git中，执行以下命令
 
 ```bash
@@ -113,7 +113,7 @@ ssh -T git@github.com
 
 得到以下回复则说明连接成功。
 
-![cmd](butterfly主题美化/8.png)
+![cmd](butterfly主题美化/8.webp)
 
 运行以下命令，确保 Git 使用了正确的 SSH 密钥：
 

@@ -1283,13 +1283,13 @@ document.addEventListener('DOMContentLoaded', function() {
 ### 普通图片
 
 ```markdown
-![替代文本](https://bu.dusays.com/2025/04/21/6805d63ef1902.jpg)
+![替代文本](https://bu.dusays.com/2025/04/21/6805d63ef1902.webp)
 ![带标题的图片](https://bu.dusays.com/2025/04/21/6805d63ef1902.jpg "图片标题")
 ```
 
 **效果展示：**
 
-![替代文本](https://bu.dusays.com/2025/04/21/6805d63ef1902.jpg)
+![替代文本](https://bu.dusays.com/2025/04/21/6805d63ef1902.webp)
 ![带标题的图片](https://bu.dusays.com/2025/04/21/6805d63ef1902.jpg "图片标题")
 
 ### 参考式图片
@@ -1309,12 +1309,12 @@ document.addEventListener('DOMContentLoaded', function() {
 ### 图片链接
 
 ```markdown
-[![图片](https://bu.dusays.com/2025/04/21/6805d63ef1902.jpg)](https://example.com)
+[![图片](https://bu.dusays.com/2025/04/21/6805d63ef1902.webp)](https://example.com)
 ```
 
 **效果展示：**
 
-[![图片](https://bu.dusays.com/2025/04/21/6805d63ef1902.jpg)](https://example.com)
+[![图片](https://bu.dusays.com/2025/04/21/6805d63ef1902.webp)](https://example.com)
 
 ---
 

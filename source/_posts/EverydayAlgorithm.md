@@ -4,7 +4,7 @@ date: 2025-11-28 17:09:19
 tags:
   - 算法
   - 技术向
-cover: /imgs/ArticleTopImgs/EverydayAlgorithmTopImg.png
+cover: /imgs/ArticleTopImgs/EverydayAlgorithmTopImg.webp
 top: 18
 description: 每天都要刷算法！！！
 typewriter: 这篇文章将会记录我所刷的算法题！！！我一定要刷算法！！！
@@ -25,7 +25,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ### 合并两个有序数组（简单）
 
-![40](EverydayAlgorithm/40.png)
+![40](EverydayAlgorithm/40.webp)
 
 第一次尝试：
 
@@ -46,11 +46,11 @@ function merge(nums1: number[], m: number, nums2: number[], n: number): void {
 };
 ```
 
-![1](EverydayAlgorithm/1.png)
+![1](EverydayAlgorithm/1.webp)
 
-![2](EverydayAlgorithm/2.png)
+![2](EverydayAlgorithm/2.webp)
 
-![3](EverydayAlgorithm/3.png)
+![3](EverydayAlgorithm/3.webp)
 
 这里我们分析一下测试用例。
 
@@ -80,13 +80,13 @@ function merge(nums1: number[], m: number, nums2: number[], n: number): void {
 };
 ```
 
-![4](EverydayAlgorithm/4.png)
+![4](EverydayAlgorithm/4.webp)
 
-![5](EverydayAlgorithm/5.png)
+![5](EverydayAlgorithm/5.webp)
 
 这里可以看到我们的核心问题出现在了对于末尾的0依旧没能完好的处理，但是我们仔细观察会发现其实当前的结果于上一次测试的结果已经出现差异，上一次测试用例一我们没有处理任何0元素，导致5没有被正确添加，但现在可以看到5成功添加了，这说明我们的算法对于消0补数是有一定效果的，让我们来画图推演一下。
 
-![6](EverydayAlgorithm/6.png)
+![6](EverydayAlgorithm/6.webp)
 
 通过一步步的推到会发现问题出现在了批处理删除末尾0的操作中，我们当前算法会以外的少算一个0，因为我只考虑了当前0之后会有几个零没考虑到当前0也需要被消除。
 
@@ -112,11 +112,11 @@ function merge(nums1: number[], m: number, nums2: number[], n: number): void {
 };
 ```
 
-![7](EverydayAlgorithm/7.png)
+![7](EverydayAlgorithm/7.webp)
 
 我们现在着重分析一下测试用例1即可，当前的结果中存在两个问题，一方面是数组总长度少1，另一方面是末尾的添加数字是2。其实这两者仔细分析之后会发现是同一个问题，我们需要消掉的两个0已经被修正后的计数器正确的修复了，但是插入的数字却是被删除的2，这时我突然想到pop函数返回的返回值是被删除的数字，这是之前开发以及数据结构中学习栈结构是学到的，那splice函数是不是也是返回的被删除的数组？
 
-![8](EverydayAlgorithm/8.png)
+![8](EverydayAlgorithm/8.webp)
 
 啊，果然，返回的是被删除的。
 
@@ -142,15 +142,15 @@ function merge(nums1: number[], m: number, nums2: number[], n: number): void {
 };
 ```
 
-![9](EverydayAlgorithm/9.png)
+![9](EverydayAlgorithm/9.webp)
 
-![10](EverydayAlgorithm/10.png)
+![10](EverydayAlgorithm/10.webp)
 
 嘶，用例三又错了，这是为什么呢。
 
-![11](EverydayAlgorithm/11.png)
+![11](EverydayAlgorithm/11.webp)
 
-![12](EverydayAlgorithm/12.png)
+![12](EverydayAlgorithm/12.webp)
 
 在点击了一次下一行之后代码直接运行到了最后一行，说明我们的for循环没有被执行！！！
 
@@ -180,7 +180,7 @@ function merge(nums1: number[], m: number, nums2: number[], n: number): void {
 
 这次可以提交测试了。
 
-![13](EverydayAlgorithm/13.png)
+![13](EverydayAlgorithm/13.webp)
 
 ！！！原来除了在末尾的0以外中间也会出现0。那这就意味着我不能再依赖于0的存在来判断是否需要进行批处理了，这不合理。（不要盲目依仗示范案例啊啊啊）
 
@@ -222,7 +222,7 @@ function merge(nums1: number[], m: number, nums2: number[], n: number): void {
 
 代码很简单易懂直接执行一下进行尝试。
 
-![14](EverydayAlgorithm/14.png)
+![14](EverydayAlgorithm/14.webp)
 
 这里发现全部测试用例都输出的空数组，这很不正常。肯定是在哪里出现了异常。
 
@@ -260,7 +260,7 @@ function merge(nums1: number[], m: number, nums2: number[], n: number): void {
 };
 ```
 
-![15](EverydayAlgorithm/15.png)
+![15](EverydayAlgorithm/15.webp)
 
 首先观察了一下这两个的测试用例的输出结果。两者的共同点在于nums2的数均没有被写进结果数组中，这说明我当前对于nums2的写入逻辑有误。
 
@@ -303,13 +303,13 @@ function merge(nums1: number[], m: number, nums2: number[], n: number): void {
 
 再次测试。
 
-![16](EverydayAlgorithm/16.png)
+![16](EverydayAlgorithm/16.webp)
 
 通过了，而且这个算法的时间复杂度是m+n。
 
 #### 官方题解
 
-![17](EverydayAlgorithm/17.png)
+![17](EverydayAlgorithm/17.webp)
 
 这种解法的时间复杂度较高，直接切除0再排序，但确实这种方法可能更通用一些，要是两个数组并非有序数组它就可以派上用场。
 
@@ -320,9 +320,9 @@ var merge = function(nums1, m, nums2, n) {
 };
 ```
 
-![18](EverydayAlgorithm/18.png)
+![18](EverydayAlgorithm/18.webp)
 
-![gif](https://assets.leetcode-cn.com/solution-static/88/1.gif)
+![gif](https://assets.leetcode-cn.com/solution-static/88/1.webp)
 
 ```js
 var merge = function(nums1, m, nums2, n) {
@@ -357,7 +357,7 @@ var merge = function(nums1, m, nums2, n) {
 
 啊对的对的对的对的，这就是我用的解法。
 
-![19](EverydayAlgorithm/19.png)
+![19](EverydayAlgorithm/19.webp)
 
 ```js
 var merge = function(nums1, m, nums2, n) {
@@ -385,7 +385,7 @@ var merge = function(nums1, m, nums2, n) {
 
 ### 移除元素（简单）
 
-![20](EverydayAlgorithm/20.png)
+![20](EverydayAlgorithm/20.webp)
 
 ```ts
 function removeElement(nums: number[], val: number): number {
@@ -406,9 +406,9 @@ function removeElement(nums: number[], val: number): number {
 
 先整体遍历一遍去除所有相同数字的索引，然后再去进行删除，最后将长度补齐。
 
-![21](EverydayAlgorithm/21.png)
+![21](EverydayAlgorithm/21.webp)
 
-![22](EverydayAlgorithm/22.png)
+![22](EverydayAlgorithm/22.webp)
 
 这里我很快就发现问题，当i索引被消除之后，后续的数字都会减小索引，这就导致我所消除的数字并不是我所期望的索引。
 
@@ -448,21 +448,21 @@ function removeElement(nums: number[], val: number): number {
 }
 ```
 
-![23](EverydayAlgorithm/23.png)
+![23](EverydayAlgorithm/23.webp)
 
-![24](EverydayAlgorithm/24.png)
+![24](EverydayAlgorithm/24.webp)
 
-![25](EverydayAlgorithm/25.png)
+![25](EverydayAlgorithm/25.webp)
 
 直接就是一波通过。
 
 #### 官方题解2
 
-![26](EverydayAlgorithm/26.png)
+![26](EverydayAlgorithm/26.webp)
 
 哦双指针，有意思，这种方式确实是在数据结构课上提到过，我有印象。很好理解，就是一个指针用于遍历，一个指针在前面等着将后面的非删除元素拉到前面，由于后面的删除元素流出的空缺并不需要排序或是用特定方式补全，所以我只需要单纯的覆盖前面的数据就可以，连单独保留一份数据的变量内存都不需要占据。
 
-![27](EverydayAlgorithm/27.png)
+![27](EverydayAlgorithm/27.webp)
 
 从两个方向向中间夹，只判定左侧是否为删除值，哇哦，这种方式确实更加快捷，两个指针合起来的总路程最大也仅仅是数组长度，而单向双指针则会出现右指针遍历一遍，最坏情况左指针也需要遍历一遍，这就导致了单向双指针的最坏时间复杂度是O(2n)，而双指针最坏时间复杂度则是O(n)。
 
@@ -490,11 +490,11 @@ function removeElement(nums: number[], val: number): number {
 
 牛逼卧槽，直接一遍过，原来思路清晰解起来这么快。
 
-![28](EverydayAlgorithm/28.png)
+![28](EverydayAlgorithm/28.webp)
 
 ### 删除有序数组中的重复项（简单）
 
-![29](EverydayAlgorithm/29.png)
+![29](EverydayAlgorithm/29.webp)
 
 ```ts
 function removeDuplicates(nums: number[]): number {
@@ -516,7 +516,7 @@ function removeDuplicates(nums: number[]): number {
 
 在前两道题的熏陶下我第一次想到的就是使用双指针去进行处理，一个去逐一遍历，一个去标志重复的起始点。
 
-![30](EverydayAlgorithm/30.png)
+![30](EverydayAlgorithm/30.webp)
 
 在测试的时候测试用例全部通过。
 
@@ -549,11 +549,11 @@ function removeDuplicates(nums: number[]): number {
 };
 ```
 
-![31](EverydayAlgorithm/31.png)
+![31](EverydayAlgorithm/31.webp)
 
 在添加了边界控制之后发现依旧是半错半对的情况，这说明我们还没有考虑到位，但与此同时通过的测试用例个数也发生了变化，这说明我们当前的改动是有效的，但仍存在问题。
 
-![32](EverydayAlgorithm/32.png)
+![32](EverydayAlgorithm/32.webp)
 
 可以看到这种边界控制是存在严重问题的。冷静分析一下，对于这种情况我们可以将达到数据边界的情况分为左右指针值相等和左右指针值不等两种情况。
 
@@ -588,11 +588,11 @@ function removeDuplicates(nums: number[]): number {
 
 相等时就删除包含右指针自身在内的值，不同则删除左右指针中间的数。
 
-![33](EverydayAlgorithm/33.png)
+![33](EverydayAlgorithm/33.webp)
 
 我们通过的测试用例上涨了，说明这个改动是有效的但还是又欠缺。此时我又想到了另一个问题，就是在于将元素删除后右指针和左指针之间的间隔出现了异常的跨度。
 
-![34](EverydayAlgorithm/34.png)
+![34](EverydayAlgorithm/34.webp)
 
 像是这样的情况会出现将下一个重复区间给拉到无法被监测的区间中。所以在删除完后我们还需要将右指针拉回到左指针位置。
 
@@ -624,11 +624,11 @@ function removeDuplicates(nums: number[]): number {
 };
 ```
 
-![35](EverydayAlgorithm/35.png)
+![35](EverydayAlgorithm/35.webp)
 
-![36](EverydayAlgorithm/36.png)
+![36](EverydayAlgorithm/36.webp)
 
-![37](EverydayAlgorithm/37.png)
+![37](EverydayAlgorithm/37.webp)
 
 #### 官方题解3
 
@@ -661,7 +661,7 @@ function removeDuplicates(nums: number[]): number {
 
 `nums[++leftPointer]=nums[rightPointer++]`超绝细节处理！！！
 
-![39](EverydayAlgorithm/39.png)
+![39](EverydayAlgorithm/39.webp)
 
 两者的时间空间复杂度是一致的，和我原本程序的一样。
 
@@ -669,7 +669,7 @@ function removeDuplicates(nums: number[]): number {
 
 这将会是我做的第一个中等难度的题，让我来试一试。
 
-![42](EverydayAlgorithm/42.jpg)
+![42](EverydayAlgorithm/42.webp)
 
 ```ts
 function removeDuplicates(nums: number[]): number {
@@ -695,31 +695,31 @@ function removeDuplicates(nums: number[]): number {
 
 我的想法是利用双指针，分别指向当前重复元素组的头和尾，当头尾距离超过1，也就是有大于两个的重复元素出现时就开始执行原地删除策略。当尾指针指向的元素和头指针指向的元素不同时，就将左指针移动到右指针位置，右指针继续向右移动。
 
-![43](EverydayAlgorithm/43.png)
+![43](EverydayAlgorithm/43.webp)
 
-![44](EverydayAlgorithm/44.png)
+![44](EverydayAlgorithm/44.webp)
 
 从测试用例的结果来看我的算法没有对数组进行任何有效的处理，也就是说我的算法没有起到任何作用。我需要重新审视一下我的算法。
 
 打个断点进行一下调试。
 
-![45](EverydayAlgorithm/45.png)
+![45](EverydayAlgorithm/45.webp)
 
 这里可以看到左指针没有动同时右指针正常的移动到了2，两者之间相差2了理论上本次应当进入的代码块是第二块
 
-![46](EverydayAlgorithm/46.png)
+![46](EverydayAlgorithm/46.webp)
 
 但实际上它进入的是第一块。？？？啊？为啥？
 
 奥原来是我的条件写错了，我的左右指针写反了。
 
-![47](EverydayAlgorithm/47.png)
+![47](EverydayAlgorithm/47.webp)
 
 那没事了。
 
 ### 多数元素（简单）
 
-![48](EverydayAlgorithm/48.png)
+![48](EverydayAlgorithm/48.webp)
 
 ```ts
 function majorityElement(nums: number[]): number {
@@ -739,7 +739,7 @@ function majorityElement(nums: number[]): number {
 };
 ```
 
-![49](EverydayAlgorithm/49.png)
+![49](EverydayAlgorithm/49.webp)
 
 这里发现当数组长度为1的时候我的算法并不能很好的去进行处理，因为我将其加入到map中之后就结束了没有返回值所以返回的是undefined。
 
@@ -766,7 +766,7 @@ function majorityElement(nums: number[]): number {
 
 简单的加一个判断就可以解决。
 
-![50](EverydayAlgorithm/50.png)
+![50](EverydayAlgorithm/50.webp)
 
 时间空间复杂度都是O(n)。
 
@@ -776,13 +776,13 @@ function majorityElement(nums: number[]): number {
 
 没想到这道题官方题解给出了五种思路，确实是我没想到的。第一种是哈希表，是最暴力的求解就不多说了。第二种是排序，大致思路就是说排序后，众数无论是被排到哪里，数组中间的数一定是众数，而且由于众数个数是大于数组长度的一半，所以无论总长是奇是偶都可以去中值为众数。
 
-![51](EverydayAlgorithm/51.png)
+![51](EverydayAlgorithm/51.webp)
 
 第三种方式就开始高级起来了。
 
 随机化。
 
-![52](EverydayAlgorithm/52.png)
+![52](EverydayAlgorithm/52.webp)
 
 这种方式体现了对于数据特征的深刻理解，但也是一种双刃剑算法，虽然大多数情况都能很快的找到目标的众数，但由于是随机的，就会导致算法的效率不稳定。但这也是一种思路，我要亲自实现以下。
 
@@ -810,15 +810,15 @@ function modeJudgment(nums: number[],num:number):boolean{
 }
 ```
 
-![53](EverydayAlgorithm/53.png)
+![53](EverydayAlgorithm/53.webp)
 
 ok，直接秒掉。不过重点还是在于掌握思路。
 
-![54](EverydayAlgorithm/54.png)
+![54](EverydayAlgorithm/54.webp)
 
 分治！！！之前田老师还强调过这个来着。
 
-![55](EverydayAlgorithm/55.png)
+![55](EverydayAlgorithm/55.webp)
 
 大致是这个意思，我来实现一下。
 
@@ -858,7 +858,7 @@ function split(nums:number[],str:number,end:number):number{
 }
 ```
 
-![56](EverydayAlgorithm/56.png)
+![56](EverydayAlgorithm/56.webp)
 
 ？递归超时？
 
@@ -904,6 +904,6 @@ function split(nums:number[],str:number,end:number):number{
 }
 ```
 
-![57](EverydayAlgorithm/57.png)
+![57](EverydayAlgorithm/57.webp)
 
 分治是个好思想但是他的时间空间好像并不是很优秀。

@@ -3,7 +3,7 @@ title: 编程小知识点
 date: 2025-09-29 14:29:20
 tags:
   - 技术向
-cover:  /imgs/ArticleTopImgs/ProgrammingTipsTopImg.png
+cover: /imgs/ArticleTopImgs/ProgrammingTipsTopImg.webp
 description: 各种杂七杂八的程序员下饭菜
 typewriter: 💡 程序员的"潜水收获"合集！本文汇聚了作者在各种技术群聊中潜水学习到的编程小知识点。从Git版本控制的核心区别到文件压缩格式的性能对比，每个知识点都源自实际开发中的踩坑经历。深入解析git pull vs fetch、rebase vs merge等经典面试题的本质差异，详细对比tar.gz vs zip的技术原理和应用场景。通过生动的比喻和实用的代码示例，让复杂的技术概念变得通俗易懂。这不仅是技术知识的整理，更是"听大佬讲话"后的干货提炼，为开发者提供随时查阅的实用工具手册。适合下饭阅读，让学习变得轻松有趣！
 post_copyright:
@@ -17,7 +17,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 "hello world"欢迎来到我的新文章，我的朋友。我之所以突然想开这样一个不知道是干嘛的文章主要是在因为我经常混迹在各种技术群聊中去潜水，去窥视大佬的生活，听大佬讲话或多或少会有一些知识会流到我脑子里的吧（少女折寿中）。
 
-![1](ProgrammingTips/1.png)
+![1](ProgrammingTips/1.webp)
 
 所以呢，我决定去开一篇文章专门记录一下这些散落在脑海各处的零散的知识点。于是这篇文章就诞生了，各位读者就当是一个随即更新的趣味读物就好了。（下饭下饭下饭）
 

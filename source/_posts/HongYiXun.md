@@ -12,7 +12,7 @@ tags:
 top: 16
 description: 鸿易讯，鸿蒙新闻与鸿蒙开发问答助手应用。
 typewriter: ⚡ 鸿蒙应用性能优化实战：异步链条管理、分页数据流、Map查询加速191倍、GitHub风格热力日历
-cover: /imgs/ArticleTopImgs/HongYiXunTopImg.png
+cover: /imgs/ArticleTopImgs/HongYiXunTopImg.webp
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

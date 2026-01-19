@@ -5,7 +5,7 @@ tags:
   - 鸿蒙
   - 技术向
   - V2
-cover: /imgs/ArticleTopImgs/NavTopImg.png
+cover: /imgs/ArticleTopImgs/NavTopImg.webp
 description: 本文将介绍Navigation与NavDestination的使用方法。
 typewriter: 🧭 探索鸿蒙导航系统的精华指南！本文深入解析了HarmonyOS中Navigation与NavDestination组件的核心用法，这是实现现代移动应用流畅导航的关键技术。从组件的基本概念到一机多态的自适应布局，详细对比了与Router的优势差异。涵盖了RouterMap路由表配置、NavPathStack页面栈管理等核心概念，并提供了完整的代码示例。无论是手机的单栏展示还是平板的分栏模式，都能通过本文掌握专业的导航开发技巧，为鸿蒙应用带来更优雅的用户体验。
 post_copyright:
@@ -30,16 +30,16 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 这两者都是用于进行页面跳转的组件，`Navigation`是用于定义导航图，而`NavDestination`则是用于定义具体的页面。
 两者自带一多能力，可以依据当前设备进行导航方式的选择。
 
-![1](Navigation/1.png)
+![1](Navigation/1.webp)
 
 这是在直板机场景下采用单栏显示模式，子页面的内容会直接替换掉主页面的内容。
 而当我们处于折叠屏展开或是平板场景下则会采用分栏展示模式，子页面的内容会被分栏展示在主页面的右侧。
 
-![2](Navigation/2.png)
+![2](Navigation/2.webp)
 
 两者的区别如下图所示。
 
-![3](Navigation/3.png)
+![3](Navigation/3.webp)
 
 `Navigation`常用于首页的根组件，两者结合常用于类似设置的场景，可以进行多级跳转，或在平板上进行分栏展示子页面内容，同时支持系统默认动画或是自定义转场动画。其效果可以参考以下视频：
 
@@ -72,17 +72,17 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 * `Router`不具备路由拦截能力，而`Navigation`则具备
 * `Navigation`没有路由数量限制，而`Router`则有32个的限制
 
-![23](Navigation/23.png)
+![23](Navigation/23.webp)
 
 就凭这几点，`Navigation`的优势就非常明显了。
 
 而两者**最本质的区别**在于`Router`是通过**切换页面**来进行路由，所以它存在多个页面，但是`Navigation`是通过**切换`NavDestination`子组件**来进行路由的，其全称都**只有一个页面**。
 
-![11](Navigation/11.png)
+![11](Navigation/11.webp)
 
 这张表是对`Navigation`和`Router`的对比，可以很明显的看出两者的区别。
 
-![12](Navigation/12.png)
+![12](Navigation/12.webp)
 
 ## `Navigation`的跳转逻辑
 
@@ -94,7 +94,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
   
 这几者的关系如下图所示：
 
-![6](Navigation/6.png)
+![6](Navigation/6.webp)
 
 `Navigation`作为路由导航的根视图容器，而`NavDestination`则是用来显示`Navigation`的内容区域，一般作为跳转的目标页面。
 
@@ -113,7 +113,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 | `buildFunction` | 目标页入口函数名称，用于构建目标页面的视图组件，必须以@Builder进行修饰 |
 | `data` | 自定义字段。可以通过配置项读取接口getConfigInRouteMap获取 |
 
-![24](Navigation/24.png)
+![24](Navigation/24.webp)
 
 #### `RouterMap`的配置文件
 
@@ -155,7 +155,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 当页面跳转触发时页面栈就会通过路由表`RouterMap`来查找路径对应的页面，然后将其压入栈中，并跳转到该路径对应的页面。
 在`Navigation`组件中，我们通过`NavPathStack`的`push`方法进行页面跳转，通过`pop`方法进行页面返回。
 
-![7](Navigation/7.png)
+![7](Navigation/7.webp)
 
 #### `NavPathStack`的常见操作
 
@@ -424,7 +424,7 @@ struct Second {
 很显然这里还是存在bug的，回传的数据并没有传递到主页。
 我们添加一些日志来进行debug：
 
-![14](Navigation/14.png)
+![14](Navigation/14.webp)
 
 日志很清晰的告诉了我们，返回的结果并不在`"info"`字段里，而是在`"result"`字段里。
 enm……这件事再次警告我们要**认真读文档！！！**
@@ -496,18 +496,18 @@ enm……这件事再次警告我们要**认真读文档！！！**
 
 由此我们可以推导出如下图所示的生命周期函数图：
 
-![9](Navigation/9.png)
+![9](Navigation/9.webp)
 
 对于各个生命周期函数的触发时机如下图所示：
 
-![10](Navigation/10.png)
+![10](Navigation/10.webp)
 
 而这其中我们重点要关注`onReady`这个生命周期函数，因为这是`Navigation`独有的生命周期函数，它触发于**即将构建子组件之前**，也就是说**它触发时子组件还没有构建**。
 可以在这里面做一些数据的准备工作，像是获取传参，拿到组件的上下文组件。
 
 ## `Navigation`组件的转场效果
 
-![17](Navigation/17.png)
+![17](Navigation/17.webp)
 
 ### 默认转场动画
 
@@ -519,7 +519,7 @@ enm……这件事再次警告我们要**认真读文档！！！**
 
 ### 自定义转场动画
 
-![19](Navigation/19.png)
+![19](Navigation/19.webp)
 
 对于自定义动画其实现方式要稍微复杂一些，首先是要通过在`Navigation`组件的`customNavContentTransition`事件去获取即将触发动画的来去两个页面的页面信息，再从`CustomTransitionFW`动画框架工具类中查询注册的动画信息。
 不过要注意我们的动画效果依旧是通过`transelate`属性去实现的所以我们仍旧需要为组件添加该属性。
@@ -588,4 +588,4 @@ export const animateParam: AnimateParam = { duration: 1500, curve: curves.spring
 
 对于工具栏，我在学习一多之前进行了尝试但是效果和我想的不一样，所以我决定先去学一多，所以咱们可以移步一多的博客了。
 
-![22](Navigation/22.jpg)
+![22](Navigation/22.webp)

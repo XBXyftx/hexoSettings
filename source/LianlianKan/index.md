@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
       row.forEach((picNum, j) => {
         const block = document.createElement('div');
         block.className = 'block';
-        block.style.backgroundImage = `url(/LianlianKan/imgs/${picNum}.jpg)`;
+        block.style.backgroundImage = `url(/LianlianKan/imgs/${picNum}.webp)`;
         block.dataset.row = i;
         block.dataset.col = j;
         block.addEventListener('click', handleBlockClick);

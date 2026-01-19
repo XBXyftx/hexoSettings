@@ -8,7 +8,7 @@ tags:
   - V2
 description: 面试通项目开发笔记
 typewriter: 💼 从零开始构建完整的鸿蒙应用——面试通！本文记录了作者第一个完整鸿蒙项目的开发历程。涵盖了项目架构设计、工具类封装、UI组件开发等完整开发流程。详细介绍了hilog日志系统、沉浸式效果、状态栏控制等技术实现。项目包含鸿蒙和前端面试题库、真实面试经验分享、开发单词工具、面试录音等实用功能。通过实际项目开发，展现了鸿蒙应用开发的最佳实践和技术深度。
-cover: /imgs/ArticleTopImgs/MSTTopImg.png
+cover: /imgs/ArticleTopImgs/MSTTopImg.webp
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
@@ -24,7 +24,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 面试通项目是一个基于 HarmonyOS NEXT 开发的鸿蒙应用，主要包含鸿蒙和前端的企业面试题以及真实的面试经验，还有一些面试辅助类的工具如常用开发单词和面试录音。
 
-![1](MianShiTong/1.png)
+![1](MianShiTong/1.webp)
 
 以上是该项目的概念设计图，接下来我将会记录整个项目的开发过程。
 
@@ -62,7 +62,7 @@ ets
     └── Question                // - 页面对应自定义组件
 ```
 
-![2](MianShiTong/2.png)
+![2](MianShiTong/2.webp)
 
 #### 项目资源配置
 
@@ -70,7 +70,7 @@ ets
 
 将所需的颜色字段配置到`resources/base/element/color.json`中。
 
-![3](MianShiTong/3.png)
+![3](MianShiTong/3.webp)
 
 对主色系的统一管理队后续的开发、维护都有着极大的好处。
 不能将所有的数据都内嵌在代码中，用一次复制一次，这样不仅对开发效率有影响，而且不利于后期的维护。
@@ -83,7 +83,7 @@ ets
 
 在`module.json5`中配置应用的图标。
 
-![4](MianShiTong/4.png)
+![4](MianShiTong/4.webp)
 
 ##### 应用名称
 
@@ -99,22 +99,22 @@ ets
 可以直接同名图片文件替换，也可在`AppScope/resources/base/media`目录下放置不同名文件。
 然后修改`AppScope/app.json5`中的`"icon"`字段的值。
 
-![5](MianShiTong/5.png)
+![5](MianShiTong/5.webp)
 
 ### 创建git和本地以及远程仓库
 
 直接利用IDE内置的git工具即可，这里就不赘述了。
 不过有一点要注意，**git并不会帮你托管空文件夹**，而当前构建的项目结构中包含了大量的空文件夹，这些文件夹还**暂时**没有创建任何文件，所以我们为了保证在远程仓库中的**项目结构**依旧**保持完整**我们需要创建一些**占位文件**，来让git为我们托管全部文件夹。
 
-![6](MianShiTong/6.png)
+![6](MianShiTong/6.webp)
 
 这是在创建占位文件前的远程仓库目录结构。
 
-![7](MianShiTong/7.png)
+![7](MianShiTong/7.webp)
 
 创建`.gitkeep`文件后，远程仓库的目录结构如下所示。
 
-![8](MianShiTong/8.png)
+![8](MianShiTong/8.webp)
 
 {% note info flat  %}
 占位文件在后续开发中删除即可，无需保留，没有实际用途。
@@ -179,7 +179,7 @@ struct Index {
 }
 ```
 
-![9](MianShiTong/9.png)
+![9](MianShiTong/9.webp)
 
 从输出的结果我们可以看到，首先在前面的日志分类信息中会先显示我们设置的日志业务分区信息，然后是日志的**标识信息**，最后是日志的**内容**。
 而日志的内容格式是通过第三个参数来进行格式化输出的。
@@ -194,7 +194,7 @@ struct Index {
       })
 ```
 
-![10](MianShiTong/10.png)
+![10](MianShiTong/10.webp)
 
 `%{public}s`表示字符串类型，`%{public}d`表示数字类型。两者之间连接的字符就是靠第三个参数中的字符串来进行定义的。
 这个输出格式倒是和C语言中的`printf()`函数类似。（唤起了远古的回忆……）
@@ -296,7 +296,7 @@ struct Index {
 
 这样我们就可以看到我们可以用更加简便的方式做到与hilog一致的效果了。
 
-![11](MianShiTong/11.png)
+![11](MianShiTong/11.webp)
 
 ### 封装沉浸式工具
 
@@ -305,10 +305,10 @@ struct Index {
 #### 前置知识
 
 [window.getLastWindow 获取当前窗口对象](https://developer.huawei.com/consumer/cn/doc/harmonyos-references-V14/js-apis-window-V14?catalogVersion=V14)
-![12](MianShiTong/12.png)
+![12](MianShiTong/12.webp)
 
 [getWindowAvoidArea 使用窗口对象获取某一个区域的尺寸](https://developer.huawei.com/consumer/cn/doc/harmonyos-references-V14/js-apis-window-V14#getwindowavoidarea9)
-![13](MianShiTong/13.png)
+![13](MianShiTong/13.webp)
 
 #### 开启沉浸模式
 
@@ -390,7 +390,7 @@ export class GetContext{
 
 最后在`onWindowStageCreate`生命周期函数中调用`enable()`方法开启全屏。
 
-![14](MianShiTong/14.png)
+![14](MianShiTong/14.webp)
 
 也是顺利的实现了沉浸式效果。
 
@@ -401,9 +401,9 @@ export class GetContext{
 
 为了实现这个效果，我们需要用到`getWindowAvoidArea()`方法。
 
-![15](MianShiTong/15.png)
+![15](MianShiTong/15.webp)
 
-![16](MianShiTong/16.png)
+![16](MianShiTong/16.webp)
 
 根据文档我们就可以获取我们所需的规避区域的尺寸，并将其应用到我们的布局中。
 
@@ -495,7 +495,7 @@ struct Index {
 在编写完以上代码之后，上下区域的规避并没有实现。
 此时就体现出了打印日志打重要性。
 
-![17](MianShiTong/17.png)
+![17](MianShiTong/17.webp)
 
 通过日志我们可知问题出现在获取获取规避区域的高度时，AppStorageV2中并没有存储我们所需的数据。
 而FullScreen文件获取避障区域高度的日志是在这之后打印的说明我们获取避障区域的代码执行晚了。
@@ -504,7 +504,7 @@ struct Index {
 
 在寻找了一段时间执行时间的问题之后，暂时还没有解决，但我发现了另外一个问题，AppStorageV2在存储顶部区域数据时会卡死，后续的代码都不会执行。
 
-![18](MianShiTong/18.png)
+![18](MianShiTong/18.webp)
 
 我不知道是因为底部区域的高度数值获取错误导致的后续代码没有执行，还是代码就卡死在了存储顶部区域高度的这一步。
 
@@ -551,7 +551,7 @@ AppStorageV2.connect(Number,bottomAreaHeight,()=>new Number(px2vp(bottomArea.hei
 在解决了初始化问题后，我发现规避区域的高度并没有生效。
 根据日志我们可以看到
 
-![19](MianShiTong/19.png)
+![19](MianShiTong/19.webp)
 
 Index页面获取数据的时机依旧是在`AppStorageV2.connect()`方法之前，也就是说规避区域的高度并没有在Index页面初始化时获取到。
 这个问题暂时我还没有解决办法，所以我决定先利用V1版本所提供的单项绑定能力来规避时间差问题。
@@ -561,11 +561,11 @@ Index页面获取数据的时机依旧是在`AppStorageV2.connect()`方法之前
   @StorageProp(bottomAreaHeight) bottomAvoidSize: number = 0
 ```
 
-![20](MianShiTong/20.png)
+![20](MianShiTong/20.webp)
 
 ---
 
-![21](MianShiTong/21.png)
+![21](MianShiTong/21.webp)
 
 由此我们可看出，虽然在UI渲染完成时规避区域的高度数据依旧没有完成初始化，数据仍未默认的0，而由于V1的单项绑定能力，规避区域的高度依旧可以通过数据的改变而生效。
 
@@ -579,7 +579,7 @@ Index页面获取数据的时机依旧是在`AppStorageV2.connect()`方法之前
   首先我们考虑的是再次用V1和V2两种`AppStorage`分别创建全局变量，并通过打印日志的方式来观察全局变量的初始化时机。
   解雇与昨天的结果一样，两者的初始化时机都是在**Index页面已经构建完成后**才完成的初始化。
   
-  ![22](MianShiTong/22.png)
+  ![22](MianShiTong/22.webp)
 
   现在我们可以确定目前代码的执行顺序如上图所示。
 
@@ -593,14 +593,14 @@ Index页面获取数据的时机依旧是在`AppStorageV2.connect()`方法之前
   这就导致我们需要在搞清楚代码执行顺序后，在**最先用到这个数据的地方**进行构造器的传入才能完成初始化。
   而`enable`函数却不是最先用到这个数据的地方，而是在`Index`页面构建后才用到的。
 
-  ![23](MianShiTong/23.png)
+  ![23](MianShiTong/23.webp)
 
 * 查找文档:
-  ![24](MianShiTong/24.png)
+  ![24](MianShiTong/24.webp)
   
   ---
 
-  ![25](MianShiTong/25.png)
+  ![25](MianShiTong/25.webp)
 
   文档中并没有提供双向绑定或是单项绑定的方法，而我发现V2版本的全局变量思想与V1版本稍有不同。
   V1版本中在UI组件中要用**专属修饰器**来与全局变量进行单向或双向绑定，在逻辑函数中则要分别用**创建，获取，修改等API接口**来进行读写操作。
@@ -662,7 +662,7 @@ Index页面获取数据的时机依旧是在`AppStorageV2.connect()`方法之前
   }
   ```
 
-  ![26](MianShiTong/26.png)
+  ![26](MianShiTong/26.webp)
 
   通过生命周期函数和变量监听器的日志我们可以看到代码的**执行顺序没有变**，与之前的推测一致。
   通过包装对象的方式我们顺利的让系统**监听到了数值的变化**，实现的UI状态变量的数值更新。
@@ -774,11 +774,11 @@ Index页面获取数据的时机依旧是在`AppStorageV2.connect()`方法之前
   }
 ```
 
-![28](MianShiTong/28.png)
+![28](MianShiTong/28.webp)
 
 ---
 
-![29](MianShiTong/29.png)
+![29](MianShiTong/29.webp)
 
 至此沉浸式功能实现。
 
@@ -878,7 +878,7 @@ Index页面获取数据的时机依旧是在`AppStorageV2.connect()`方法之前
 
 #### 首页布局
 
-![31](MianShiTong/31.png)
+![31](MianShiTong/31.webp)
 
 首先通过设计图我们可以分析出整体采用tabs来进行布局。
 最上方一个置顶栏位，中上部一个轮播图，中下部用一个List，底部用自定义`Builder`传入`tabBar`。
@@ -930,7 +930,7 @@ export interface TabItem {
 每个页面由于需要有不同的状态变量以及不同的逻辑函数，且其逻辑与生命周期相绑定，我们就不能采用轻量化的`@Builder`来进行渲染，而要采用`@ComponentV2`来进行渲染。
 每个页面都封装为一个独立的组件，由于其都属于页面，只不过没有`@Entry`所以不算是Page。我们只需要在`Pages`文件夹下去新建四个`ArkTS File`即可。
 
-![32](MianShiTong/32.png)
+![32](MianShiTong/32.webp)
 
 然后根据不同的下标来渲染不同的页面组件。
 
@@ -1005,9 +1005,9 @@ export struct HcSearchBox {
   @Param clockInCount: number = 0
 ```
 
-![33](MianShiTong/33.png)
+![33](MianShiTong/33.webp)
 
-![34](MianShiTong/34.png)
+![34](MianShiTong/34.webp)
 
 #### 轮播图组件封装
 
@@ -1041,7 +1041,7 @@ export struct HcSearchBox {
 
 #### 试题分组组件封装
 
-![36](MianShiTong/36.png)
+![36](MianShiTong/36.webp)
 
 我们可以看到，在中上部轮播图的下方便是试题分组组件，其大致分为两部分：
 
@@ -1225,12 +1225,12 @@ export struct HcTag {
     .barHeight(44)
 ```
 
-![38](MianShiTong/38.png)
+![38](MianShiTong/38.webp)
 这样我们就实现了标签组件的封装。
 
 #### 试题列表Item组件封装
 
-![39](MianShiTong/39.png)
+![39](MianShiTong/39.webp)
 
 首先我们通过对效果图的布局进行分析，可以看到整体布局还是较为简洁的，大致可以分为上下两个部分：
 
@@ -1287,7 +1287,7 @@ function grayText(isStart: boolean = false) {
 }
 ```
 
-![40](MianShiTong/40.png)
+![40](MianShiTong/40.webp)
 
 #### 完成试题列表渲染
 
@@ -1574,7 +1574,7 @@ export struct QuestionListComp {
 
 然后通过修改状态变量的初始默认值来测试效果
 
-![43](MianShiTong/43.png)
+![43](MianShiTong/43.webp)
 
 随后我们依旧使用定时器来模拟网络请求的成功情况。
 这里我们将获取的问题条数**上限设为40条**以免过多的加载数据导致页面卡顿。
@@ -1639,7 +1639,7 @@ enm经过测试发现由于`onReachEnd`事件的机制，**在触底时触发一
   您的浏览器不支持视频标签。
 </video>
 
-![45](MianShiTong/45.png)
+![45](MianShiTong/45.webp)
 
 至此本功能组件封装测试完毕。
 
@@ -1662,7 +1662,7 @@ enm经过测试发现由于`onReachEnd`事件的机制，**在触底时触发一
   }
 ```
 
-![46](MianShiTong/46.png)
+![46](MianShiTong/46.webp)
 
 通过日志我们可以明确的看到，在下拉刷新时，数组数据会被清空，然后再重新加载数据。
 
@@ -1692,7 +1692,7 @@ enm经过测试发现由于`onReachEnd`事件的机制，**在触底时触发一
   }
 ```
 
-![47](MianShiTong/47.png)
+![47](MianShiTong/47.webp)
 
 至此本功能组件封装测试完毕。
 
@@ -1740,7 +1740,7 @@ export const axiosInstance = axios.create({
 1. 泛型参数的填写较为繁琐，在`get`请求时**第一个参数无关紧要可以为`null`**，第二个参数是结果的类型，第三个参数由于没有需要传递的请求体参数，就可以不用填写，或者为`null`。在`post`请求时，**第一个参数依旧无关紧要可以为`null`**，第二个参数是响应结果的类型，第三个参数是请求体类型**不可省略**。
 2. 从数据接口获取所需数据的路径过长，像是想要获取下图所示结构中的`account`字段的值，我们需要写成`res.data.data.account`，这样一来就会很麻烦。
 
-![48](MianShiTong/48.png)
+![48](MianShiTong/48.webp)
 
 而且在相应信息中并非所有信息都是我们所需要的，所以我们可以针对axios的响应结果进行拦截，将我们不需要的数据剔除掉。
 
@@ -1780,7 +1780,7 @@ axiosInstance.interceptors.response.use((res:AxiosResponse)=>{
 第一层`data`字段是axios库自动添加的，**并非**我们在接口文档里所看到的响应体数据，我们不需要关心它。
 本项目的接口响应数据基本都如下图所示：
 
-![49](MianShiTong/49.png)
+![49](MianShiTong/49.webp)
 
 所以我们其实可以对返回值再加一层`data`字段，这样我们就可以直接通过`res.字段`来获取到数据了。
 
@@ -1826,7 +1826,7 @@ export const axiosHttp = new AxiosHttp()
   }
 ```
 
-![50](MianShiTong/50.png)
+![50](MianShiTong/50.webp)
 
 我们可以看到此处是在报错的，由报错信息可以分析出，当前我们虽然传入了一个泛型参数，第二个泛型参数我们也设置了默认值非必要填写，但这个泛型参数并没有正确的传递给`axiosInstance`实例，导致`axiosInstance`实例无法正确的解析泛型参数。
 
@@ -1841,7 +1841,7 @@ export const axiosHttp = new AxiosHttp()
 
 修改后再次测试功能正常。
 
-![51](MianShiTong/51.png)
+![51](MianShiTong/51.webp)
 
 #### 响应请求码判断
 
@@ -1884,7 +1884,7 @@ axiosInstance.interceptors.response.use((res: AxiosResponse) => {
 
 ##### 根据后端文档定义数据类型
 
-![52](MianShiTong/52.png)
+![52](MianShiTong/52.webp)
 
 我们可以看，这个接口的返回数据还是相当多的，所以我们还需要慢慢分析。
 
@@ -1967,7 +1967,7 @@ export interface IGetQuestionListUrlParams {
   })
 ```
 
-![53](MianShiTong/53.png)
+![53](MianShiTong/53.webp)
 
 ```ts
   /**
@@ -2002,11 +2002,11 @@ export interface IGetQuestionListUrlParams {
 
 但在测试时发现此处代码还有问题。
 
-![54](MianShiTong/54.png)
+![54](MianShiTong/54.webp)
 
 列表并没有成功的获取，我们来查看一下日志。
 
-![55](MianShiTong/55.png)
+![55](MianShiTong/55.webp)
 
 我们可以看到请求是成功了的，这里也成功的传回了响应值，但不知道为什么是空的，我们进行进一步排查。
 
@@ -2018,7 +2018,7 @@ export interface IGetQuestionListUrlParams {
   questionBankType: 10,
 ```
 
-![56](MianShiTong/56.png)
+![56](MianShiTong/56.webp)
 
 我们可以看到修改后数据就正常获取了。
 
@@ -2059,7 +2059,7 @@ enm……还能怎么说呢，认真读文档吧……
 
 在试题标签栏右侧会有一个小按钮用于拉起半模态弹窗来快速筛选标签。
 
-![57](MianShiTong/57.png)
+![57](MianShiTong/57.webp)
 
 这个图标我们可以通过层叠布局来盖在标签栏上。
 
@@ -2180,7 +2180,7 @@ export struct FilterButton {
       }
 ```
 
-![59](MianShiTong/59.jpg)
+![59](MianShiTong/59.webp)
 
 由此我们可以看到我们可以很轻松的控制每个按钮的样式。
 
@@ -2197,7 +2197,7 @@ export struct FilterButton {
       }
 ```
 
-![60](MianShiTong/60.jpg)
+![60](MianShiTong/60.webp)
 
 #### 半模态筛选按钮点击事件
 
@@ -2267,7 +2267,7 @@ export struct FilterButton {
 
 再配合上日志信息我们可以看到排序方式已经成功的切换了。
 
-![62](MianShiTong/62.png)
+![62](MianShiTong/62.webp)
 
 ##### 正逆序的实现
 
@@ -2275,7 +2275,7 @@ export struct FilterButton {
 
 我们可以直接**分类判断难度和观看量的正逆序**来高亮显示，但那样还是比较**冗余**，我们可以用更简单的方式，不过这就需要我们善于观察并**发现规律**了。
 
-![63](MianShiTong/63.png)
+![63](MianShiTong/63.webp)
 
 我们通过观察可以看出两者正逆序代表的数字**奇偶性一致**，这样我们就可以通过**判断奇偶**来统一的管理正逆序。
 
@@ -2434,13 +2434,13 @@ export struct FilterButton {
 
 骨架屏这个东西还是挺常见的，是一种用于替换加载动画的的效果，它可以在加载数据时显示一个占位的页面，让用户知道数据正在加载中。
 
-![68](MianShiTong/68.jpg)
+![68](MianShiTong/68.webp)
 
 饿了吗的骨架屏效果就是很典型的客户端骨架屏效果。
 
 关于为什么要用骨架屏效果，我们可以参考github上的这段话：
 
-![69](MianShiTong/69.png)
+![69](MianShiTong/69.webp)
 
 **用户不喜欢看到白屏**，骨架屏会让用户感到数据马上就会出现在眼前，虽然只是心里安慰，但却依旧可以有效的**提升用户体验**。
 

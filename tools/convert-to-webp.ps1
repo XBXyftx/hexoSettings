@@ -3,34 +3,20 @@ param(
 )
 
 $imageExtensions = @('.png','.jpg','.jpeg','.gif')
-$directories = @('imgs', '_posts', 'about', 'swiper', 'coffer')
+$directories = @('img', 'imgs', '_posts', 'about', 'swiper', 'coffer')
 
-# 1. 查找 cwebp 路径
 $cwebpPath = (Get-Command cwebp -ErrorAction SilentlyContinue).Source
 if (-not $cwebpPath) {
-    $possiblePaths = @(
-        "$HOME\scoop\shims\cwebp.exe",
-        "C:\Users\$env:USERNAME\scoop\shims\cwebp.exe",
-        "C:\ProgramData\scoop\shims\cwebp.exe"
-    )
-    foreach ($p in $possiblePaths) {
-        if (Test-Path $p) { $cwebpPath = $p; break }
-    }
+    $possiblePaths = @("$HOME\scoop\shims\cwebp.exe", "C:\Users\$env:USERNAME\scoop\shims\cwebp.exe")
+    foreach ($p in $possiblePaths) { if (Test-Path $p) { $cwebpPath = $p; break } }
 }
 
 if (-not $cwebpPath) {
-    Write-Host "Error: cwebp not found! Please check if libwebp is installed." -ForegroundColor Red
+    Write-Host "Error: cwebp not found!" -ForegroundColor Red
     exit 1
 }
 
-# 2. 查找 gif2webp 路径
 $gif2webpPath = (Get-Command gif2webp -ErrorAction SilentlyContinue).Source
-if (-not $gif2webpPath) {
-    $gifPath = "$HOME\scoop\shims\gif2webp.exe"
-    if (Test-Path $gifPath) { $gif2webpPath = $gifPath }
-}
-
-Write-Host "Using cwebp: $cwebpPath" -ForegroundColor Gray
 
 foreach ($dir in $directories) {
     $fullPath = Join-Path $basePath $dir
@@ -46,9 +32,7 @@ foreach ($dir in $directories) {
                 if (-not (Test-Path $webpPath) -or ($file.LastWriteTime -gt (Get-Item $webpPath).LastWriteTime)) {
                     try {
                         if ($ext -eq '.gif') {
-                            if ($gif2webpPath) {
-                                & $gif2webpPath -q 75 -mixed "$($file.FullName)" -o "$webpPath"
-                            }
+                            if ($gif2webpPath) { & $gif2webpPath -q 75 -mixed "$($file.FullName)" -o "$webpPath" }
                         } else {
                             & $cwebpPath -q 75 "$($file.FullName)" -o "$webpPath"
                         }
@@ -63,4 +47,4 @@ foreach ($dir in $directories) {
         }
     }
 }
-Write-Host "Optimization Task Finished!" -ForegroundColor Yellow
+Write-Host "All image assets optimized!" -ForegroundColor Yellow

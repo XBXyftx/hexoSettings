@@ -4,7 +4,7 @@ date: 2025-07-16 10:30:00
 tags: [个人, 想法, 测试]
 categories: [私密日记]
 description: 孙妈专供来了孙妈专供来啦！！！
-cover: /imgs/cofferTopImg/SUNHarmonyTopIMG.png
+cover: /imgs/cofferTopImg/SUNHarmonyTopIMG.webp
 ---
 
 ## 前言
@@ -17,7 +17,7 @@ cover: /imgs/cofferTopImg/SUNHarmonyTopIMG.png
 
 来，咱们就跟着指南文档走。
 
-![1752655422806.png](https://bu.dusays.com/2025/07/16/6877664161ae4.png)
+![1752655422806.png](https://bu.dusays.com/2025/07/16/6877664161ae4.webp)
 
 ## 一多
 
@@ -52,9 +52,9 @@ cover: /imgs/cofferTopImg/SUNHarmonyTopIMG.png
 
 响应式布局的重点在于**断点**，这个机制和web中的媒体查询最大宽度为多少px类似。
 
-![1752656421975.png](https://bu.dusays.com/2025/07/16/68776a29064b1.png)
+![1752656421975.png](https://bu.dusays.com/2025/07/16/68776a29064b1.webp)
 
-![1](https://alliance-communityfile-drcn.dbankcdn.com/FileServer/getFile/cmtyPub/011/111/111/0000000000011111111.20250711181253.87610381517529925957874265428532:50001231000000:2800:ADEA2F2FCC8366405021EF28E7F14DDE6C7DD31D3A3F41FBEE1DB4757FB047B4.png)
+![1](https://alliance-communityfile-drcn.dbankcdn.com/FileServer/getFile/cmtyPub/011/111/111/0000000000011111111.20250711181253.87610381517529925957874265428532:50001231000000:2800:ADEA2F2FCC8366405021EF28E7F14DDE6C7DD31D3A3F41FBEE1DB4757FB047B4.webp)
 
 {% note success flat %}
 横向断点以应用窗口宽度为判断条件，纵向断点根据应用窗口的高宽比进行判断
@@ -107,14 +107,14 @@ GridRow就是一个白板，GridCol就是白板上的海报，一个宽“12列�
 
 核心就一个词，{% label 分布式软总线 red %}。
 
-![1](https://alliance-communityfile-drcn.dbankcdn.com/FileServer/getFile/cmtyPub/011/111/111/0000000000011111111.20250716163547.63664843999279118532520875091958:50001231000000:2800:432CCB2DCCDCE8D02D32916D779B12404C80E9F1269E7B3F1C774946B2C0BF78.png)
+![1](https://alliance-communityfile-drcn.dbankcdn.com/FileServer/getFile/cmtyPub/011/111/111/0000000000011111111.20250716163547.63664843999279118532520875091958:50001231000000:2800:432CCB2DCCDCE8D02D32916D779B12404C80E9F1269E7B3F1C774946B2C0BF78.webp)
 
 一张图看懂了就行，然后记住三个接口就行。
 
 - 在源端，通过UIAbility的onContinue()回调，开发者可以保存待接续的业务数据
 - 在对端，同一UIAbility通过onCreate/onNewWant接口恢复业务数据
 
-![2](https://alliance-communityfile-drcn.dbankcdn.com/FileServer/getFile/cmtyPub/011/111/111/0000000000011111111.20250716163547.33317382165895960652785701896989:50001231000000:2800:C0EB417E3AC7E678EFD578D75603512C38C6CFC534BB1F676C5F535240D7513A.png)
+![2](https://alliance-communityfile-drcn.dbankcdn.com/FileServer/getFile/cmtyPub/011/111/111/0000000000011111111.20250716163547.33317382165895960652785701896989:50001231000000:2800:C0EB417E3AC7E678EFD578D75603512C38C6CFC534BB1F676C5F535240D7513A.webp)
 
 小结一下onCreate是冷启动，onNewWant是热启动。
 
@@ -126,7 +126,7 @@ GridRow就是一个白板，GridCol就是白板上的海报，一个宽“12列�
 
 这里主要是说一下同应用跨设备数据同步。核心的三种同步对象就是键值型数据库、关系型数据库以及分布式数据对象。前两种就是数据库，后面这个**分布式数据对象是应用流转时获取接续数据用的**
 
-![1](https://alliance-communityfile-drcn.dbankcdn.com/FileServer/getFile/cmtyPub/011/111/111/0000000000011111111.20250716162323.68055553184127680288373629482746:50001231000000:2800:F3EECA9D64115D569022B3B3243726E1CF1215D4F32DC8B2E9DA6C67DB7C30F9.jpg)
+![1](https://alliance-communityfile-drcn.dbankcdn.com/FileServer/getFile/cmtyPub/011/111/111/0000000000011111111.20250716162323.68055553184127680288373629482746:50001231000000:2800:F3EECA9D64115D569022B3B3243726E1CF1215D4F32DC8B2E9DA6C67DB7C30F9.webp)
 
 分布式数据对象即实现了{% label 对“变量”的“全局”访问 pink %}。向应用开发者提供内存对象的创建、查询、删除、修改、订阅等基本数据对象的管理能力，同时具备分布式能力。
 

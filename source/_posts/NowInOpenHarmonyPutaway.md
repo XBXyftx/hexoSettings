@@ -7,7 +7,7 @@ tags:
   - 项目
   - 技术向
   - NowInOpenHarmony
-cover:  /imgs/ArticleTopImgs/NowInOpenHarmonyPutawayTopImg.jpg
+cover: /imgs/ArticleTopImgs/NowInOpenHarmonyPutawayTopImg.webp
 description: NowInOpenHarmony上架笔记，记录从后端打包到OpenHarmony官网重构（已被迫断更）
 typewriter: 💔 一个充满戏剧性的上架故事 | 开源之夏三个月开发，Docker部署、宝塔配置、tar格式踩坑...历经千辛万苦完成服务器部署，结果发现OpenHarmony官网全面重构，所有爬虫接口全部失效。三个月一半心血瞬间白费，这就是真实的开发世界。虽被迫断更，但技术积累永不白费。✨ 已被OpenHarmony官方SIG收录 | 我会回来的！
 post_copyright:
@@ -26,19 +26,19 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 从技术解读到生态资讯，随时随地掌握一手信息，是OpenHarmony生态用户的必备工具。
 
-![3](NowInOpenHarmonyPutaway/3.jpg)
+![3](NowInOpenHarmonyPutaway/3.webp)
 
-![4](NowInOpenHarmonyPutaway/4.jpg)
+![4](NowInOpenHarmonyPutaway/4.webp)
 
-![5](NowInOpenHarmonyPutaway/5.jpg)
+![5](NowInOpenHarmonyPutaway/5.webp)
 
-![6](NowInOpenHarmonyPutaway/6.jpg)
+![6](NowInOpenHarmonyPutaway/6.webp)
 
-![7](NowInOpenHarmonyPutaway/7.jpg)
+![7](NowInOpenHarmonyPutaway/7.webp)
 
-![8](NowInOpenHarmonyPutaway/8.jpg)
+![8](NowInOpenHarmonyPutaway/8.webp)
 
-![9](NowInOpenHarmonyPutaway/9.jpg)
+![9](NowInOpenHarmonyPutaway/9.webp)
 
 <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(102, 126, 234, 0.4)'; this.style.background='linear-gradient(135deg, #7c4dff 0%, #8e24aa 100%)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.3)'; this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'">
   <div style="position: relative; z-index: 2;">
@@ -313,7 +313,7 @@ onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
   现在你可以点击链接去创建Pull Request了！
 ```
 
-![2](NowInOpenHarmonyPutaway/2.png)
+![2](NowInOpenHarmonyPutaway/2.webp)
 
 ### docker的本地配置
 
@@ -1462,15 +1462,15 @@ main "$@"
 
 我感觉cc好像并没有理解我的意思，我是指是否需要在宝塔上去点击安装Docker，而不是在Ubuntu服务器上安装Docker。不过看他的回答那就是肯定需要了，所以我及直接去安装了。
 
-![1](NowInOpenHarmonyPutaway/1.png)
+![1](NowInOpenHarmonyPutaway/1.webp)
 
 安装完后我去截了个图给cc去确认了一下。
 
-![10](NowInOpenHarmonyPutaway/10.png)
+![10](NowInOpenHarmonyPutaway/10.webp)
 
 随后我去宝塔的终端上去继续一下安装成功的验证。
 
-![11](NowInOpenHarmonyPutaway/11.png)
+![11](NowInOpenHarmonyPutaway/11.webp)
 
 #### 应用商店的选择
 
@@ -1534,13 +1534,13 @@ main "$@"
 
 它让我在搜索框输入"Docker"找到"Docker管理器"应用，但是我搜索结果中并没有这个应用。
 
-![13](NowInOpenHarmonyPutaway/13.png)
+![13](NowInOpenHarmonyPutaway/13.webp)
 
 但是以我之前用宝塔的经验来说，应该是直接用宝塔自带的工具进行部署就可以没必要下更多的管理软件的。
 
 于是我决定直接截一张图让他去教我怎么做。
 
-![14](NowInOpenHarmonyPutaway/14.png)
+![14](NowInOpenHarmonyPutaway/14.webp)
 
 ```bash
 > @image.png 不要下载额外软件现在就告诉我现在的这个宝塔自带的界面该怎么做？
@@ -1605,11 +1605,11 @@ main "$@"
   你现在可以先去上传代码，需要我准备一个简化版的文件包给你吗？
 ```
 
-![15](NowInOpenHarmonyPutaway/15.png)
+![15](NowInOpenHarmonyPutaway/15.webp)
 
-![16](NowInOpenHarmonyPutaway/16.png)
+![16](NowInOpenHarmonyPutaway/16.webp)
 
-![17](NowInOpenHarmonyPutaway/17.png)
+![17](NowInOpenHarmonyPutaway/17.webp)
 
 至此我成功将全部文件上传到了我的服务器，将这些截图喂给cc让他同步一下我现在的进度，随后继续指导我去进行部署。
 
@@ -1654,9 +1654,9 @@ main "$@"
   现在请回到Docker界面，开始构建镜像！ 🚀
 ```
 
-![18](NowInOpenHarmonyPutaway/18.png)
+![18](NowInOpenHarmonyPutaway/18.webp)
 
-![19](NowInOpenHarmonyPutaway/19.png)
+![19](NowInOpenHarmonyPutaway/19.webp)
 
 在按照CC的说明选中了目标Dockerfile之后发现后缀错了发生了报错，我觉得应该是可以直接在云端进行后缀名的修改的，但是我也不确定所以还是先找CC问问吧。
 
@@ -1716,15 +1716,15 @@ main "$@"
 
 卧槽醍醐灌顶，tar是压缩包格式……我傻了，还以为是改个后缀可以解决的。
 
-![20](NowInOpenHarmonyPutaway/20.png)
+![20](NowInOpenHarmonyPutaway/20.webp)
 
-![21](NowInOpenHarmonyPutaway/21.png)
+![21](NowInOpenHarmonyPutaway/21.webp)
 
-![22](NowInOpenHarmonyPutaway/22.png)
+![22](NowInOpenHarmonyPutaway/22.webp)
 
 再次尝试一下期待可以顺利创建镜像吧。
 
-![23](NowInOpenHarmonyPutaway/23.png)
+![23](NowInOpenHarmonyPutaway/23.webp)
 
 卧槽还是不行那就说明`.tar`和`.tar.gz`并不是一种格式，我确实是不太清楚这两种格式的区别。刚好接下来让CC帮我续写一段两者的区别吧。
 
@@ -1753,7 +1753,7 @@ Docker在构建镜像时需要频繁读取文件内容，如果使用压缩格�
 
 原来是这样，tar本身并没有对文件本身进行压缩，只是将其打包成了一个完整的文件。那既然如厕我应该直接进行一次解压就可以将其还原为tar文件了。让我试一下我的猜想是否正确。
 
-![24](NowInOpenHarmonyPutaway/24.png)
+![24](NowInOpenHarmonyPutaway/24.webp)
 
 额，解压完tar那一层也被一并解开了。嘶，那只好问问CC了。这次我直接把我的博文复制给他。
 
@@ -1803,7 +1803,7 @@ Docker在构建镜像时需要频繁读取文件内容，如果使用压缩格�
   现在建议直接用SSH终端命令，这样最稳妥！需要我指导终端操作吗？
 ```
 
-![25](NowInOpenHarmonyPutaway/25.png)
+![25](NowInOpenHarmonyPutaway/25.webp)
 
 哦！很有意思，CC居然回复我了一个“哈哈”这真的有点像是在和真人聊天了，有点意思。
 
@@ -1884,7 +1884,7 @@ Docker在构建镜像时需要频繁读取文件内容，如果使用压缩格�
   现在你可以复制第一个命令开始执行了！ 🎯
 ```
 
-![26](NowInOpenHarmonyPutaway/26.png)
+![26](NowInOpenHarmonyPutaway/26.webp)
 
 ```bash
 > @"image copy.png"
@@ -1917,7 +1917,7 @@ Docker在构建镜像时需要频繁读取文件内容，如果使用压缩格�
   现在执行这个命令，我等你的构建结果！ 🎯
 ```
 
-![27](NowInOpenHarmonyPutaway/27.png)
+![27](NowInOpenHarmonyPutaway/27.webp)
 
 这个过程我等了很久很久但是都没动静于是我决定先去问问CC。
 
@@ -1963,7 +1963,7 @@ Docker在构建镜像时需要频繁读取文件内容，如果使用压缩格�
 
 笑死，那我不得不休息一下了。
 
-![28](NowInOpenHarmonyPutaway/28.png)
+![28](NowInOpenHarmonyPutaway/28.webp)
 
 在经历了极度漫长的等待之后我终于是迎来了它停止的那一刻。我将这张截图立刻喂给了CC。
 
@@ -2105,7 +2105,7 @@ Docker在构建镜像时需要频繁读取文件内容，如果使用压缩格�
   你现在准备编辑Dockerfile吗？
 ```
 
-![29](NowInOpenHarmonyPutaway/29.png)
+![29](NowInOpenHarmonyPutaway/29.webp)
 
 ```bash
 > @"image copy 4.png"
@@ -2146,7 +2146,7 @@ Docker在构建镜像时需要频繁读取文件内容，如果使用压缩格�
   你现在可以向下滚动找到pip相关的代码行了！需要我帮你定位具体位置吗？
 ```
 
-![30](NowInOpenHarmonyPutaway/30.png)
+![30](NowInOpenHarmonyPutaway/30.webp)
 
 坏了我粘贴错位置了，我需要CC给我取消当前修改的快捷键方式。
 
@@ -2187,7 +2187,7 @@ Docker在构建镜像时需要频繁读取文件内容，如果使用压缩格�
 
 随后我再次打开编辑器找到位置重新进行修改，为了稳妥起见我直接是使用右键黏贴的方式，没有再去使用Ctrl+V。
 
-![31](NowInOpenHarmonyPutaway/31.png)
+![31](NowInOpenHarmonyPutaway/31.webp)
 
 ```bash
 > @image.png 现在对吗我该按什么
@@ -2222,7 +2222,7 @@ Docker在构建镜像时需要频繁读取文件内容，如果使用压缩格�
   这次使用清华大学镜像源，下载速度会快很多，不会再出现超时错误了！
 ```
 
-![32](NowInOpenHarmonyPutaway/32.png)
+![32](NowInOpenHarmonyPutaway/32.webp)
 
 ok成功退出来了，那接下来我们就该去继续问CC了。
 
@@ -2295,7 +2295,7 @@ ok成功退出来了，那接下来我们就该去继续问CC了。
 
 哎呦我滴妈，CC还看错了，不仔细看截图可还行，看来下回得明确的告诉CC现在的情况才行。
 
-![33](NowInOpenHarmonyPutaway/33.png)
+![33](NowInOpenHarmonyPutaway/33.webp)
 
 在开始了新的一轮构建之后我突然发现一个新的问题在于我和CC聊的好像太久了，我怕CC忘了最初的目的，所以我决定先让CC去复述一遍。
 
@@ -2365,7 +2365,7 @@ ok，那我就放心了。接下来我先去吃口饭的。
 
 okok，吃了一口经典的烤肉饭回来我直接就是一个查看。
 
-![34](NowInOpenHarmonyPutaway/34.png)
+![34](NowInOpenHarmonyPutaway/34.webp)
 
 看起来没有任何报错，现在我来让CC确认一下。
 
@@ -2408,9 +2408,9 @@ okok，吃了一口经典的烤肉饭回来我直接就是一个查看。
   先执行 docker images 确认镜像存在，然后我们就可以启动容器了！ 🎯
 ```
 
-![35](NowInOpenHarmonyPutaway/35.png)
+![35](NowInOpenHarmonyPutaway/35.webp)
 
-![36](NowInOpenHarmonyPutaway/36.png)
+![36](NowInOpenHarmonyPutaway/36.webp)
 
 ```bash
 > @1.png
@@ -2503,7 +2503,7 @@ okok，吃了一口经典的烤肉饭回来我直接就是一个查看。
   现在点击"启动"按钮试试！ 🎯
 ```
 
-![37](NowInOpenHarmonyPutaway/37.png)
+![37](NowInOpenHarmonyPutaway/37.webp)
 
 笑死，压根就没有启动按钮，看来CC又看错了。
 
@@ -2549,11 +2549,11 @@ okok，吃了一口经典的烤肉饭回来我直接就是一个查看。
   你想试哪种方式？
 ```
 
-![38](NowInOpenHarmonyPutaway/38.png)
+![38](NowInOpenHarmonyPutaway/38.webp)
 
 我嘞个豆还真被它说中了就藏在这里面。
 
-![39](NowInOpenHarmonyPutaway/39.png)
+![39](NowInOpenHarmonyPutaway/39.webp)
 
 ```bash
 > @image.png
@@ -2742,7 +2742,7 @@ ok，直接开始接口测试！！！
   然后告诉我结果，我帮你进一步诊断问题！
 ```
 
-![40](NowInOpenHarmonyPutaway/40.png)
+![40](NowInOpenHarmonyPutaway/40.webp)
 
 ```bash
 > @"image copy.png"
@@ -2795,7 +2795,7 @@ ok，直接开始接口测试！！！
   请先执行 docker ps -a 并告诉我结果！
 ```
 
-![41](NowInOpenHarmonyPutaway/41.png)
+![41](NowInOpenHarmonyPutaway/41.webp)
 
 ```bash
 ● 🎯 找到问题了！容器已退出！
@@ -2999,7 +2999,7 @@ PermissionError: [Errno 13] Permission denied: '/app/logs/openharmony_api_202509
   现在开始执行第一步！ 🚀
 ```
 
-![42](NowInOpenHarmonyPutaway/42.png)
+![42](NowInOpenHarmonyPutaway/42.webp)
 
 ```bash
 > @image.png
@@ -3041,7 +3041,7 @@ PermissionError: [Errno 13] Permission denied: '/app/logs/openharmony_api_202509
   执行后告诉我结果！
 ```
 
-![43](NowInOpenHarmonyPutaway/43.png)
+![43](NowInOpenHarmonyPutaway/43.webp)
 
 ```bash
 > @image.png
@@ -3305,7 +3305,7 @@ INFO:     127.0.0.1:53638 - "GET /health HTTP/1.1" 200 OK
 
 nb！！！这熟悉的日志终于回来了！！！
 
-![44](NowInOpenHarmonyPutaway/44.png)
+![44](NowInOpenHarmonyPutaway/44.webp)
 
 没想到整体的占用率居然这么低？那应该不需要买服务器了。
 
@@ -3550,14 +3550,14 @@ Created TensorFlow Lite XNNPACK delegate for CPU.
 
 那我现在只能重新去写一遍爬虫进行再次部署了。
 
-![45](NowInOpenHarmonyPutaway/45.png)
+![45](NowInOpenHarmonyPutaway/45.webp)
 
-![46](NowInOpenHarmonyPutaway/46.png)
+![46](NowInOpenHarmonyPutaway/46.webp)
 
 好好好，原来是整个OpenHarmony官网全都重构了，原本的爬虫全废了，从头再来吧。
 
 这三个月一半的心血白费了孩子们，气笑了。行了，打游戏去了孩子们以后再见吧。
 
-![47](NowInOpenHarmonyPutaway/47.png)
+![47](NowInOpenHarmonyPutaway/47.webp)
 
 我会回来的，我一定会回来的。第一版NowInOpenHarmony就用这张图告一段落吧，累了孩子。

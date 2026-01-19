@@ -1,4 +1,4 @@
-﻿---
+---
 title: NowInOpenHarmony上架笔记之再起新征程
 date: 2025-10-12 14:17:05
 tags:
@@ -7,7 +7,7 @@ tags:
   - 项目
   - 技术向
   - NowInOpenHarmony
-cover:  /imgs/ArticleTopImgs/NowInOpenHarmonyPutawayTopImg.jpg
+cover: /imgs/ArticleTopImgs/NowInOpenHarmonyPutawayTopImg.webp
 description: NowInOpenHarmony上架笔记2，记录OpenHarmony官网重构后的新征程
 typewriter: 从第一篇上线笔记延续，本篇记录了 NowInOpenHarmony 上架前后的关键推进：梳理新版 OpenHarmony 内容源、完善爬虫与数据抓取、修复构建与包体问题，完成后端 Docker 化并在服务器落地部署，同时补齐应用商店合规（隐私政策等）与上线验收流程。文章也同步整理了踩坑与优化清单，并以实际 issue 驱动推进，最终合并并关闭上线前的核心任务。
 post_copyright:
@@ -25,15 +25,15 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 重构的第一件事肯定是要去审视一下我们新的数据源————新版NowInOpenHarmony官网，看看它和旧版相比有哪些变化，以及这些变化对我们项目的影响。记得在国庆前我看到openharmony官网的更新的时候我是有点绝望的因为我是压根没有看到原来那个咨询页面和博文页面依旧存在，只看到了新的首页。所以我先去整体的浏览一遍看看有没有可以作为新版数据源的页面。
 
-![1](NowInOpenHarmonyPutaway2/1.png)
+![1](NowInOpenHarmonyPutaway2/1.webp)
 
 在浏览的时候我看到了导航栏的这个分栏，我瞬间捕捉到了关键词“咨询”和“动态”，我立刻点进去看，不看不知道一看吓一跳，原来这就是原来那个网页！！！
 
-![2](NowInOpenHarmonyPutaway2/2.png)
+![2](NowInOpenHarmonyPutaway2/2.webp)
 
 卧槽原来它并没有被废弃，只是从原来的根域名被新主页给挤压到old前缀的子域名了，太好了，不仅不用去寻找新的数据源，还不用重新针对新的页面去进行重构了。
 
-![3](NowInOpenHarmonyPutaway2/3.png)
+![3](NowInOpenHarmonyPutaway2/3.webp)
 
 ## 重构后端
 
@@ -216,7 +216,7 @@ HTML解析选择器硬编码
 
 我首先让CC先帮我针对于官网的咨询页爬虫进行一下重命名，因为当初他是第一个开发的就没有很规范的命名，而py这个东西又是解释型语言，不同文件之间调用有基本上是跑起来解释到那里才知道有问题，所以我就直接用CC去进行重构还是更快捷一些。
 
-![4](NowInOpenHarmonyPutaway2/4.png)
+![4](NowInOpenHarmonyPutaway2/4.webp)
 
 嗯，就还挺爽的。
 
@@ -224,9 +224,9 @@ HTML解析选择器硬编码
 
 这一块的话我得向CC阐述一下来龙去脉并给他新的API。所以首先我需要先去官网进行一下抓包找到之前用于获取目标网页的那个api接口，我希望它只是将原来的这套网页代码的基地址换成了新的子域名而不是说进行了完整的重构。这样我就只需要更换一下API就好了。
 
-![5](NowInOpenHarmonyPutaway2/5.png)
+![5](NowInOpenHarmonyPutaway2/5.webp)
 
-![6](NowInOpenHarmonyPutaway2/6.png)
+![6](NowInOpenHarmonyPutaway2/6.webp)
 
 ```json
 // https://old.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=3&pageNum=1&pageSize=20
@@ -702,11 +702,11 @@ HTML解析选择器硬编码
 现在的任务是这样的，当前的三个爬虫都是在官网重构之前的，现在我们的数据源根地址变成了https://old.openharmony.cn/像是 @services/openharmony_news_crawler.py 中所用的数据源API api_url = f"{self.base_url}/backend/knowledge/secondaryPage/queryBatch?type=3&pageNum={page_num}&pageSize={page_size}"这一段就要变成https://old.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=3&pageNum=1&pageSize=300 请以此类推，在保持原有模板字符串拼接URL的基础上将基地址进行更换
 ```
 
-![7](NowInOpenHarmonyPutaway2/7.png)
+![7](NowInOpenHarmonyPutaway2/7.webp)
 
 等了一会儿终于是跑完了，全部修改完成，现在让我试试吧。
 
-![8](NowInOpenHarmonyPutaway2/8.png)
+![8](NowInOpenHarmonyPutaway2/8.webp)
 
 啊啊啊牛逼成功了，接下来就该去打包了。
 
@@ -718,41 +718,41 @@ HTML解析选择器硬编码
 
 在等待cc执行玩之后我还是遇到了那个问题，我无法单独打包为tar，总是会直接被打包为.tar.gz格式，我尝试先去和CC交涉一下，看看是不是因为CC理解错了。
 
-![9](NowInOpenHarmonyPutaway2/9.png)
+![9](NowInOpenHarmonyPutaway2/9.webp)
 
 奥，原来还真是CC写错了。
 
-![10](NowInOpenHarmonyPutaway2/10.png)
+![10](NowInOpenHarmonyPutaway2/10.webp)
 
 #### 云端部署镜像
 
 嘶，到了云端我才发现我好像理解错了，我只记得上次错在了导入镜像时需要的是tar不是tar.gz但是这次我直接选择tar包进行镜像导入的时候却还是报错了。
 
-![11](NowInOpenHarmonyPutaway2/11.png)
+![11](NowInOpenHarmonyPutaway2/11.webp)
 
-![12](NowInOpenHarmonyPutaway2/12.png)
+![12](NowInOpenHarmonyPutaway2/12.webp)
 
 enm，我先给豆包看看吧。
 
-![13](NowInOpenHarmonyPutaway2/13.png)
+![13](NowInOpenHarmonyPutaway2/13.webp)
 
 奥，纯粹的打包成tar文件是不够的我们还需要用docker save来去导出标准的镜像包文件。
 
-![14](NowInOpenHarmonyPutaway2/14.png)
+![14](NowInOpenHarmonyPutaway2/14.webp)
 
 原来是这个原因。那我还是老老实实的去用命令行在云端构建吧。
 
-![15](NowInOpenHarmonyPutaway2/15.png)
+![15](NowInOpenHarmonyPutaway2/15.webp)
 
 又开始了这个漫长的构建过程。
 
-![16](NowInOpenHarmonyPutaway2/16.png)
+![16](NowInOpenHarmonyPutaway2/16.webp)
 
-![17](NowInOpenHarmonyPutaway2/17.png)
+![17](NowInOpenHarmonyPutaway2/17.webp)
 
 仔细观察日志发现了问题，原来是之前的爬虫修改过程有遗漏，还漏了几个基地址还是原来的老地址没有更新所以导致了404。
 
-![18](NowInOpenHarmonyPutaway2/18.png)
+![18](NowInOpenHarmonyPutaway2/18.webp)
 
 #### 轮播图爬取问题
 
@@ -760,15 +760,15 @@ enm，我先给豆包看看吧。
 
 当然我有一个推测是因为远程的处理器不如本地的好导致咨询的爬取占用了主要的资源导致轮播图爬虫的爬取被放到了后面，所以看起来像是轮播图的爬虫没有爬到数据。所以我决定先去等待一会儿，等第一轮爬取完全结束之后再去访问轮播图接口。
 
-![19](NowInOpenHarmonyPutaway2/19.png)
+![19](NowInOpenHarmonyPutaway2/19.webp)
 
 已经全部结束了但是依旧没有数据。
 
-![20](NowInOpenHarmonyPutaway2/20.png)
+![20](NowInOpenHarmonyPutaway2/20.webp)
 
 新闻接口是正常的。所以我现在怀疑就是因为Selenium在Docker容器中无法启动Chrome浏览器导致的。
 
-![21](NowInOpenHarmonyPutaway2/21.png)
+![21](NowInOpenHarmonyPutaway2/21.webp)
 
 在更新了最新一版的镜像文件之后我再次去进行了尝试，但是依旧是报了和之前相同的错误。
 
@@ -805,17 +805,17 @@ Stacktrace:
 
 我决定先去将上面的博文喂给它去弥补一下当前的工作状态。
 
-![22](NowInOpenHarmonyPutaway2/22.png)
+![22](NowInOpenHarmonyPutaway2/22.webp)
 
-![23](NowInOpenHarmonyPutaway2/23.png)
+![23](NowInOpenHarmonyPutaway2/23.webp)
 
-![24](NowInOpenHarmonyPutaway2/24.png)
+![24](NowInOpenHarmonyPutaway2/24.webp)
 
 好好好，“顺手”你GPT5还是有点狂傲在里面的，算然确实是顺手的事，但Claude可不会这么说。
 
 对于这个需求来说GPT5的high模式使用体感和Claude很类似，插件的便捷程度和界面的美观程度更胜于Claude，等我再多用一用再去进行评价吧，现在先再次部署进行轮播图接口的测试。
 
-![25](NowInOpenHarmonyPutaway2/25.png)
+![25](NowInOpenHarmonyPutaway2/25.webp)
 
 果然还是没有办法一帆风顺吗。再打包并且部署了最新版本的代码之后依旧出现了熟悉的报错。
 
@@ -3145,7 +3145,7 @@ docker logs -f --tail=200 NIOHServer | grep -E "远程WebDriver|WebDriver|Seleni
 
 ok以上就是需要去执行的命令，现在我正在逐一执行，现在执行到了第三步。然后正在拉取 selenium/standalone-chromium 的镜像。这个过程比较长，刚好用来回顾一下这套解决方式。
 
-![26](NowInOpenHarmonyPutaway2/26.png)
+![26](NowInOpenHarmonyPutaway2/26.webp)
 
 我们所需要解决的核心问题在于，
 
@@ -3427,17 +3427,17 @@ http://113.47.8.204:32776/api/banner/mobile
 
 卧槽牛逼！！！成功了我再去测试一下其他接口。
 
-![27](NowInOpenHarmonyPutaway2/27.png)
+![27](NowInOpenHarmonyPutaway2/27.webp)
 
 nbnb。这样一来我明天就可以开始真正的修改我的客户端基地址了。
 
-![28](NowInOpenHarmonyPutaway2/28.png)
+![28](NowInOpenHarmonyPutaway2/28.webp)
 
 ### CPU负载问题
 
 在昨天顺利解决了我们的容器部署问题以及服务器WebDriver失效的问题之后，我本来以为万事大吉了就没有再管他，结果今天我上宝塔面板一看发现卧槽2核CPU持续性的维持在100%，连短暂的掉到99% 98%都没有出现，我赶紧关停了两个docker容器，服务器的CPU占用率终于是降下来了。我对于服务器的经验并不多，我也不确定这种情况是否正常，所以我决定先给GPT看看。
 
-![29](NowInOpenHarmonyPutaway2/29.jpg)
+![29](NowInOpenHarmonyPutaway2/29.webp)
 
 在GPT生成回复的过程中我也是上网去进行了一下检索。
 
@@ -3638,19 +3638,19 @@ root@hcss-ecs-2ad2:~#
 
 上面这就是这次启动服务的控制台全流程，接下来我们去看一下服务的启动情况。
 
-![30](NowInOpenHarmonyPutaway2/30.png)
+![30](NowInOpenHarmonyPutaway2/30.webp)
 
 通过接口的访问数据可以看到启动时成功的。接下来就是观察docker的CPU占用率了。
 
-![31](NowInOpenHarmonyPutaway2/31.png)
+![31](NowInOpenHarmonyPutaway2/31.webp)
 
-![32](NowInOpenHarmonyPutaway2/32.png)
+![32](NowInOpenHarmonyPutaway2/32.webp)
 
 我优先查看了CPU的占用率，发现没有问题，然后又通过日志确认当前就是爬取状态，爬取状态也没有，那为什么会出现飙高吃满的情况呢？这不合理啊。
 
 现在只能说是后悔当时没有第一时间去查看一下容器的占用率是否正常了，应该第一时间留存相关的监控数据以便于分析排查，而不是直接关闭了。
 
-![33](NowInOpenHarmonyPutaway2/33.png)
+![33](NowInOpenHarmonyPutaway2/33.webp)
 
 总占用率也是正常的，这还是在同时支持宝塔面板的服务状态下。
 
@@ -3800,9 +3800,9 @@ onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
 
 这是在第一篇上线笔记中开启的issue，现在该合并并关闭了。
 
-![34](NowInOpenHarmonyPutaway2/34.png)
+![34](NowInOpenHarmonyPutaway2/34.webp)
 
-![35](NowInOpenHarmonyPutaway2/35.png)
+![35](NowInOpenHarmonyPutaway2/35.webp)
 
 ok，这下舒服了
 
@@ -3887,11 +3887,11 @@ onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
 
 这一步真的简单到极致全要归功去此前我的规范化开发。我将全部常量都统一写到了一个文件中，同时封装了指定基地址的axios网络请求工具，这样我修改一个常量就可以直接实现全局的修改。
 
-![36](NowInOpenHarmonyPutaway2/36.png)
+![36](NowInOpenHarmonyPutaway2/36.webp)
 
 改这一行直接秒掉。让我们测试看一看。
 
-![37](NowInOpenHarmonyPutaway2/37.png)
+![37](NowInOpenHarmonyPutaway2/37.webp)
 
 nb直接秒掉！
 
@@ -3899,9 +3899,9 @@ nb直接秒掉！
 
 但是我突然发现了新的问题，这好像是虚假繁荣，我没有真正成功的去获取数据，这好像是之前我遗留的数据。我卸载重新安装一下试试。
 
-![38](NowInOpenHarmonyPutaway2/38.jpg)
+![38](NowInOpenHarmonyPutaway2/38.webp)
 
-![39](NowInOpenHarmonyPutaway2/39.jpg)
+![39](NowInOpenHarmonyPutaway2/39.webp)
 
 在重新安装之后我发掘了不对。手机上是轮播图数据异常，而在平板上是完全没有数据了。卧槽我直接炸缸了，我看了日志，发现全是超时，我修改了一下我axios请求工具的超时时长从三秒改到了10秒，发现依旧是超时没有什么区别。我强制自己冷静下来去思考问题可能发生的点，首先我客户端的全流程是在本地都跑通了的，同时在前面的日志截图中也可以看到在第一次测试时轮播图接口是跑通了的，我再去查看了一下我服务器的CPU占用率，发现是正常的，维持在13%的低占用率，理论上响应速度应该是很快的，随后我复制了我常量文件中的IP地址，再拼接上接口的资源路径，在浏览器中进行测试，发现也是正常的。
 
@@ -3911,9 +3911,9 @@ nb直接秒掉！
 
 就在我还在思考更加具体的排查方案时，我重新刷新了一次，结果发现两个设备都成功获取数据了，而且网络设置没有进行任何更改（？）
 
-![40](NowInOpenHarmonyPutaway2/40.jpg)
+![40](NowInOpenHarmonyPutaway2/40.webp)
 
-![41](NowInOpenHarmonyPutaway2/41.jpg)
+![41](NowInOpenHarmonyPutaway2/41.webp)
 
 通过多次下拉测试发现好多次报错弹窗，则说明我的后端数据获取依旧不稳定，但是在浏览器访问却是十分稳定的能够获取数据，我不太理解是为什么说实话，感觉这个稳定程度想要上线并不太可能，但至少它上线了，破破烂烂的上线了也是上线了，前后端完整的一个鸿蒙项目。
 
@@ -3923,11 +3923,11 @@ nb直接秒掉！
 
 #### 分支创建
 
-![42](NowInOpenHarmonyPutaway2/42.png)
+![42](NowInOpenHarmonyPutaway2/42.webp)
 
 首先通过分支创建功能去进行一个新的分支创建，命名为“fix/client_base_address_change”。
 
-![43](NowInOpenHarmonyPutaway2/43.png)
+![43](NowInOpenHarmonyPutaway2/43.webp)
 
 创建成功之后就会像是上图一样，在本地的分支文件夹中多出了我们新增的一个分支。由于这个属于是小的修正，所以我就直接是算在fix文件夹下了。
 
@@ -3935,36 +3935,36 @@ nb直接秒掉！
 
 随后我们就需要在这个分支下去进行commit，要注意一定是当前的文件夹而不是主分支文件夹。
 
-![44](NowInOpenHarmonyPutaway2/44.png)
+![44](NowInOpenHarmonyPutaway2/44.webp)
 
 在commit的时候先看一下最上方显示的是提交到哪个分支，随后再去设置中勾选一下签名随后就可以进行commit了。
 
 在提交之后我才想起来我的作者签名好像邮箱用错了，不是我平常用的默认邮箱，所以我就想要撤销这一次提交，撤销之后进行修正并重新进行提交。
 
-![45](NowInOpenHarmonyPutaway2/45.png)
+![45](NowInOpenHarmonyPutaway2/45.webp)
 
 右键选择撤销提交，随后再使用commit进行提交。
 
 在成功commit之后我们就可以看到当前的分支中的commit记录已经领先于主分支了。
 
-![46](NowInOpenHarmonyPutaway2/46.png)
+![46](NowInOpenHarmonyPutaway2/46.webp)
 
 #### 分支推送与pr创建
 
 随后我们就可以将当前分支进行推送了。
 
-![47](NowInOpenHarmonyPutaway2/47.png)
+![47](NowInOpenHarmonyPutaway2/47.webp)
 
 这里可以看到IDE会自动识别到当前本地分支在远程仓库并不存在，这样我们就可以将当前的分支进行创建并推送了。
 
-![48](NowInOpenHarmonyPutaway2/48.png)
+![48](NowInOpenHarmonyPutaway2/48.webp)
 
-![49](NowInOpenHarmonyPutaway2/49.png)
+![49](NowInOpenHarmonyPutaway2/49.webp)
 
 来到GitHub之后就能看到我们刚刚推送的分支，并且GitHub也是自动显示了合并提示，我们接下来点击“Compare & pull request”按钮，去进行pr的创建就可以了。
 
-![50](NowInOpenHarmonyPutaway2/50.png)
+![50](NowInOpenHarmonyPutaway2/50.webp)
 
 自动审查代码冲突之后，我们就可以进行合并了。
 
-![51](NowInOpenHarmonyPutaway2/51.png)
+![51](NowInOpenHarmonyPutaway2/51.webp)

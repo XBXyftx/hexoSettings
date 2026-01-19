@@ -7,7 +7,7 @@ tags:
   - 项目
   - 技术向
   - NowInOpenHarmony
-cover:  /imgs/ArticleTopImgs/NowInOpenHarmonyPutawayTopImg.jpg
+cover: /imgs/ArticleTopImgs/NowInOpenHarmonyPutawayTopImg.webp
 description: NowInOpenHarmony上架笔记2，记录在后端初次部署后反复出现
 typewriter: 🚀 从开源之夏到应用上架的完整征程！本文记录了NowInOpenHarmony项目后端服务的部署优化过程，重点关注宝塔面板的使用以及后端运维的技术细节。
 post_copyright:
@@ -33,17 +33,17 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 这一次我及时的进行了截图留存。
 
-![1](NowInOpenHarmonyPutAway3/1.jpg)
+![1](NowInOpenHarmonyPutAway3/1.webp)
 
 我操了，查看进程占用率居然要氪金。我真服了，先继续看截图吧，后面问AI要命令去查看进程的资源占用情况吧。
 
-![2](NowInOpenHarmonyPutAway3/2.jpg)
+![2](NowInOpenHarmonyPutAway3/2.webp)
 
-![3](NowInOpenHarmonyPutAway3/3.jpg)
+![3](NowInOpenHarmonyPutAway3/3.webp)
 
-![4](NowInOpenHarmonyPutAway3/4.jpg)
+![4](NowInOpenHarmonyPutAway3/4.webp)
 
-![5](NowInOpenHarmonyPutAway3/5.jpg)
+![5](NowInOpenHarmonyPutAway3/5.webp)
 
 到这里可以看出，我的后端服务容器的占用率始终是很稳定的，WebDriver容器会经常性的出现占用率飙升到200%的情况，这是我完全没想到的，首先是我压根就不知道占用率还能突破100%，其次是我不理解为什么从官方镜像进行拉去并创建的容器会出现这种不稳定的情况。随后我立刻下载了最近三天的日志文件。
 
@@ -51,19 +51,19 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 这个时候我突然想到为什么我之前明明设置了CPU5分钟内的均值到达80%后就给我发送邮件进行提醒，但是我却一封邮件都没收到过，所以我就去检查了一下告警设置和告警日志。
 
-![6](NowInOpenHarmonyPutAway3/6.png)
+![6](NowInOpenHarmonyPutAway3/6.webp)
 
 原来告警是正常的触发了，是因为我163邮箱的服务器设置有问题。我去检查了一下决定帮顶一下公众号通知方式，这种方式更加保险，毕竟没有需要自己配置地址和密钥的步骤，都是由官方进行配置的。
 
-![7](NowInOpenHarmonyPutAway3/7.png)
+![7](NowInOpenHarmonyPutAway3/7.webp)
 
 ### 问题分析
 
-![8](NowInOpenHarmonyPutAway3/8.jpg)
+![8](NowInOpenHarmonyPutAway3/8.webp)
 
 在观察了一下CPU整体的占用率图之后发现，这个问题是经常出现的占用率是经常性的飙高。这时我突然想到，不会我的后端服务也一并将我的流量包耗尽了吧（我还得留着当我的博客服务器啊啊啊啊）。
 
-![9](NowInOpenHarmonyPutAway3/9.png)
+![9](NowInOpenHarmonyPutAway3/9.webp)
 
 奥还好并没有。
 
@@ -275,7 +275,7 @@ root@hcss-ecs-2ad2:~#
 
 现在看起来就是正常的了，我再去Docker分页去看看有没有什么变化。
 
-![10](NowInOpenHarmonyPutAway3/10.png)
+![10](NowInOpenHarmonyPutAway3/10.webp)
 
 o！我们可以看到，现在我们的WebDriver的Docker容器已经没有对外开放的端口了，它只能供我们服务器内部进行本地访问，这下就彻底断绝了被外部攻击的可能了（应该吧，这方面我确实了解不多）。
 
@@ -352,7 +352,7 @@ NewsManager: 获取新闻失败,新闻数据或键值数据库为空。
 
 总计安装卸载了5次，每一次都会出现新闻列表接口超时，但是轮播图接口正常的现象。现在我的怀疑是这样的，在本地测试的时候我的电脑利用自己的网卡和局域网不限流不限速的传输时很快的所以一瞬间就完成了传输。但是我的服务器对于单次请求的带宽占用是有严格限制的，会不会是因为这个限制导致整体的传输时长超越了我所设置的3秒？要是这样的话我先在浏览器上进行一次请求并进行一下计时，看看是不是这个原因。（这不得不让我联想到了计算机网络学的“分组转发”技术）
 
-![11](NowInOpenHarmonyPutAway3/11.png)
+![11](NowInOpenHarmonyPutAway3/11.webp)
 
 enm……14秒？这验证了我的想法但也让我感到了另一种无奈的感觉，我第一时间想到了利用分页加触底刷新的方式去进行优化，这样可以大量减少数据的传输量。现在先让我去请求几次进行测试吧。
 
@@ -5558,7 +5558,7 @@ HiLog:
 
 当我去请求`/api/news/`这个接口时相应就会及其快速。
 
-![14](NowInOpenHarmonyPutAway3/14.png)
+![14](NowInOpenHarmonyPutAway3/14.webp)
 
 这是因为这个接口是当初最初设计的数据分页接口，一次仅仅会返回20条数据，并使用`"has_next": true,`字段去进行是否存在下一页的标识。对于这个接口具体的传参我还需要回去再研读一下源码。
 
@@ -5568,10 +5568,10 @@ HiLog:
 
 在上文中我们已经完整了对于对外暴露的端口的封堵，在当天晚上的检测中运行状态一切良好，但观测的时间还不够久，所以间隔两天我回来继续去进行观测，看看我们的操作是否阻隔了原来受到的攻击。
 
-![15](NowInOpenHarmonyPutAway3/15.png)
+![15](NowInOpenHarmonyPutAway3/15.webp)
 
 通过监测数据可以看到，在经过我们的操作之后，服务器对于外部攻击的防御已经达到了一个非常良好的水平，CPU的占用率也是持续维持在2%以下，仅出现了一次飙高的情况。
 
-![16](NowInOpenHarmonyPutAway3/16.png)
+![16](NowInOpenHarmonyPutAway3/16.webp)
 
 通过当时的系统记录数据来分析一下原因。从上图可以看到，该时间段的占用率飙高由 PID 1（systemd）进程引发。systemd 是 Linux 的核心进程，用于管理和监管各类服务。PID 1 的短时 CPU 占用升高并不必然意味着服务异常，常见成因还包括定时任务触发、服务一次性启动/重载、日志写入突增（journald）或设备扫描等。结合前文“CPU 常态低于 2% 且仅一次短时升高”的现象，更像是一次性活动所致；若要进一步确认，可结合当时的 journal 与 unit 状态再核实。

@@ -7,7 +7,7 @@ tags:
   - 项目
   - 技术向
   - NowInOpenHarmony
-cover:  /imgs/ArticleTopImgs/OpenSourceSummerTopImg.png
+cover: /imgs/ArticleTopImgs/OpenSourceSummerTopImg.webp
 top: 20
 description: 开源之夏2025项目开发笔记
 typewriter: 🦋 这篇文章将会记录我的开源之夏2025项目开发笔记，记录我参与NowInOpenHarmony项目的完整历程。在这三个月的时间里，我将深入探索鸿蒙生态系统的奥秘，从初学者到贡献者的蜕变过程。我会详细记录每一次代码提交背后的思考，每一个技术难题的攻克过程，以及与导师协作的珍贵经历。从环境搭建到功能实现，从bug调试到性能优化，从技术分享到项目总结，这里将会是我技术成长轨迹的完整呈现。我相信这段开源贡献的经历不仅会提升我的编程技能和项目管理能力，更会让我深刻理解开源精神的价值所在。这将会成为我大学期间最具意义的技术实践，也是我走向更广阔技术世界的重要里程碑。
@@ -76,11 +76,11 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 随后又有几个兼职和老师的的项目机会横插在了我提交项目计划书到中选出结果的这段时间里。我内心也还是担心我无法中选，所以也先都拖着说等开源之夏的结果。就这样我怀着这种忐忑不安、但又充满希望的心境一路等待到了28号。
 
-![1751195653463.png](https://bu.dusays.com/2025/06/29/686120088cd6b.png)
+![1751195653463.png](https://bu.dusays.com/2025/06/29/686120088cd6b.webp)
 
 邮箱的提示音将我悬着的心放了下来，紧接着，协议的签署、群聊的组建、其他项目安排的善后就接二连三的排了上来，像是梦一样的确认了我的中选，以及接下来三个月我生活的基调。
 
-![1751196415807.png](https://bu.dusays.com/2025/06/29/686123033e689.png)
+![1751196415807.png](https://bu.dusays.com/2025/06/29/686123033e689.webp)
 
 我也是特意的问了一下老师能否写成博客文章的形式来进行记录，也是获得了老师的同意，要不没准这篇文章就胎死腹中了。
 
@@ -328,11 +328,11 @@ Web({
 
 我首先想到的就是我的Markdown格式，因为我的博客以及鸿小易还有其他一些项目使用的都是Markdown格式，且Markdown支持原生的图片链接格式，但问题在于Markdown格式中没有原生的视频格式。只能使用内挂HTML标签的形式去进行视频的上传。我并不确定在使用OpenHarmony三方库进行md渲染时会不会出现问题，所以暂时作为备案。
 
-![1751960773950.png](https://bu.dusays.com/2025/07/08/686ccccad10e7.png)
+![1751960773950.png](https://bu.dusays.com/2025/07/08/686ccccad10e7.webp)
 
 随后就是当下最常用的json格式。json格式我可以采用两种形式，一种是将爬取的HTML文件直接作为一整个字段进行传输然后使用web组件进行渲染确实可以。不过这个方案需要注意整体UI界面的一致性，这一点可能需要针对不同的网站获取到的数据进行定制化的处理。因为各个网站的文章内容部分很有可能会插入一些其他的样式，链接标签等，同时又因为鸿蒙中的Web组件并没有提供很多的属性来通过ArkTS直接调整、改变HTML的结构以及样式，所以我们需要在后端就完成对HTML的格式化处理，这样在鸿蒙中直接展示的时候就不会出现样式错乱的问题。
 
-![1751961129379.png](https://bu.dusays.com/2025/07/08/686cce2e7dcc0.png)
+![1751961129379.png](https://bu.dusays.com/2025/07/08/686cce2e7dcc0.webp)
 
 还有一种方式就是用`type`字段以及`value`字段来进行当前数据类型的区分，可以设置一个枚举类型规定三种数据类型，分别是`text`、`image`、`video`，然后根据不同的类型来决定`value`字段的值该被渲染为什么样的组件，通过这样的对象数组形式，利用循环渲染成文本、视频、图片组件。这样既可以传递文章的内容也可以正确的传递文章的结构。先暂时采用这种方式，并进行可行性验证。
 
@@ -348,15 +348,15 @@ Web({
 
 首先是OpenHarmony的官网，官网提供有很多的相关资讯，大多是以微信公众号的形式展现的，整体格式比较规整，我们先来进行爬取的尝试。
 
-![1751974181082.png](https://bu.dusays.com/2025/07/08/686d0149b1aa2.png)
+![1751974181082.png](https://bu.dusays.com/2025/07/08/686d0149b1aa2.webp)
 
 我找到了OpenHarmony官网的咨询页面，虽然咨询本身是很容易爬取的，但是要是想要自动爬取整个咨询页面的全部文章，我们就需要先获取到咨询页面的全部文章链接，然后针对每个链接进行爬取，最后将爬取到的数据整合到一起，所以我们需要先获取到咨询页面的全部文章链接。
 
-![1751974351946.png](https://bu.dusays.com/2025/07/08/686d01d4c0807.png)
+![1751974351946.png](https://bu.dusays.com/2025/07/08/686d01d4c0807.webp)
 
 找到目标点击结构，对其进行分析。但在展开其单个文章卡片的全部结构之后并没有找到`<a>`标签，所以我们不能直接去爬取`<a>`标签中所指向的目标链接，这是典型的SPA（单页应用）架构。
 
-![1751974611565.png](https://bu.dusays.com/2025/07/08/686d02d5afee0.png)
+![1751974611565.png](https://bu.dusays.com/2025/07/08/686d02d5afee0.webp)
 
 随后我改变了策略，转而模拟用户的点击行为并检测URL的变化以及检测网络请求，从网络请求的API的响应中获取URL。
 
@@ -870,7 +870,7 @@ JavaScript渲染后的页面内容已保存到 debug_page_js.html
 
 这主要是因为URL中的ID并非真实ID为了解决这个问题我再次对浏览器的网络请求进行抓包分析。
 
-![1751976824948.png](https://bu.dusays.com/2025/07/08/686d0b7d8248c.png)
+![1751976824948.png](https://bu.dusays.com/2025/07/08/686d0b7d8248c.webp)
 
 ```js
 {
@@ -1377,7 +1377,7 @@ OpenHarmony官网新闻爬虫启动...
 
 所以首先要去模仿用户点击全部的ul中的li才能获取全部的，链接，在点击完全部卡片之后再去将链接去重，将去重之后的结果进行逐一访问。
 
-![1752049237718.png](https://bu.dusays.com/2025/07/09/686e265929f85.png)
+![1752049237718.png](https://bu.dusays.com/2025/07/09/686e265929f85.webp)
 
 在获取内容时也要注意要将img的src字段在其懒加载结束之后也读取到json中将type字段的值写成image，同时value字段填写爬取到的src值。
 
@@ -1469,9 +1469,9 @@ def parse_article_content(self, article_url):
 
 在修改了代码并将上述算法函数进行参数微调以及适配合并进主函数的流程中后再次执行代码，进行测试。
 
-![1752050837041.png](https://bu.dusays.com/2025/07/09/686e2c9736003.png)
+![1752050837041.png](https://bu.dusays.com/2025/07/09/686e2c9736003.webp)
 
-![1752050683416.png](https://bu.dusays.com/2025/07/09/686e2bfe7bb88.png)
+![1752050683416.png](https://bu.dusays.com/2025/07/09/686e2bfe7bb88.webp)
 
 可以看到这次正确的爬取了全部的链接并且成功解析了绝大部分的链接，并且将图片以及视频的链接也成功爬取到了json文件中。
 
@@ -1574,11 +1574,11 @@ C:\Users\ASUS>   curl http://localhost:8001/health
 
 首先测试的是提前预留的健康检查接口，可以看到返回了健康检查状态。是正常的。随后我们再去检测一下爬虫数据获取接口。
 
-![1752077085669.png](https://bu.dusays.com/2025/07/10/686e931fce2d1.png)
+![1752077085669.png](https://bu.dusays.com/2025/07/10/686e931fce2d1.webp)
 
 请求之后没有任何反应，所以我打开后台进行日志的查看，发现日志是正常工作的，所以说明请求正常发送了，仅仅是因为我为了不过高频率的请求而被封禁IP而设置了少量间隔，整体的爬取速度很慢，所以才短时间内没有响应，在五分钟左后后我获得了数据。
 
-![1752077973683.png](https://bu.dusays.com/2025/07/10/686e96990526d.png)
+![1752077973683.png](https://bu.dusays.com/2025/07/10/686e96990526d.webp)
 
 不过这也提醒我了，需要设置一个缓存机制，每一小时或是其他时长的间隔进行爬取，每次请求直接返回缓存好的数据，这样就不用再额外等待现场爬取数据了，当然也有可能有人就是想要刷新获取最新的数据，所以我们可以在前端的UI界面加一行提示符来提示用户我们的资讯更新间隔，并设计一个按钮专门用来获取现爬取的最新数据。
 
@@ -1590,21 +1590,21 @@ ok今天先测试到这里了。
 
 虽然我的预期如此，但是在首次进行调试的时候还是发现了问题。
 
-![1752133476018.png](https://bu.dusays.com/2025/07/10/686f6f67d2020.png)
+![1752133476018.png](https://bu.dusays.com/2025/07/10/686f6f67d2020.webp)
 
 在服务器启动后优先执行了数据的爬取并没有直接启动服务，导致长达六七分钟的时间我们的任何API都没办法被请求，这是因为当前代码的执行顺序FastAPI框架必须等待数据爬取结束后才完成服务的启动。不过先不急着停止本次服务，先等待下一次自动数据更新是否成功。
 
-![1752134878048.png](https://bu.dusays.com/2025/07/10/686f74e27280f.png)
+![1752134878048.png](https://bu.dusays.com/2025/07/10/686f74e27280f.webp)
 
 可以看到在时间到了半小时的间隔之后数据的重新爬取确实是正常的触发了，但问题在于我再次请求服务端状态接口时是迟迟没有响应
 
-![1752134942432.png](https://bu.dusays.com/2025/07/10/686f7522714eb.png)
+![1752134942432.png](https://bu.dusays.com/2025/07/10/686f7522714eb.webp)
 
 我的推测是整个后端服务为单线程，在爬取数据时就会阻塞当前线程，虽然请求成功发送了，服务端也正常接收了，但只是进入了等待队列，需要等待新的数据获取完成后才会真正的返回响应，所以既没有超时也没有响应，所以我们需要将爬取数据的过程放到一个单独的线程中去执行，这样就可以避免阻塞主线程，从而保证服务端可以正常响应请求。
 
 经过了五分钟的等待，服务端终于返回了响应。
 
-![1752135416102.png](https://bu.dusays.com/2025/07/10/686f76fcac501.png)
+![1752135416102.png](https://bu.dusays.com/2025/07/10/686f76fcac501.webp)
 
 这也证实了我的猜想，当前的服务端逻辑存在严重问题，急需修正。
 
@@ -1791,7 +1791,7 @@ ok今天先测试到这里了。
 
 这次改进彻底解决了单线程阻塞问题，实现了真正的非阻塞服务架构，同时通过精细状态管理最大化服务可用性。
 
-![1752137517924.png](https://bu.dusays.com/2025/07/10/686f7f320d774.png)
+![1752137517924.png](https://bu.dusays.com/2025/07/10/686f7f320d774.webp)
 
 此时可以看到在初次启动服务后
 
@@ -1804,7 +1804,7 @@ INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
 
 对于这个问题，首先它在实际生产环境中并不常见，因为它仅会发生在服务器初次启动时，实际的生产环境中肯定**不会经常性的开关服务器**，同时Nginx的{% label **反向代理** orange %}以及{% label **均衡负载** orange %}也会保证在服务端升级维护时是多台服务器循环重启而非全部断联，也就是所谓的{% label **滚动升级** purple %}，来保障其{% label **高可用性原则** purple %}，基本不会发生以上现象。所以我们需要再次测试一下再后续的稳定运行阶段是否能在爬虫运行时保证主线程能正常的处理请求。同时我们也需要在客户端利用数据库来存储上一次加载的数据，以防止在启动时获取的数据为空或者是获取失败，这样可以极大的提高运行的稳定性。
 
-![1752139864861.png](https://bu.dusays.com/2025/07/10/686f885d1b05c.png)
+![1752139864861.png](https://bu.dusays.com/2025/07/10/686f885d1b05c.webp)
 
 在写上面这段分析时刚好也等到了下一次更新，我在此期间再次请求了新闻列表接口，发现正常获取了数据，说明主子线程已经成功分离。（我才发现之前请求时少了个正斜杠……汗流浃背了）
 
@@ -1814,7 +1814,7 @@ INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
 
 首先还是先去观察CSDN目标网页的网页结构，去观察其是如何进行页面跳转的，这将决定我们用什么手段去获取目标资讯页面的跳转URL。先是确认一下基地址。和OpenHarmony官网不同的点在于OpenHarmony官网是直接就有资讯页面的，而且是按照时间顺序排列的，我们直接自上而下的遍历就可以很自然的按照顺序去获取到我们所需要的资讯链接。但CSDN是一个全技术栈的程序员技术网站，我们只能输入关键词进行搜索，所以我要先将`OpenHarmony`输入搜索框并勾选好最新选项，我们才能按照时间顺序获取到按时间顺序排布的全部的资讯链接。
 
-![1752153112189.png](https://bu.dusays.com/2025/07/10/686fbc1e064af.png)
+![1752153112189.png](https://bu.dusays.com/2025/07/10/686fbc1e064af.webp)
 
 ```bash
 https://so.csdn.net/so/search?spm=1000.2115.3001.4498&q=openHarmony&t=all&u=&s=new
@@ -1824,11 +1824,11 @@ https://so.csdn.net/so/search?spm=1000.2115.3001.4498&q=openHarmony&t=all&u=&s=n
 
 确认了基地址后就来分析我们的目标资源地址藏在了哪里。
 
-![1752153958404.png](https://bu.dusays.com/2025/07/10/686fbf6a96048.png)
+![1752153958404.png](https://bu.dusays.com/2025/07/10/686fbf6a96048.webp)
 
 哇这个页面结构是真规整啊，我先展开每一个目标list-item查看其是否包含有我们的目标链接。
 
-![1752156369968.png](https://bu.dusays.com/2025/07/10/686fc8d8cd004.png)
+![1752156369968.png](https://bu.dusays.com/2025/07/10/686fc8d8cd004.webp)
 
 明文a标签，这可太美好了，我们直接取用其中的herf字段就可以作为资讯链接了，真是太美妙了。
 
@@ -1871,7 +1871,7 @@ https://so.csdn.net/so/search?spm=1000.2115.3001.4498&q=openHarmony&t=all&u=&s=n
 
 首先我考虑到的就是URL错误或失效，毕竟其中还包含了一些我们并不能确定的参数，于是我决定进行跳转进行测试。
 
-![1752165651408.png](https://bu.dusays.com/2025/07/11/686fed1711bdd.png)
+![1752165651408.png](https://bu.dusays.com/2025/07/11/686fed1711bdd.webp)
 
 跳转之后显示成功，但还不能掉以轻心，我决定用CMD进行请求测试。
 
@@ -2179,13 +2179,13 @@ class CSDNOpenHarmonyCrawler:
 
 首先任一点开两篇文章的链接，对比其结构，统一网站的同一类型子页面内容的格式应该是一致的模板。
 
-![1752215970486.png](https://bu.dusays.com/2025/07/11/6870b1a461fc5.png)
+![1752215970486.png](https://bu.dusays.com/2025/07/11/6870b1a461fc5.webp)
 
 首先通过第一篇文章直接选择文章正文内容的容器就可以定位到正文然后再逐级向上找到包裹全部文章正文的极小容器，这样我们就可以通过该容器来获取到全部文章内容了。
 
 id是`content_views`，类名可以不唯一，但是id肯定是唯一的，我们再找一篇文章进行一下验证。
 
-![1752216326708.png](https://bu.dusays.com/2025/07/11/6870b308a30a4.png)
+![1752216326708.png](https://bu.dusays.com/2025/07/11/6870b308a30a4.webp)
 
 ok现在我们就可以确定我们的目标文章内容就是这个容器了。开始编写爬起代码。
 
@@ -2288,7 +2288,7 @@ ok现在我们就可以确定我们的目标文章内容就是这个容器了。
 
 开始运行测试。
 
-![1](OpenSourceSummer2025/1.png)
+![1](OpenSourceSummer2025/1.webp)
 
 ```js
       {
@@ -2352,9 +2352,9 @@ ok现在我们就可以确定我们的目标文章内容就是这个容器了。
 
 #### CSDN资讯源的代码块结构专项优化
 
-![2](OpenSourceSummer2025/2.png)
+![2](OpenSourceSummer2025/2.webp)
 
-![3](OpenSourceSummer2025/3.png)
+![3](OpenSourceSummer2025/3.webp)
 
 我确实没怎么注意过这个代码块的渲染细节，这仔细一看才看明白，关键字，变量名，注释等都是不同的类名来进行的渲染。究竟怎么依据各个语言的语法来进行区分与渲染，或者说我们常用的这套Markdown渲染成HTML的逻辑又是怎么实现的？确实很有趣，后面没准会单开一篇文章来研究一下，哈哈。
 
@@ -2432,7 +2432,7 @@ ok现在我们就可以确定我们的目标文章内容就是这个容器了。
 ohpm i @lidary/markdown
 ```
 
-![4](OpenSourceSummer2025/4.png)
+![4](OpenSourceSummer2025/4.webp)
 
 ```ts
 import { MarkdownV2 } from '@lidary/markdown';
@@ -2455,7 +2455,7 @@ struct Index {
 
 让我们来进行一下渲染测试。
 
-![5](OpenSourceSummer2025/5.png)
+![5](OpenSourceSummer2025/5.webp)
 
 果然，这些换行符都是异常的换行符，我们还是得重新进行代码逻辑的编写。
 
@@ -2463,7 +2463,7 @@ struct Index {
 
 当然这个方案固然可以解决问题，但我们还应当考虑数据的复杂度，过于复杂的数据结构是否有存在的必要，{% label “如无必要，勿增实体” red %}，这个彩色是外挂标签，但这也可以看做是换了个颜色的行内代码块，这本质上没什么区别，二者外观以及功能性都是相同的，这就够了。我们要明白我们的目标是什么，是让用户能看清楚，能看懂。所以我们其实可以先去找到原文章的效果去看一看行内代码的效果是不是那么重要。
 
-![6](OpenSourceSummer2025/6.png)
+![6](OpenSourceSummer2025/6.webp)
 
 这一段，有一说一，其实我在仔细看代码之前从来没有意识到过这是一个经过渲染的行内代码块，仅仅是将其当做了字体不一致的文本而已。虽然仔细看是有一圈淡淡的灰色，但对于浏览文本内容来讲并无任何区别。所以我们暂时不考虑行内代码的渲染，而是先考虑如何渲染文本。
 
@@ -2556,7 +2556,7 @@ struct Index {
 
 再次进行测试。
 
-![7](OpenSourceSummer2025/7.png)
+![7](OpenSourceSummer2025/7.webp)
 
 可以看到，我们的行内代码被成功的忽视并拼接到了前后的文本中，而不是被单独提取出来。
 
@@ -2669,7 +2669,7 @@ def crawl_article_detail(self, driver, url):
     return result
 ```
 
-![8](OpenSourceSummer2025/8.png)
+![8](OpenSourceSummer2025/8.webp)
 
 顺利的去除的重复，那么对于CSDN内容的爬取就算成功了，接下来就该去解决搜索关键词有限导致爬取目标内容不足的问题了。
 
@@ -2802,7 +2802,7 @@ def crawl_article_detail(self, driver, url):
 
 ok，开始测试。
 
-![9](OpenSourceSummer2025/9.png)
+![9](OpenSourceSummer2025/9.webp)
 
 可以看到，我们的两个线程在同时获取最新的数据。不过Python的多线程其实属于是"假多线程"。
 
@@ -3048,7 +3048,7 @@ okay，回归正题，写这段的时候我们的爬虫也完成了工作让我�
 
 首先是"沸腾了！华为开源鸿蒙OS2.0！安卓会被淘汰吗？"这篇文章的文章内容顺序乱了，原文中的文本是穿插在图中间的而且比较靠前，爬取后就到后面了，暂时不清楚是什么原因。
 
-![10](OpenSourceSummer2025/10.png)
+![10](OpenSourceSummer2025/10.webp)
 
 还有就是后面这几篇都404了，可能是原作者删除了文章吧，明天得再加个404的检测机制。今天先这样了，累了累了。
 
@@ -3074,7 +3074,7 @@ okay，回归正题，写这段的时候我们的爬虫也完成了工作让我�
 
 首先还是观察一下404页面。
 
-！[11](OpenSourceSummer2025/11.png)
+！[11](OpenSourceSummer2025/11.webp)
 
 可以看到404页面都会存在一个new_404的侧边栏，我们只需要检测在跳转后的目标页面是否存在这个侧边栏就可以判断是否是404页面了。
 
@@ -3162,7 +3162,7 @@ DEBUG: 找到元素数量: 14
 
 嘶？有很多文章的目标容器是找不到的？？？难道是我们最初在寻找目标文章容器时就出现了问题？？
 
-![12](OpenSourceSummer2025/12.png)
+![12](OpenSourceSummer2025/12.webp)
 
 原来是因为有的文章结构不一样啊，那没事了，我们只需要从新修改一下爬取逻辑就好了
 
@@ -3391,7 +3391,7 @@ ok效果也是非常的好，前面近两年的资讯都是十分顺利的爬取
 
 由于当前还没有开发首页轮播图的接口所以我本身打算加一个`promptAction`弹窗，结果意外发现在此前我用的`showToast`函数被弃用了，从API version 18开始废弃，且直接使用showToast可能导致UI上下文不明确的问题，建议使用UIContext中的getPromptAction获取PromptAction实例，再通过此实例调用替代方法showToast。
 
-![17](OpenSourceSummer2025/17.png)
+![17](OpenSourceSummer2025/17.webp)
 
 刚好也让我们来试一下这个新方法。
 
@@ -4011,7 +4011,7 @@ ohpm i @lidary/markdown
 
 然后再修改一下我们的应用名称以及图标。
 
-![13](OpenSourceSummer2025/13.png)
+![13](OpenSourceSummer2025/13.webp)
 
 ok，至此准备工作准备就绪。奥对，我们还需在再下载一个骨架屏的三方库，虽然之前在面试通项目时我们也自制过骨架屏，但还是太简陋了，有现成好用的三方库就直接用吧，何乐而不为呢。
 
@@ -4047,7 +4047,7 @@ ohpm i @hw-agconnect/ui-skeleton
 
 创建时又发现报错显示已经存在Index页面？？？
 
-![14](OpenSourceSummer2025/14.png)
+![14](OpenSourceSummer2025/14.webp)
 
 所以我尝试创建了Main页面发现不报错了，重新编译也没问题了。嘶，搞不太懂，后面再研究研究吧。
 
@@ -4057,7 +4057,7 @@ ohpm i @hw-agconnect/ui-skeleton
 
 先做一个简单的轮播图组件放在首页来去进行一下首页和默认页面的区分。
 
-![15](OpenSourceSummer2025/15.png)
+![15](OpenSourceSummer2025/15.webp)
 
 复制一个官网轮播图的链接过来进行一下显示测试。
 
@@ -4364,7 +4364,7 @@ axiosInstance.interceptors.response.use((res: AxiosResponse) => {
 
 我尝试将获取放入响应拦截器中看是否能解决这个问题。
 
-![19](OpenSourceSummer2025/19.jpg)
+![19](OpenSourceSummer2025/19.webp)
 
 问题成功解决。
 
@@ -4493,7 +4493,7 @@ export const serverHealthApi = new ServerHealthAPI()
 
 诶？奇怪的现象出现了。
 
-![20](OpenSourceSummer2025/20.png)
+![20](OpenSourceSummer2025/20.webp)
 
 请求触发了但是API中并没有成功解析到数据，但是封装的请求工具中设置的拦截器是成功捕获了响应。
 
@@ -4537,7 +4537,7 @@ export const serverHealthApi = new ServerHealthAPI()
 
 再次测试
 
-![21](OpenSourceSummer2025/21.png)
+![21](OpenSourceSummer2025/21.webp)
 
 成功了成功了，吓死我了。还是不熟练，还得多练。
 
@@ -4678,7 +4678,7 @@ export const newsListApi = new NewsListAPI()
 
 这一段异步编程我感觉可能会有执行顺序问题，我们先测试一下看看。
 
-![22](OpenSourceSummer2025/22.png)
+![22](OpenSourceSummer2025/22.webp)
 
 后端请求超时？？？后端日志也确实没显示有请求访问。
 
@@ -4758,11 +4758,11 @@ ok，十分顺利，这次代码的执行顺序就与我们的预期完全一致
 
 但很快我就迎来了第一个问题。又是上下文对象的类型问题。
 
-![27](OpenSourceSummer2025/27.png)
+![27](OpenSourceSummer2025/27.webp)
 
 这个东西和他搏斗太久了，鸿小易时期就在和这个东西纠缠。我本来想直接使用上面已经存入全局变量中的UIContext就行了结果仔细读了一下文档发现两者并不是同一类型。
 
-![28](OpenSourceSummer2025/28.png)
+![28](OpenSourceSummer2025/28.webp)
 
 这个[BaseContext](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-inner-application-basecontext)是一个用来判断当前应用模型的上下文对象。
 
@@ -4828,11 +4828,11 @@ export const kvDatabase: KVDatabase = new KVDatabase()
 
 先真机测试一下这个创建过程，以及反复启动应用是否会出现问题。
 
-![29](OpenSourceSummer2025/29.png)
+![29](OpenSourceSummer2025/29.webp)
 
 创建成功。不过这也是有个新问题。
 
-![30](OpenSourceSummer2025/30.png)
+![30](OpenSourceSummer2025/30.webp)
 
 我们可以看到我们所需要的参数类型是`BaseContext`但是我们所传入的却是`UIAbilityContext`类型。我又将函数定义的类型进行了一下修改进行尝试。
 
@@ -4845,17 +4845,17 @@ createKVManager(context: common.UIAbilityContext)
 
 经测试运行依旧正常，数据库管理对象依旧是正常的去创建了，对此我第一个想到的就是多态，这几个类型之间是存在集成的子父代关系的，与此同时`BaseContext`、`Context`、`UIAbilityContext`这几个命名也是基于`context`这个单次去进行修饰词的添加的。让我们来读一下源码证实我的想法。
 
-![31](OpenSourceSummer2025/31.png)
+![31](OpenSourceSummer2025/31.webp)
 
-![32](OpenSourceSummer2025/32.png)
+![32](OpenSourceSummer2025/32.webp)
 
 ok，源码完美的验证了我的想法`BaseContext`的的确确是另外两个的上下文对象的父类，而且其仅仅包含了应用模型类型这一个信息。我们传递的参数是`BaseContext`类型说明其仅需要应用框架类型这一个信息，而`UIAbilityContext`是`BaseContext`的子类，同样包含了这个信息，所以我们可以直接将`UIAbilityContext`类型的参数传递给`createKVManager`函数，这就实现了多态。
 
 {% note success flat %}
 关于这一块我后面又去寻找了一下相关的文档说明，也是找到了专门解释这一块的文档。[传送门](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-inner-application-context#%E4%B8%8D%E5%90%8C%E7%B1%BB%E5%9E%8Bcontext%E7%9A%84%E7%BB%A7%E6%89%BF%E5%92%8C%E6%8C%81%E6%9C%89%E5%85%B3%E7%B3%BB)
 
-![alt text](https://alliance-communityfile-drcn.dbankcdn.com/FileServer/getFile/cmtyPub/011/111/111/0000000000011111111.20250822155516.57232657365788405215170185352656:50001231000000:2800:BF79EFDD4AAA5620DCD6B96CC760D9FECC2247D36B77809280AE796390B43673.png)
-![alt text](https://alliance-communityfile-drcn.dbankcdn.com/FileServer/getFile/cmtyPub/011/111/111/0000000000011111111.20250822155516.41713918890506122165673003330164:50001231000000:2800:607839D596540E0B7FFBC58D6794F403B8FBDAB34632F1390F1C13E04316195D.png)
+![alt text](https://alliance-communityfile-drcn.dbankcdn.com/FileServer/getFile/cmtyPub/011/111/111/0000000000011111111.20250822155516.57232657365788405215170185352656:50001231000000:2800:BF79EFDD4AAA5620DCD6B96CC760D9FECC2247D36B77809280AE796390B43673.webp)
+![alt text](https://alliance-communityfile-drcn.dbankcdn.com/FileServer/getFile/cmtyPub/011/111/111/0000000000011111111.20250822155516.41713918890506122165673003330164:50001231000000:2800:607839D596540E0B7FFBC58D6794F403B8FBDAB34632F1390F1C13E04316195D.webp)
 {% endnote %}
 
 ### 用户首选项接口
@@ -4957,7 +4957,7 @@ export class UserConfigViewModel {
 
 用这套模式在开发时我也是又遇到了新的类型问题，也就是显示数据模型和我所提供的首选项数据接口的类型不一致问题。
 
-![27](OpenSourceSummer2025/33.png)
+![27](OpenSourceSummer2025/33.webp)
 
 于是我考虑的是直接将接口的返回值类型给修改为泛型接口，并用trycatch包裹来去处理可能发生的异常。
 
@@ -5250,7 +5250,7 @@ UserConfigManager: 无用户配置持久化数据，执行默认配置设置
   }
 ```
 
-![34](OpenSourceSummer2025/34.png)
+![34](OpenSourceSummer2025/34.webp)
 
 添加日志后发现了我最没想到的问题，整个函数压根就没有进入？？？这可怎么办呢，我们再仔细排查一下。
 
@@ -5540,7 +5540,7 @@ export struct ColorModChoseButton {
 
 这里也是刚好牵扯出来一个小的开发技巧，就是在动态资源共享包中想要新增一个颜色配置文件该怎么做。
 
-![36](OpenSourceSummer2025/36.png)
+![36](OpenSourceSummer2025/36.webp)
 
 创建好深色模式资源包之后将Product模块的两个颜色JSON文件复制过来，这里其实只是为了数据格式的一致性，自己重新写也是可以的。
 
@@ -5548,7 +5548,7 @@ export struct ColorModChoseButton {
 
 先让我们来取一段日志来分析一下。
 
-![37](OpenSourceSummer2025/37.png)
+![37](OpenSourceSummer2025/37.webp)
 
 可以看到，我们按钮点击触发后设置浅色的函数的的确确是成功了的，但是我们的日志显示问题发生在了`PreferenceDB: push data: key=ColorMode,value=2`这一步，写入到数据时跟随系统！！！这很致命啊，我第一时间想到的是深浅拷贝问题，之前在测试我们的持久化数据存储时已经成功了，后面我为了省事我是直接提取为了一个成员变量，我现在加上`@Trace`试一试。
 
@@ -5645,11 +5645,11 @@ export const colorModManager = new ColorModManager()
 
 再次测试
 
-![38](OpenSourceSummer2025/38.png)
+![38](OpenSourceSummer2025/38.webp)
 
 这才对啊。但是真机的显示效果又出现了新的问题。在我重新启动应用后发现按钮显示的文字正确但是真正的颜色模式还是跟随系统。
 
-![39](OpenSourceSummer2025/39.jpg)
+![39](OpenSourceSummer2025/39.webp)
 
 这个问题的定位倒是很快速的，我是在当初学习如何设置当前应用的深浅色模式的时候就看到过再创建项目后的默认代码中就有一行是设置成跟随系统，我当时忘删了。删除后再试一下。
 
@@ -5908,7 +5908,7 @@ export const newsManager = new NewsManager()
   }
 ```
 
-![41](OpenSourceSummer2025/41.png)
+![41](OpenSourceSummer2025/41.webp)
 
 ok，很完美，其实我一开始害怕单个字段存储会不会出现数据量过大的情况，但看来并没有发生，那我就放心了。
 
@@ -5945,7 +5945,7 @@ ok，很完美，其实我一开始害怕单个字段存储会不会出现数据
   }
 ```
 
-![44](OpenSourceSummer2025/44.png)
+![44](OpenSourceSummer2025/44.webp)
 
 我草非常顺利啊，没有出现异常。那接下来我们就只需要去考虑这两套数据获取方式的切换逻辑了，这部分应该是最后在完善AppInit功能模块时的工作，下一步我需要思考的应该是文章渲染组件以及对应的样式设计，以及文章字体大小控制组件的功能封装。
 
@@ -5953,11 +5953,11 @@ ok，很完美，其实我一开始害怕单个字段存储会不会出现数据
 
 对于启动页的UI，首先肯定是要以简洁为主题风格，随后是要有应用的名称，然后我们还有明白启动页的核心功能是用来给应用的启动提供充足的缓冲时间，如果启动页进入之后还没有加载完成数据，那大概率是意味着网络出现了问题或是服务端出现了这状态异常，所以我们需要将从后端更新数据以及全部数据库的初始化工作都放在启动页显示期间进行。
 
-![27](OpenSourceSummer2025/42.png)
+![27](OpenSourceSummer2025/42.webp)
 
 在豆包之后就获得了这个logo，调整几次后的这个结果还是非常让人满意的，思路来源就是OpenHarmony的绿色和蓝色的渐变，虽然不是用专业绘图软件画的没有透明的背景，但我可以直接设置成同样的背景色，这样就可以做出透明背景的效果了。
 
-![43](OpenSourceSummer2025/43.jpg)
+![43](OpenSourceSummer2025/43.webp)
 
 ### 主页面UI
 
@@ -6021,19 +6021,19 @@ ok，很完美，其实我一开始害怕单个字段存储会不会出现数据
 }
 ```
 
-![24](OpenSourceSummer2025/24.jpg)
+![24](OpenSourceSummer2025/24.webp)
 
 看着还不错吧。
 
 在这个过程中我也是遇到了一个小问题，就是我继续用`NavDestination`制作启动页的话这将意味着我的启动页将无法在平板上去进行全屏的覆盖，这并不合理。
 
-![25](OpenSourceSummer2025/25.jpg)
+![25](OpenSourceSummer2025/25.webp)
 
 所以我还是决定使用router来去解决这个问题。
 
 在使用router局部重构页面逻辑时又发现了一个新的问题，就是router的`pushUrl`方法已经被废弃了。
 
-![26](OpenSourceSummer2025/26.png)
+![26](OpenSourceSummer2025/26.webp)
 
 我立即去查看了[官方文档](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-router#routerpushurldeprecated)。
 
@@ -6182,7 +6182,7 @@ struct Main {
 
 在测试平板侧的一多的时候发现一个问题就是他的竖屏模式Navigation并不会自动恢复到单栏模式，且图片的比例也会变得很奇怪，所以对于这个问题有两种解决方式，一种是通过媒体查询来去解决这个问，另一种就是通过设置横屏锁定来解决。
 
-![45](OpenSourceSummer2025/45.jpg)
+![45](OpenSourceSummer2025/45.webp)
 
 {% tabs test4 %}
 <!-- tab 媒体查询 -->
@@ -6456,7 +6456,7 @@ struct Main {
 
 啊啊啊，经过一个多小时的折磨之后终于是顺利完成了这个切换的逻辑，中间还掺杂了因为`@Monitor`装饰器的变量名写错了的这种该死的疏忽而导致的bug。还被误认为是我原来写的这套媒体监听逻辑有问题，然后用的时候才发现一个问题就是虽然我项目原本是用API18，但是因为手机是API17所以我测试也只能用API17的接口所以我又把很多新接口改回了被废弃的老接口，也是很绝望了。
 
-![48](OpenSourceSummer2025/48.png)
+![48](OpenSourceSummer2025/48.webp)
 
 <!-- endtab -->
 <!-- tab 横屏锁定 -->
@@ -6466,7 +6466,7 @@ struct Main {
 
 我在尝试着修改了配置文件之后就发现它无法分开在平板和手机上使用不同的横竖屏策略。
 
-![46](OpenSourceSummer2025/46.jpg)
+![46](OpenSourceSummer2025/46.webp)
 
 确实是很让人恼火的事，所以我决定去引入媒体查询功能模块。
 <!-- endtab -->
@@ -6476,7 +6476,7 @@ struct Main {
 
 这一部分我们主要是为了解决在平板的{% label 自由多窗和全景多窗 red %}情况下的适配问题，以及当下仍然存在的一部分API接口的兼容问题，API17和API18之间还是有挺大差异的，API18是处理了一大批接口的UI上下文指代不明确的问题。
 
-![49](OpenSourceSummer2025/49.png)
+![49](OpenSourceSummer2025/49.webp)
 
 #### 媒体查询接口调优
 
@@ -6665,7 +6665,7 @@ export class BreakpointSystem {
 
 随后进行测试。
 
-![54](OpenSourceSummer2025/54.jpg)
+![54](OpenSourceSummer2025/54.webp)
 
 ```bash
 AppInit: 设置窗口最小尺寸失败，错误原因：Parameter error. Possible causes: 1. Mandatory parameters are left unspecified; 2. Incorrect parameter types; 3. Parameter verification failed.
@@ -6926,7 +6926,7 @@ export default class EntryAbility extends UIAbility {
 
 `display`这个包我确实是不熟悉，所以我要先去查询一下[官方文档](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-display)的讲解。
 
-![53](OpenSourceSummer2025/53.png)
+![53](OpenSourceSummer2025/53.webp)
 
 在阅读了官方文档中对于`densityPixels`的解释后，我明白了其实官方的这个划分模式依旧是纯粹的使用宽度进行断点判断罢了。也并没有在断点上去考虑高度的数据。
 
@@ -7682,7 +7682,7 @@ export struct NewsList {
 
 #### 懒加载改造
 
-![63](OpenSourceSummer2025/63.png)
+![63](OpenSourceSummer2025/63.webp)
 
 这描述太对味了。让我们开始进行改造吧。
 
@@ -8121,11 +8121,11 @@ export struct MainPage {
 
 之前一段时间，开源之夏的运营员私信问了我一次说是否有瓶颈，是否签署了劳务合同，是否有问题等常规的运营性的问题，也是为了确保是否能正常结项，我当时是信心十足的说没问题，但那也只是在我考虑了开发技术上的情况的确是没什么问题，但是我是没想到在PR的创建以及OpenHarmony的代码门禁上会好这么长时间。
 
-![66](OpenSourceSummer2025/66.jpg)
+![66](OpenSourceSummer2025/66.webp)
 
 首先遇到的问题就是当我想创建pr的时候才发现我没有签署OpenHarmony的开源协议，在签署之后我才能去创建pr。
 
-![65](OpenSourceSummer2025/65.jpg)
+![65](OpenSourceSummer2025/65.webp)
 
 签署完成，这一步倒是没有拦住我，我接着就去继续创建pr，但老师给出的要求是要先去创建一个issue，然后通过关联issue来去创建pr。
 
@@ -8143,11 +8143,11 @@ export struct MainPage {
 
 在创建了issue，并编写了pr的简介之后，老师告诉我不光是没有签署开源协议，还没有进行commit的签名。“commit还有签名？”这是我当时内心的原话。用了这么久的git我是真的不知道commit还有签名这么个功能。
 
-![67](OpenSourceSummer2025/67.jpg)
+![67](OpenSourceSummer2025/67.webp)
 
 我赶紧去问了问AI，仿照着老师提供的commit命令从新进行了尝试，随后在官网进行了一下查看，发现确实是有区别的。
 
-![68](OpenSourceSummer2025/68.jpg)
+![68](OpenSourceSummer2025/68.webp)
 
 可以看到上面没有签名的它只有一行账号的信息，这是通过git账号登录或是ssh秘钥来去判断的是谁推送的commit，而经过签名的则会还有一行`Signed-off-by`。
 
@@ -8270,7 +8270,7 @@ GitHub也支持使用SSH密钥进行commit签名，这对于已经有SSH密钥�
 
 在正常的编写完commit信息，准备点击commit的时候我开始了寻找。顺着直觉点开了右上角的更多按钮，下拉找到commit一栏。果然如我所料，VScode系列的这些IDE都有这个选项。
 
-![69](OpenSourceSummer2025/69.jpg)
+![69](OpenSourceSummer2025/69.webp)
 
 ### 开源协议版权头的添加
 
@@ -8282,7 +8282,7 @@ GitHub也支持使用SSH密钥进行commit签名，这对于已经有SSH密钥�
 
 于是我就开始了我的漫漫复制黏贴之路。我本以为全加一遍就结束了，但没想到检查漏加的文件这一过程整整持续了两天才结束。
 
-![70](OpenSourceSummer2025/70.jpg)
+![70](OpenSourceSummer2025/70.webp)
 
 在将数量下压到8个文件之后就始终无法再降了，我反复排查反复尝试，发现问题就出在鸿蒙项目的几个json5配置文件中，就是那几个json5配置文件的开源协议在我几次修改后都被意外删除。但我始终不知道原因，于是我尝试了一次在添加好配置文件的版权头之后不点击deveco右上角的同步数据按钮，直接进行commit进行推送，再次执行代码门禁检查发现果然通过了，我很快就进行了实验，我直接用cursor修改配置文件，而不从deveco进行修改，发现没问题，更改被正确的留存。在deveco修改完不点击同步数据按钮也没问题，版权头也没有被删除，而当我点击同步数据之后所有json5文件之中的版权头注释都消失了，这一点证明了我的猜想，就是deveco的自动数据同步过程删除了这些“非必要的”字段导致我的代码门禁始终不通过。
 
@@ -8290,7 +8290,7 @@ GitHub也支持使用SSH密钥进行commit签名，这对于已经有SSH密钥�
 
 在终于通过了代码门禁的静态检查之后，老师同意了我的合并请求，于是在九三阅兵的礼炮声中，我的代码被正式合并了。虽然到这里我的项目还没有完全完成，但这个时间点真的很有意义，至少对我来说是很触动的一个时间点。
 
-![71](OpenSourceSummer2025/71.jpg)
+![71](OpenSourceSummer2025/71.webp)
 
 ## 正文渲染
 
@@ -8658,7 +8658,7 @@ export struct NewsArticleView {
 
 在完成了核心组件的开发之后我申请了第二次pr，这次就顺利多了，只修改了一次就顺利完成了代码门禁的静态代码检查。
 
-![72](OpenSourceSummer2025/72.png)
+![72](OpenSourceSummer2025/72.webp)
 
 ## 微信公众号爬虫取代CSDN爬虫
 
@@ -8672,9 +8672,9 @@ CSDN是一个动态网站，全部博客文章都是使用动态加载来进行�
 
 首先观察一下[OpenHarmony官网首页](https://www.openharmony.cn/mainPlay)轮播图的网页结构。
 
-![73](OpenSourceSummer2025/73.png)
+![73](OpenSourceSummer2025/73.webp)
 
-![74](OpenSourceSummer2025/74.png)
+![74](OpenSourceSummer2025/74.webp)
 
 可以看到手机版和PC版的图片是不同的，同时图片的地址也是不同的，所以需要在爬取时标明手机版浏览器的UA信息。
 
@@ -9701,9 +9701,9 @@ export const newsManager = new NewsManager()
 
 然后！测试！！！
 
-![75](OpenSourceSummer2025/75.png)
+![75](OpenSourceSummer2025/75.webp)
 
-![76](OpenSourceSummer2025/76.jpg)
+![76](OpenSourceSummer2025/76.webp)
 
 ok，还有一处需要修改的，就是在下拉刷新时也要触发一下轮播图的刷新才对。
 
@@ -9728,11 +9728,11 @@ ok，还有一处需要修改的，就是在下拉刷新时也要触发一下轮
 
 去除了CSDN的数据源之后我原本准备用更多的微信公众号文章去进行补充，但是我在实践的时候发现了新的问题，就是针对微信公众号文章的搜索，微信官方并没有给出公共的接口，于是就造成了我无法直接去获取搜索引擎的请求地址，我最初想的是从电脑版微信的搜索栏下手，因为在我印象中电脑版微信的搜索栏与打开网页共用的是用一个页面，能不能直接点击右上角的用系统浏览器打开的方式来去用浏览器开发者工具获取地址，但我点开之后才发现在公众号搜索界面是没有那个用浏览器打开的按钮的。
 
-![77](OpenSourceSummer2025/77.png)
+![77](OpenSourceSummer2025/77.webp)
 
 所以我就只能去寻找其他办法。通过阅读一些技术博客我了解到[搜狗搜索引擎](https://weixin.sogou.com/)中有专门接入微信公众号的搜索引擎接口于是我立刻前去尝试。
 
-![78](OpenSourceSummer2025/78.png)
+![78](OpenSourceSummer2025/78.webp)
 
 的的确确是能搜到相关关键词的公众号文章，但也仅限于能搜到了。搜索结果全是按照所谓的“综合排名”去罗列的，就导致搜到的都是一些陈年老文，这与我们NowInOpenHarmony项目所需要的聚合最新资讯的理念相悖，新文章因为“热度”低导致都排的比较靠后，先要通过爬虫爬取的难度还是比较高的。首先是得反复大量的去模拟用户操作想后查找文章，并逐一截取日期并进行排序。所以我决定暂时放弃这个想法。当然我也不是没想过在URL里观察一下参数字段是否包含有排序方式。
 
@@ -9763,7 +9763,7 @@ https://weixin.sogou.com/weixin?ie=utf8&s_from=input&_sug_=y&_sug_type_=&type=2&
 
 相同的方式，先点击一下博文板块的文章，随后去开发者工具的网络工具进行抓包。
 
-![79](OpenSourceSummer2025/79.png)
+![79](OpenSourceSummer2025/79.webp)
 
 ```bash
 https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=2&pageNum=1&pageSize=6
@@ -9991,7 +9991,7 @@ https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=2&pag
   </div>
 </div>
 
-![80](OpenSourceSummer2025/80.png)
+![80](OpenSourceSummer2025/80.webp)
 
 对没错它很违和的折行了，这谁受得了，我必须得解决一下，单纯的限制宽度很显然是不显示的，我们虽然可以直接写text的组件宽度为百分之多少来去限制宽度，但是文字的大小不变的花还是会出现折行的情况，如果我直接手动进行单词的花粉并添加折行符号的话显示效果又不太好所以我决定去获取一下屏幕的宽度随后再计算一下文字大小。
 
@@ -10154,11 +10154,11 @@ Column() {
 
 设置了百分比字体大小进行尝试，我直接设置一个百分之五十这个很大的数是为了测试这种方式到底是否能生效，因为我仍然在质疑这种方式的可行性。
 
-![81](OpenSourceSummer2025/81.jpg)
+![81](OpenSourceSummer2025/81.webp)
 
 卧槽很显然是不生效的，这和我当初学的时候是一样的结论，哪怕是因为组件宽度上的因素导致百分比显得很小，但上下两个文本的比例我设的差距很大但两者的大小显示却是一样的，这就说明确实是没有生效。让我们去看一下最新的文档中的说明。
 
-![82](OpenSourceSummer2025/82.png)
+![82](OpenSourceSummer2025/82.webp)
 
 …… 我还能说什么呢，文档特别标注了不能使用百分比，但是……
 
@@ -10215,11 +10215,11 @@ export class WinWidth {
 
 这里也是依据华为官方给出的断点分布图设置了个备用值来防止屏幕宽度获取失败的情况。
 
-![83](OpenSourceSummer2025/83.png)
+![83](OpenSourceSummer2025/83.webp)
 
 可以看到这个获取的数据很大，于是我去看了一下文档。
 
-![84](OpenSourceSummer2025/84.png)
+![84](OpenSourceSummer2025/84.webp)
 
 单位是px，那看来还得进行一下转换。小小修改一下。
 
@@ -10238,11 +10238,11 @@ logger.debug(`${START_PAGE_TAGE}winWidth: ${this.winWidth}`)
 
 这样的方式的确是可以顺利的去获取了，在puraX上是正常的，但是在模拟器上测试时却无法正常获取目标的宽度导致我们的text组件直接消失了。
 
-![85](OpenSourceSummer2025/85.png)
+![85](OpenSourceSummer2025/85.webp)
 
 这让我想到了之前在搜索窗口获取内容时AI助手说过的一句话。
 
-![86](OpenSourceSummer2025/86.png)
+![86](OpenSourceSummer2025/86.webp)
 
 "❌ 避免在 aboutToAppear 生命周期调用：此时窗口可能未完成布局，获取的尺寸不准确。"
 
@@ -10263,15 +10263,15 @@ logger.debug(`${START_PAGE_TAGE}winWidth: ${this.winWidth}`)
 
 再修改完这些之后我首先是去向孙炼老师提出了最后一次pr合并的申请，开源之夏到这里就算是正式结束了。
 
-![87](OpenSourceSummer2025/87.jpg)
+![87](OpenSourceSummer2025/87.webp)
 
-![88](OpenSourceSummer2025/88.jpg)
+![88](OpenSourceSummer2025/88.webp)
 
 ### github的pr创建与issue关联
 
 在完成了gitcode这边的pr合并我就决定去github完善我自己的开源仓库，之前我是开启了一个issue去进行规范化的一个需求提出，所以我现在需要去创建一个pr关联目标issue并关闭issue。
 
-![89](OpenSourceSummer2025/89.jpg)
+![89](OpenSourceSummer2025/89.webp)
 
 对于针对本仓库的pr，和对他人仓库fork之后提出合并的pr的流程有些不一样但本质都是一样的！！！我们要把握事物的本质，寻找事物之间的联系，联系是无处不在的。pr——pull request，其本质就是**两个不同分支的代码合并**，两者可以是单个分支的commit领先，也可以是两者互有领先的commit，当两者互有领先时，如果没有良好的合作规范的话就会出现两个分支之的不同commit修改了同一个位置的代码导致冲突的出现，这种冲突都会被git所高亮表示出来，需要由后申请合并的开发者去进行处理，修正冲突部分，所以一般来讲，早点推送！早点合并！要不就要处理冲突了（bushi）我们当然是推荐每个队伍都去便携一套合理的合作规范文档的，并且明确划分每个人的操作区域，不要修改自己负责区域之外的代码，尽可能的解耦、封装，这样才能有效的避免冲突，避免永远是要比修正要好的。
 
@@ -10307,7 +10307,7 @@ logger.debug(`${START_PAGE_TAGE}winWidth: ${this.winWidth}`)
   </div>
 </div>
 
-![90](OpenSourceSummer2025/90.png)
+![90](OpenSourceSummer2025/90.webp)
 
 "No changes to show.
 This commit has no content."
@@ -10342,7 +10342,7 @@ This commit has no content."
   </div>
 </div>
 
-![91](OpenSourceSummer2025/91.png)
+![91](OpenSourceSummer2025/91.webp)
 
 这次就正常了。
 
@@ -10509,4 +10509,4 @@ This commit has no content."
 
 当我的PR被OpenHarmony所合并时，那份激动之情难以言表，我也是正式成为了Harmony生态的共建者之一，这对于一年前的我来说都是遥不可及的，那个对于代码都看不懂，只知道拍照照抄的我，与现在的我面对面，应该也会像当初被骏哥和子安所震撼到一样的感觉吧。
 
-![91](OpenSourceSummer2025/92.png)
+![91](OpenSourceSummer2025/92.webp)

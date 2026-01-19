@@ -11,7 +11,7 @@ tags:
 description: 本文将会对比鸿蒙开发的几种数据持久化方式。
 typewriter: 📱 深入探索鸿蒙应用开发的核心技能：数据持久化！本文详细对比了五种主流的数据存储方案，包括用户首选项(Preferences)、PersistenceV2、键值型数据库、关系型数据库和向量数据库。从存储容量、性能表现到应用场景，全方位解析各种方案的优缺点。特别详细介绍了XML和GSKV两种存储格式的区别，帮助开发者根据项目需求选择最合适的数据持久化方案，构建高效稳定的鸿蒙应用。
 top: 14
-cover: /imgs/ArticleTopImgs/persistentTopImg.png
+cover: /imgs/ArticleTopImgs/persistentTopImg.webp
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
@@ -40,11 +40,11 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 | 性能         | 同步写入磁盘，大量数据可能影响UI性能       | 内存缓存，读写速度快                     |
 | 使用场景     | 应用状态恢复、关键配置信息                 | 用户偏好设置、轻量级配置数据             |
 
-![PersistentStorage](HarmonyOSPersistent/1.png)
+![PersistentStorage](HarmonyOSPersistent/1.webp)
 
 总结来讲，这两者最关键的区别就在于是否直接存储至磁盘，PersistentceV2是在执行增删改查时直接在磁盘上进行操作的，大量的数据在同时进行本地化操作时会严重影响应用性能，并且这些进程是**直接在UI线程中执行的**，会大幅降低UI渲染效率。
 
-![Preferences](HarmonyOSPersistent/2.png)
+![Preferences](HarmonyOSPersistent/2.webp)
 
 ### 用户首选项的存储格式
 
@@ -211,11 +211,11 @@ putSync(key: string, value: ValueType): void
 
 现在我们再回头来看GSKV格式。首先我们纵观整个用户首选的API参考，仅有两个异步的`flush`接口有提示无需再GSKV格式中进行调用，而与之对应的`flushSync`接口则无此提示。
 
-![3](HarmonyOSPersistent/3.png)
+![3](HarmonyOSPersistent/3.webp)
 
-![4](HarmonyOSPersistent/4.png)
+![4](HarmonyOSPersistent/4.webp)
 
-![5](HarmonyOSPersistent/5.png)
+![5](HarmonyOSPersistent/5.webp)
 
 所以我由此推断GSKV格式的存储模式下，所谓的其执行逻辑是在数据发生改变时自动向任务队列中添加一个异步`flush`任务，进行执行。当然这部分只是我个人的推测，我暂时还没有找到更多相关的资料，毕竟是API18才有的功能，还是相当新的模式。
 
@@ -234,7 +234,7 @@ GSKV格式相比于XML格式，具有以下关键优势：
 | XML格式 | 单进程、小数据量场景 | 内存操作，需手动flush |
 | GSKV格式 | 多进程并发场景 | 实时落盘，支持并发 |
 
-![6](HarmonyOSPersistent/6.png)
+![6](HarmonyOSPersistent/6.webp)
 
 ### 用户首选项的二次封装
 
@@ -980,7 +980,7 @@ export class PreferencesUtil {
 
 当然这种数据库也包含了一些使用限制。这些限制主要是针对于大小和数量，当然也有对回调函数的处理逻辑进行的限制。
 
-![7](HarmonyOSPersistent/7.png)
+![7](HarmonyOSPersistent/7.webp)
 
 前三条都好说，重点是第四条中的`阻塞操作`一词该怎么理解，还有为什么要限制阻塞操作？
 
@@ -1238,17 +1238,17 @@ public interface UserMapper {
 - 将获取到的数据或是需要写入的数据封装为`Entity`实例类的实例化对象进行数据操作
 - 最后针对不同的事务类型封装不同的功能函数
 
-![8](HarmonyOSPersistent/8.png)
+![8](HarmonyOSPersistent/8.webp)
 
 OK，理解了这些之后，我们来类比着理解鸿蒙开发中的关系型数据库。官方所提供的API参考首先列举出的四种常用功能就是我们刚才所总结的四个步骤。
 
-![9](HarmonyOSPersistent/9.png)
+![9](HarmonyOSPersistent/9.webp)
 
 #### RdbPredicates
 
-![12](HarmonyOSPersistent/12.png)
+![12](HarmonyOSPersistent/12.webp)
 
-![10](HarmonyOSPersistent/10.png)
+![10](HarmonyOSPersistent/10.webp)
 
 **RdbPredicates（关系型数据库谓词）**是鸿蒙关系型数据库中用于构建查询条件的核心工具类。
 
@@ -1278,7 +1278,7 @@ SELECT * FROM users WHERE age > 18 AND city = '北京';
 3. **动态构建**：可以根据业务逻辑动态添加查询条件
 4. **跨平台一致性**：与鸿蒙数据库API完全集成
 
-![11](HarmonyOSPersistent/11.png)
+![11](HarmonyOSPersistent/11.webp)
 
 ##### 常用谓词方法
 
@@ -1560,7 +1560,7 @@ JDBC中的`PreparedStatement`对象中包含有对不同数据类型的参数替
   每个位置的元素类型可以不同
   用方括号和具体类型表示：`[string, number, boolean]`
 
-![13](HarmonyOSPersistent/13.png)
+![13](HarmonyOSPersistent/13.webp)
 
 所以说联合类型虽然看起来是很多种类型，但其实其本质也只是一个类型，他的作用就是限制一个变量只能是几种类型中的一种。
 
@@ -2083,7 +2083,7 @@ export async function databaseExample(context: common.UIAbilityContext) {
 
 事务对象中包含了与数据库对象相同的一众增删改查接口，在这里放一个[传送门](https://developer.huawei.com/consumer/cn/doc/harmonyos-references/js-apis-data-relationalstore#transaction14)，大家可以自行查看具体使用规则。
 
-![16](HarmonyOSPersistent/16.png)
+![16](HarmonyOSPersistent/16.webp)
 
 ### TransactionType事务对象的类型
 
@@ -2591,7 +2591,7 @@ class SimpleVectorStore {
 
 现在期末考完了，成绩也都不错，也就有时间去把这篇文章给完成了，就像是公告所说的一样。
 
-![14](HarmonyOSPersistent/14.png)
+![14](HarmonyOSPersistent/14.webp)
 
 后面也许会写一篇关于SSE模式的前端渲染优化方案的文章，敬请期待吧。
 
@@ -2618,6 +2618,6 @@ class SimpleVectorStore {
 
 还是那句话，让我们拼尽全力的在这世界上留下抓痕吧！
 
-![15](HarmonyOSPersistent/15.jpg)
+![15](HarmonyOSPersistent/15.webp)
 
 喵呜~！

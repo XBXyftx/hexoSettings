@@ -6,7 +6,7 @@ tags:
   - 技术向
   - ClaudeCode
   - cursor
-cover:  /imgs/ArticleTopImgs/AITrainingCampTopImg.jpg
+cover: /imgs/ArticleTopImgs/AITrainingCampTopImg.webp
 description: 熟练使用CC了，该开始大展身手了！
 typewriter: 在经过了前两次的训练之后，CC已经是我离不开的好伙伴了！接下来该做的就是做实践了！来打比赛！做项目！
 post_copyright:
@@ -276,17 +276,17 @@ onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
   现在你可以在浏览器中访问这两个地址来预览项目界面了！
 ```
 
-![1](AITrainingCamp2/1.png)
+![1](AITrainingCamp2/1.webp)
 
-![2](AITrainingCamp2/2.png)
+![2](AITrainingCamp2/2.webp)
 
-![3](AITrainingCamp2/3.png)
+![3](AITrainingCamp2/3.webp)
 
 额，不知道为什么点全部启动之后就失败了。等佳澎回来我再问他一下吧。
 
 #### docker的安装
 
-![4](AITrainingCamp2/4.png)
+![4](AITrainingCamp2/4.webp)
 
 安装docker进行一下尝试。
 

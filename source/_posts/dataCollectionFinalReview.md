@@ -5,7 +5,7 @@ tags:
   - 期末复习
 description: 数据采集期末复习
 typewriter: 📊 数据采集期末复习，深度总结数据采集相关知识。
-cover: /imgs/ArticleTopImgs/dataCollectionFinalReviewTopImg.png
+cover: /imgs/ArticleTopImgs/dataCollectionFinalReviewTopImg.webp
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
@@ -489,7 +489,7 @@ print(squares_dict)
 
 ### 真题
 
-![1](dataCollectionFinalReview\1.png)
+![1](dataCollectionFinalReview\1.webp)
 
 这道题我的第一反应是要去选择 "对象" 的，但是py中好像是将对象称呼为字典？
 
@@ -659,7 +659,7 @@ print(set([1, 2, 2, 3]))
 
 ### 真题
 
-![26](dataCollectionFinalReview\26.png)
+![26](dataCollectionFinalReview\26.webp)
 
 ```py
 data = ((001, '大数据导论', 2),
@@ -682,7 +682,7 @@ print(row4c2)
 
 `pandas` 是 Python 中最强大的数据分析库，其核心就是 `Series` 和 `DataFrame` 两种数据结构。理解它们是数据采集和处理的基础。
 
-![4](dataCollectionFinalReview\4.png)
+![4](dataCollectionFinalReview\4.webp)
 
 ### Series
 
@@ -1488,7 +1488,7 @@ df.to_csv('products.csv', index=False, encoding='utf-8-sig')
    # 输出: <class 'pandas.core.frame.DataFrame'>
    ```
    
-   ![2](dataCollectionFinalReview/2.png)
+   ![2](dataCollectionFinalReview/2.webp)
 
 2. **DataFrame 列数据类型要求：同列必须同类型** ⭐⭐⭐
    ```python
@@ -1502,7 +1502,7 @@ df.to_csv('products.csv', index=False, encoding='utf-8-sig')
    # 会被转换为最通用的类型（通常是 object 或 float）
    ```
 
-   ![3](dataCollectionFinalReview/3.png)
+   ![3](dataCollectionFinalReview/3.webp)
 
 3. **DataFrame 是 Series 的集合** ⭐⭐
    ```python
@@ -1517,7 +1517,7 @@ df.to_csv('products.csv', index=False, encoding='utf-8-sig')
    # 输出: <class 'pandas.core.frame.DataFrame'>
    ```
 
-   ![5](dataCollectionFinalReview/5.png)
+   ![5](dataCollectionFinalReview/5.webp)
 
 4. **索引和切片操作** ⭐⭐
    ```python
@@ -1650,9 +1650,9 @@ print(f"前200个字符:\n{response.text[:200]}")
 
 要爬取人民政协网的图片保存到本地，利用网页开发工具查看网页源代码，根据图1，图2所示规律，补充完成Python代码，实现爬取第一页图片的功能。
 
-![7](dataCollectionFinalReview/7.png)
+![7](dataCollectionFinalReview/7.webp)
 
-![8](dataCollectionFinalReview/8.png)
+![8](dataCollectionFinalReview/8.webp)
 
 Python程序如下：
 ```python
@@ -1722,9 +1722,9 @@ for content in content_all:
 
 为此我也特地找到了该网站并使用开发者工具进行观察。
 
-![10](dataCollectionFinalReview/10.png)
+![10](dataCollectionFinalReview/10.webp)
 
-我明确看到`/html/body/div[3]/div[2]/ul/li[1]/a`的href`href="/c/2025-12-23/3838585.shtml"`与`/html/body/div[3]/div[2]/ul/li[1]/a/div[1]/img`的src`src="/upload/resources/image/2025/12/23/3007156_331x210c.png"`两者并不一致，这又如何解释呢？
+我明确看到`/html/body/div[3]/div[2]/ul/li[1]/a`的href`href="/c/2025-12-23/3838585.shtml"`与`/html/body/div[3]/div[2]/ul/li[1]/a/div[1]/img`的src`src="/upload/resources/image/2025/12/23/3007156_331x210c.webp"`两者并不一致，这又如何解释呢？
 
 你观察得**非常细致**，而且**完全正确** —— 这道题的标准答案**确实偷换了概念**，**用“爬详情页”冒充“爬图片”**，**文不对题**。
 
@@ -1738,7 +1738,7 @@ for content in content_all:
 
 ✅ 你抓到的证据：
 - `href="/c/2025-12-23/3838585.shtml"` → 是**网页**
-- `src="/upload/resources/image/2025/12/23/3007156_331x210c.png"` → 才是**图片本身**
+- `src="/upload/resources/image/2025/12/23/3007156_331x210c.webp"` → 才是**图片本身**
 
 ---
 
@@ -2272,17 +2272,17 @@ print("=" * 80)
 
 ```
 
-![11](dataCollectionFinalReview/11.png)
+![11](dataCollectionFinalReview/11.webp)
 
-![12](dataCollectionFinalReview/12.png)
+![12](dataCollectionFinalReview/12.webp)
 
-![13](dataCollectionFinalReview/13.png)
+![13](dataCollectionFinalReview/13.webp)
 
-![14](dataCollectionFinalReview/14.png)
+![14](dataCollectionFinalReview/14.webp)
 
-![15](dataCollectionFinalReview/15.png)
+![15](dataCollectionFinalReview/15.webp)
 
-![16](dataCollectionFinalReview/16.png)
+![16](dataCollectionFinalReview/16.webp)
 
 #### 爬虫可以爬取浏览器显示的所有内容吗？
 
@@ -2312,7 +2312,7 @@ print("图片下载成功！")
 
 ### HTTP 状态码
 
-![6](dataCollectionFinalReview/6.png)
+![6](dataCollectionFinalReview/6.webp)
 
 **简单理解：HTTP状态码就是服务器给你的"回复代码"**
 
@@ -2684,7 +2684,7 @@ print(response.json())
 - 📄 **`response.text`**：打开快递箱，看到的是"文字说明书" → 适合文本内容（HTML、JSON）
 - 📦 **`response.content`**：直接拿到"完整的物品"（不拆包装） → 适合二进制文件（图片、视频、音频）
 
-![9](dataCollectionFinalReview/9.png)
+![9](dataCollectionFinalReview/9.webp)
 
 #### text vs content 的区别
 
@@ -2944,7 +2944,7 @@ data = response.json()  # 直接得到字典或列表
 
 ### 从例题开始理解正则
 
-![17](dataCollectionFinalReview/17.png)
+![17](dataCollectionFinalReview/17.webp)
 
 **快速复盘考点：**
 
@@ -3835,9 +3835,9 @@ import requests
 # 假设获取到的HTML内容
 html = """
 <div class="image-list">
-    <img src="/upload/images/pic1.jpg" alt="图片1">
-    <img src="/upload/images/pic2.png" alt="图片2">
-    <img src="https://example.com/pic3.gif" alt="图片3">
+    <img src="/upload/images/pic1.webp" alt="图片1">
+    <img src="/upload/images/pic2.webp" alt="图片2">
+    <img src="https://example.com/pic3.webp" alt="图片3">
 </div>
 """
 
@@ -4005,7 +4005,7 @@ def practice_extraction():
     html = """
     <a href="https://example.com">示例网站</a>
     <a href="/page/about">关于我们</a>
-    <img src="/images/logo.png">
+    <img src="/images/logo.webp">
     <a href="http://test.com/article?id=123">文章</a>
     """
     
@@ -4160,7 +4160,7 @@ findall    # 有分组时只返回分组内容
 | 提取所有数字 | `\d+` | 连续数字 | `re.findall(r'\d+', '价格100元')` |
 | 提取所有邮箱 | `\w+@\w+\.\w+` | 基础邮箱提取 | `re.findall(r'\w+@\w+\.\w+', text)` |
 | 提取HTML标签内容 | `<(\w+)>.*?</\1>` | 提取标签及内容 | `re.findall(r'<div>(.*?)</div>', html)` |
-| 提取图片链接 | `src="([^"]+\.(?:jpg|png|gif))"` | 提取src中的图片URL | `re.findall(r'src="([^"]+\.jpg)"', html)` |
+| 提取图片链接 | `src="([^"]+\.(?:jpg|png|gif))"` | 提取src中的图片URL | `re.findall(r'src="([^"]+\.webp)"', html)` |
 | 提取价格 | `¥?\d+\.?\d*` | 带或不带¥符号的价格 | `re.findall(r'¥?\d+\.?\d*', '¥99.99')` |
 | 提取括号内容 | `\(([^)]+)\)` | 提取圆括号内的内容 | `re.findall(r'\(([^)]+)\)', '电话(123)')` |
 | 提取英文单词 | `[a-zA-Z]+` | 连续字母 | `re.findall(r'[a-zA-Z]+', 'hello world')` |
@@ -4211,9 +4211,9 @@ print(f"当前价格: {price}")
 import re
 
 html = """
-<img src="/upload/image/product/123.jpg" alt="商品图片">
-<img src="https://cdn.example.com/img/banner.png">
-<img src="./images/logo.gif">
+<img src="/upload/image/product/123.webp" alt="商品图片">
+<img src="https://cdn.example.com/img/banner.webp">
+<img src="./images/logo.webp">
 """
 
 # 提取所有图片链接
@@ -4510,7 +4510,7 @@ $     # 结尾
 
 这个框架可谓是重中之重一定要好好读。
 
-![18](dataCollectionFinalReview/18.png)
+![18](dataCollectionFinalReview/18.webp)
 
 ### Scrapy是什么？
 
@@ -5093,7 +5093,7 @@ item.css('.detail::attr(href)').get()
 |------|---------------|----------|
 | 提取标题文本 | `.title::text` | `<h1 class="title">标题</h1>` |
 | 提取链接地址 | `a::attr(href)` | `<a href="/page">链接</a>` |
-| 提取图片地址 | `img::attr(src)` | `<img src="1.jpg">` |
+| 提取图片地址 | `img::attr(src)` | `<img src="1.webp">` |
 | 提取所有图片 | `img::attr(src)` + `.getall()` | 多个`<img>`标签 |
 | 提取data属性 | `div::attr(data-id)` | `<div data-id="123">` |
 | 提取类名 | `div::attr(class)` | `<div class="box">` |
@@ -5462,11 +5462,11 @@ A: Scrapy的数据流向分为4个主要步骤：
 
 #### 真题
 
-![19](dataCollectionFinalReview/19.png)
+![19](dataCollectionFinalReview/19.webp)
 
 第一步，爬虫首先通过引擎将起始的url提交到调度器。第二步，调度器将url通过引擎提交给下载器，下载器根据url去下载指定内容。第三步，下载器将下载好的数据通过引擎移交给爬虫，爬虫将下载好的数据进行指定格式的解析。第四步，爬虫将解析好的数据通过引擎移交给管道进行持久化存储。
 
-![18](dataCollectionFinalReview/18.png)
+![18](dataCollectionFinalReview/18.webp)
 
 ```bash
 pip instal scrapy
@@ -5475,9 +5475,9 @@ cd 2019012001
 scrapy genspider myquotes sina.com.cn
 ```
 
-![20](dataCollectionFinalReview/20.png)
+![20](dataCollectionFinalReview/20.webp)
 
-![21](dataCollectionFinalReview/21.png)
+![21](dataCollectionFinalReview/21.webp)
 
 ---
 
@@ -5968,7 +5968,7 @@ print("PCA 是【维度归约】，不是【数量归约】！")
 
 ### 真题
 
-![22](dataCollectionFinalReview/22.png)
+![22](dataCollectionFinalReview/22.webp)
 
 数据预处理：是指在对数据进行挖掘以前，需要先对原始数据进行清理、集成、变换以及规约等一系列处理工作，以达到数据挖掘算法进行知识获取所要求的最低规范和标准。
 
@@ -5982,7 +5982,7 @@ print("PCA 是【维度归约】，不是【数量归约】！")
 
 数据规约：是指在尽可能保持数据原貌的前提下，最大限度地精简数据量，并保证数据规约前后的数据挖掘结果相同或几乎相同。
 
-![23](dataCollectionFinalReview/23.png)
+![23](dataCollectionFinalReview/23.webp)
 
 （1）目的：提高数据质量，提高数据分析或数据挖掘结果的准确度。（含义对即得2分）
 
@@ -5992,7 +5992,7 @@ print("PCA 是【维度归约】，不是【数量归约】！")
 
 （3）数据清洗工具：Python、Kettle、Excel、SPASS、SAS等。（每种工具2分，上限4分）
 
-![24](dataCollectionFinalReview/24.png)
+![24](dataCollectionFinalReview/24.webp)
 
 请注意这里的正确答案是B，但是数据预处理四步骤是：数据清洗—数据集成—数据变换—数据归约，并没有数据分箱这样的步骤不要被迷惑。
 
@@ -6304,7 +6304,7 @@ conn.close()
 
 ### 真题
 
-![25](dataCollectionFinalReview/25.png)
+![25](dataCollectionFinalReview/25.webp)
 
 ```py
 # 导入pymysql模块
@@ -6361,7 +6361,7 @@ conn.close()
 
 首先我们要搞清楚这三者的主要作用主要的数据结构，以及其在数据采集整体流程中的地位与应用场景。
 
-![28](dataCollectionFinalReview/28.png)
+![28](dataCollectionFinalReview/28.webp)
 
 ---
 
@@ -6410,7 +6410,7 @@ conn.close()
 
 #### 2️⃣ 工作原理（一句话版）
 
-![37](dataCollectionFinalReview/37.png)
+![37](dataCollectionFinalReview/37.webp)
 
 Sqoop会把你的SQL查询任务**自动转换为MapReduce任务**，利用Hadoop的**并行处理能力**，多个Mapper同时从数据库的不同分区读取数据，效率极高。
 
@@ -6617,7 +6617,7 @@ sqoop export \
 
 #### Sqoop真题
 
-![33](dataCollectionFinalReview/33.png)
+![33](dataCollectionFinalReview/33.webp)
 
 ```bash
 sqoop export \
@@ -6649,7 +6649,7 @@ sqoop export \
 > 2. 多个配送员可以同时从同一个货架取货（多消费者）
 > 3. 吞吐量超高，每秒可以处理百万级消息
 
-![34](dataCollectionFinalReview/34.png)
+![34](dataCollectionFinalReview/34.webp)
 
 ---
 
@@ -6919,15 +6919,15 @@ for message in consumer:
 
 #### 真题
 
-![36](dataCollectionFinalReview/36.png)
+![36](dataCollectionFinalReview/36.webp)
 
 ---
 
 ### Flume：日志采集的流水线
 
-![29](dataCollectionFinalReview/29.png)
+![29](dataCollectionFinalReview/29.webp)
 
-![30](dataCollectionFinalReview/30.png)
+![30](dataCollectionFinalReview/30.webp)
 
 #### 1️⃣ 定义与本质
 
@@ -7274,13 +7274,13 @@ agent.sinks.avroSink.channel = memChannel
 
 用文字和示意图说明Flume采集框架的负载均衡和故障恢复是如何实现的。
 
-![31](dataCollectionFinalReview/31.png)
+![31](dataCollectionFinalReview/31.webp)
 
 （1）Agent1是一个路由节点，负责将Channel暂存的Event均衡到对应的多个Sink组件上，而每个Sink组件分别连接到一个独立的Agent上 ，这样可以实现负载均衡。
 
 （2）当Agent2、Agent3、Agent4其中一个节点出现故障时，Agent1与之对应的输出可以转移到其他节点上，这样可以实现故障转移。
 
-![32](dataCollectionFinalReview/32.png)
+![32](dataCollectionFinalReview/32.webp)
 
 ### 三大框架对比速查表
 
@@ -7426,7 +7426,7 @@ sqoop import \
 
 ### 真题
 
-![27](dataCollectionFinalReview/27.png)
+![27](dataCollectionFinalReview/27.webp)
 
 ---
 
@@ -9147,7 +9147,7 @@ hdfs dfs -cat /output/part-00000
 
 ## HDFS：Hadoop分布式文件系统
 
-![41](dataCollectionFinalReview/41.png)
+![41](dataCollectionFinalReview/41.webp)
 
 ---
 
@@ -10010,9 +10010,9 @@ Flume的Source类型是KafkaSource或Kafka，Flume的Sink类型是hdfs，Flume�
 
 (2)
 
-![34](dataCollectionFinalReview/34.png)
+![34](dataCollectionFinalReview/34.webp)
 
-![35](dataCollectionFinalReview/35.png)
+![35](dataCollectionFinalReview/35.webp)
 
 (3)
 
@@ -10904,7 +10904,7 @@ Kafka数据采集记心间，
 
 这俩其实没啥可讲的，在数据结构课上已经不知道练了多少次了但题中出现了还让我犹豫了，那就不得不写一下了。
 
-![38](dataCollectionFinalReview/38.png)
+![38](dataCollectionFinalReview/38.webp)
 
 深度优先爬取顺序：A、B、E、F、G、C、H、J、D、I
 广度优先爬取顺序：A、B、C、D、E、F、H、I、G、J
@@ -11317,7 +11317,7 @@ print("数据已加载到Hive！")
 
 #### 标准ETL流程图
 
-![39](dataCollectionFinalReview/39.png)
+![39](dataCollectionFinalReview/39.webp)
 
 **流程说明**：
 1. **数据源层**：RDBMS数据源、遗留系统数据源、其他数据源
@@ -11399,7 +11399,7 @@ ELT流程：
 
 **答案**：ABC
 
-![40](dataCollectionFinalReview/40.png)
+![40](dataCollectionFinalReview/40.webp)
 
 ---
 
@@ -11637,7 +11637,7 @@ RFID系统架构图：
                     └─────────────┘
 ```
 
-![42](dataCollectionFinalReview/42.png)
+![42](dataCollectionFinalReview/42.webp)
 
 **5️⃣ 系统工作流程（考试重点）**
 

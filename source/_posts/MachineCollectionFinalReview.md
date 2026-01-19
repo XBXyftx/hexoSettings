@@ -6,7 +6,7 @@ tags:
   - 机器学习与数据挖掘
 description: 计算机网络期末复习
 typewriter: 📊 操作系统期末复习，一些真题的详解。
-cover: /imgs/ArticleTopImgs/MachineCollectionFinalReviewTopImg.png
+cover: /imgs/ArticleTopImgs/MachineCollectionFinalReviewTopImg.webp
 mathjax: true
 post_copyright:
 copyright_author: XBXyftx
@@ -219,7 +219,7 @@ $$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
 
 #### 连续属性与离散属性
 
-![1](MachineCollectionFinalReview/1.png)
+![1](MachineCollectionFinalReview/1.webp)
 
 1. 正确选项：A、C
 2. 解析
@@ -240,7 +240,7 @@ $$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
 
 #### 离群点（Outliers）
 
-![2](MachineCollectionFinalReview/2.png)
+![2](MachineCollectionFinalReview/2.webp)
 
 1. 正确选项：B、C
 2. 解析调整
@@ -255,7 +255,7 @@ $$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
 
 #### 数据挖掘的定义
 
-![3](MachineCollectionFinalReview/3.png)
+![3](MachineCollectionFinalReview/3.webp)
 
 1. **正确选项：C、E**
 
@@ -294,7 +294,7 @@ $$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
 
 #### 均值与中值
 
-![4](MachineCollectionFinalReview/4.png)
+![4](MachineCollectionFinalReview/4.webp)
 
 1. 均值计算：
    均值 = （1 + 3 + 5 + 7 + 9 + 95）÷ 6 = 120 ÷ 6 = 20
@@ -307,7 +307,7 @@ $$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
 
 #### 混淆矩阵：精度与召回率
 
-![5](MachineCollectionFinalReview/5.png)
+![5](MachineCollectionFinalReview/5.webp)
 
 1. 先明确混淆矩阵的四个核心指标：
    - 真正例（TP）：实际患病且被诊断为患病的人数 = 48
@@ -329,7 +329,7 @@ $$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
 
 #### 离散属性编码
 
-![6](MachineCollectionFinalReview/6.png)
+![6](MachineCollectionFinalReview/6.webp)
 
 - 最少二元属性数量计算
     要表示6种取值，需满足  2^k ≥ 6，解得 k = 3（因为 2^2 = 4 < 6，2^3 = 8 ≥ 6），因此最少需要3个二元属性。
@@ -374,35 +374,35 @@ $$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
 
 ---
 
-![7](MachineCollectionFinalReview/7.png)
+![7](MachineCollectionFinalReview/7.webp)
 
-![8](MachineCollectionFinalReview/8.png)
+![8](MachineCollectionFinalReview/8.webp)
 
-![9](MachineCollectionFinalReview/9.png)
+![9](MachineCollectionFinalReview/9.webp)
 
-![10](MachineCollectionFinalReview/10.png)
+![10](MachineCollectionFinalReview/10.webp)
 
-![11](MachineCollectionFinalReview/11.png)
+![11](MachineCollectionFinalReview/11.webp)
 
-![12](MachineCollectionFinalReview/12.png)
+![12](MachineCollectionFinalReview/12.webp)
 
-![13](MachineCollectionFinalReview/13.png)
+![13](MachineCollectionFinalReview/13.webp)
 
-![14](MachineCollectionFinalReview/14.png)
+![14](MachineCollectionFinalReview/14.webp)
 
-![15](MachineCollectionFinalReview/15.png)
+![15](MachineCollectionFinalReview/15.webp)
 
-![16](MachineCollectionFinalReview/16.png)
+![16](MachineCollectionFinalReview/16.webp)
 
 ---
 
 #### PR曲线与ROC曲线
 
-![17](MachineCollectionFinalReview/17.png)
+![17](MachineCollectionFinalReview/17.webp)
 
 先看一下pr曲线和ROC曲线的ppt
 
-![18](MachineCollectionFinalReview/18.png)
+![18](MachineCollectionFinalReview/18.webp)
 
 1. 描述对应的评价标准
     标准：
@@ -416,10 +416,10 @@ $$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
     - 假反例（FN）：实际是人脸但未被检测为人脸的数量 = 80 - 40 = 40
 
 - **精度（Precision）**：
-![19](MachineCollectionFinalReview/19.png)
+![19](MachineCollectionFinalReview/19.webp)
 
 - **召回率（Recall）**：
-![20](MachineCollectionFinalReview/20.png)
+![20](MachineCollectionFinalReview/20.webp)
 
 结果汇总
 
@@ -428,13 +428,13 @@ $$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
 | 精度       | 0.8  |
 | 召回率     | 0.5  |
 
-![21](MachineCollectionFinalReview/21.png)
+![21](MachineCollectionFinalReview/21.webp)
 
 但是ROC在复习ppt中没有所以我选择先放掉。
 
 回到题目，人脸检测算法的精度与召回率计算。
 
-![17](MachineCollectionFinalReview/17.png)
+![17](MachineCollectionFinalReview/17.webp)
 
 首先解释一下这个表格，有点怪但也还可以懂。我们将每一步的预测结果都列出来就会好理解很多。
 
@@ -494,13 +494,13 @@ $$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
 - FN：样本本身是正例，但预测错误（预测为反例）
 {% endnote %}
 
-![22](MachineCollectionFinalReview/22.png)
+![22](MachineCollectionFinalReview/22.webp)
 
 随后，ROC曲线的话，大致是这样的：其X轴是**假正例率（FPR）**，Y轴是**真正例率（TPR）**。
 
 也就是所谓的所有反例中又多少{% label 被错判为正例 red %}，和所有正例中又有多少{% label 被正确判为正例 green %}。目标是降低FPR，提高TPR。
 
-![23](MachineCollectionFinalReview/23.png)
+![23](MachineCollectionFinalReview/23.webp)
 
 ---
 
@@ -508,7 +508,7 @@ $$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
 
 #### 线性回归中的属性处理
 
-![24](MachineCollectionFinalReview/24.png)
+![24](MachineCollectionFinalReview/24.webp)
 
 - 答案：正确选项是AD
 - 解析：
@@ -532,7 +532,7 @@ $$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
 
 #### 线性回归与RANSAC算法
 
-![25](MachineCollectionFinalReview/25.png)
+![25](MachineCollectionFinalReview/25.webp)
 
 - 答案：正确选项是AF
 - 解析：
@@ -557,7 +557,7 @@ $$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
 
 随后找的“内点”也就是离得距离近的点，距离近的点最多的模型就是最好的模型。是一个反复随机抽样枚举出最好模型的方法不是像一元线性回归那样直接拟合所有数据，所以其获得的模型一定是会天然的避免异常点离群点的影响的。
 
-![26](MachineCollectionFinalReview/26.png)
+![26](MachineCollectionFinalReview/26.webp)
 
 这张图展示了**RANSAC（随机抽样一致）算法拟合直线的完整流程**，分步骤解释如下：
 
@@ -574,7 +574,7 @@ $$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
 - **最终步骤**：
   - 当内点数量达到要求时，用所有内点重新优化直线模型，得到鲁棒的拟合结果。
 
-![27](MachineCollectionFinalReview/27.png)
+![27](MachineCollectionFinalReview/27.webp)
 
 这张图对比了**普通线性回归与RANSAC回归的拟合效果**，具体解释如下：
 
@@ -589,7 +589,7 @@ $$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
 
 ---
 
-![28](MachineCollectionFinalReview/28.png)
+![28](MachineCollectionFinalReview/28.webp)
 
 - 答案：正确选项是D
 
@@ -597,7 +597,7 @@ $$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
 
 #### 正则化方法
 
-![29](MachineCollectionFinalReview/29.png)
+![29](MachineCollectionFinalReview/29.webp)
 
 - 答案：
   1. 当q=2时被称为**ridge（岭**回归
@@ -618,13 +618,13 @@ $$P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}$$
 
 #### 岭回归（Ridge Regression）与 Lasso回归（Lasso Regression）
 
-![30](MachineCollectionFinalReview/30.png)
+![30](MachineCollectionFinalReview/30.webp)
 
-![31](MachineCollectionFinalReview/31.png)
+![31](MachineCollectionFinalReview/31.webp)
 
-![32](MachineCollectionFinalReview/32.png)
+![32](MachineCollectionFinalReview/32.webp)
 
-![33](MachineCollectionFinalReview/33.png)
+![33](MachineCollectionFinalReview/33.webp)
 
 ##### 核心概念对比
 
@@ -697,7 +697,7 @@ $$\text{Loss} = \frac{1}{2n} \lVert y - Xw \rVert_2^2 + \lambda_1 \lVert w \rVer
 
 #### 正则化参数λ的影响
 
-![34](MachineCollectionFinalReview/34.png)
+![34](MachineCollectionFinalReview/34.webp)
 
 - 答案：
   1. 随着λ增大，**Lasso**回归的变量系数逐个减小为0，可以用于特征选择
@@ -712,7 +712,7 @@ $$\text{Loss} = \frac{1}{2n} \lVert y - Xw \rVert_2^2 + \lambda_1 \lVert w \rVer
 
 #### 决策树划分准则
 
-![35](MachineCollectionFinalReview/35.png)
+![35](MachineCollectionFinalReview/35.webp)
 
 - 答案：正确选项是BD
 - 解析：
@@ -736,7 +736,7 @@ $$\text{Loss} = \frac{1}{2n} \lVert y - Xw \rVert_2^2 + \lambda_1 \lVert w \rVer
 
 #### 决策树分裂的停止分裂条件
 
-![49](MachineCollectionFinalReview/49.png)
+![49](MachineCollectionFinalReview/49.webp)
 
 答案是**ABCD**，解析如下：
 
@@ -749,7 +749,7 @@ $$\text{Loss} = \frac{1}{2n} \lVert y - Xw \rVert_2^2 + \lambda_1 \lVert w \rVer
 
 #### 决策树剪枝
 
-![51](MachineCollectionFinalReview/51.png)
+![51](MachineCollectionFinalReview/51.webp)
 
 这是一道关于决策树剪枝的多选题，错误选项为**D、F**，解析如下：
 
@@ -773,7 +773,7 @@ $$\text{Loss} = \frac{1}{2n} \lVert y - Xw \rVert_2^2 + \lambda_1 \lVert w \rVer
 
 #### Gini指数（Gini Index）
 
-![36](MachineCollectionFinalReview/36.png)
+![36](MachineCollectionFinalReview/36.webp)
 
 ##### 计算Gini的例子
 
@@ -944,7 +944,7 @@ $$Entropy(t) = -\sum_{j=0}^{c-1} p(j&#124;t) \log_2 p(j&#124;t)$$
 
 #### 不纯度度量：熵与分类误差
 
-![37](MachineCollectionFinalReview/37.png)
+![37](MachineCollectionFinalReview/37.webp)
 
 **题目**：（填空题）按照某个属性分为3类，分别有200、400、200条记录，作为该属性不纯性的度量，熵（Entropy）为___，分类误差（classification error）为___。
 
@@ -1012,7 +1012,7 @@ $$Classification\ Error = 1 - 0.5 = 0.5$$
 
 #### 二元划分
 
-![38](MachineCollectionFinalReview/38.png)
+![38](MachineCollectionFinalReview/38.webp)
 
 **题目**：（填空题）决策树创建过程中，对于取值包括北京、上海、天津、重庆的籍贯属性，二元划分有___种；对于取值包括S、M、L、XL的衣服大小属性，二元划分有___种。
 
@@ -1129,7 +1129,7 @@ $$\text{二元划分数} = 4 - 1 = 3$$
 
 #### Gini系数计算题
 
-![39](MachineCollectionFinalReview/39.png)
+![39](MachineCollectionFinalReview/39.webp)
 
 **题目数据表**：
 
@@ -1426,7 +1426,7 @@ $$= 0.492$$
 
 #### K近邻分类器（KNN）
 
-![40](MachineCollectionFinalReview/40.png)
+![40](MachineCollectionFinalReview/40.webp)
 
 **题目**：下图是一个K近邻分类器，x表示待分类样本，"+"和"-"分别表示训练集中正负样本。
 
@@ -1665,7 +1665,7 @@ $$\hat{C} = \arg\max_{C} P(C|X) = \arg\max_{C} P(C) \cdot \prod_{i=1}^{n} P(x_i|
 
 ---
 
-![41](MachineCollectionFinalReview/41.png)
+![41](MachineCollectionFinalReview/41.webp)
 
 **题目**：下图是一组人的身高、体重、鞋码属性和性别标签，某人的身高为"高"、体重为"中"，鞋码为"中"，运用贝叶斯分类方法，判断这个人最可能的性别是什么。
 
@@ -1685,7 +1685,7 @@ $$\hat{C} = \arg\max_{C} P(C|X) = \arg\max_{C} P(C) \cdot \prod_{i=1}^{n} P(x_i|
 **待分类样本**：身高="高"，体重="中"，鞋码="中"
 
 {% hideToggle 超绝无敌手写版题解 %}
-![42](MachineCollectionFinalReview/42.png)
+![42](MachineCollectionFinalReview/42.webp)
 {% endhideToggle %}
 
 ---
@@ -1848,7 +1848,7 @@ $$P(男|高,中,中) = 0.5 \times 0.429 \times 0.429 \times 0.286 \approx 0.0263
 
 #### Kmeans与DBSCAN聚类算法对比
 
-![43](MachineCollectionFinalReview/43.png)
+![43](MachineCollectionFinalReview/43.webp)
 
 **题目**：
 
@@ -2218,7 +2218,7 @@ DBSCAN（Density-Based Spatial Clustering of Applications with Noise）是一种
 
 #### 邻近度矩阵
 
-![44](MachineCollectionFinalReview/44.png)
+![44](MachineCollectionFinalReview/44.webp)
 
 **题目**：已知点数据集的临近度矩阵如下图所示。
 
@@ -2237,9 +2237,9 @@ DBSCAN（Density-Based Spatial Clustering of Applications with Noise）是一种
 (2) 请写出基于最小距离（单链）和最大距离（全链）的层次凝聚聚类结果，树状图展示。
 
 {% hideToggle 超绝无敌手写版本答案 %}
-![45](MachineCollectionFinalReview/45.png)
+![45](MachineCollectionFinalReview/45.webp)
 
-![46](MachineCollectionFinalReview/46.png)
+![46](MachineCollectionFinalReview/46.webp)
 {% endhideToggle %}
 
 ---
@@ -2674,9 +2674,9 @@ $$d_{max}(C_i, C_j) = \max_{x \in C_i, y \in C_j} d(x, y)$$
 
 #### 关联规则挖掘
 
-![47](MachineCollectionFinalReview/47.png)
+![47](MachineCollectionFinalReview/47.webp)
 
-![50](MachineCollectionFinalReview/50.png)
+![50](MachineCollectionFinalReview/50.webp)
 
 **题目**：考虑下表中的购物篮事务数据集。
 
@@ -2981,7 +2981,7 @@ $$= \frac{0.5}{0.6} = 0.833$$
 
 #### 序列模式挖掘
 
-![48](MachineCollectionFinalReview/48.png)
+![48](MachineCollectionFinalReview/48.webp)
 
 **题目**：某事务序列如下图所示，序列<{3, 4}>和<{3} {4}>的支持度分别是多少。
 

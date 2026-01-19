@@ -10,7 +10,7 @@ tags:
   - CSS
 description: 详细介绍如何在Hexo的Butterfly主题中添加炫酷的打字机效果，包含完整的实现代码和配置方法。
 typewriter: ⌨️ 让你的博客文字"活"起来！本文将手把手教你为Hexo博客添加超酷的打字机效果。从零开始，涵盖JavaScript动画实现、CSS样式设计、响应式适配等核心技术。支持深色模式、移动端完美展示，让每篇文章的开头都充满科技感和视觉冲击力。跟着教程一步步操作，轻松让你的博客在众多网站中脱颖而出！✨ 
-cover: /imgs/ArticleTopImgs/TypeWriteTopImg.png
+cover: /imgs/ArticleTopImgs/TypeWriteTopImg.webp
 swiper_index: 6
 post_copyright:
 copyright_author: XBXyftx
@@ -23,7 +23,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 写这篇文章的起因主要是我在折腾我的博客的时候经常回去看那些大佬们的博客，去学一些魔改教程，找一些好用的插件啊之类的。然后我就看到了[张洪Heo](https://blog.zhheo.com/)大佬的AI摘要教程。
 
-![1](typewriter/1.png)
+![1](typewriter/1.webp)
 
 原文的传送门在这里[传送门](https://blog.zhheo.com/p/ec57d8b2.html)。
 
@@ -512,7 +512,7 @@ if (preloader) {
 
 在待定状态不会触发任何回调函数，而在已兑现状态会调用`then`回调函数，在已拒绝状态会调用`catch`回调函数。由此我们就可以在检测到加载确实结束后利用改变Promise对象的状态，触发回调函数的方式来告知打字机脚本的进程。
 
-![2](typewriter/2.png)
+![2](typewriter/2.webp)
 
 如果检测到加载完成，则将Promise对象状态改为已兑现，并触发已兑现回调函数。首先检测一下有没有预加载器，如果有则等待预加载器结束，如果没有则等待DOM加载完成。
 
@@ -1300,7 +1300,7 @@ tags:
   - 教程
 description: 这是文章的正常描述，用于SEO等
 typewriter: 🚀 这里是专门给打字机效果显示的文字！可以包含emoji表情，支持各种特殊字符和中英文混合显示。
-cover: /img/cover.jpg
+cover: /img/cover.webp
 ---
 
 文章正文内容...

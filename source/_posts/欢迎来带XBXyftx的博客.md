@@ -4,7 +4,7 @@ date: 2025-01-24 02:07:03
 tags: 
   - 独白
   - hexo博客搭建
-cover: /imgs/ArticleTopImgs/HelloWorld.png
+cover: /imgs/ArticleTopImgs/HelloWorld.webp
 description: 欢迎来到XBXyftx的博客!Hello World!
 typewriter: 🌟 Hello World！欢迎来到我的数字世界！这是博客的第一篇文章，记录了网站搭建成功的激动时刻。从最初的构想到遇到各种技术难题，再到最终成功上线，这个过程充满了挑战与收获。博客不仅是技术笔记的载体，更是生活记录的平台。在这里，我将分享开发经验、项目心得、学习感悟以及大学生活的点点滴滴。希望这个小小的数字空间能够见证我的成长轨迹，也能为其他人提供一些有价值的内容。
 post_copyright:
@@ -15,7 +15,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 ---
 ## 欢迎来到XBXyftx的博客。当你看到这句话说明我的个人博客网站就已经搭建成功了！！！
 
-![image.png](欢迎来带XBXyftx的博客/image.png)
+![image.png](欢迎来带XBXyftx的博客/image.webp)
 
 让我们记住这个令人激动的时刻，毕竟前几天晚上都被各种奇怪的bug所折磨，每天晚上哪怕是在床上抱着手机也没心思刷视频，CSDN倒是成了我的小说阅读器一样，天天有空都在看。
 

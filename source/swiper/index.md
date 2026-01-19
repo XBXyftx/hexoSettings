@@ -2,7 +2,7 @@
 title: 昨日重现
 date: 2025-05-26 16:03:13
 type: about
-top_img: /img/swiperTopImg.jpg  # 自定义顶部图
+top_img: /img/swiperTopImg.webp  # 自定义顶部图
 comments: true  # 是否开启评论
 description: "这里是你的个人简介"
 ---

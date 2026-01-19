@@ -5,7 +5,7 @@ tags:
   - 期末复习
 description: 计算机网络期末复习
 typewriter: 📊 计算机网络期末复习，一些真题的详解。
-cover: /imgs/ArticleTopImgs/computerNetFinalReviewTopImg.png
+cover: /imgs/ArticleTopImgs/computerNetFinalReviewTopImg.webp
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
@@ -65,7 +65,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ### 各层次基础数据单元
 
-![1](computerNetFinalReview/1.png)
+![1](computerNetFinalReview/1.webp)
 
 比特（bit）；帧（Frame）；分组 / 数据包（Packet）
 
@@ -81,7 +81,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ---
 
-![2](computerNetFinalReview/2.png)
+![2](computerNetFinalReview/2.webp)
 
 答案及解析：
 
@@ -94,7 +94,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ### RIP协议
 
-![3](computerNetFinalReview/3.png)
+![3](computerNetFinalReview/3.webp)
 
 答案及解析：
 
@@ -145,7 +145,7 @@ RIP 规定最大跳数为 15，当跳数达到 16 时，协议会判定该目标
 
 ### TCP滑动窗口
 
-![4](computerNetFinalReview/4.png)
+![4](computerNetFinalReview/4.webp)
 
 答案及解析：
 
@@ -156,9 +156,9 @@ RIP 规定最大跳数为 15，当跳数达到 16 时，协议会判定该目标
   2. 发送方的发送窗口大小由接收窗口决定，仅能发送不超过该窗口大小的数据；
   3. 随着接收方处理数据、释放缓存，接收窗口会动态调整并反馈给发送方，发送方的发送窗口也随之“滑动”更新，实现速率匹配。
 
-![5](computerNetFinalReview/5.png)
+![5](computerNetFinalReview/5.webp)
 
-![6](computerNetFinalReview/6.png)
+![6](computerNetFinalReview/6.webp)
 
 **ACK（Acknowledgment，确认）是TCP协议中用于实现可靠传输的核心机制之一**，具体含义及作用如下：
 
@@ -179,17 +179,17 @@ RIP 规定最大跳数为 15，当跳数达到 16 时，协议会判定该目标
     - **配合滑动窗口实现流量控制**：确认报文会携带“接收窗口”信息（如图中的“窗口=20”），让发送方动态调整发送速率。
     - **保障可靠性**：TCP通过ACK的超时重传机制（若发送方未收到ACK，则重传数据），确保数据不会丢失。
 
-![7](computerNetFinalReview/7.png)
+![7](computerNetFinalReview/7.webp)
 
-![8](computerNetFinalReview/8.png)
+![8](computerNetFinalReview/8.webp)
 
-![9](computerNetFinalReview/9.png)
+![9](computerNetFinalReview/9.webp)
 
-![10](computerNetFinalReview/10.png)
+![10](computerNetFinalReview/10.webp)
 
 ---
 
-![11](computerNetFinalReview/11.png)
+![11](computerNetFinalReview/11.webp)
 
 答案及解析：
 - 填空答案：`ping www.bistu.edu.cn`
@@ -200,7 +200,7 @@ RIP 规定最大跳数为 15，当跳数达到 16 时，协议会判定该目标
 
 ---
 
-![12](computerNetFinalReview/12.png)
+![12](computerNetFinalReview/12.webp)
 
 答案：C
 
@@ -218,7 +218,7 @@ C类IP地址的默认子网掩码是255.255.255.0（即网络位24位，主机�
 
 ### ABCDE类地址及专用地址范围
 
-![13](computerNetFinalReview/13.png)
+![13](computerNetFinalReview/13.webp)
 
 答案：CD（该地址同时属于C类地址和专用地址）
 解析：
@@ -248,7 +248,7 @@ C类IP地址的默认子网掩码是255.255.255.0（即网络位24位，主机�
 
 ---
 
-![14](computerNetFinalReview/14.png)
+![14](computerNetFinalReview/14.webp)
 
 答案：B
 解析：
@@ -261,7 +261,7 @@ IP数据报服务的核心特点是**无连接、不可靠的分组交换服务*
 
 ---
 
-![15](computerNetFinalReview/15.png)
+![15](computerNetFinalReview/15.webp)
 
 答案：B
 
@@ -273,7 +273,7 @@ IP数据报分片的规则是“分片在中间路由器完成，重组仅在目
 
 ---
 
-![16](computerNetFinalReview/16.png)
+![16](computerNetFinalReview/16.webp)
 
 答案：C
 
@@ -289,7 +289,7 @@ IP数据报分片的规则是“分片在中间路由器完成，重组仅在目
 
 ### CSMA/CD
 
-![17](computerNetFinalReview/17.png)
+![17](computerNetFinalReview/17.webp)
 
 答案：B
 
@@ -302,7 +302,7 @@ MAC地址（介质访问控制地址）是网络设备的物理地址，由设�
 
 ---
 
-![18](computerNetFinalReview/18.png)
+![18](computerNetFinalReview/18.webp)
 
 答案：A
 
@@ -314,19 +314,19 @@ CSMA/CD（载波监听多路访问/冲突检测）是以太网的核心介质访
 
 这种方式下，多个节点通过“竞争”的方式使用带宽，没有预约、循环分配或优先级区分的机制，因此属于“争用带宽”。
 
-![19](computerNetFinalReview/19.png)
+![19](computerNetFinalReview/19.webp)
 
-![20](computerNetFinalReview/20.png)
+![20](computerNetFinalReview/20.webp)
 
-![21](computerNetFinalReview/21.png)
+![21](computerNetFinalReview/21.webp)
 
-![22](computerNetFinalReview/22.png)
+![22](computerNetFinalReview/22.webp)
 
 ---
 
 ### 子网掩码计算网络地址争议选择题
 
-![23](computerNetFinalReview/23.png)
+![23](computerNetFinalReview/23.webp)
 
 答案：无正确答案
 
@@ -347,7 +347,7 @@ CSMA/CD（载波监听多路访问/冲突检测）是以太网的核心介质访
 
 ---
 
-![24](computerNetFinalReview/24.png)
+![24](computerNetFinalReview/24.webp)
 
 答案：B
 
@@ -359,17 +359,17 @@ CSMA/CD（载波监听多路访问/冲突检测）是以太网的核心介质访
 - **C正确**：.cn是由ICANN分配给我国的国家顶级域名，用于标识中国境内的网站。
 - **D正确**：域名解析的两种方式为递归查询（本地DNS服务器代用户完成全部解析）和迭代查询（本地DNS服务器向多个域名服务器逐步请求，最终返回结果给用户）。
 
-![25](computerNetFinalReview/25.png)
+![25](computerNetFinalReview/25.webp)
 
-![26](computerNetFinalReview/26.png)
+![26](computerNetFinalReview/26.webp)
 
-![27](computerNetFinalReview/27.png)
+![27](computerNetFinalReview/27.webp)
 
 ---
 
 ### 网络体系各层次常见协议列表
 
-![28](computerNetFinalReview/28.png)
+![28](computerNetFinalReview/28.webp)
 
 先给出本题答案，再列表说明各层次常见协议：
 
@@ -410,7 +410,7 @@ CSMA/CD（载波监听多路访问/冲突检测）是以太网的核心介质访
 
 ### 网卡的作用与功能
 
-![29](computerNetFinalReview/29.png)
+![29](computerNetFinalReview/29.webp)
 
 网卡主要实现了{% label 数据链路层协议和物理层协议 orange %}，具体说明如下：
 
@@ -433,7 +433,7 @@ CSMA/CD（载波监听多路访问/冲突检测）是以太网的核心介质访
 
 ### 网络设备功能对比
 
-![30](computerNetFinalReview/30.png)
+![30](computerNetFinalReview/30.webp)
 
 可以通过表格清晰区分路由器、交换机、服务器的主要功能：
 
@@ -447,7 +447,7 @@ CSMA/CD（载波监听多路访问/冲突检测）是以太网的核心介质访
 
 ### 127.0.0.1
 
-![31](computerNetFinalReview/31.png)
+![31](computerNetFinalReview/31.webp)
 
 **127.0.0.1的意义**：
 它是**环回地址（Loopback Address）**，属于A类地址中127.0.0.0/8网段的一个地址，并非实际的网络地址，仅用于主机内部的进程间通信。
@@ -464,7 +464,7 @@ CSMA/CD（载波监听多路访问/冲突检测）是以太网的核心介质访
 
 ### ADSL技术原理与应用解析
 
-![32](computerNetFinalReview/32.png)
+![32](computerNetFinalReview/32.webp)
 
 **非对称数字用户线路（ADSL）技术原理与应用解析**
 非对称数字用户线路（ADSL）是一种依托普通电话双绞线实现高速宽带接入的技术，其核心特征在于“非对称”，即下行数据传输速率显著高于上行速率，能够更好地适配用户浏览网页、观看视频等下行数据需求远大于上行的典型互联网应用场景。ADSL的实现核心在于采用频分复用（FDM）技术和离散多音调制（DMT）技术，在一条电话线路上划分出三个互不干扰的独立频段，分别承载传统语音信号、上行数据信号和下行数据信号，具体频段划分与功能如下表所示：
@@ -479,7 +479,7 @@ CSMA/CD（载波监听多路访问/冲突检测）是以太网的核心介质访
 
 ---
 
-![33](computerNetFinalReview/33.png)
+![33](computerNetFinalReview/33.webp)
 
 你提到的“将最后一个点展开为01”，应是指把IP地址的最后一个字节转换为二进制后计算网络地址。以下是重新编写的解答过程：
 
@@ -530,7 +530,7 @@ CSMA/CD（载波监听多路访问/冲突检测）是以太网的核心介质访
 
 ---
 
-![34](computerNetFinalReview/34.png)
+![34](computerNetFinalReview/34.webp)
 
 **解题前提**
 
@@ -575,7 +575,7 @@ CSMA/CD（载波监听多路访问/冲突检测）是以太网的核心介质访
 
 ---
 
-![35](computerNetFinalReview/35.png)
+![35](computerNetFinalReview/35.webp)
 
 南京大学主机
    │
@@ -612,13 +612,13 @@ pku.edu.cn 权威服务器（dns.pku.edu.cn 162.105.129.27）
    │12. GET / HTTP/1.1  Host: www.pku.edu.cn
    │13. 收到 200 OK + HTML 页面
 
-![25](computerNetFinalReview/25.png)
+![25](computerNetFinalReview/25.webp)
 
 ---
 
 ### DHCP(动态主机配置协议)
 
-![36](computerNetFinalReview/36.png)
+![36](computerNetFinalReview/36.webp)
 
 一、DHCP的作用
 DHCP（动态主机配置协议）是一种应用层协议，核心作用是**自动为网络中的终端设备分配IP地址、子网掩码、网关、DNS服务器地址等网络参数**，无需人工手动配置，提升了网络管理的效率，降低了配置错误的概率。
@@ -644,7 +644,7 @@ DHCP的工作过程基于“客户端-服务器”模式，采用广播通信完
 
 ### CRC计算
 
-![37](computerNetFinalReview/37.png)
+![37](computerNetFinalReview/37.webp)
 
 要判断接收数据是否正确，需通过**CRC校验流程**验证：将接收数据除以生成多项式对应的二进制码，若余数为0则正确，否则错误。
 
@@ -672,11 +672,11 @@ DHCP的工作过程基于“客户端-服务器”模式，采用广播通信完
 
 最终余数为 **11000**（非0），因此**接收结果不正确**。
 
-![38](computerNetFinalReview/38.png)
+![38](computerNetFinalReview/38.webp)
 
-![39](computerNetFinalReview/39.png)
+![39](computerNetFinalReview/39.webp)
 
-![40](computerNetFinalReview/40.png)
+![40](computerNetFinalReview/40.webp)
 
 尝试反向推导冗余码，也会发现对不上从而得知是错误的。
 
@@ -684,7 +684,7 @@ DHCP的工作过程基于“客户端-服务器”模式，采用广播通信完
 
 ### 路由表查找与转发计算
 
-![41](computerNetFinalReview/41.png)
+![41](computerNetFinalReview/41.webp)
 
 > 解题核心是：**将目的地址与路由表中的子网掩码逐位“与运算”，匹配对应的“目的网络”，进而确定下一跳**。
 
@@ -725,7 +725,7 @@ DHCP的工作过程基于“客户端-服务器”模式，采用广播通信完
 
 ---
 
-![42](computerNetFinalReview/42.png)
+![42](computerNetFinalReview/42.webp)
 
 > 解题核心是：**计算每台主机的网络地址，网络地址相同的主机可直接通信（无需路由）**。子网掩码255.255.255.224的二进制为`11111111.11111111.11111111.11100000`，即最后一个字节的前3位是网络位，后5位是主机位。
 
@@ -772,7 +772,7 @@ DHCP的工作过程基于“客户端-服务器”模式，采用广播通信完
 
 ### TCP/UDP协议综合题
 
-![43](computerNetFinalReview/43.png)
+![43](computerNetFinalReview/43.webp)
 
 网络传输层的核心协议是**TCP（传输控制协议）**和**UDP（用户数据报协议）**，二者是互补关系，共同支撑不同需求的应用层通信。以下是详细说明：
 
@@ -797,7 +797,7 @@ DHCP的工作过程基于“客户端-服务器”模式，采用广播通信完
 
 ### ARP协议与RARP协议、IP地址与MAC地址的关系
 
-![44](computerNetFinalReview/44.png)
+![44](computerNetFinalReview/44.webp)
 
 一、为什么需要硬件地址和IP地址（不统一的原因）
 
@@ -880,7 +880,7 @@ IP地址是**逻辑地址**（可动态分配、修改），MAC地址是**物理
 
 ### 接入网
 
-![45](computerNetFinalReview/45.png)
+![45](computerNetFinalReview/45.webp)
 
 答案：D（接入网）
 
@@ -893,7 +893,7 @@ IP地址是**逻辑地址**（可动态分配、修改），MAC地址是**物理
 
 ### 性能指标
 
-![46](computerNetFinalReview/46.png)
+![46](computerNetFinalReview/46.webp)
 
 答案：A（带宽）
 
@@ -906,7 +906,7 @@ IP地址是**逻辑地址**（可动态分配、修改），MAC地址是**物理
 
 ### 复用技术
 
-![47](computerNetFinalReview/47.png)
+![47](computerNetFinalReview/47.webp)
 
 答案：A（频分复用）
 
@@ -928,7 +928,7 @@ IP地址是**逻辑地址**（可动态分配、修改），MAC地址是**物理
 
 ### MAC
 
-![48](computerNetFinalReview/48.png)
+![48](computerNetFinalReview/48.webp)
 
 答案：B（网卡）
 
@@ -939,7 +939,7 @@ IP地址是**逻辑地址**（可动态分配、修改），MAC地址是**物理
 
 ### PDU 地址（协议数据单元地址）
 
-![49](computerNetFinalReview/49.png)
+![49](computerNetFinalReview/49.webp)
 
 答案：D（目的MAC地址）
 
@@ -950,7 +950,7 @@ IP地址是**逻辑地址**（可动态分配、修改），MAC地址是**物理
 
 ### 发送时延
 
-![50](computerNetFinalReview/50.png)
+![50](computerNetFinalReview/50.webp)
 
 答案：B（10s）
 
@@ -962,7 +962,7 @@ IP地址是**逻辑地址**（可动态分配、修改），MAC地址是**物理
 
 ### ABCDE类地址
 
-![51](computerNetFinalReview/51.png)
+![51](computerNetFinalReview/51.webp)
 
 答案：B（B类地址）
 
@@ -980,7 +980,7 @@ IP地址的分类由**第一个字节的取值范围**决定：
 
 ### ARP 协议
 
-![52](computerNetFinalReview/52.png)
+![52](computerNetFinalReview/52.webp)
 
 答案：A（根据IP地址查询MAC地址）
 
@@ -991,7 +991,7 @@ ARP（地址解析协议）的核心功能是在局域网内，根据目标设�
 
 ### 子网掩码求网络地址
 
-![53](computerNetFinalReview/53.png)
+![53](computerNetFinalReview/53.webp)
 
 答案：C
 
@@ -1009,7 +1009,7 @@ ARP（地址解析协议）的核心功能是在局域网内，根据目标设�
 
 ### 电子邮件传输
 
-![54](computerNetFinalReview/54.png)
+![54](computerNetFinalReview/54.webp)
 
 答案：C
 
@@ -1026,7 +1026,7 @@ ARP（地址解析协议）的核心功能是在局域网内，根据目标设�
 
 ### TCP 协议
 
-![55](computerNetFinalReview/55.png)
+![55](computerNetFinalReview/55.webp)
 
 答案：B、C、E
 
@@ -1044,7 +1044,7 @@ TCP协议的核心特性：
 
 ### OSI/RM 参考模型的七层协议
 
-![56](computerNetFinalReview/56.png)
+![56](computerNetFinalReview/56.webp)
 
 答案：A、B、D
 
@@ -1062,13 +1062,13 @@ OSI/RM七层协议的层级从低到高依次为：
 
 其中“低三层”即前三层，对应选项中的物理层、数据链路层、网络层。传输层属于第4层，应用层属于第7层，因此排除C、E。
 
-![57](computerNetFinalReview/57.png)
+![57](computerNetFinalReview/57.webp)
 
 ---
 
 ### 数据链路层的中间设备
 
-![58](computerNetFinalReview/58.png)
+![58](computerNetFinalReview/58.webp)
 
 答案：B、C
 
@@ -1086,7 +1086,7 @@ OSI/RM七层协议的层级从低到高依次为：
 
 ### TCPUDP
 
-![59](computerNetFinalReview/59.png)
+![59](computerNetFinalReview/59.webp)
 
 答案：A、B、C、D
 
@@ -1104,7 +1104,7 @@ OSI/RM七层协议的层级从低到高依次为：
 
 ### 应用层协议
 
-![60](computerNetFinalReview/60.png)
+![60](computerNetFinalReview/60.webp)
 
 答案：B、C、E
 
@@ -1122,7 +1122,7 @@ OSI/RM七层协议的层级从低到高依次为：
 
 ### 填空合集
 
-![61](computerNetFinalReview/61.png)
+![61](computerNetFinalReview/61.webp)
 
 1. **网络协议的三要素**：语法、语义、同步
    - 语法：规定数据与控制信息的格式；
@@ -1145,7 +1145,7 @@ OSI/RM七层协议的层级从低到高依次为：
 
 ### 判断题合集
 
-![62](computerNetFinalReview/62.png)
+![62](computerNetFinalReview/62.webp)
 
 1. 1：**错误**
    物理层的主要任务是透明传输**比特流**，而数据帧是数据链路层的传输单位。
@@ -1162,7 +1162,7 @@ OSI/RM七层协议的层级从低到高依次为：
 5. 5：**正确**
    以太网的标准最大传输单元（MTU）为1500字节，超出该长度的数据会被分片传输。
 
-![63](computerNetFinalReview/63.png)
+![63](computerNetFinalReview/63.webp)
 
 1. 6：**错误**
    IP地址221.168.7.120是C类地址（默认子网掩码255.255.255.0），其主机部分仅为最后一个字节（120），前三个字节是网络部分。
@@ -1183,13 +1183,13 @@ OSI/RM七层协议的层级从低到高依次为：
 
 ### CSMA/CD计算题
 
-![64](computerNetFinalReview/64.png)
+![64](computerNetFinalReview/64.webp)
 
-![65](computerNetFinalReview/65.png)
+![65](computerNetFinalReview/65.webp)
 
-![66](computerNetFinalReview/66.png)
+![66](computerNetFinalReview/66.webp)
 
-![67](computerNetFinalReview/67.png)
+![67](computerNetFinalReview/67.webp)
 
 能够使用此协议的最短帧长为{% label 20000 bit 作奸 orange %}或{% label 2500 字节 orange %}2500 字节。
 
@@ -1197,9 +1197,9 @@ OSI/RM七层协议的层级从低到高依次为：
 
 ### CRC计算题
 
-![68](computerNetFinalReview/68.png)
+![68](computerNetFinalReview/68.webp)
 
-![69](computerNetFinalReview/69.png)
+![69](computerNetFinalReview/69.webp)
 
 后两问都验算一遍都可以。
 
@@ -1207,7 +1207,7 @@ OSI/RM七层协议的层级从低到高依次为：
 
 ### 码片序列
 
-![70](computerNetFinalReview/70.png)
+![70](computerNetFinalReview/70.webp)
 
 解答：
 CDMA的判断规则是：**将接收码片序列与站点的码片序列做内积，内积结果为正表示发送1，为负表示发送0，为0表示未发送**。
@@ -1231,13 +1231,13 @@ CDMA的判断规则是：**将接收码片序列与站点的码片序列做内�
 结论：
 站点A、B、C都发送了数据；其中A发送0，B发送1，C发送0。
 
-![71](computerNetFinalReview/71.png)
+![71](computerNetFinalReview/71.webp)
 
 ---
 
 ### 子网掩码
 
-![72](computerNetFinalReview/72.png)
+![72](computerNetFinalReview/72.webp)
 
 解答：
 
@@ -1292,7 +1292,7 @@ CDMA的判断规则是：**将接收码片序列与站点的码片序列做内�
 
 ### 数据报分片
 
-![73](computerNetFinalReview/73.png)
+![73](computerNetFinalReview/73.webp)
 
 解答：
 首先明确：IP数据报固定首部长度为20字节，因此每个数据报片的**数据字段最大长度** = 网络最大数据报长度 - 首部长度 = \(1420 - 20 = 1400\)字节。
@@ -1319,7 +1319,7 @@ CDMA的判断规则是：**将接收码片序列与站点的码片序列做内�
 
 ### 路由表
 
-![74](computerNetFinalReview/74.png)
+![74](computerNetFinalReview/74.webp)
 
 解答：
 
@@ -1350,7 +1350,7 @@ CDMA的判断规则是：**将接收码片序列与站点的码片序列做内�
 
 ### UDPTCP综合题
 
-![75](computerNetFinalReview/75.png)
+![75](computerNetFinalReview/75.webp)
 
 一、设计目的的差异
 
@@ -1389,7 +1389,7 @@ CDMA的判断规则是：**将接收码片序列与站点的码片序列做内�
 
 ### ARP 和 DNS 的异同
 
-![76](computerNetFinalReview/76.png)
+![76](computerNetFinalReview/76.webp)
 
 ARP与DNS的异同分析
 
@@ -2027,7 +2027,7 @@ TCP是一种面向连接的协议，通信前需要建立连接，通信后需�
 
 #### 握手过程详解
 
-![77](computerNetFinalReview/77.png)
+![77](computerNetFinalReview/77.webp)
 
 #### 握手过程的三个步骤
 
@@ -2082,7 +2082,7 @@ LISTEN → SYN-RECEIVED → ESTABLISHED
 
 #### 挥手过程详解
 
-![78](computerNetFinalReview/78.png)
+![78](computerNetFinalReview/78.webp)
 
 #### 挥手过程的四个步骤
 

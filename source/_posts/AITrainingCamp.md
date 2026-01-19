@@ -6,7 +6,7 @@ tags:
   - 技术向
   - ClaudeCode
   - cursor
-cover:  /imgs/ArticleTopImgs/AITrainingCampTopImg.jpg
+cover: /imgs/ArticleTopImgs/AITrainingCampTopImg.webp
 description: iflab的AI训练营！！！魔鬼训练！！！
 typewriter: iflab 的曾老师创新性提出周末 AI 编程魔鬼训练营方案，以高强度、高协作的学习模式打破传统编程教学局限。训练营采用单日长达八小时的连续编程模式，摒弃碎片化学习，让学员深度沉浸于代码世界，在持续思考与实践中突破编程瓶颈，快速提升问题解决能力。同时，特别设置 10 人小组的集中心流式编程机制，小组内成员围绕核心 AI 编程任务实时交流、分工协作，不仅能通过思维碰撞迸发创新灵感，还能在互助中弥补知识短板，形成 “一人攻坚、众人支援” 的高效学习氛围，助力学员在沉浸式、协作式的高强度训练中，短期内实现 AI 编程技能的质的飞跃。
 post_copyright:
@@ -20,17 +20,17 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 这一切的起源都要说回到佳澎这一年的AIcoding让曾老师突发奇想的开展了一个长时间集中开发的训练营的想法，于是就有了一个18人的小群与长达8小时的报名制（没错就是自己给自己上压力的模式）训练营。
 
-![1](AITrainingCamp/1.png)
+![1](AITrainingCamp/1.webp)
 
 ## claudCode
 
 cc这一神器也是久仰大名，此前一直都是在使用cursor提供的Claude，非常的方便，所以也就没有搞。这一次刚好是接着训练营的机会向佳澎请教一下cc和ccr。
 
-![2](AITrainingCamp/2.jpg)
+![2](AITrainingCamp/2.webp)
 
-![3](AITrainingCamp/3.jpg)
+![3](AITrainingCamp/3.webp)
 
-![4](AITrainingCamp/4.jpg)
+![4](AITrainingCamp/4.webp)
 
 ClaudeCode并不是一个IDE也不是一个模型，而是一个用于接入各个厂商的API和Token的工具。他可以借助github cli的能力去读取上下文信息，同时执行命令。就像是cursor和trea的侧边栏一样的东西，只不过是手动配置模型接口的而已。
 
@@ -64,13 +64,13 @@ winget install --id GitHub.cli
 
 我在群里说了这个想法之后我本以为曾老师会劝说我去进行一个新项目的开发，但没想到曾老师是如此的善解人意，直接就是一个电话过来去了解我的这个项目的现状，并指导我要去进行一个完整的软件开发流程。要先去进行需求分析。
 
-![6](AITrainingCamp/6.jpg)
+![6](AITrainingCamp/6.webp)
 
 于是我决定去认真的做一下项目的需求分析以及模块的优化方案设计。首先是让cc去进行一下Claude.md的创建，这也是极大提高cc的构建速度的小技巧，前两天刷视频也刷到了，嘲讽那些网上教用cc的但实际上连Claude.md都没有创建的半吊子教程，笑死。也是没想到就赶上了社团的正版教程。
 
-![5](AITrainingCamp/5.png)
+![5](AITrainingCamp/5.webp)
 
-![7](AITrainingCamp/7.png)
+![7](AITrainingCamp/7.webp)
 
 上面这张图截取自cc的官方[最佳实践](https://www.anthropic.com/engineering/claude-code-best-practices)的文章。
 
@@ -225,7 +225,7 @@ winget install --id GitHub.cli
 2. 文章资源排序器日期格式优化
     这个问题主要是发生在爬取到的数据中会包含少数日期格式不规范的情况，绝大多数的日期格式是`2025.9.13`但有少数的日期格式会是`2025-9-13`，这会导致在排序时出现错误，所以我们需要修正一下我们的正则表达式来让它能匹配更多的日期格式，随后还需要将能正确匹配的日期全都去转化成统一的格式，来让整体的显示效果更加整齐与美观。
 
-    ![8](AITrainingCamp/8.jpg)
+    ![8](AITrainingCamp/8.webp)
 
     可以看到，当前的数据都是爬取后直接进行传输而没有去进行任何加工。
 
@@ -322,7 +322,7 @@ https://www.openharmony.cn/backend/knowledge/secondaryPage/queryBatch?type=3&pag
 
 ### 通过cc进行后端服务更新
 
-![9](AITrainingCamp/9.png)
+![9](AITrainingCamp/9.webp)
 
 通过将上面的方案都复制给cc去让他进行修改。
 
@@ -713,7 +713,7 @@ API请求耗时: 0.39秒
 
 直接运行run.py文件去启动服务并进行测试。
 
-![10](AITrainingCamp/10.jpg)
+![10](AITrainingCamp/10.webp)
 
 ```bash
 http://192.168.48.1:8001/api/banner/mobile
@@ -736,17 +736,17 @@ http://192.168.48.1:8001/api/banner/mobile
 
 轮播图接口是正常的，接下来再去测试一下资讯接口。
 
-![11](AITrainingCamp/11.png)
+![11](AITrainingCamp/11.webp)
 
 穿插在更新过程中去进行请求，通过浏览器去进行数据的查看。
 
-![12](AITrainingCamp/12.png)
+![12](AITrainingCamp/12.webp)
 
-![13](AITrainingCamp/13.png)
+![13](AITrainingCamp/13.webp)
 
 随着时间推移每次刷新文章数量都在稳步增长。同时日期也是一致的格式。
 
-![14](AITrainingCamp/14.jpg)
+![14](AITrainingCamp/14.webp)
 
 最后真机的前后端联调测试也是成功了，同时又完善了一些细节。
 
@@ -754,7 +754,7 @@ http://192.168.48.1:8001/api/banner/mobile
 
 在昨天的训练营现场我仅仅尝试了Claude对后端的修改，毕竟后端使用的是py和市面上的主流py服务框架，Claude改起来肯定是得心应手的，但是对于鸿蒙嘛，我的确是一直没太敢让AI上手的。今天我也是决定去尝试一下，这个想法也是得到了曾老师的鼓励。决定用外国模型去烧一下鸿蒙代码。
 
-![15](AITrainingCamp/15.jpg)
+![15](AITrainingCamp/15.webp)
 
 ### 字体选择按钮的实现历程
 
@@ -1430,7 +1430,7 @@ Error Message: Property 'stopPropagation' does not exist on type 'ClickEvent'. A
 
 首先依据提示跳转到第一处错误点。
 
-![16](AITrainingCamp/16.png)
+![16](AITrainingCamp/16.webp)
 
 这一处的错误还是很容易理解的，只是单纯的接口错误，使用了错误的参数，这一点也能体现出Claude对于ArkUI的相关接口并没有足够的数据进行支撑，这也是为什么上文的提示词中我要添加大量的文档链接以便于让Claude减少错误。
 
@@ -1638,7 +1638,7 @@ Text("点击\"新建\"按钮创建第一个收藏夹")
 
 这里居然出现了和刚才一样的问题，应该是刚才排查的时候没排查到的遗留问题。
 
-![17](AITrainingCamp/17.png)
+![17](AITrainingCamp/17.webp)
 
 #### 资源缺失
 
@@ -1646,7 +1646,7 @@ Text("点击\"新建\"按钮创建第一个收藏夹")
 
 图标文件缺失缺失是不能怪AI这它也无能为力，但颜色资源文件的缺失确实更加明显的暴露了Claude在鸿蒙开发领域的知识缺失。
 
-![18](AITrainingCamp/18.png)
+![18](AITrainingCamp/18.webp)
 
 ## 新的尝试
 
@@ -1694,7 +1694,7 @@ COMPILE RESULT:FAIL {ERROR:1}
 
 在我们使用cc的时候是经常会使用到官方提供的命令。
 
-![19](AITrainingCamp/19.png)
+![19](AITrainingCamp/19.webp)
 
 这些命令中包含了cc所具备的一些基础功能的调用，可以让一些常用的功能意见调用，同时CC也是提供了自定义命令的方式，让很多个人的开发常用指令或是当前项目所需的常用特殊指令被封装为一个可复用的提示词，以来避免反复输入大量重复提示词。
 
@@ -1825,13 +1825,13 @@ appropriate tests 5. Prepare a concise PR description' >
 
 很简洁，先进行一下尝试，后面我会继续完善的。
 
-![21](AITrainingCamp/21.png)
+![21](AITrainingCamp/21.webp)
 
-![20](AITrainingCamp/20.png)
+![20](AITrainingCamp/20.webp)
 
 我就直接针对于这个博客仓库进行一下尝试吧。
 
-![23](AITrainingCamp/23.png)
+![23](AITrainingCamp/23.webp)
 
 非常nb的成功了，接着下一个！！！
 
@@ -1964,7 +1964,7 @@ claude mcp add my-server --scope project /path/to/server
 
 额，但是测试失败了。
 
-![24](AITrainingCamp/24.png)
+![24](AITrainingCamp/24.webp)
 
 但是这个Fetch的功能和cc内置的Fetch没有什么区别于是我选择先去将曾老师给的一个真正有用的小玩意给搞下来。
 

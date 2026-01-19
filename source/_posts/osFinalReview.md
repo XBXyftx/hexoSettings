@@ -6,7 +6,7 @@ tags:
   - 操作系统
 description: 计算机网络期末复习
 typewriter: 📊 操作系统期末复习，一些真题的详解。
-cover: /imgs/ArticleTopImgs/osFinalReviewTopImg.png
+cover: /imgs/ArticleTopImgs/osFinalReviewTopImg.webp
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
@@ -49,14 +49,14 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ## 作业计算大题整合
 
-![50](osFinalReview/50.png)
+![50](osFinalReview/50.webp)
 
 对于最少PV的题就两个要点
 
 1. 每个进程最后一定要有V操作用于唤醒其他进程
 2. 判断是否满足互斥，缓冲区为1则不需要mutex
 
-![51](osFinalReview/51.png)
+![51](osFinalReview/51.webp)
 
 这张图的右侧这个问题，很显然是可以但没必要。
 
@@ -91,11 +91,11 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 这正是"**最少PV操作**"的核心优化思想。
 
-![52](osFinalReview/52.png)
+![52](osFinalReview/52.webp)
 
 ---
 
-![53](osFinalReview/53.png)
+![53](osFinalReview/53.webp)
 
 {% tabs test1 %}
 
@@ -188,23 +188,23 @@ while (1) {
 
 ---
 
-![54](osFinalReview/54.png)
+![54](osFinalReview/54.webp)
 
 ---
 
-![55](osFinalReview/55.png)
+![55](osFinalReview/55.webp)
 
 ---
 
-![56](osFinalReview/56.png)
+![56](osFinalReview/56.webp)
 
 ---
 
-![57](osFinalReview/57.png)
+![57](osFinalReview/57.webp)
 
 ---
 
-![58](osFinalReview/58.png)
+![58](osFinalReview/58.webp)
 
 问题解答
 
@@ -396,13 +396,13 @@ while (1) {
 - 非抢占：进程所获得的资源在未使用完之前不能被抢占
 - 循环等待：若干进程形成一种头尾相接的循环等待资源关系
 
-![1](osFinalReview/1.png)
+![1](osFinalReview/1.webp)
 
 ---
 
 #### 资源分配图
 
-![2](osFinalReview/2.png)
+![2](osFinalReview/2.webp)
 
 ---
 
@@ -424,7 +424,7 @@ while (1) {
 
 这道题可以做个引子
 
-![3](osFinalReview/3.png)
+![3](osFinalReview/3.webp)
 
 要解决这个问题，需利用{% label 死锁避免的资源分配原则 orange %}（银行家算法的核心逻辑）：
 当每个进程对资源的最大需求为`m`，系统资源总数为`R`时，避免死锁的最大进程数`N`需满足：
@@ -453,13 +453,13 @@ while (1) {
 
 ---
 
-![4](osFinalReview/4.png)
+![4](osFinalReview/4.webp)
 
-![5](osFinalReview/5.png)
+![5](osFinalReview/5.webp)
 
 T1时刻安全吗？
 
-![6](osFinalReview/6.png)
+![6](osFinalReview/6.webp)
 
 由此可得安全序列 {B, A, C, D}
 
@@ -471,7 +471,7 @@ T1时刻安全吗？
 
 若此时进程A发出请求Request（1, 0, 1）,资源分配数据就会变成如下情况。
 
-![7](osFinalReview/7.png)
+![7](osFinalReview/7.webp)
 
 > Available(0,1,1)不能满足任何进程的需要，故进入不安全状态，系统不分配资源。
 
@@ -685,9 +685,9 @@ T1时刻安全吗？
 
 #### 带权周转时间
 
-![8](osFinalReview/8.png)
+![8](osFinalReview/8.webp)
 
-![9](osFinalReview/9.png)
+![9](osFinalReview/9.webp)
 
 ---
 
@@ -704,19 +704,19 @@ T1时刻安全吗？
 
 #### FCFS(First Come First Serve)
 
-![10](osFinalReview/10.png)
+![10](osFinalReview/10.webp)
 
-![11](osFinalReview/11.png)
+![11](osFinalReview/11.webp)
 
 #### SJF(Shortest Job First)
 
-![12](osFinalReview/12.png)
+![12](osFinalReview/12.webp)
 
-![13](osFinalReview/13.png)
+![13](osFinalReview/13.webp)
 
 #### SRTN(Shortest Remaining Time Next)
 
-![14](osFinalReview/14.png)
+![14](osFinalReview/14.webp)
 
 #### 优先级调度
 
@@ -730,7 +730,7 @@ T1时刻安全吗？
 - **静态优先级**：优先级在进程创建时确定，且在进程运行期间不会改变
 - **动态优先级**：优先级在进程运行期间会改变，如进程等待时间越长，优先级越高
 
-![15](osFinalReview/15.png)
+![15](osFinalReview/15.webp)
 
 #### 时间片轮转
 
@@ -741,9 +741,9 @@ T1时刻安全吗？
 时间片选择过大: 当时间片的选择超过任何一个程序所需要的执行时间长度，则完全退化为FCFS
 时间片选择过小：则进程切换所用的系统消耗将太多,降低系统效率。
 
-![16](osFinalReview/16.png)
+![16](osFinalReview/16.webp)
 
-![17](osFinalReview/17.png)
+![17](osFinalReview/17.webp)
 
 ---
 
@@ -751,7 +751,7 @@ T1时刻安全吗？
 
 ### 分时操作系统调度方法
 
-![18](osFinalReview/18.png)
+![18](osFinalReview/18.webp)
 
 答案：D 时间片轮转
 解析：
@@ -765,7 +765,7 @@ T1时刻安全吗？
 
 ### 分页系统页面置换算法
 
-![19](osFinalReview/19.png)
+![19](osFinalReview/19.webp)
 
 答案：B 6μs
 解析：
@@ -779,7 +779,7 @@ T1时刻安全吗？
 
 ### 进程三态
 
-![20](osFinalReview/20.png)
+![20](osFinalReview/20.webp)
 
 答案：B 执行了P操作
 解析：
@@ -795,7 +795,7 @@ T1时刻安全吗？
 
 ### 分页抖动
 
-![21](osFinalReview/21.png)
+![21](osFinalReview/21.webp)
 
 答案：C 请求分页
 解析：
@@ -810,7 +810,7 @@ T1时刻安全吗？
 
 ### 等待时间
 
-![22](osFinalReview/22.png)
+![22](osFinalReview/22.webp)
 
 答案：C 等待时间
 解析：
@@ -824,7 +824,7 @@ T1时刻安全吗？
 
 ### 段式存储管理最大长度
 
-![23](osFinalReview/23.png)
+![23](osFinalReview/23.webp)
 
 答案：A 2^{24}
 
@@ -838,7 +838,7 @@ T1时刻安全吗？
 
 ### 实时操作系统
 
-![24](osFinalReview/24.png)
+![24](osFinalReview/24.webp)
 
 答案：A 实时性和可靠性
 解析：
@@ -856,7 +856,7 @@ T1时刻安全吗？
 
 ### 缓冲技术
 
-![25](osFinalReview/25.png)
+![25](osFinalReview/25.webp)
 
 答案：D 缓冲技术
 
@@ -897,7 +897,7 @@ T1时刻安全吗？
 
 ### 文件系统基本功能
 
-![26](osFinalReview/26.png)
+![26](osFinalReview/26.webp)
 
 答案：B 实现对文件的按名存取
 解析：
@@ -913,7 +913,7 @@ T1时刻安全吗？
 
 ### 信号量初值
 
-![27](osFinalReview/27.png)
+![27](osFinalReview/27.webp)
 
 答案：C 3
 
@@ -925,7 +925,7 @@ T1时刻安全吗？
 
 ### 逻辑地址空间
 
-![28](osFinalReview/28.png)
+![28](osFinalReview/28.webp)
 
 该表述**错误**。
 解析：
@@ -940,7 +940,7 @@ T1时刻安全吗？
 
 ### 用户态内核态
 
-![29](osFinalReview/29.png)
+![29](osFinalReview/29.webp)
 
 该表述**错误**。
 解析：
@@ -956,7 +956,7 @@ T1时刻安全吗？
 
 ### 多道批处理系统
 
-![30](osFinalReview/30.png)
+![30](osFinalReview/30.webp)
 
 该表述**正确**。
 
@@ -972,7 +972,7 @@ T1时刻安全吗？
 
 ### 虚拟设备
 
-![31](osFinalReview/31.png)
+![31](osFinalReview/31.webp)
 
 该表述**正确**。
 
@@ -986,7 +986,7 @@ T1时刻安全吗？
 
 ### 临界区
 
-![32](osFinalReview/32.png)
+![32](osFinalReview/32.webp)
 
 该表述**错误**。
 
@@ -1000,7 +1000,7 @@ T1时刻安全吗？
 
 ### 内存碎片
 
-![33](osFinalReview/33.png)
+![33](osFinalReview/33.webp)
 
 该表述**正确**。
 
@@ -1014,7 +1014,7 @@ T1时刻安全吗？
 
 ### 文件控制块FCB
 
-![34](osFinalReview/34.png)
+![34](osFinalReview/34.webp)
 
 1. 文件控制块的定义及与文件的关系
   文件控制块（FCB）是操作系统为管理文件而设置的数据结构，用于存储文件的基本信息（如文件名、大小、存储位置等）。
@@ -1034,7 +1034,7 @@ T1时刻安全吗？
 
 ### 多道程序优缺点
 
-![35](osFinalReview/35.png)
+![35](osFinalReview/35.webp)
 
 从CPU、内存、I/O外设利用率及系统吞吐量角度，分析如下：
 
@@ -1060,7 +1060,7 @@ T1时刻安全吗？
 
 ### PV 操作
 
-![36](osFinalReview/36.png)
+![36](osFinalReview/36.webp)
 
 (1) 进程间的制约关系
 
@@ -1091,7 +1091,7 @@ T1时刻安全吗？
 
 ### 预防死锁与银行家算法
 
-![37](osFinalReview/37.png)
+![37](osFinalReview/37.webp)
 
 一、预防死锁（静态分配方式）的分析
 
@@ -1145,7 +1145,7 @@ T1时刻安全吗？
 
 ### 磁盘寻道
 
-![38](osFinalReview/38.png)
+![38](osFinalReview/38.webp)
 
 一、先来先服务（FCFS）算法
 
@@ -1191,7 +1191,7 @@ T1时刻安全吗？
 
 ### 作业调度算法
 
-![39](osFinalReview/39.png)
+![39](osFinalReview/39.webp)
 
 一、先来先服务（FCFS）调度算法
 
@@ -1234,7 +1234,7 @@ T1时刻安全吗？
 
 ### 页面置换算法
 
-![40](osFinalReview/40.png)
+![40](osFinalReview/40.webp)
 
 一、先进先出法（FIFO）的缺页次数计算
 内存块数为3，初始为空，页面走向：0、1、3、2、5、4、2、1、4、0。
@@ -1297,7 +1297,7 @@ OPT置换“未来最久不使用”的页面，页面走向：0、1、3、2、5
 
 ### 多道批处理系统的目的
 
-![41](osFinalReview/41.png)
+![41](osFinalReview/41.webp)
 
 答案：A 充分利用CPU，提高了输入输出设备和内存的利用率
 
@@ -1314,7 +1314,7 @@ OPT置换“未来最久不使用”的页面，页面走向：0、1、3、2、5
 
 ### 分页技术地址大小
 
-![42](osFinalReview/42.png)
+![42](osFinalReview/42.webp)
 
 答案：C) 12
 
@@ -1325,7 +1325,7 @@ OPT置换“未来最久不使用”的页面，页面走向：0、1、3、2、5
 
 ### 进程三态转换
 
-![43](osFinalReview/43.png)
+![43](osFinalReview/43.webp)
 
 答案：B 资源释放
 
@@ -1344,7 +1344,7 @@ OPT置换“未来最久不使用”的页面，页面走向：0、1、3、2、5
 
 ### 页面置换算法
 
-![44](osFinalReview/44.png)
+![44](osFinalReview/44.webp)
 
 答案：B 先进先出法
 
@@ -1361,7 +1361,7 @@ OPT置换“未来最久不使用”的页面，页面走向：0、1、3、2、5
 
 ### 高响应比算法
 
-![45](osFinalReview/45.png)
+![45](osFinalReview/45.webp)
 
 答案：D 高响应比优先
 
@@ -1380,7 +1380,7 @@ OPT置换“未来最久不使用”的页面，页面走向：0、1、3、2、5
 
 ### 高响应比算法
 
-![45](osFinalReview/45.png)
+![45](osFinalReview/45.webp)
 
 答案：D 高响应比优先
 
@@ -1390,7 +1390,7 @@ OPT置换“未来最久不使用”的页面，页面走向：0、1、3、2、5
 
 **响应比公式**：
 
-![46](osFinalReview/46.png)
+![46](osFinalReview/46.webp)
 
 **算法特点**：
 
@@ -1456,7 +1456,7 @@ P2执行完毕（t=14）。
 
 ### 外部碎片
 
-![49](osFinalReview/49.png)
+![49](osFinalReview/49.webp)
 
 答案：B）分段式存储管理
 
@@ -1475,7 +1475,7 @@ P2执行完毕（t=14）。
 
 ### 文件类型
 
-![47](osFinalReview/47.png)
+![47](osFinalReview/47.webp)
 
 答案：A 普通文件
 
@@ -1492,7 +1492,7 @@ P2执行完毕（t=14）。
 
 ### SPOOLing（假脱机）技术
 
-![48](osFinalReview/48.png)
+![48](osFinalReview/48.webp)
 
 答案：D 实现了虚存管理
 
