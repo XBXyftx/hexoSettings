@@ -6,7 +6,11 @@
     "build": "hexo generate",
     "clean": "hexo clean",
     "deploy": "hexo deploy",
-    "server": "hexo server"
+    "server": "hexo server",
+    "webp": "powershell ./tools/convert-to-webp.ps1 && powershell ./tools/update-markdown-images.ps1",
+    "opt": "npm run webp && npm run clean && npm run build",
+    "pub": "npm run opt && hexo deploy",
+    "dev": "npm run webp && npm run clean && hexo server"
   },
   "hexo": {
     "version": "7.3.0"

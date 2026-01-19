@@ -1060,37 +1060,34 @@ css_prefix: true
 
 # Inject
 # Insert the code to head (before '</head>' tag) and the bottom (before '</body>' tag)
-# 🔧 优化后的 inject 配置 - 移除重复项，精简加载
+# 🔧 深度优化：消除渲染阻塞，优化加载时序
 inject:
   head:
-   # 暗黑模式初始化（只需一次，放在最前面）
-   - <script>localStorage.setItem('theme','dark');document.documentElement.setAttribute('data-theme','dark');</script>
-   # 必要的CSS文件
-   - <link rel="stylesheet" href="/css/universe.css">
-   - <link rel="stylesheet" href="/css/transpancy.css">
-   - <link rel="stylesheet" href="/css/styles.css">
-   - <link rel="stylesheet" href="/css/rightmenu.css">
-   - <link rel="stylesheet" href="/css/twikoo.css">
-   # 优化版懒加载样式
-   - <link rel="stylesheet" href="/css/lazy-loading-optimized.css">
-   # 阅读模式增强样式
-   - <link rel="stylesheet" href="/css/readmode-enhanced.css">
+    # 1. 极简暗黑模式初始化（内联执行，防止闪烁）
+    - <script>document.documentElement.setAttribute('data-theme','dark');</script>
+    # 2. 关键样式（首屏必须）
+    - <link rel="stylesheet" href="/css/index.css">
+    # 3. 非关键样式（异步加载，消除渲染阻塞）
+    - <link rel="stylesheet" href="/css/universe.css" media="print" onload="this.media='all'">
+    - <link rel="stylesheet" href="/css/transpancy.css" media="print" onload="this.media='all'">
+    - <link rel="stylesheet" href="/css/styles.css" media="print" onload="this.media='all'">
+    - <link rel="stylesheet" href="/css/rightmenu.css" media="print" onload="this.media='all'">
+    - <link rel="stylesheet" href="/css/twikoo.css" media="print" onload="this.media='all'">
+    - <link rel="stylesheet" href="/css/lazy-loading-optimized.css" media="print" onload="this.media='all'">
+    - <link rel="stylesheet" href="/css/readmode-enhanced.css" media="print" onload="this.media='all'">
+    # 4. 字体优化（Font Awesome）
+    - <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+
   bottom:
-   # 星空背景 Canvas
-   - <canvas id="universe"></canvas>
-   # 使用优化版星空脚本
-   - <script defer src="/js/universe-optimized.js"></script>
-   # jQuery（右键菜单需要）
-   - <script defer src="/js/jquery-3.6.0.min.js"></script>
-   - <script defer src="/js/rightmenu.js"></script>
-   # 标题切换效果
-   - <script src="/js/happy-title.js" async></script>
-   # 优化版懒加载
-   - <script defer src="/js/lazy-loading-optimized.js"></script>
-   # 增强版图片灯箱
-   - <script defer src="/js/lightbox-enhanced.js"></script>
-   # 自定义图片查看器（如果需要）
-   # - <script src="/js/custom-lightbox.js" defer></script>
+    # 1. 结构性元素
+    - <canvas id="universe"></canvas>
+    # 2. 核心逻辑脚本（全部 defer）
+    - <script defer src="/js/universe-optimized.js"></script>
+    - <script defer src="/js/jquery-3.6.0.min.js"></script>
+    - <script defer src="/js/rightmenu.js"></script>
+    - <script defer src="/js/happy-title.js"></script>
+    - <script defer src="/js/lazy-loading-optimized.js"></script>
+    - <script defer src="/js/lightbox-enhanced.js"></script>
 # CDN Settings
 # Don't modify the following settings unless you know how they work
 CDN:

@@ -105,6 +105,17 @@ ignore:
 ## Themes: https://hexo.io/themes/
 theme: butterfly
 
+# 🔧 性能优化：WebP 自动转换配置
+# 需要安装：npm install hexo-filter-webp --save
+webp:
+  enable: true
+  quality: 75
+  alpha_quality: 85
+  is_silent: false
+  priority: 10
+  # 自动将 jpg/png 替换为 webp 的引用
+  # 注意：这需要主题支持或者插件自动处理
+
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:

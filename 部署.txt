@@ -1,0 +1,9 @@
+npm run dev：写完文章后，执行图片 WebP 转换并启动本地预览。
+npm run opt：仅执行优化和本地静态文件构建。
+npm run pub：全自动化流程，执行优化后直接发布上线。
+
+
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+
+scoop install main/libwebp
