@@ -2954,11 +2954,11 @@ onProgress(progress)
 
 而作为一个程序员来讲我第一个想到的最具备正反馈的记录形式就是GitHub上的热力日历图了。一页的绿点真的很骄傲。
 
-![1](HongYiXun/1.png)
+![1](HongYiXun/1.webp)
 
-![2](HongYiXun/2.png)
+![2](HongYiXun/2.webp)
 
-![3](HongYiXun/3.png)
+![3](HongYiXun/3.webp)
 
 当然类似的设计其实在很多网站都有在使用，像是gitee，gitcode这类开源代码托管平台，直接就是和Github同款的这就不说了。还有更多的软件在刚进入的时候就会弹出一个签到日历，你只要签到了就会将你签到当日的日历格子给标记成一个特殊的颜色或是画个框对吧，这一招确确实实是会激起不少人的“强迫症”的。这种例子太多了我就不放图了，其实就是一种布尔值版本的简化热力日历。
 
@@ -2972,13 +2972,13 @@ onProgress(progress)
 
 #### 成品效果图
 
-![4](HongYiXun/4.jpg)
+![4](HongYiXun/4.webp)
 
-![5](HongYiXun/5.jpg)
+![5](HongYiXun/5.webp)
 
-![6](HongYiXun/6.jpg)
+![6](HongYiXun/6.webp)
 
-![7](HongYiXun/7.jpg)
+![7](HongYiXun/7.webp)
 
 看起来还是挺简洁美观的。
 
@@ -5047,7 +5047,7 @@ export interface DailyReadingStats {
 
 `updateDailyStats()`函数则是对应的项数据库中写入热力历史记录数据的关键函数，我们首先回顾一下整体的数据链条逻辑。
 
-![8](HongYiXun/8.png)
+![8](HongYiXun/8.webp)
 
 在用户点进文章后文章NavPage首先调用的是历史记录Manager的`addHistory()`函数，这个函数会首先将完整的文章对象转化为历史记录对象进行存储，随后将文章ID传给`updateDailyStats()`函数，随后通过`getDailyStatsMap()`函数获取当前持久化数据的Map对象，进行去重以及不重复数据的写入。
 
@@ -5736,23 +5736,23 @@ ForEach(this.calendarDays, (cell: CalendarDayCell, index: number) => {
 
 在开发新闻笔记功能的过程中，我想为用户提供更多可选的笔记弹窗选项，如果统一为全屏弹窗很可能会覆盖哪些想要查看原文的用户。同时这作为一个具备一多能力的产品，在大屏场景下本就拥有远多于手机屏幕空间的想象力和创造能力，所以我在设置项中设置了多种不同的弹窗选项。
 
-![9](HongYiXun/9.jpg)
+![9](HongYiXun/9.webp)
 
-![10](HongYiXun/10.jpg)
+![10](HongYiXun/10.webp)
 
-![11](HongYiXun/11.jpg)
+![11](HongYiXun/11.webp)
 
-![12](HongYiXun/12.jpg)
+![12](HongYiXun/12.webp)
 
-![13](HongYiXun/13.jpg)
+![13](HongYiXun/13.webp)
 
 以上这四种弹窗都直接使用官方提供的半模态或是自定义弹窗都很好实现，但是唯独我最想要的可以自由拖拽的小弹窗我查遍文档都没有看到相关接口。
 
 我看到的唯一个比较接近的描述是在半模态转场中的`SheetType`样式枚举类，其中有一个枚举值是`POPUP`，其官方中文解释是“跟手弹窗。跟手弹窗面板不支持跟手滑动，下滑面板不关闭。”
 
-![14](HongYiXun/14.png)
+![14](HongYiXun/14.webp)
 
-![15](HongYiXun/15.png)
+![15](HongYiXun/15.webp)
 
 ？{% label 跟手弹窗 green %}{% label 不支持跟手滑动 red %}？那你为啥叫“跟手”弹窗？
 
@@ -5760,7 +5760,7 @@ ForEach(this.calendarDays, (cell: CalendarDayCell, index: number) => {
 
 当然关于这一点我也是进一步的去问了问AI，它给出的回复是：
 
-![16](HongYiXun/16.png)
+![16](HongYiXun/16.webp)
 
 原来是“历史遗留问题”，好吧那看来就是没有应用内可自由移动的弹窗接口了，那就手搓！！！
 
@@ -5768,15 +5768,15 @@ ForEach(this.calendarDays, (cell: CalendarDayCell, index: number) => {
 
 其实思路也很好理解，就是监测拖拽，然后根据拖拽的位置来去改变组件的位置。随后我就去寻找相关的接口。
 
-![17](HongYiXun/17.png)
+![17](HongYiXun/17.webp)
 
 我第一个想到的就是组件拖拽事件，也是最符合直觉的搜索结果，我在大致浏览其接口后就优先去查看了其给出的示例代码，发现其主要的示例代码方向都是对于数据的传递，像是图标、文字、文件的拖拽，与我的目的并不相符，虽然可以实现效果，但没准有更简单易行的接口。
 
-![18](HongYiXun/18.png)
+![18](HongYiXun/18.webp)
 
 哦！手势，对哦，这类操作确实可以被称为是一种“手势”
 
-![19](HongYiXun/19.png)
+![19](HongYiXun/19.webp)
 
 太对了，就它了。
 
@@ -6295,9 +6295,9 @@ private safeAreaBottom: number = 0
 
 在上文优化过程中发现在当前限制条件仍旧存在问题。向右和向下的限制并不好，向左和向上倒是没事。
 
-![20](HongYiXun/20.jpg)
+![20](HongYiXun/20.webp)
 
-![21](HongYiXun/21.jpg)
+![21](HongYiXun/21.webp)
 
 为了更有效的限制，我设置了更多的参数来去限制可移动范围。
 
@@ -6350,4 +6350,4 @@ private safeAreaBottom: number = 0
 4. **响应式设计**：根据设备类型动态调整参数
 5. **安全区域适配**：考虑系统 UI 高度
 
-![22](HongYiXun/22.png)
+![22](HongYiXun/22.webp)

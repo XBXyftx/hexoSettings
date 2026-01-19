@@ -8,7 +8,6 @@ $directories = @('imgs', '_posts', 'about', 'swiper', 'coffer')
 # 1. 查找 cwebp 路径
 $cwebpPath = (Get-Command cwebp -ErrorAction SilentlyContinue).Source
 if (-not $cwebpPath) {
-    # 尝试所有可能的 Scoop 路径
     $possiblePaths = @(
         "$HOME\scoop\shims\cwebp.exe",
         "C:\Users\$env:USERNAME\scoop\shims\cwebp.exe",
@@ -21,7 +20,7 @@ if (-not $cwebpPath) {
 
 if (-not $cwebpPath) {
     Write-Host "Error: cwebp not found! Please check if libwebp is installed." -ForegroundColor Red
-    exit 1 # 强制报错中止，让 npm run pub 停止执行后续步骤
+    exit 1
 }
 
 # 2. 查找 gif2webp 路径
@@ -44,21 +43,24 @@ foreach ($dir in $directories) {
             if ($imageExtensions -contains $ext) {
                 $webpPath = [System.IO.Path]::ChangeExtension($file.FullName, 'webp')
                 
-                # 逻辑：WebP 不存在或原图更新了就转换
                 if (-not (Test-Path $webpPath) -or ($file.LastWriteTime -gt (Get-Item $webpPath).LastWriteTime)) {
-                    if ($ext -eq '.gif') {
-                        if ($gif2webpPath) {
-                            & $gif2webpPath -q 75 -mixed "$($file.FullName)" -o "$webpPath"
+                    try {
+                        if ($ext -eq '.gif') {
+                            if ($gif2webpPath) {
+                                & $gif2webpPath -q 75 -mixed "$($file.FullName)" -o "$webpPath"
+                            }
+                        } else {
+                            & $cwebpPath -q 75 "$($file.FullName)" -o "$webpPath"
                         }
-                    } else {
-                        & $cwebpPath -q 75 "$($file.FullName)" -o "$webpPath"
-                    }
-                    if ($LASTEXITCODE -eq 0) {
-                        Write-Host "Converted: $($file.Name) -> WebP" -ForegroundColor Green
+                        if ($LASTEXITCODE -eq 0) {
+                            Write-Host "Converted: $($file.Name) -> WebP" -ForegroundColor Green
+                        }
+                    } catch {
+                        Write-Host "Failed to convert $($file.Name)" -ForegroundColor Red
                     }
                 }
             }
         }
     }
 }
-Write-Host "Optimization Task Finished!" -ForegroundColor Gold
+Write-Host "Optimization Task Finished!" -ForegroundColor Yellow
