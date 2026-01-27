@@ -6351,3 +6351,108 @@ private safeAreaBottom: number = 0
 5. **安全区域适配**：考虑系统 UI 高度
 
 ![22](HongYiXun/22.webp)
+
+## 问题修复
+
+### 热力日历的设置与渲染更新不同步的问题
+
+#### 问题现象
+
+我发现这个问题是在我更新我当前项目仓库的Github Readme文件时出现的。发现在为了演示设置项变动的效果时出现了在Tab页的渲染问题，我也及时截图记录了下来。
+
+1. 现象一：在修改了热力日历的色系设置项后出现了Tab页的颜色仅局部更新的情况。
+   具体来说，是Tab页的颜色图例是正常的随设置项及时更新，但是日历的每一个单元格的颜色并没有被及时的重绘，我怀疑是扳机机制的问题。
+
+   ![23](HongYiXun/23.webp)
+
+   与此同时，点开详情页后日历的颜色就是正常的了，这也不难理解，因为详情页的组件本质是一个`bindContentCover`全模态，其渲染肯定是在设置项修改完成之后的，但是Tab页面除非通过扳机机制或是状态变量更新否则是不会去主动重绘的。
+
+   ![24](HongYiXun/24.webp)
+
+2. 现象二：在修改设置项中记录日期长度之后出现了局部的重复渲染以及渲染缺失的情况。
+   触发的时候我是从180天修改为90天时出现了如下图所示的情况。
+
+   ![25](HongYiXun/25.webp)
+
+   仔细观察发现并不是渲染缺失，实质是渲染了两次，中间的空缺是第一个完整矩阵剩余的本周未来空白天数。所以说对于格子的计算或是渲染时的循环条件有问题。
+
+   同样的，这个现象也是点开详情页后会消失，但返回Tab页后依旧存在。
+
+   ![27](HongYiXun/27.webp)
+
+   通过平板我们可以看的更加清晰。
+
+   ![28](HongYiXun/28.webp)
+
+   ![29](HongYiXun/29.webp)
+
+   ![30](HongYiXun/30.webp)
+
+   ![31](HongYiXun/31.webp)
+
+   ![32](HongYiXun/32.webp)
+
+   每切换一次设置项，Tab页的单元格是被新计算出的单元格矩阵叠加在后面，这说明我们重新渲染时并没有把上一次的矩阵数据数组清空而是直接push的新数据。
+
+#### 修复准备
+
+我最近对于VibeCoding有了一个新的认知，在对于没有上下文历史记录的情况下，我们需要做的是先不指明我们的目的，先让模型无目的全面阅读目标板块的逻辑，这样有利于让模型先从全局视角大致把握项目，虽然会消耗一部分token，但这还是很值得的。因为这样会省下很多很多对于项目不了解导致错误的生成一些本就存在的类、接口，没有按现有数据结构去调用一些接口。
+
+![26](HongYiXun/26.webp)
+
+```md
+非常好的观察！问题确实很明显 - 每次切换设置项时，新的格子矩阵被**追加**到现有的后面，而不是替换。这说明 `getWeekColumns()` 方法在被多次调用时，返回的数组在累积而不是重新生成。
+
+让我检查一下代码，找出问题所在：
+
+让我查看 ForEach 渲染热力格子的部分：
+
+现在我明白问题了！问题不在 `getWeekColumns()` 方法本身，而在于 **ForEach 的 key 生成策略**。让我查看这两处 ForEach 的 key：
+
+找到问题了！ForEach 的 key 包含了 `historyUpdateTrigger.trigger`，但是当**配置项变化**时（如 `heatmapTimeRange`），`historyUpdateTrigger` 并没有变化，导致 ForEach 认为是相同的数据，采用了**增量更新**而不是完全重新渲染。
+
+问题的根源是：
+1. 修改 `heatmapTimeRange` 时，触发 `onTimeRangeChange()`
+2. 调用 `loadDailyStats()` 重新生成 `heatmapCells`
+3. 但 `historyUpdateTrigger.trigger` 没有变化
+4. ForEach 的 key 没有变化，导致 UI 框架认为是相同的列表
+5. 框架尝试复用旧的组件，导致叠加渲染
+
+**解决方案：在配置项变化时，也需要更新触发器，或者使用配置项本身作为 key 的一部分。**
+
+现在让我验证修改是否正确：
+
+完美！现在让我更新修复报告：
+
+完美！现在让我创建一个简短的总结：
+
+## 🎯 Bug 修复完成
+
+找到并修复了**严重的叠加渲染Bug**！
+
+### 问题根源
+ForEach 的 key 只包含 `historyUpdateTrigger.trigger`，当配置项变化时（如时间范围从7天改为30天），触发器没有变化，导致 ArkTS 框架认为是相同的数据源，采用**增量更新**策略，把新数据追加到旧数据后面。
+
+### 修复方案
+在 ForEach key 中添加所有影响渲染的配置项：
+
+
+// 修复前
+`main_week_${this.historyUpdateTrigger.trigger}_${idx}`
+
+// 修复后
+`main_week_${this.userConfig.heatmapTimeRange}_${this.userConfig.heatmapColorRange}_${this.userConfig.heatmapColorScheme}_${this.historyUpdateTrigger.trigger}_${idx}`
+
+### 修复效果
+- ✅ 7天→30天：不再叠加，只显示30天
+- ✅ 修改颜色系：立即更新，不叠加
+- ✅ 修改颜色范围：立即更新，不叠加
+- ✅ 快速切换配置：正常响应，无叠加
+
+现在你可以测试一下，应该完全正常了！这是一个典型的 **ForEach key 设计不当导致的组件复用问题**。
+```
+
+<video width="100%" controls>
+  <source src="33.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
