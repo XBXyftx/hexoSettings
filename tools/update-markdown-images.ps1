@@ -6,10 +6,28 @@ param(
 $directories = @('_posts', 'about', 'coffer', 'categories', 'tags', 'link')
 $imageExtensions = @('.png','.jpg','.jpeg','.gif')
 
+# 排除的路径模式（这些路径的图片不会被转换）
+$excludePatterns = @(
+    'https://bu\.dusays\.com',  # 不转换 bu.dusays.com 图床图片
+    'https?://[^/]+\.github\.io',  # 不转换 GitHub Pages 图片
+    'https?://[^/]+\.githubusercontent\.com'  # 不转换 GitHub 用户内容
+)
+
 Write-Host "Scanning ALL Markdown files for image references..." -ForegroundColor Cyan
+Write-Host "Excluded patterns: $($excludePatterns -join ', ')" -ForegroundColor Gray
 
 # 获取所有 .md 文件
 $markdownFiles = Get-ChildItem -Path $basePath -Recurse -Include "*.md"
+
+# 检查路径是否应该被排除
+function ShouldExcludePath($path) {
+    foreach ($pattern in $excludePatterns) {
+        if ($path -match $pattern) {
+            return $true
+        }
+    }
+    return $false
+}
 
 foreach ($file in $markdownFiles) {
     try {
@@ -26,6 +44,10 @@ foreach ($file in $markdownFiles) {
                 param($m) 
                 $k = $m.Groups[1].Value
                 $v = $m.Groups[2].Value
+                # 检查是否需要排除
+                if (ShouldExcludePath $v) {
+                    return $m.Value
+                }
                 return "${k}: ${v}.webp" 
             })
 
@@ -33,14 +55,24 @@ foreach ($file in $markdownFiles) {
             $mdPattern = "(?<=\()([^)]+)$escExt(?=\))"
             $content = [regex]::Replace($content, $mdPattern, { 
                 param($m) 
-                return $m.Value -replace $escExt, ".webp" 
+                $path = $m.Value
+                # 检查是否需要排除
+                if (ShouldExcludePath $path) {
+                    return $path
+                }
+                return $path -replace $escExt, ".webp" 
             }, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
             
             # 3. 替换 HTML src="path.ext"
             $htmlPattern = "(?<=src=[""'])([^""']+)$escExt(?=[""'])"
             $content = [regex]::Replace($content, $htmlPattern, { 
                 param($m) 
-                return $m.Value -replace $escExt, ".webp" 
+                $path = $m.Value
+                # 检查是否需要排除
+                if (ShouldExcludePath $path) {
+                    return $path
+                }
+                return $path -replace $escExt, ".webp" 
             }, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
         }
 

@@ -10,7 +10,7 @@ tags:
   - CSS
 description: 讲解如何在butterfly主题中添加一个有相关配置项的入场文字弹窗
 typewriter: 🎉 给你的博客添加温馨的"见面礼"！本文将详细教你实现一个智能入场弹窗系统，让每位访客都能收到专属的欢迎问候。从配置文件设计到JavaScript核心逻辑，从CSS响应式布局到window对象深度解析，涵盖完整的技术实现路径。支持页面特定内容、节日特殊祝福、移动端完美适配，打造真正有温度的用户体验。采用模块化架构，配置与逻辑分离，让个性化定制变得轻而易举。跟着教程一步步操作，轻松为你的博客增添人情味，让每次访问都充满惊喜！✨ 
-cover: https://bu.dusays.com/2025/07/04/686795125c127.webp
+cover: https://bu.dusays.com/2025/07/04/686795125c127.png
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
@@ -24,7 +24,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 经过一番思考和实践，最终实现了一个功能完整、体验优雅的入场弹窗系统。这个弹窗会在用户进入网站或跳转到新页面时，在右上角优雅地滑出，展示来自预设文本数组中的随机内容，既不会干扰主要内容的阅读，又能给用户带来惊喜感。
 
-![1751612056418.png](https://bu.dusays.com/2025/07/04/68677a9bc381a.webp)
+![1751612056418.png](https://bu.dusays.com/2025/07/04/68677a9bc381a.png)
 
 {% note info flat %}
 💡 **为什么选择右上角？**
@@ -35,7 +35,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 在开始动手之前，我们先明确一下需要实现的功能特性：
 
-![1751614808096.png](https://bu.dusays.com/2025/07/04/6867855b1b632.webp)
+![1751614808096.png](https://bu.dusays.com/2025/07/04/6867855b1b632.png)
 
 ### 🎯 核心功能
 
@@ -68,7 +68,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 我们采用**配置与逻辑分离**的设计模式，就像建造一栋智能房屋一样：
 
-![1751612752565.png](https://bu.dusays.com/2025/07/04/68677d544a349.webp)
+![1751612752565.png](https://bu.dusays.com/2025/07/04/68677d544a349.png)
 
 ```
 entrance-popup-config.js    // 配置文件（遥控器，用户可自定义）
@@ -170,11 +170,11 @@ window (浏览器窗口)
 └── 所有全局变量和函数
 ```
 
-![1751612684187.png](https://bu.dusays.com/2025/07/04/68677d11ee43b.webp)
+![1751612684187.png](https://bu.dusays.com/2025/07/04/68677d11ee43b.png)
 
 #### 在我们项目中的作用
 
-![1751613049228.png](https://bu.dusays.com/2025/07/04/68677e7cec886.webp)
+![1751613049228.png](https://bu.dusays.com/2025/07/04/68677e7cec886.png)
 
 **1. 全局配置挂载**
 
@@ -464,7 +464,7 @@ document.addEventListener('keydown', function(e) {
 
 想象一下，IIFE就像是**哈利波特的隐身斗篷**，把我们的代码包裹起来，让它们在自己的"私人空间"里安全地工作。
 
-![1751613620318.png](https://bu.dusays.com/2025/07/04/686780bc0263f.webp)
+![1751613620318.png](https://bu.dusays.com/2025/07/04/686780bc0263f.png)
 
 {% note info flat %}
 🔍 **为什么使用IIFE？**
@@ -536,7 +536,7 @@ function getTextsForCurrentPage() {
 
 ### 🎨 弹窗显示逻辑
 
-![1751614255473.png](https://bu.dusays.com/2025/07/04/68678332bcfb5.webp)
+![1751614255473.png](https://bu.dusays.com/2025/07/04/68678332bcfb5.png)
 
 ```javascript
 function showPopup() {
@@ -1025,7 +1025,7 @@ function shouldShowPopup() {
 
 通过这篇文章，我们完整地实现了一个功能丰富、体验优雅的入场弹窗系统。这个系统的特点包括：
 
-![1751614573984.png](https://bu.dusays.com/2025/07/04/686784716273d.webp)
+![1751614573984.png](https://bu.dusays.com/2025/07/04/686784716273d.png)
 
 ### ✨ 技术亮点
 
