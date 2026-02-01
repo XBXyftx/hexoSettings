@@ -36,6 +36,9 @@ div
   // 基础懒加载功能
   script(src=url_for('/js/lazy-loading.js'))
 
+  // 图片懒加载刷新按钮功能
+  script(src=url_for('/js/lazy-image-refresh.js'))
+
   .js-pjax
     if needLoadCountJs
       != partial("includes/third-party/card-post-count/index", {}, { cache: true })
