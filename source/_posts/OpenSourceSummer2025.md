@@ -66,9 +66,49 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
   </div>
 </div>
 
-![93](OpenSourceSummer2025/93.png)
+![93](OpenSourceSummer2025/93.webp)
 
-![94](OpenSourceSummer2025/94.png)
+![94](OpenSourceSummer2025/94.webp)
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin: 20px 0;">
+  <!-- 文章卡片1 -->
+  <div style="background: linear-gradient(135deg, #07C160 0%, #10B981 100%); border-radius: 12px; padding: 20px; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(7, 193, 96, 0.3);" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(7, 193, 96, 0.4)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(7, 193, 96, 0.3)'">
+    <div style="position: relative; z-index: 2;">
+      <div style="display: flex; align-items: center; margin-bottom: 12px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="margin-right: 10px;">
+          <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.14.045c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 01-.023-.156.49.49 0 01.201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.837-6.656-6.088V8.89c-.135-.01-.27-.027-.407-.032zm-2.53 3.274c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.969-.982z"/>
+        </svg>
+        <div style="font-size: 15px; font-weight: 600;">00后开发者与开源鸿蒙的"双向奔赴"</div>
+      </div>
+      <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 13px; line-height: 1.5;">开放原子开源基金会专访：讲述我从技术学习者到生态贡献者的蜕变故事，以及 NowInOpenHarmony 平台背后的开发历程。</p>
+      <a href="https://mp.weixin.qq.com/s/O4VIz2-txXHqcwW0Q-qgZA" target="_blank" style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="white" style="margin-right: 6px;">
+          <path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7z"/>
+        </svg>
+        阅读原文
+      </a>
+    </div>
+  </div>
+
+  <!-- 文章卡片2 -->
+  <div style="background: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%); border-radius: 12px; padding: 20px; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(59, 130, 246, 0.4)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(59, 130, 246, 0.3)'">
+    <div style="position: relative; z-index: 2;">
+      <div style="display: flex; align-items: center; margin-bottom: 12px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="margin-right: 10px;">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+        </svg>
+        <div style="font-size: 15px; font-weight: 600;">开源之夏2025 | 华为项目获奖优秀学生系列展播⑥：薛博璇荣获“最快进步奖”</div>
+      </div>
+      <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 13px; line-height: 1.5;">评委评价：展现令人瞩目的成长速度与极强的实践能力，从零基础到独立完成全栈开发的蜕变历程。</p>
+      <a href="https://www.chaspark.com/#/hotspots/1226251692920639488" target="_blank" style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="white" style="margin-right: 6px;">
+          <path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7z"/>
+        </svg>
+        阅读原文
+      </a>
+    </div>
+  </div>
+</div>
 
 ## 前言
 
