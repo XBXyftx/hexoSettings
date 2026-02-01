@@ -26,7 +26,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 VScode可以直接安装插件
 
-![2](KimiCode/2.png)
+![2](KimiCode/2.webp)
 
 Kimi Code CLI可以用以下命令安装
 
@@ -42,19 +42,19 @@ Invoke-RestMethod https://code.kimi.com/install.ps1 | Invoke-Expression
 
 这里我踩了一个巨坑啊，我本以为Kimi官网的初级会员就能用K2.5直接接入到插件还有命令行工具中的，结果发现并不行，他的实际模型并不是K2.5。
 
-![3](KimiCode/3.png)
+![3](KimiCode/3.webp)
 
 tmd，模型权限给我写个K2.5然后终端能选的模型只有kimi-code/kimi-for-coding。
 
-![4](KimiCode/4.png)
+![4](KimiCode/4.webp)
 
-![5](KimiCode/5.png)
+![5](KimiCode/5.webp)
 
 我又深挖了一下文档发现原来它真正能用K2.5的方式是第二个登陆选项，用月之暗面的API平台登陆。
 
-![6](KimiCode/6.png)
+![6](KimiCode/6.webp)
 
-![1](KimiCode/1.png)
+![1](KimiCode/1.webp)
 
 ## 能力实验
 
