@@ -4,8 +4,9 @@ date: 2026-02-01 14:20:33
 tags:
   - AI
   - 技术向
-  - ClaudeCode
-  - cursor
+  - K2.5
+  - KimiCode
+  - hexo博客搭建
 cover: /imgs/ArticleTopImgs/KimiCodeTopImg.webp
 description: KimiCode初体验
 typewriter: 最新国产开源大模型，K2.5比肩Gemini3？实践才能出真知。
@@ -182,3 +183,5 @@ const lazyImages = document.querySelectorAll('#post .lazy-image, #article-contai
 ![11](KimiCode/11.webp)
 
 一遍成，这个表现和当初初体验Claude Sonnet 4.5差不多了。等明天深度开荒一下它在鸿蒙方面的能力吧，之前从网页版聊的感觉可以大展身手了。
+
+## 后续
