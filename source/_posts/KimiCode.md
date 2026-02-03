@@ -185,3 +185,5 @@ const lazyImages = document.querySelectorAll('#post .lazy-image, #article-contai
 一遍成，这个表现和当初初体验Claude Sonnet 4.5差不多了。等明天深度开荒一下它在鸿蒙方面的能力吧，之前从网页版聊的感觉可以大展身手了。
 
 ## 后续
+
+[新文章](/2026/02/03/HarmonyVScode/)
