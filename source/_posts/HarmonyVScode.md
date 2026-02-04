@@ -30,7 +30,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 我先用k2.5的Agent模式去进行一下完整项目设计的规划并给我写一套方案。
 
-![1](HarmonyVScode/1.png)
+![1](HarmonyVScode/1.webp)
 
 ### 确认架构可行性
 
@@ -147,7 +147,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 由于命令行工具没法直接阅读完整网页，我直接下载源码ZIP。
 
-![2](HarmonyVScode/2.png)
+![2](HarmonyVScode/2.webp)
 
 ### 外部记忆准备
 
@@ -155,7 +155,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 （有一说一其实我之前博客就有点这个功能的意味。）
 
-![3](HarmonyVScode/3.png)
+![3](HarmonyVScode/3.webp)
 
 ## 代码编辑器
 
@@ -167,15 +167,15 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 所以我决定先去观察一下现在已经上架华为应用市场的一些MarkDown编辑器和一些代码编辑器，看看他们是怎么做的。
 
-![4](HarmonyVScode/4.jpg)
+![4](HarmonyVScode/4.webp)
 
-![5](HarmonyVScode/5.jpg)
+![5](HarmonyVScode/5.webp)
 
-![6](HarmonyVScode/6.jpg)
+![6](HarmonyVScode/6.webp)
 
-![7](HarmonyVScode/7.jpg)
+![7](HarmonyVScode/7.webp)
 
-![8](HarmonyVScode/8.jpg)
+![8](HarmonyVScode/8.webp)
 
 可以看到其实整体来讲都是使用的WebView，而且甚至有整个应用完整的都是使用WebView的，性能上我并没有感受到什么差别，所以我们完全没必要重复造轮子，直接使用WebView即可。
 
@@ -187,7 +187,7 @@ ok，接下来开始正式开发，我们先来尝试一下最核心的两大功
 
 Kimi的第一版代码出现严重谬误，它编写了大量的TS代码，这是我想到的，因为之前我已经和它进行了相当长时间的对话都是关于鸿蒙项目的，也没有超出上下文长度限制，我就默认它会正确编写了，看来开始得动用skills了。
 
-![9](HarmonyVScode/9.png)
+![9](HarmonyVScode/9.webp)
 
 仓库链接我也放在这里，大家可以自行取用。
 
@@ -199,21 +199,21 @@ Kimi的第一版代码出现严重谬误，它编写了大量的TS代码，这�
 
 同时为了防止它再犯病，我决定进行手动回滚后新开一个对话窗口，同时为了更好的观感体验更换到了VScode的插件来继续Vibe。
 
-![10](HarmonyVScode/10.png)
+![10](HarmonyVScode/10.webp)
 
 可以说是宝藏skills了。
 
 生成的第一版代码中使用的全都是V1版本的状态管理，所以我安装完Skills后的第一件事就是将V1升级到V2。
 
-![11](HarmonyVScode/11.jpg)
+![11](HarmonyVScode/11.webp)
 
-![12](HarmonyVScode/12.jpg)
+![12](HarmonyVScode/12.webp)
 
 看起来可以说是相当唬人了，但问题也是相当严重，一方面是在第一版编写完后我连着让K2.5改了四五次的报错串，另一方面是当前的版本仅仅是一个界面，这个编辑器并没有真正实质性的内容？我在阅读源码之后确认了我的想法。
 
-![13](HarmonyVScode/13.png)
+![13](HarmonyVScode/13.webp)
 
-![14](HarmonyVScode/14.png)
+![14](HarmonyVScode/14.webp)
 
 他给我的选项可以看出当前我们的信息存在一些差距。
 
@@ -222,7 +222,7 @@ Kimi的第一版代码出现严重谬误，它编写了大量的TS代码，这�
 
 同步信息并明确需求。
 
-![15](HarmonyVScode/15.png)
+![15](HarmonyVScode/15.webp)
 
 哦？！那很期待了。
 
@@ -230,7 +230,7 @@ Kimi的第一版代码出现严重谬误，它编写了大量的TS代码，这�
 
 ### Claude Opus 4.5
 
-![16](HarmonyVScode/16.png)
+![16](HarmonyVScode/16.webp)
 
 ```txt
 ✅ MVP 版本完成总结
@@ -274,9 +274,9 @@ HMVScode/├── editor-builder/                    # [新增] 构建工具│
 📊 状态栏信息展示
 ```
 
-![17](HarmonyVScode/17.jpg)
+![17](HarmonyVScode/17.webp)
 
-![18](HarmonyVScode/18.jpg)
+![18](HarmonyVScode/18.webp)
 
 现在点击新建文件或是新建文件夹都会出现报错，应该是文件系统的权限问题。但编辑器是已经可以使用的了但点击编辑器右上角的保存也是没有用的。
 
@@ -302,13 +302,13 @@ HMVScode/├── editor-builder/                    # [新增] 构建工具│
 
 将上面这段给到Claude后它完成了新一轮的修复，现在再来测试一下。
 
-![22](HarmonyVScode/22.jpg)
+![22](HarmonyVScode/22.webp)
 
-![23](HarmonyVScode/23.jpg)
+![23](HarmonyVScode/23.webp)
 
-![24](HarmonyVScode/24.jpg)
+![24](HarmonyVScode/24.webp)
 
-![25](HarmonyVScode/25.jpg)
+![25](HarmonyVScode/25.webp)
 
 首先要肯定的是这一次的改动修复了选择的是文件而不是文件夹的bug，但是文件树的渲染当前文件夹下的文件及其子文件夹的功能依旧没有实现，同时仍然无法正常访问到当前文件夹下的文件，我需要更多日志来辅助排查问题。同时新建文件和新建文件夹两个功能依旧无法使用。现在优先解决文件树渲染的问题。
 
@@ -574,4 +574,4 @@ struct MainPage {
 内容由AI生成，仅供参考
 ````
 
-![26](HarmonyVScode/26.png)
+![26](HarmonyVScode/26.webp)
