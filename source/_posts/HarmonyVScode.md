@@ -575,3 +575,516 @@ struct MainPage {
 ````
 
 ![26](HarmonyVScode/26.webp)
+
+```log
+02-04 20:48:53.772   49744-49744   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: down: 170740
+02-04 20:48:53.772   49744-49744   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [P:D:170740][OnPointerEvent:649] recv
+02-04 20:48:53.772   49744-49744   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     HandleInputEvent: eid:0,InputId:170740,wid:1156,ac:2
+02-04 20:48:53.775   49744-49744   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:170740, fId:0, T:0, I=0, M=0
+02-04 20:48:53.776   49744-49744   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:170740, TTHNI:fId: 0{ T: page, D: 6 };{ T: Scroll, D: 12 };
+02-04 20:48:53.776   49744-49744   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:170740, TTHRTI: T ClickRecognizer info: { T: Scroll }; { T: Row };T PanRecognizer info: { T: Scroll };
+02-04 20:48:53.780   49744-49744   C03919/com.xbx...InputTracking  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Consumed id:170740, last id:-1
+02-04 20:48:53.780   49744-49744   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     ConsumePointerEventInner: InputId:170740,wid:1156,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+02-04 20:48:53.780   49744-49744   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: move: 170741
+02-04 20:48:53.780   49744-52208   C0390D/com.xbx...de/AceOverlay  com.xbxyftx.HMVScode  I     [(-1:100000:singleton)] RVS_ENABLE_CHECK Result: 0
+02-04 20:48:53.854   49744-49744   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: move, first: 170742-(2026-02-04 20:48:53.780ms), 170755, count: 14, last: ac: up: 170756
+02-04 20:48:53.854   49744-49744   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [P:U:170756][OnPointerEvent:649] recv
+02-04 20:48:53.854   49744-49744   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     HandleInputEvent: eid:1,InputId:170756,wid:1156,ac:4
+02-04 20:48:53.855   49744-49744   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:170756, fId:0, T:1, I=0, M=0
+02-04 20:48:53.855   49744-49744   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click try accept
+02-04 20:48:53.855   49744-49744   C0390B/com.xbx...AceScrollable  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Scrollable GestureJudge:0, 0
+02-04 20:48:53.855   49744-49744   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click gesture judge reject
+02-04 20:48:53.855   49744-49744   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click try accept
+02-04 20:48:53.855   49744-49744   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] CLK RACC, T: Row
+02-04 20:48:53.857   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [picker] ParseWindow: not window mode.
+02-04 20:48:53.857   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [Index] Opening folder picker...
+02-04 20:48:53.857   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [picker] parseDocumentPickerSelectOption start
+02-04 20:48:53.857   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [picker] parseDocumentPickerSelectOption end
+02-04 20:48:53.857   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [picker] modalPicker start 
+02-04 20:48:53.857   49744-49744   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(StartModalPicker:499)][picker]: StartModalPicker begin.
+02-04 20:48:53.857   49744-49744   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(ParseArgsStartModalPicker:480)][picker]: ParseArgsStartModalPicker begin.
+02-04 20:48:53.857   49744-49744   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(AsyncContextSetStaticObjectInfo:444)][picker]: AsyncContextSetStaticObjectInfo begin.
+02-04 20:48:53.857   49744-49744   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(StartPickerExtension:389)][picker]: StartPickerExtension begin.
+02-04 20:48:53.857   49744-49744   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(StartPickerExtension:395)][picker] Will get uiContent by context.
+02-04 20:48:53.858   49744-49744   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(StartPickerExtension:414)][picker]: SetParam end, udkey = 
+02-04 20:48:53.858   49744-49744   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(StartPickerExtension:428)][picker]: will CreateModalUIExtension by extType: filePicker, pickerType: select
+02-04 20:48:53.858   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@95][ID: 1] The modal UIExtension is created.
+02-04 20:48:53.858   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Create UIExtensionNode
+02-04 20:48:53.858   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@979][ID: 1] RegisterPipelineEvent
+02-04 20:48:53.858   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@931][ID: 1] OnAttachToFrameNode
+02-04 20:48:53.858   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@454][ID: 1] The current state is 'NONE' when UpdateWant, needCheck: '0'.
+02-04 20:48:53.858   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@481][ID: 1] The ability KeyAsync 0, uIExtensionUsage: 0.
+02-04 20:48:53.858   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@645][ID: 1] The session is created with bundle=, ability=, componentId=109.
+02-04 20:48:53.858   49744-49744   C04217/com.xbxy...WMSAttribute  com.xbxyftx.HMVScode  I     GetExtensionConfig: waterfall: 0, winId: 1156
+02-04 20:48:53.858   49744-49744   C04209/com.xbx...Scode/WMSImms  com.xbxyftx.HMVScode  I     GetGestureBackEnabled: win 1156 enable 1
+02-04 20:48:53.858   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@688][ID: 1] Want param isNotifyOccupiedAreaChange is 1, realHostWindowId: 1156, parentWindowType: 1
+02-04 20:48:53.859   49744-50595   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     GeneratePersistentId: persistentId: 0, persistentId_: 1277493251
+02-04 20:48:53.859   49744-50595   C0420D/com.xbx...code/WMSUiext  com.xbxyftx.HMVScode  I     persistentId: 1277493251, bundleName: , moduleName: , abilityName: , isDensityFollowHost_: 0, density_: 1.800000
+02-04 20:48:53.860   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@868][ID: 1] The state is changing from 'NONE' to 'FOREGROUND'.
+02-04 20:48:53.860   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@980][ID: 1] NotifyForeground, persistentid = 1277493251, hostWindowId = 1156, windowSceneId = -1, IsSceneBoardWindow: 0, componentId=109.
+02-04 20:48:53.860   49744-49744   C04217/com.xbxy...WMSAttribute  com.xbxyftx.HMVScode  I     GetExtensionConfig: waterfall: 0, winId: 1156
+02-04 20:48:53.860   49744-49744   C04209/com.xbx...Scode/WMSImms  com.xbxyftx.HMVScode  I     GetGestureBackEnabled: win 1156 enable 1
+02-04 20:48:53.860   49744-50595   C0420D/com.xbx...code/WMSUiext  com.xbxyftx.HMVScode  I     Activate session, id=1277493251
+02-04 20:48:53.860   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@223][ID: 1] OnAttachContext newInstanceId: 100000, oldInstanceId: 100000, isMoving: 0, detachContextHappened: 0.
+02-04 20:48:53.860   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@185][ID: 1] OnAttachToMainTree, isMoving: 0
+02-04 20:48:53.860   49744-49744   C0390D/com.xbx...de/AceOverlay  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] modalNode->GetParent() 3 mark IsProhibitedAddChildNode when sessionId -1277493251,prohibitedRemoveByRouter: 0, isAllowAddChildBelowModalUec: 0.
+02-04 20:48:53.860   49744-49744   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] view: ModalPage/110 show
+02-04 20:48:53.860   49744-49744   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] View: page/23 lost focus
+02-04 20:48:53.860   49744-49744   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Scope(Stack/26) has no last focusNode.
+02-04 20:48:53.861   49744-49744   C03922/com.xbx...AceNavigation  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] can't find inner navigation
+02-04 20:48:53.861   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [com.xbxyftx.HMVScode][entry][100000]: create modal page, sessionId=1277493251, isProhibitBack=0, isAsyncModalBinding=0, isAllowedBeCovered=0, prohibitedRemoveByRouter=0, isAllowAddChildBelowModalUec=0, prohibitedRemoveByNavigation=1
+02-04 20:48:53.861   49744-52208   C03924/com.xbx...Accessibility  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] send accessibility componentType:ModalPage event:536870912 accessibilityId:103
+02-04 20:48:53.862   49744-52208   C03924/com.xbx...Accessibility  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] send accessibility componentType:Row event:1 accessibilityId:50
+02-04 20:48:53.862   49744-49744   C03919/com.xbx...InputTracking  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Consumed id:170756, last id:170755
+02-04 20:48:53.862   49744-49744   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     ConsumePointerEventInner: InputId:170756,wid:1156,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+02-04 20:48:53.863   49744-52217   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(StartModalPickerExecute:60)][picker]: StartModalPickerExecute begin
+02-04 20:48:53.863   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1258][ID: 1] NotifyDisplayArea displayArea=RectT (0.00, 0.00) - [2800.00 x 1840.00], curWindow=Rect (0.00, 0.00) - [2800.00 x 1840.00], reason=0, duration=0, persistentId=1277493251, componentId=109.
+02-04 20:48:53.864   49744-49744   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Request focus on focusView: ModalPage/110.
+02-04 20:48:53.864   49744-49744   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] FocusSwitch end, Stack/secure_field onBlur, ModalPage/secure_field onFocus, start: 2, end: 1, update: 2
+02-04 20:48:53.864   49744-49744   C03933/com.xbx...e/AceKeyboard  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] current focus node: (ModalPage/110). isDynamic: 0
+02-04 20:48:53.864   49744-49744   C03933/com.xbx...e/AceKeyboard  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] FrameNode(ModalPage/110) notNeedSoftKeyboard.
+02-04 20:48:53.871   49744-50595   C0420D/com.xbx...code/WMSUiext  com.xbxyftx.HMVScode  I     Activate ret:0, persistentId:1277493251
+02-04 20:48:54.211   49744-50514   C01406/com.xbx...code/OHOS::RS  com.xbxyftx.HMVScode  I     RSSurfaceNode::Unmarshalling, Node: 218029719814145, Name: com.huawei.hmos.filemanagerFilePickerUIExtAbility
+02-04 20:48:54.211   49744-50595   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     ConnectInner: [id: 1277493251] state: 0,isTerminating:0, callingPid:50764, disableDelegator:0
+02-04 20:48:54.211   49744-50595   C04202/com.xbx...Scode/WMSMain  com.xbxyftx.HMVScode  I     InitSessionPropertyWhenConnect: [id: 1277493251] requestedOrientation: 0, defaultRequestedOrientation: 0, userRequestedOrientation: 0
+02-04 20:48:54.211   49744-50595   C0420C/com.xbx...code/WMSEvent  com.xbxyftx.HMVScode  I     SetCallingPid: id:1277493251, 50764
+02-04 20:48:54.211   49744-50595   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeFunc is null
+02-04 20:48:54.211   49744-50595   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeNotifyManagerFunc is null
+02-04 20:48:54.211   49744-50595   C04201/com.xbx....HMVScode/DMS  com.xbxyftx.HMVScode  E     GetScreenSession: Error found screen session with id: 18446744073709551615
+02-04 20:48:54.212   49744-50595   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     ConnectInner: set session id 1277493251 disableDelegator 0
+02-04 20:48:54.212   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(-2:100000:singleton)] [@575][ID: 1] The session is connected and the current state is 'FOREGROUND'.
+02-04 20:48:54.212   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1455][ID: 1] OnRemoteReady the current state is 'FOREGROUND'.
+02-04 20:48:54.212   49744-49744   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] UIExtensionComponent/secure_field RequestFocusImmediately isOnMainTree:1
+02-04 20:48:54.212   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@869][ID: 1] focused state notified to uiextension, persistentid = 1277493251, componentId=109.
+02-04 20:48:54.212   49744-49744   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] FocusSwitch end, ModalPage/secure_field onBlur, UIExtensionComponent/secure_field onFocus, start: 2, end: 1, update: 2
+02-04 20:48:54.212   49744-49744   C03933/com.xbx...e/AceKeyboard  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] current focus node: (UIExtensionComponent/109). isDynamic: 0
+02-04 20:48:54.212   49744-49744   C03933/com.xbx...e/AceKeyboard  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] UIExtension(UIExtensionComponent/109) not need process.
+02-04 20:48:54.212   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@869][ID: 1] focused state notified to uiextension, persistentid = 1277493251, componentId=109.
+02-04 20:48:54.212   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] UIExtensionManager register listener
+02-04 20:48:54.212   49744-49744   C04217/com.xbxy...WMSAttribute  com.xbxyftx.HMVScode  I     GetExtensionConfig: waterfall: 0, winId: 1156
+02-04 20:48:54.212   49744-49744   C04209/com.xbx...Scode/WMSImms  com.xbxyftx.HMVScode  I     GetGestureBackEnabled: win 1156 enable 1
+02-04 20:48:54.212   49744-49744   C0395F/com.xbx...amicComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Create UIExtensionAccessibilityChildTreeCallback
+02-04 20:48:54.212   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1703][ID: 1] treeId: 0, id: 102
+02-04 20:48:54.212   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1697][ID: 1] UIExtension: 102 register child tree, realHostWindowId: 1156
+02-04 20:48:54.212   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@2169][ID: 1] RegisterUIExtBusinessConsumeCallback businessCode=1002.
+02-04 20:48:54.212   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@2169][ID: 1] RegisterUIExtBusinessConsumeCallback businessCode=1001.
+02-04 20:48:54.212   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@2169][ID: 1] RegisterUIExtBusinessConsumeCallback businessCode=3002.
+02-04 20:48:54.212   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@2184][ID: 1] NotifyHostWindowMode: instanceId = 100000, followStrategy = 0, mode = 1
+02-04 20:48:54.214   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] UIExtensionSurface: isDisappearing = 0, paintRect = RectT (0.00, 0.00) - [2800.00 x 1840.00].
+02-04 20:48:54.215   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1258][ID: 1] NotifyDisplayArea displayArea=RectT (0.00, 0.00) - [2800.00 x 1840.00], curWindow=Rect (0.00, 0.00) - [2800.00 x 1840.00], reason=0, duration=0, persistentId=1277493251, componentId=109.
+02-04 20:48:54.215   49744-49744   C04201/com.xbx....HMVScode/DMS  com.xbxyftx.HMVScode  E     GetScreenSession: Error found screen session with id: 18446744073709551615
+02-04 20:48:54.215   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@860][ID: 1] Notify uiextension, persistentid = 1277493251 to clear the focus state, componentId=109.
+02-04 20:48:54.215   49744-49744   C01402/com.xbx...VScode/RSNode  com.xbxyftx.HMVScode  I     RSNode::AddChild, Id: 213648853172312, SurfaceNode:[Id: 218029719814145, name: com.huawei.hmos.filemanagerFilePickerUIExtAbility]
+02-04 20:48:54.215   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1825][ID: 1] HandleVisibleAreaChange visible: 1, curVisible: 0, ratio: 1.000000, displayArea: RectT (0.00, 0.00) - [2800.00 x 1840.00].
+02-04 20:48:54.215   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1656][ID: 1] The component is changing from 'visible' to 'visible'.
+02-04 20:48:54.222   49744-50514   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     Foreground: [id: 1277493251] state:1, isTerminating:0
+02-04 20:48:54.222   49744-50514   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     SetActive: new active:1, id:1277493251, state:2
+02-04 20:48:54.222   49744-50557   C0420D/com.xbx...code/WMSUiext  com.xbxyftx.HMVScode  I     NotifyExtensionSecureLimitChange: windowId: 1156, isLimite: 1
+02-04 20:48:54.223   49744-50595   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeFunc is null
+02-04 20:48:54.223   49744-50595   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeNotifyManagerFunc is null
+02-04 20:48:54.223   49744-50595   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeFunc is null
+02-04 20:48:54.223   49744-50595   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeNotifyManagerFunc is null
+02-04 20:48:54.294   49744-50514   C04207/com.xbx...code/WMSFocus  com.xbxyftx.HMVScode  I     UpdateFocusState: focus: 0, id: 1156
+02-04 20:48:54.295   49744-50514   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(-1:100000:singleton)] [com.xbxyftx.HMVScode][entry][100000]: window unfocus
+02-04 20:48:54.295   49744-49744   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Update application state , state: ON_INACTIVE
+02-04 20:48:54.295   49744-49744   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Window: 1156 lost focus.
+02-04 20:48:54.295   49744-49744   C0391D/com.xbx...code/AceMouse  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] VsyncMouseFormat mouseFormat_ and lastVsyncMouseFormat_ = 0 is same.
+02-04 20:48:54.295   49744-49744   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] UIExtensionComponent/secure_fieldtrigger onBlurInternal by 1
+02-04 20:48:54.295   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Blur Internal.
+02-04 20:48:54.295   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@860][ID: 1] Notify uiextension, persistentid = 1277493251 to clear the focus state, componentId=109.
+02-04 20:48:54.295   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@869][ID: 1] unfocused state notified to uiextension, persistentid = 1277493251, componentId=109.
+02-04 20:48:54.295   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@860][ID: 1] Notify uiextension, persistentid = 1277493251 to clear the focus state, componentId=109.
+02-04 20:48:54.297   49744-50514   C04207/com.xbx...code/WMSFocus  com.xbxyftx.HMVScode  I     NotifyHighlightChange: windowId: 1156, isHighlight: 0,
+02-04 20:48:54.297   49744-50514   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(-1:100000:singleton)] [com.xbxyftx.HMVScode][entry][100000]:window unactive
+02-04 20:48:54.297   49744-49744   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Update application state , state: ON_INACTIVE
+02-04 20:48:55.281   49744-52519   C01719/com.xbx...HMVScode/ffrt  com.xbxyftx.HMVScode  W     11:RecordSymbolAndBacktrace:397 Process:com.xbxyftx.HMVScode,Tid:52217,Qos:2,CWorker:2,EWorker:1,SWorker:1,TaskType:2,timeout:1s
+02-04 20:48:55.283   49744-52519   C01719/com.xbx...HMVScode/ffrt  com.xbxyftx.HMVScode  W     12:RecordSymbolAndBacktrace:405 Tid:52217, Name:OS_FFRT_2_3
+                                                                                               #00 pc 00000000001d94f0 /lib/ld-musl-aarch64.so.1
+                                                                                               #01 pc 00000000000d57e0 /system/lib64/libc++.so
+                                                                                               #02 pc 0000000000023d04 /system/lib64/module/file/libpicker.z.so
+                                                                                               #03 pc 0000000000077a0c /system/lib64/platformsdk/libace_napi.z.so
+                                                                                               #04 pc 0000000000013b0c /system/lib64/platformsdk/libuv.so
+                                                                                               #05 pc 00000000000b2d6c /system/lib64/ndk/libffrt.so
+                                                                                               #06 pc 00000000000b2bc4 /system/lib64/ndk/libffrt.so
+                                                                                               #07 pc 00000000000aecb0 /system/lib64/ndk/libffrt.so
+                                                                                               #08 pc 00000000000627ac /system/lib64/ndk/libffrt.so
+                                                                                               #09 pc 0000000000062a14 /system/lib64/ndk/libffrt.so
+                                                                                               #10 pc 0000000000062634 /system/lib64/ndk/libffrt.so
+                                                                                               #11 pc 0000000000062324 /system/lib64/ndk/libffrt.so
+                                                                                               #12 pc 00000000001d1658 /lib/ld-musl-aarch64.so.1
+02-04 20:48:59.283   49744-52519   C01719/com.xbx...HMVScode/ffrt  com.xbxyftx.HMVScode  W     13:RecordSymbolAndBacktrace:397 Process:com.xbxyftx.HMVScode,Tid:52217,Qos:2,CWorker:2,EWorker:1,SWorker:0,TaskType:2,timeout:5s
+02-04 20:48:59.287   49744-52519   C01719/com.xbx...HMVScode/ffrt  com.xbxyftx.HMVScode  W     14:RecordSymbolAndBacktrace:405 Tid:52217, Name:OS_FFRT_2_3
+                                                                                               #00 pc 00000000001d94f0 /lib/ld-musl-aarch64.so.1
+                                                                                               #01 pc 00000000000d57e0 /system/lib64/libc++.so
+                                                                                               #02 pc 0000000000023d04 /system/lib64/module/file/libpicker.z.so
+                                                                                               #03 pc 0000000000077a0c /system/lib64/platformsdk/libace_napi.z.so
+                                                                                               #04 pc 0000000000013b0c /system/lib64/platformsdk/libuv.so
+                                                                                               #05 pc 00000000000b2d6c /system/lib64/ndk/libffrt.so
+                                                                                               #06 pc 00000000000b2bc4 /system/lib64/ndk/libffrt.so
+                                                                                               #07 pc 00000000000aecb0 /system/lib64/ndk/libffrt.so
+                                                                                               #08 pc 00000000000627ac /system/lib64/ndk/libffrt.so
+                                                                                               #09 pc 0000000000062a14 /system/lib64/ndk/libffrt.so
+                                                                                               #10 pc 0000000000062634 /system/lib64/ndk/libffrt.so
+                                                                                               #11 pc 0000000000062324 /system/lib64/ndk/libffrt.so
+                                                                                               #12 pc 00000000001d1658 /lib/ld-musl-aarch64.so.1
+02-04 20:48:59.589   49744-50514   C01332/com.xbx...ode/UIAbility  com.xbxyftx.HMVScode  W     [ui_ability_thread434]null abilityHandler_ or requestCode is -1
+02-04 20:48:59.590   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(-2:100000:singleton)] [@1547][ID: 1] OnResult the state is changing from 'FOREGROUND' to 'DESTRUCTION'.
+02-04 20:48:59.590   49744-49744   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [modal_ui_callback.cpp(OnResultForModal:59)][picker] OnResultForModal enter. resultCode is 0,
+02-04 20:48:59.591   49744-50557   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     Background: Background ExtensionSession, id: 1277493251, state: 3
+02-04 20:48:59.591   49744-50514   C0420D/com.xbx...code/WMSUiext  com.xbxyftx.HMVScode  I     NotifyExtensionSecureLimitChange: windowId: 1156, isLimite: 0
+02-04 20:48:59.591   49744-50595   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeFunc is null
+02-04 20:48:59.591   49744-50595   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeNotifyManagerFunc is null
+02-04 20:48:59.591   49744-50595   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeFunc is null
+02-04 20:48:59.591   49744-50595   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeNotifyManagerFunc is null
+02-04 20:48:59.591   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@2275][ID: 1] UEC UpdatWMSUIExtProperty state=DESTRUCTION.
+02-04 20:48:59.596   49744-50514   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     Disconnect: [id: 1277493251] Disconnect session, state: 5
+02-04 20:48:59.596   49744-50595   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeFunc is null
+02-04 20:48:59.596   49744-50595   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeNotifyManagerFunc is null
+02-04 20:48:59.596   49744-50595   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeFunc is null
+02-04 20:48:59.596   49744-50595   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeNotifyManagerFunc is null
+02-04 20:48:59.596   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(-2:100000:singleton)] [@790][ID: 1] The session is disconnected and the current state is 'DESTRUCTION'.
+02-04 20:48:59.596   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(-2:100000:singleton)] [@1489][ID: 1] OnRelease the state is changing from 'DESTRUCTION' to 'DESTRUCTION' and releaseCode = 0.
+02-04 20:48:59.596   49744-49744   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [modal_ui_callback.cpp(OnRelease:36)][picker] OnRelease enter. release code is 0
+02-04 20:48:59.596   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(-2:100000:singleton)] [com.xbxyftx.HMVScode][entry][100000]: close modal page, sessionId=1277493251
+02-04 20:48:59.597   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(-2:100000:singleton)] [@1021][ID: 1] OnReleaseDone, persistentid = 1277493251, componentId=109.
+02-04 20:48:59.597   49744-49744   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  W     [(100000:100000:scope)] The sessionId 1277493251 does not exist
+02-04 20:48:59.597   49744-49744   C03922/com.xbx...AceNavigation  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] can't find inner navigation
+02-04 20:48:59.597   49744-49744   C03922/com.xbx...AceNavigation  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] can't find inner navigation
+02-04 20:48:59.597   49744-50595   C0420D/com.xbx...code/WMSUiext  com.xbxyftx.HMVScode  I     Destroy session done with persistentId: 1277493251
+02-04 20:48:59.597   49744-50595   C01336/com.xbx....HMVScode/AMS  com.xbxyftx.HMVScode  I     [AMC459]name:  , persistentId: 1277493251
+02-04 20:48:59.597   49744-49744   C0390D/com.xbx...de/AceOverlay  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ModalPage node remove from parent node
+02-04 20:48:59.597   49744-49744   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] view: ModalPage/110 close
+02-04 20:48:59.597   49744-49744   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] View: ModalPage/110 lost focus
+02-04 20:48:59.597   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@306][ID: 1] OnDetachContext instanceId: 100000, isMoving: 0, isOnDetachContext: 0.
+02-04 20:48:59.597   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] UIExtensionManager unregister listener
+02-04 20:48:59.597   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@347][ID: 1] UnRegisterUIExtensionManagerEvent
+02-04 20:48:59.597   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1010][ID: 1] UnRegisterPipelineEvent
+02-04 20:48:59.597   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1825][ID: 1] HandleVisibleAreaChange visible: 0, curVisible: 1, ratio: 0.000000, displayArea: RectT (0.00, 0.00) - [2800.00 x 1840.00].
+02-04 20:48:59.597   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1656][ID: 1] The component is changing from 'visible' to 'invisible'.
+02-04 20:48:59.597   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@205][ID: 1] OnDetachFromMainTree, isMoving: 0
+02-04 20:48:59.598   49744-49744   C0390D/com.xbx...de/AceOverlay  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ResetRootNode -1277493251.
+02-04 20:48:59.599   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Destory UIExtensionNode
+02-04 20:48:59.599   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1010][ID: 1] UnRegisterPipelineEvent
+02-04 20:48:59.599   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@100][ID: 1] The modal UIExtension is destroyed.
+02-04 20:48:59.599   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@133][ID: 1] LogoutModalUIExtension sessionId 0.
+02-04 20:48:59.599   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1473][ID: 1] ModalOnDestroy the current state is 'DESTRUCTION'.
+02-04 20:48:59.599   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [com.xbxyftx.HMVScode][entry][100000]: close modal page, sessionId=1277493251
+02-04 20:48:59.599   49744-49744   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [modal_ui_callback.cpp(OnDestroy:81)][picker] OnDestroy enter.
+02-04 20:48:59.599   49744-49744   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  W     [(100000:100000:scope)] [@1876][ID: 1] UIExtension pattern instanceId 100000 not equal frame node instanceId -1
+02-04 20:48:59.599   49744-49744   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] UIExtensionSurface: OnDetachFromFrameNode
+02-04 20:48:59.599   49744-49744   C02C02/PARAM                    com.xbxyftx.HMVScode  W     Selinux check name resourceschedule.memmgr.dma.reclaimable in u:object_r:resourceschedule_writeable_param:s0 [585 0 0] failed
+02-04 20:48:59.599   49744-49744   C02C02/PARAM                    com.xbxyftx.HMVScode  W     deny access resourceschedule.memmgr.dma.reclaimable label 29480 66
+02-04 20:48:59.599   49744-49744   C02C02/PARAM                    com.xbxyftx.HMVScode  W     SystemReadParam failed!name is:resourceschedule.memmgr.dma.reclaimable,err:1002
+02-04 20:48:59.599   49744-49744   C01406/com.xbx...code/OHOS::RS  com.xbxyftx.HMVScode  I     RSSurfaceNode::~RSSurfaceNode, Node: 218029719814145, Name: com.huawei.hmos.filemanagerFilePickerUIExtAbility
+02-04 20:48:59.599   49744-49744   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  W     [(100000:100000:scope)] The sessionId 1277493251 does not exist
+02-04 20:48:59.602   49744-50514   C04207/com.xbx...code/WMSFocus  com.xbxyftx.HMVScode  I     UpdateFocusState: focus: 1, id: 1156
+02-04 20:48:59.602   49744-52211   C03924/com.xbx...Accessibility  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] send accessibility componentType:ModalPage event:134217728 accessibilityId:103
+02-04 20:48:59.603   49744-50514   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(-1:100000:singleton)] [com.xbxyftx.HMVScode][entry][100000]: window focus
+02-04 20:48:59.603   49744-49744   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Update application state , state: ON_ACTIVE
+02-04 20:48:59.603   49744-50514   C04207/com.xbx...code/WMSFocus  com.xbxyftx.HMVScode  I     NotifyHighlightChange: timeStamp:1770209339598, highlightId:1156, isHighlight:1, isSyncNotify:1, current:1770209269651, new:1770209339598
+02-04 20:48:59.603   49744-50514   C04207/com.xbx...code/WMSFocus  com.xbxyftx.HMVScode  I     NotifyHighlightChange: windowId: 1156, isHighlight: 1,
+02-04 20:48:59.603   49744-49744   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Window: 1156 get focus.
+02-04 20:48:59.603   49744-50514   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(-1:100000:singleton)] [com.xbxyftx.HMVScode][entry][100000]:window active
+02-04 20:48:59.603   49744-49744   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Update application state , state: ON_ACTIVE
+02-04 20:48:59.606   49744-49744   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] WinFocusMove end, NULL/secure_field onBlur, Stack/secure_field onFocus, start: 1, end: 1, update: 2
+02-04 20:48:59.606   49744-49744   C03933/com.xbx...e/AceKeyboard  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] current focus node: (Stack/26). isDynamic: 0
+02-04 20:48:59.606   49744-49744   C03933/com.xbx...e/AceKeyboard  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Trigger Window Focus Callback
+02-04 20:48:59.606   49744-49744   C03933/com.xbx...e/AceKeyboard  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] need keyboard : 0.
+02-04 20:48:59.606   49744-49744   C0420B/com.xbx...e/WMSKeyboard  com.xbxyftx.HMVScode  I     id: 1156, isNeedKeyboard: 0, keepKeyboardFlag: 0
+02-04 20:48:59.606   49744-49744   C0420B/com.xbx...e/WMSKeyboard  com.xbxyftx.HMVScode  I     RequestInputMethodCloseKeyboard: Notify InputMethod framework close keyboard start.
+02-04 20:48:59.674   49744-52217   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(StartModalPickerExecute:73)][picker]: StartModalPickerExecute is ready.
+02-04 20:48:59.675   49744-49744   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(StartModalPickerAsyncCallbackComplete:242)][picker]: StartModalPickerAsyncCallbackComplete begin.
+02-04 20:48:59.675   49744-49744   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(MakeResultWithPickerCallBack:222)][picker]: resCode is 0.
+02-04 20:48:59.675   49744-49744   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(MakeResultWithArr:88)][picker]: ability.params.stream size. 1 
+02-04 20:48:59.675   49744-49744   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_napi_utils.cpp(InvokeJSAsyncMethod:48)][picker]: InvokeJSAsyncMethod begin.
+02-04 20:48:59.676   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [picker] document select selectResult: : errorcode is = 0, selecturi is = file://docs/storage/Users/currentUser/******e
+02-04 20:48:59.676   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [Index] Selected folder URI: file://docs/storage/Users/currentUser/HMVScode
+02-04 20:48:59.676   49744-52217   C04313/com.xbx...ppFileService  com.xbxyftx.HMVScode  I     [PersistPermission:347] PersistPermission pathPolicies size: 1
+02-04 20:48:59.677   49744-52217   C04313/com.xbx...ppFileService  com.xbxyftx.HMVScode  E     [ErrorCodeConversion:93] The app does not have the authorization URI permission
+02-04 20:48:59.678   49744-49744   C01320/com.xbx...MVScode/JsEnv  com.xbxyftx.HMVScode  W     [source_map145]the stack without line info
+02-04 20:48:59.678   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  W     [Index] Failed to persist permission: 201 Permission verification failed
+02-04 20:48:59.678   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [Index] Loading selected folder: file://docs/storage/Users/currentUser/HMVScode
+02-04 20:48:59.678   49744-52217   C04313/com.xbx...ppFileService  com.xbxyftx.HMVScode  I     [ActivatePermission:426] ActivatePermission pathPolicies size: 1
+02-04 20:48:59.679   49744-52217   C04313/com.xbx...ppFileService  com.xbxyftx.HMVScode  E     [ErrorCodeConversion:93] The app does not have the authorization URI permission
+02-04 20:48:59.679   49744-49744   C01320/com.xbx...MVScode/JsEnv  com.xbxyftx.HMVScode  W     [source_map145]the stack without line info
+02-04 20:48:59.679   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  W     [Index] Failed to activate permission: 201 Permission verification failed
+02-04 20:48:59.679   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileService] Workspace root set to: file://docs/storage/Users/currentUser/HMVScode
+02-04 20:48:59.679   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileTreeViewModel] loadDirectory called, targetPath: file://docs/storage/Users/currentUser/HMVScode
+02-04 20:48:59.679   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileTreeViewModel] currentPath: file://docs/storage/Users/currentUser/HMVScode
+02-04 20:48:59.679   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileService] listFiles called with path: file://docs/storage/Users/currentUser/HMVScode
+02-04 20:48:59.679   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileService] isUri: true
+02-04 20:48:59.679   49744-52217   C04388/com.xbx...code/file_api  com.xbxyftx.HMVScode  E     [listfile.cpp:275->FilterFileRes] Failed to scan dir
+02-04 20:48:59.680   49744-49744   C01320/com.xbx...MVScode/JsEnv  com.xbxyftx.HMVScode  W     [source_map145]the stack without line info
+02-04 20:48:59.680   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     [FileService] listFiles error: {"code":13900002}
+02-04 20:48:59.680   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     [FileTreeViewModel] Failed to load directory: {"name":"FileServiceError","code":"LIST_ERROR"}
+02-04 20:48:59.680   49744-49744   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [Index] Folder loaded successfully, file count: 0
+02-04 20:48:59.858   49744-50514   C057C2/com.xbx...PCObjectProxy  com.xbxyftx.HMVScode  I     hd:27 ct:1
+02-04 20:48:59.859   49744-50514   C0420D/com.xbx...code/WMSUiext  com.xbxyftx.HMVScode  I     ~ExtensionSession: id=1277493251
+```
+
+上面这一坨是我执行一次打开文件夹选择文件后的日志。接下来我会用这些日志来分析问题。
+
+![27](HarmonyVScode/27.webp)
+
+额，果然，鸿蒙文件系统的相关资料还是太少了，对于这个路径的写法很容易直接套用其他操作系统的导致这种问题发生。
+
+```log
+02-04 20:58:33.538   64993-1183    C02D10/com.xbx...RemoteService  com.xbxyftx.HMVScode  I     GetHiViewRemoteService: refresh remote service instance.
+02-04 20:58:33.543   64993-64993   C03F00/com.xbx...e/ArkCompiler  com.xbxyftx.HMVScode  I     [gc] IdleGCTrigger: trigger full gc
+02-04 20:58:36.426   64993-64993   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: down: 172290
+02-04 20:58:36.426   64993-64993   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [P:D:172290][OnPointerEvent:649] recv
+02-04 20:58:36.426   64993-64993   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     HandleInputEvent: eid:12,InputId:172290,wid:1173,ac:2
+02-04 20:58:36.427   64993-64993   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:172290, fId:0, T:0, I=0, M=0
+02-04 20:58:36.428   64993-64993   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:172290, TTHNI:fId: 0{ T: page, D: 6 };{ T: Scroll, D: 12 };
+02-04 20:58:36.428   64993-64993   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:172290, TTHRTI: T ClickRecognizer info: { T: Scroll }; { T: Row };T PanRecognizer info: { T: Scroll };
+02-04 20:58:36.429   64993-64993   C03919/com.xbx...InputTracking  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Consumed id:172290, last id:172288
+02-04 20:58:36.429   64993-64993   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     ConsumePointerEventInner: InputId:172290,wid:1173,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+02-04 20:58:36.429   64993-64993   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: move: 172291
+02-04 20:58:36.499   64993-64993   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: move, first: 172292-(2026-02-04 20:58:36.433ms), 172302, count: 11, last: ac: up: 172303
+02-04 20:58:36.499   64993-64993   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [P:U:172303][OnPointerEvent:649] recv
+02-04 20:58:36.499   64993-64993   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     HandleInputEvent: eid:13,InputId:172303,wid:1173,ac:4
+02-04 20:58:36.500   64993-64993   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:172303, fId:0, T:1, I=0, M=0
+02-04 20:58:36.500   64993-64993   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click try accept
+02-04 20:58:36.500   64993-64993   C0390B/com.xbx...AceScrollable  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Scrollable GestureJudge:0, 0
+02-04 20:58:36.500   64993-64993   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click gesture judge reject
+02-04 20:58:36.500   64993-64993   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click try accept
+02-04 20:58:36.500   64993-64993   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] CLK RACC, T: Row
+02-04 20:58:36.501   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [picker] ParseWindow: not window mode.
+02-04 20:58:36.501   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [Index] Opening folder picker...
+02-04 20:58:36.501   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [picker] parseDocumentPickerSelectOption start
+02-04 20:58:36.501   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [picker] parseDocumentPickerSelectOption end
+02-04 20:58:36.501   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [picker] modalPicker start 
+02-04 20:58:36.501   64993-64993   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(StartModalPicker:499)][picker]: StartModalPicker begin.
+02-04 20:58:36.501   64993-64993   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(ParseArgsStartModalPicker:480)][picker]: ParseArgsStartModalPicker begin.
+02-04 20:58:36.501   64993-64993   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(AsyncContextSetStaticObjectInfo:444)][picker]: AsyncContextSetStaticObjectInfo begin.
+02-04 20:58:36.501   64993-64993   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(StartPickerExtension:389)][picker]: StartPickerExtension begin.
+02-04 20:58:36.501   64993-64993   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(StartPickerExtension:395)][picker] Will get uiContent by context.
+02-04 20:58:36.501   64993-64993   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(StartPickerExtension:414)][picker]: SetParam end, udkey = 
+02-04 20:58:36.501   64993-64993   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(StartPickerExtension:428)][picker]: will CreateModalUIExtension by extType: filePicker, pickerType: select
+02-04 20:58:36.501   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@95][ID: 1] The modal UIExtension is created.
+02-04 20:58:36.501   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Create UIExtensionNode
+02-04 20:58:36.502   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@979][ID: 1] RegisterPipelineEvent
+02-04 20:58:36.502   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@931][ID: 1] OnAttachToFrameNode
+02-04 20:58:36.502   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@454][ID: 1] The current state is 'NONE' when UpdateWant, needCheck: '0'.
+02-04 20:58:36.502   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@481][ID: 1] The ability KeyAsync 0, uIExtensionUsage: 0.
+02-04 20:58:36.502   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@645][ID: 1] The session is created with bundle=, ability=, componentId=126.
+02-04 20:58:36.502   64993-64993   C04217/com.xbxy...WMSAttribute  com.xbxyftx.HMVScode  I     GetExtensionConfig: waterfall: 0, winId: 1173
+02-04 20:58:36.502   64993-64993   C04209/com.xbx...Scode/WMSImms  com.xbxyftx.HMVScode  I     GetGestureBackEnabled: win 1173 enable 1
+02-04 20:58:36.502   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@688][ID: 1] Want param isNotifyOccupiedAreaChange is 1, realHostWindowId: 1173, parentWindowType: 1
+02-04 20:58:36.502   64993-65235   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     GeneratePersistentId: persistentId: 0, persistentId_: 1339953155
+02-04 20:58:36.502   64993-65235   C0420D/com.xbx...code/WMSUiext  com.xbxyftx.HMVScode  I     persistentId: 1339953155, bundleName: , moduleName: , abilityName: , isDensityFollowHost_: 0, density_: 1.800000
+02-04 20:58:36.502   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@868][ID: 1] The state is changing from 'NONE' to 'FOREGROUND'.
+02-04 20:58:36.502   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@980][ID: 1] NotifyForeground, persistentid = 1339953155, hostWindowId = 1173, windowSceneId = -1, IsSceneBoardWindow: 0, componentId=126.
+02-04 20:58:36.502   64993-64993   C04217/com.xbxy...WMSAttribute  com.xbxyftx.HMVScode  I     GetExtensionConfig: waterfall: 0, winId: 1173
+02-04 20:58:36.502   64993-64993   C04209/com.xbx...Scode/WMSImms  com.xbxyftx.HMVScode  I     GetGestureBackEnabled: win 1173 enable 1
+02-04 20:58:36.502   64993-65235   C0420D/com.xbx...code/WMSUiext  com.xbxyftx.HMVScode  I     Activate session, id=1339953155
+02-04 20:58:36.503   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@223][ID: 1] OnAttachContext newInstanceId: 100000, oldInstanceId: 100000, isMoving: 0, detachContextHappened: 0.
+02-04 20:58:36.503   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@185][ID: 1] OnAttachToMainTree, isMoving: 0
+02-04 20:58:36.503   64993-64993   C0390D/com.xbx...de/AceOverlay  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] modalNode->GetParent() 3 mark IsProhibitedAddChildNode when sessionId -1339953155,prohibitedRemoveByRouter: 0, isAllowAddChildBelowModalUec: 0.
+02-04 20:58:36.503   64993-64993   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] view: ModalPage/127 show
+02-04 20:58:36.503   64993-64993   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] View: page/23 lost focus
+02-04 20:58:36.503   64993-64993   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Scope(Stack/26) has no last focusNode.
+02-04 20:58:36.503   64993-64993   C03922/com.xbx...AceNavigation  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] can't find inner navigation
+02-04 20:58:36.503   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [com.xbxyftx.HMVScode][entry][100000]: create modal page, sessionId=1339953155, isProhibitBack=0, isAsyncModalBinding=0, isAllowedBeCovered=0, prohibitedRemoveByRouter=0, isAllowAddChildBelowModalUec=0, prohibitedRemoveByNavigation=1
+02-04 20:58:36.503   64993-1183    C03924/com.xbx...Accessibility  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] send accessibility componentType:ModalPage event:536870912 accessibilityId:120
+02-04 20:58:36.503   64993-1183    C03924/com.xbx...Accessibility  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] send accessibility componentType:Row event:1 accessibilityId:50
+02-04 20:58:36.503   64993-64993   C03919/com.xbx...InputTracking  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Consumed id:172303, last id:172302
+02-04 20:58:36.503   64993-64993   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     ConsumePointerEventInner: InputId:172303,wid:1173,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+02-04 20:58:36.504   64993-1488    C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(StartModalPickerExecute:60)][picker]: StartModalPickerExecute begin
+02-04 20:58:36.509   64993-65235   C0420D/com.xbx...code/WMSUiext  com.xbxyftx.HMVScode  I     Activate ret:0, persistentId:1339953155
+02-04 20:58:36.509   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1258][ID: 1] NotifyDisplayArea displayArea=RectT (0.00, 0.00) - [2800.00 x 1840.00], curWindow=Rect (0.00, 0.00) - [2800.00 x 1840.00], reason=0, duration=0, persistentId=1339953155, componentId=126.
+02-04 20:58:36.509   64993-64993   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Request focus on focusView: ModalPage/127.
+02-04 20:58:36.509   64993-64993   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] FocusSwitch end, Stack/secure_field onBlur, ModalPage/secure_field onFocus, start: 2, end: 1, update: 2
+02-04 20:58:36.509   64993-64993   C03933/com.xbx...e/AceKeyboard  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] current focus node: (ModalPage/127). isDynamic: 0
+02-04 20:58:36.509   64993-64993   C03933/com.xbx...e/AceKeyboard  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] FrameNode(ModalPage/127) notNeedSoftKeyboard.
+02-04 20:58:36.839   64993-65171   C01406/com.xbx...code/OHOS::RS  com.xbxyftx.HMVScode  I     RSSurfaceNode::Unmarshalling, Node: 2675764625409, Name: com.huawei.hmos.filemanagerFilePickerUIExtAbility
+02-04 20:58:36.840   64993-65235   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     ConnectInner: [id: 1339953155] state: 0,isTerminating:0, callingPid:623, disableDelegator:0
+02-04 20:58:36.840   64993-65235   C04202/com.xbx...Scode/WMSMain  com.xbxyftx.HMVScode  I     InitSessionPropertyWhenConnect: [id: 1339953155] requestedOrientation: 0, defaultRequestedOrientation: 0, userRequestedOrientation: 0
+02-04 20:58:36.840   64993-65235   C0420C/com.xbx...code/WMSEvent  com.xbxyftx.HMVScode  I     SetCallingPid: id:1339953155, 623
+02-04 20:58:36.840   64993-65235   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeFunc is null
+02-04 20:58:36.840   64993-65235   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeNotifyManagerFunc is null
+02-04 20:58:36.840   64993-65235   C04201/com.xbx....HMVScode/DMS  com.xbxyftx.HMVScode  E     GetScreenSession: Error found screen session with id: 18446744073709551615
+02-04 20:58:36.840   64993-65235   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     ConnectInner: set session id 1339953155 disableDelegator 0
+02-04 20:58:36.840   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(-2:100000:singleton)] [@575][ID: 1] The session is connected and the current state is 'FOREGROUND'.
+02-04 20:58:36.841   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1455][ID: 1] OnRemoteReady the current state is 'FOREGROUND'.
+02-04 20:58:36.841   64993-64993   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] UIExtensionComponent/secure_field RequestFocusImmediately isOnMainTree:1
+02-04 20:58:36.841   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@869][ID: 1] focused state notified to uiextension, persistentid = 1339953155, componentId=126.
+02-04 20:58:36.841   64993-64993   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] FocusSwitch end, ModalPage/secure_field onBlur, UIExtensionComponent/secure_field onFocus, start: 2, end: 1, update: 2
+02-04 20:58:36.841   64993-64993   C03933/com.xbx...e/AceKeyboard  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] current focus node: (UIExtensionComponent/126). isDynamic: 0
+02-04 20:58:36.841   64993-64993   C03933/com.xbx...e/AceKeyboard  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] UIExtension(UIExtensionComponent/126) not need process.
+02-04 20:58:36.841   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@869][ID: 1] focused state notified to uiextension, persistentid = 1339953155, componentId=126.
+02-04 20:58:36.841   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] UIExtensionManager register listener
+02-04 20:58:36.841   64993-64993   C04217/com.xbxy...WMSAttribute  com.xbxyftx.HMVScode  I     GetExtensionConfig: waterfall: 0, winId: 1173
+02-04 20:58:36.841   64993-64993   C04209/com.xbx...Scode/WMSImms  com.xbxyftx.HMVScode  I     GetGestureBackEnabled: win 1173 enable 1
+02-04 20:58:36.841   64993-64993   C0395F/com.xbx...amicComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Create UIExtensionAccessibilityChildTreeCallback
+02-04 20:58:36.841   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1703][ID: 1] treeId: 0, id: 119
+02-04 20:58:36.841   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1697][ID: 1] UIExtension: 119 register child tree, realHostWindowId: 1173
+02-04 20:58:36.841   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@2169][ID: 1] RegisterUIExtBusinessConsumeCallback businessCode=1002.
+02-04 20:58:36.841   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@2169][ID: 1] RegisterUIExtBusinessConsumeCallback businessCode=1001.
+02-04 20:58:36.841   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@2169][ID: 1] RegisterUIExtBusinessConsumeCallback businessCode=3002.
+02-04 20:58:36.841   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@2184][ID: 1] NotifyHostWindowMode: instanceId = 100000, followStrategy = 0, mode = 1
+02-04 20:58:36.842   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] UIExtensionSurface: isDisappearing = 0, paintRect = RectT (0.00, 0.00) - [2800.00 x 1840.00].
+02-04 20:58:36.842   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1258][ID: 1] NotifyDisplayArea displayArea=RectT (0.00, 0.00) - [2800.00 x 1840.00], curWindow=Rect (0.00, 0.00) - [2800.00 x 1840.00], reason=0, duration=0, persistentId=1339953155, componentId=126.
+02-04 20:58:36.842   64993-64993   C04201/com.xbx....HMVScode/DMS  com.xbxyftx.HMVScode  E     GetScreenSession: Error found screen session with id: 18446744073709551615
+02-04 20:58:36.842   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@860][ID: 1] Notify uiextension, persistentid = 1339953155 to clear the focus state, componentId=126.
+02-04 20:58:36.842   64993-64993   C01402/com.xbx...VScode/RSNode  com.xbxyftx.HMVScode  I     RSNode::AddChild, Id: 279142809469032, SurfaceNode:[Id: 2675764625409, name: com.huawei.hmos.filemanagerFilePickerUIExtAbility]
+02-04 20:58:36.842   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1825][ID: 1] HandleVisibleAreaChange visible: 1, curVisible: 0, ratio: 1.000000, displayArea: RectT (0.00, 0.00) - [2800.00 x 1840.00].
+02-04 20:58:36.842   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1656][ID: 1] The component is changing from 'visible' to 'visible'.
+02-04 20:58:36.849   64993-65171   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     Foreground: [id: 1339953155] state:1, isTerminating:0
+02-04 20:58:36.849   64993-65171   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     SetActive: new active:1, id:1339953155, state:2
+02-04 20:58:36.850   64993-65194   C0420D/com.xbx...code/WMSUiext  com.xbxyftx.HMVScode  I     NotifyExtensionSecureLimitChange: windowId: 1173, isLimite: 1
+02-04 20:58:36.850   64993-65235   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeFunc is null
+02-04 20:58:36.850   64993-65235   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeNotifyManagerFunc is null
+02-04 20:58:36.850   64993-65235   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeFunc is null
+02-04 20:58:36.850   64993-65235   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeNotifyManagerFunc is null
+02-04 20:58:36.935   64993-65194   C04207/com.xbx...code/WMSFocus  com.xbxyftx.HMVScode  I     UpdateFocusState: focus: 0, id: 1173
+02-04 20:58:36.935   64993-65194   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(-1:100000:singleton)] [com.xbxyftx.HMVScode][entry][100000]: window unfocus
+02-04 20:58:36.935   64993-64993   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Update application state , state: ON_INACTIVE
+02-04 20:58:36.935   64993-64993   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Window: 1173 lost focus.
+02-04 20:58:36.935   64993-64993   C0391D/com.xbx...code/AceMouse  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] VsyncMouseFormat mouseFormat_ and lastVsyncMouseFormat_ = 0 is same.
+02-04 20:58:36.935   64993-64993   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] UIExtensionComponent/secure_fieldtrigger onBlurInternal by 1
+02-04 20:58:36.935   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Blur Internal.
+02-04 20:58:36.935   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@860][ID: 1] Notify uiextension, persistentid = 1339953155 to clear the focus state, componentId=126.
+02-04 20:58:36.935   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@869][ID: 1] unfocused state notified to uiextension, persistentid = 1339953155, componentId=126.
+02-04 20:58:36.935   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@860][ID: 1] Notify uiextension, persistentid = 1339953155 to clear the focus state, componentId=126.
+02-04 20:58:36.938   64993-65194   C04207/com.xbx...code/WMSFocus  com.xbxyftx.HMVScode  I     NotifyHighlightChange: windowId: 1173, isHighlight: 0,
+02-04 20:58:36.938   64993-65194   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(-1:100000:singleton)] [com.xbxyftx.HMVScode][entry][100000]:window unactive
+02-04 20:58:36.938   64993-64993   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Update application state , state: ON_INACTIVE
+02-04 20:58:37.536   64993-1392    C01719/com.xbx...HMVScode/ffrt  com.xbxyftx.HMVScode  W     7:RecordSymbolAndBacktrace:397 Process:com.xbxyftx.HMVScode,Tid:1488,Qos:2,CWorker:2,EWorker:1,SWorker:1,TaskType:2,timeout:1s
+02-04 20:58:37.537   64993-1392    C01719/com.xbx...HMVScode/ffrt  com.xbxyftx.HMVScode  W     8:RecordSymbolAndBacktrace:405 Tid:1488, Name:OS_FFRT_2_4
+                                                                                               #00 pc 00000000001d94f0 /lib/ld-musl-aarch64.so.1
+                                                                                               #01 pc 00000000000d57e0 /system/lib64/libc++.so
+                                                                                               #02 pc 0000000000023d04 /system/lib64/module/file/libpicker.z.so
+                                                                                               #03 pc 0000000000077a0c /system/lib64/platformsdk/libace_napi.z.so
+                                                                                               #04 pc 0000000000013b0c /system/lib64/platformsdk/libuv.so
+                                                                                               #05 pc 00000000000b2d6c /system/lib64/ndk/libffrt.so
+                                                                                               #06 pc 00000000000b2bc4 /system/lib64/ndk/libffrt.so
+                                                                                               #07 pc 00000000000aecb0 /system/lib64/ndk/libffrt.so
+                                                                                               #08 pc 00000000000627ac /system/lib64/ndk/libffrt.so
+                                                                                               #09 pc 0000000000062a14 /system/lib64/ndk/libffrt.so
+                                                                                               #10 pc 0000000000062634 /system/lib64/ndk/libffrt.so
+                                                                                               #11 pc 0000000000062324 /system/lib64/ndk/libffrt.so
+                                                                                               #12 pc 00000000001d1658 /lib/ld-musl-aarch64.so.1
+02-04 20:58:41.539   64993-1392    C01719/com.xbx...HMVScode/ffrt  com.xbxyftx.HMVScode  W     9:RecordSymbolAndBacktrace:397 Process:com.xbxyftx.HMVScode,Tid:1488,Qos:2,CWorker:2,EWorker:1,SWorker:0,TaskType:2,timeout:5s
+02-04 20:58:41.540   64993-1392    C01719/com.xbx...HMVScode/ffrt  com.xbxyftx.HMVScode  W     10:RecordSymbolAndBacktrace:405 Tid:1488, Name:OS_FFRT_2_4
+                                                                                               #00 pc 00000000001d94f0 /lib/ld-musl-aarch64.so.1
+                                                                                               #01 pc 00000000000d57e0 /system/lib64/libc++.so
+                                                                                               #02 pc 0000000000023d04 /system/lib64/module/file/libpicker.z.so
+                                                                                               #03 pc 0000000000077a0c /system/lib64/platformsdk/libace_napi.z.so
+                                                                                               #04 pc 0000000000013b0c /system/lib64/platformsdk/libuv.so
+                                                                                               #05 pc 00000000000b2d6c /system/lib64/ndk/libffrt.so
+                                                                                               #06 pc 00000000000b2bc4 /system/lib64/ndk/libffrt.so
+                                                                                               #07 pc 00000000000aecb0 /system/lib64/ndk/libffrt.so
+                                                                                               #08 pc 00000000000627ac /system/lib64/ndk/libffrt.so
+                                                                                               #09 pc 0000000000062a14 /system/lib64/ndk/libffrt.so
+                                                                                               #10 pc 0000000000062634 /system/lib64/ndk/libffrt.so
+                                                                                               #11 pc 0000000000062324 /system/lib64/ndk/libffrt.so
+                                                                                               #12 pc 00000000001d1658 /lib/ld-musl-aarch64.so.1
+02-04 20:58:43.141   64993-65194   C01332/com.xbx...ode/UIAbility  com.xbxyftx.HMVScode  W     [ui_ability_thread434]null abilityHandler_ or requestCode is -1
+02-04 20:58:43.141   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(-2:100000:singleton)] [@1547][ID: 1] OnResult the state is changing from 'FOREGROUND' to 'DESTRUCTION'.
+02-04 20:58:43.141   64993-64993   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [modal_ui_callback.cpp(OnResultForModal:59)][picker] OnResultForModal enter. resultCode is 0,
+02-04 20:58:43.142   64993-65171   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     Background: Background ExtensionSession, id: 1339953155, state: 3
+02-04 20:58:43.142   64993-65194   C0420D/com.xbx...code/WMSUiext  com.xbxyftx.HMVScode  I     NotifyExtensionSecureLimitChange: windowId: 1173, isLimite: 0
+02-04 20:58:43.142   64993-65235   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeFunc is null
+02-04 20:58:43.142   64993-65235   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeNotifyManagerFunc is null
+02-04 20:58:43.142   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@2275][ID: 1] UEC UpdatWMSUIExtProperty state=DESTRUCTION.
+02-04 20:58:43.142   64993-65235   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeFunc is null
+02-04 20:58:43.142   64993-65235   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeNotifyManagerFunc is null
+02-04 20:58:43.148   64993-65194   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     Disconnect: [id: 1339953155] Disconnect session, state: 5
+02-04 20:58:43.148   64993-65235   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeFunc is null
+02-04 20:58:43.148   64993-65235   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeNotifyManagerFunc is null
+02-04 20:58:43.148   64993-65235   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeFunc is null
+02-04 20:58:43.148   64993-65235   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     sessionStateChangeNotifyManagerFunc is null
+02-04 20:58:43.148   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(-2:100000:singleton)] [@790][ID: 1] The session is disconnected and the current state is 'DESTRUCTION'.
+02-04 20:58:43.148   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(-2:100000:singleton)] [@1489][ID: 1] OnRelease the state is changing from 'DESTRUCTION' to 'DESTRUCTION' and releaseCode = 0.
+02-04 20:58:43.148   64993-64993   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [modal_ui_callback.cpp(OnRelease:36)][picker] OnRelease enter. release code is 0
+02-04 20:58:43.148   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(-2:100000:singleton)] [com.xbxyftx.HMVScode][entry][100000]: close modal page, sessionId=1339953155
+02-04 20:58:43.148   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(-2:100000:singleton)] [@1021][ID: 1] OnReleaseDone, persistentid = 1339953155, componentId=126.
+02-04 20:58:43.149   64993-64993   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  W     [(100000:100000:scope)] The sessionId 1339953155 does not exist
+02-04 20:58:43.149   64993-65235   C0420D/com.xbx...code/WMSUiext  com.xbxyftx.HMVScode  I     Destroy session done with persistentId: 1339953155
+02-04 20:58:43.149   64993-64993   C03922/com.xbx...AceNavigation  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] can't find inner navigation
+02-04 20:58:43.149   64993-64993   C03922/com.xbx...AceNavigation  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] can't find inner navigation
+02-04 20:58:43.149   64993-65235   C01336/com.xbx....HMVScode/AMS  com.xbxyftx.HMVScode  I     [AMC459]name:  , persistentId: 1339953155
+02-04 20:58:43.149   64993-64993   C0390D/com.xbx...de/AceOverlay  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ModalPage node remove from parent node
+02-04 20:58:43.149   64993-64993   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] view: ModalPage/127 close
+02-04 20:58:43.149   64993-64993   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] View: ModalPage/127 lost focus
+02-04 20:58:43.149   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@306][ID: 1] OnDetachContext instanceId: 100000, isMoving: 0, isOnDetachContext: 0.
+02-04 20:58:43.149   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] UIExtensionManager unregister listener
+02-04 20:58:43.149   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@347][ID: 1] UnRegisterUIExtensionManagerEvent
+02-04 20:58:43.149   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1010][ID: 1] UnRegisterPipelineEvent
+02-04 20:58:43.149   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1825][ID: 1] HandleVisibleAreaChange visible: 0, curVisible: 1, ratio: 0.000000, displayArea: RectT (0.00, 0.00) - [2800.00 x 1840.00].
+02-04 20:58:43.149   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1656][ID: 1] The component is changing from 'visible' to 'invisible'.
+02-04 20:58:43.149   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@205][ID: 1] OnDetachFromMainTree, isMoving: 0
+02-04 20:58:43.149   64993-1383    C03924/com.xbx...Accessibility  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] send accessibility componentType:ModalPage event:134217728 accessibilityId:120
+02-04 20:58:43.149   64993-64993   C0390D/com.xbx...de/AceOverlay  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ResetRootNode -1339953155.
+02-04 20:58:43.151   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Destory UIExtensionNode
+02-04 20:58:43.151   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1010][ID: 1] UnRegisterPipelineEvent
+02-04 20:58:43.151   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@100][ID: 1] The modal UIExtension is destroyed.
+02-04 20:58:43.151   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@133][ID: 1] LogoutModalUIExtension sessionId 0.
+02-04 20:58:43.151   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [@1473][ID: 1] ModalOnDestroy the current state is 'DESTRUCTION'.
+02-04 20:58:43.151   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] [com.xbxyftx.HMVScode][entry][100000]: close modal page, sessionId=1339953155
+02-04 20:58:43.151   64993-64993   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [modal_ui_callback.cpp(OnDestroy:81)][picker] OnDestroy enter.
+02-04 20:58:43.151   64993-64993   C0392A/com.xbx...sionComponent  com.xbxyftx.HMVScode  W     [(100000:100000:scope)] [@1876][ID: 1] UIExtension pattern instanceId 100000 not equal frame node instanceId -1
+02-04 20:58:43.151   64993-64993   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] UIExtensionSurface: OnDetachFromFrameNode
+02-04 20:58:43.151   64993-64993   C02C02/PARAM                    com.xbxyftx.HMVScode  W     Selinux check name resourceschedule.memmgr.dma.reclaimable in u:object_r:resourceschedule_writeable_param:s0 [585 0 0] failed
+02-04 20:58:43.151   64993-64993   C02C02/PARAM                    com.xbxyftx.HMVScode  W     deny access resourceschedule.memmgr.dma.reclaimable label 29480 66
+02-04 20:58:43.151   64993-64993   C02C02/PARAM                    com.xbxyftx.HMVScode  W     SystemReadParam failed!name is:resourceschedule.memmgr.dma.reclaimable,err:1002
+02-04 20:58:43.151   64993-64993   C01406/com.xbx...code/OHOS::RS  com.xbxyftx.HMVScode  I     RSSurfaceNode::~RSSurfaceNode, Node: 2675764625409, Name: com.huawei.hmos.filemanagerFilePickerUIExtAbility
+02-04 20:58:43.151   64993-64993   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  W     [(100000:100000:scope)] The sessionId 1339953155 does not exist
+02-04 20:58:43.153   64993-65194   C04207/com.xbx...code/WMSFocus  com.xbxyftx.HMVScode  I     UpdateFocusState: focus: 1, id: 1173
+02-04 20:58:43.154   64993-65194   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(-1:100000:singleton)] [com.xbxyftx.HMVScode][entry][100000]: window focus
+02-04 20:58:43.155   64993-64993   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Update application state , state: ON_ACTIVE
+02-04 20:58:43.155   64993-64993   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Window: 1173 get focus.
+02-04 20:58:43.155   64993-65194   C04207/com.xbx...code/WMSFocus  com.xbxyftx.HMVScode  I     NotifyHighlightChange: timeStamp:1770209923149, highlightId:1173, isHighlight:1, isSyncNotify:1, current:1770209890151, new:1770209923149
+02-04 20:58:43.155   64993-65194   C04207/com.xbx...code/WMSFocus  com.xbxyftx.HMVScode  I     NotifyHighlightChange: windowId: 1173, isHighlight: 1,
+02-04 20:58:43.155   64993-65194   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(-1:100000:singleton)] [com.xbxyftx.HMVScode][entry][100000]:window active
+02-04 20:58:43.155   64993-64993   C03900/com.xbx....HMVScode/Ace  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Update application state , state: ON_ACTIVE
+02-04 20:58:43.158   64993-64993   C0391C/com.xbx...code/AceFocus  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] WinFocusMove end, NULL/secure_field onBlur, Stack/secure_field onFocus, start: 1, end: 1, update: 2
+02-04 20:58:43.158   64993-64993   C03933/com.xbx...e/AceKeyboard  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] current focus node: (Stack/26). isDynamic: 0
+02-04 20:58:43.158   64993-64993   C03933/com.xbx...e/AceKeyboard  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Trigger Window Focus Callback
+02-04 20:58:43.158   64993-64993   C03933/com.xbx...e/AceKeyboard  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] need keyboard : 0.
+02-04 20:58:43.158   64993-64993   C0420B/com.xbx...e/WMSKeyboard  com.xbxyftx.HMVScode  I     id: 1173, isNeedKeyboard: 0, keepKeyboardFlag: 0
+02-04 20:58:43.158   64993-64993   C0420B/com.xbx...e/WMSKeyboard  com.xbxyftx.HMVScode  I     RequestInputMethodCloseKeyboard: Notify InputMethod framework close keyboard start.
+02-04 20:58:43.218   64993-1488    C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(StartModalPickerExecute:73)][picker]: StartModalPickerExecute is ready.
+02-04 20:58:43.218   64993-64993   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(StartModalPickerAsyncCallbackComplete:242)][picker]: StartModalPickerAsyncCallbackComplete begin.
+02-04 20:58:43.218   64993-64993   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(MakeResultWithPickerCallBack:222)][picker]: resCode is 0.
+02-04 20:58:43.218   64993-64993   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_n_exporter.cpp(MakeResultWithArr:88)][picker]: ability.params.stream size. 1 
+02-04 20:58:43.218   64993-64993   C01304/com.xbx...anagerService  com.xbxyftx.HMVScode  I     [picker_napi_utils.cpp(InvokeJSAsyncMethod:48)][picker]: InvokeJSAsyncMethod begin.
+02-04 20:58:43.218   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [picker] document select selectResult: : errorcode is = 0, selecturi is = file://docs/storage/Users/currentUser/******e
+02-04 20:58:43.218   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [Index] Selected folder URI: file://docs/storage/Users/currentUser/HMVScode
+02-04 20:58:43.219   64993-1488    C04313/com.xbx...ppFileService  com.xbxyftx.HMVScode  I     [PersistPermission:347] PersistPermission pathPolicies size: 1
+02-04 20:58:43.220   64993-1488    C04313/com.xbx...ppFileService  com.xbxyftx.HMVScode  E     [ErrorCodeConversion:93] The app does not have the authorization URI permission
+02-04 20:58:43.220   64993-64993   C01320/com.xbx...MVScode/JsEnv  com.xbxyftx.HMVScode  W     [source_map145]the stack without line info
+02-04 20:58:43.220   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  W     [Index] Failed to persist permission: 201 Permission verification failed
+02-04 20:58:43.220   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [Index] Loading selected folder: file://docs/storage/Users/currentUser/HMVScode
+02-04 20:58:43.221   64993-1488    C04313/com.xbx...ppFileService  com.xbxyftx.HMVScode  I     [ActivatePermission:426] ActivatePermission pathPolicies size: 1
+02-04 20:58:43.221   64993-1488    C04313/com.xbx...ppFileService  com.xbxyftx.HMVScode  E     [ErrorCodeConversion:93] The app does not have the authorization URI permission
+02-04 20:58:43.221   64993-64993   C01320/com.xbx...MVScode/JsEnv  com.xbxyftx.HMVScode  W     [source_map145]the stack without line info
+02-04 20:58:43.221   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  W     [Index] Failed to activate permission: 201 Permission verification failed
+02-04 20:58:43.221   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileService] Workspace root set to: file://docs/storage/Users/currentUser/HMVScode
+02-04 20:58:43.222   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileTreeViewModel] loadDirectory called, targetPath: file://docs/storage/Users/currentUser/HMVScode
+02-04 20:58:43.222   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileTreeViewModel] currentPath: file://docs/storage/Users/currentUser/HMVScode
+02-04 20:58:43.222   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileService] listFiles called with path: file://docs/storage/Users/currentUser/HMVScode
+02-04 20:58:43.222   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileService] isUri: true
+02-04 20:58:43.222   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileService] actualPath after conversion: /storage/Users/currentUser/HMVScode
+02-04 20:58:43.223   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileService] listFile returned 1 items
+02-04 20:58:43.223   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileService] Processing file: md.md
+02-04 20:58:43.223   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileService] Added file: md.md type: file
+02-04 20:58:43.223   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileService] listFiles result count: 1
+02-04 20:58:43.223   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileTreeViewModel] Got files: 1
+02-04 20:58:43.223   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileTreeViewModel] Added file: md.md type: file
+02-04 20:58:43.223   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileTreeViewModel] fileList updated, count: 1
+02-04 20:58:43.223   64993-64993   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [Index] Folder loaded successfully, file count: 1
+02-04 20:58:43.455   64993-65194   C057C2/com.xbx...PCObjectProxy  com.xbxyftx.HMVScode  I     hd:29 ct:1
+02-04 20:58:43.455   64993-65194   C0420D/com.xbx...code/WMSUiext  com.xbxyftx.HMVScode  I     ~ExtensionSession: id=1339953155
+02-04 20:58:43.456   64993-65194   C0420A/com.xbx...Scode/WMSLife  com.xbxyftx.HMVScode  I     ~Session: id:1339953155
+```
+
+这是经过一次修改的日志，可以看到这一次路径的问题被修复了但是UI上依旧没有正确渲染。
+
+![28](HarmonyVScode/28.webp)
+
+<video width="100%" controls>
+  <source src="28.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
