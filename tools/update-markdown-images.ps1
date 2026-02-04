@@ -9,6 +9,7 @@ $imageExtensions = @('.png','.jpg','.jpeg','.gif')
 # 排除的路径模式（这些路径的图片不会被转换）
 $excludePatterns = @(
     'https://bu\.dusays\.com',  # 不转换 bu.dusays.com 图床图片
+    'https://raw\.githubusercontent\.com',  # 不转换 GitHub Raw 内容
     'https?://[^/]+\.github\.io',  # 不转换 GitHub Pages 图片
     'https?://[^/]+\.githubusercontent\.com'  # 不转换 GitHub 用户内容
 )
