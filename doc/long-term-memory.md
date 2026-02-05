@@ -36,7 +36,7 @@
 - `source/js/lazy-loading-optimized.js` - IntersectionObserver 优化版
 - `source/css/lazy-loading.css` - 占位符样式
 
-#### 2.2 刷新按钮功能（2026-02-04 新增）
+#### 2.2 图片刷新按钮功能（2026-02-04 新增）
 - **文件**: `source/js/lazy-image-refresh.js`, `source/css/lazy-image-refresh.css`
 - **功能**: 图片加载失败时显示刷新按钮，支持手动重新加载
 - **冷却时间**: 5 秒（防止恶意连点）
@@ -45,7 +45,22 @@
   - 目录跳转后检测
   - 滚动停止后检测
 
-#### 2.3 PJAX 支持
+#### 2.3 视频懒加载刷新功能（2026-02-04 新增）
+- **文件**: `source/js/lazy-video-refresh.js`, `source/css/lazy-video-refresh.css`
+- **功能**: 
+  - MP4 视频懒加载（IntersectionObserver）
+  - 视频加载失败时显示刷新按钮
+  - 支持手动重新加载视频
+- **冷却时间**: 5 秒（防止恶意连点）
+- **触发条件**: 
+  - 视频加载错误
+  - 目录跳转后检测
+  - 滚动停止后检测
+- **全局函数**: 
+  - `window.lazyVideoRefresh.refresh(video)` - 刷新指定视频
+  - `window.lazyVideoRefresh.refreshAll()` - 刷新所有失败的视频
+
+#### 2.4 PJAX 支持
 所有懒加载脚本都支持 PJAX 无刷新加载：
 ```javascript
 document.addEventListener('pjax:complete', init);
@@ -131,6 +146,16 @@ doc/                  # 项目文档（本目录）
   - 添加 `lazy-image-refresh.js` 和 `lazy-image-refresh.css`
   - 5秒冷却时间防止恶意连点
   - 目录跳转后自动检测失败图片
+
+### 2026-02-04: 视频懒加载刷新功能
+- **新增**: MP4视频懒加载和刷新按钮功能
+- **原因**: 博客包含视频内容，需要懒加载优化性能和刷新机制
+- **实现**: 
+  - 添加 `lazy-video-refresh.js` 和 `lazy-video-refresh.css`
+  - 使用 IntersectionObserver 实现懒加载
+  - 视频加载失败时显示"重新加载"按钮
+  - 5秒冷却时间防止恶意连点
+  - 支持目录跳转后检测和滚动检测
 
 ### 2026-02-04: 修复图床图片 WebP 转换问题
 - **问题**: bu.dusays.com 和 raw.githubusercontent.com 图片被错误转换为 WebP
