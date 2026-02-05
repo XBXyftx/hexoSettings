@@ -10,7 +10,7 @@ tags:
   - 项目
 cover: /imgs/ArticleTopImgs/HarmonyVScodeTopImg.webp
 description: 一个大胆的想法，一次勇敢的尝试
-typewriter: 用最新国产最强开源大模型来进行VScode的鸿蒙化尝试，我相信这会是一个很有想法很有价值的尝试。
+typewriter: 记录将 VSCode 移植到鸿蒙系统的全过程，涵盖技术选型、CodeMirror 编辑器集成、文件系统桥接、权限处理等核心难题的解决方案
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
@@ -228,7 +228,7 @@ Kimi的第一版代码出现严重谬误，它编写了大量的TS代码，这�
 
 测试的过程中出现了大量的配置问题，并且在其反复修改后发现配置文件被制造了巨量异常修改和错误，于是准备回滚并换为cursor使用Claude Opus 4.5进行尝试。
 
-### Claude Opus 4.5
+### 文件树与新建文件、文件夹
 
 ![16](HarmonyVScode/16.webp)
 
@@ -1216,3 +1216,209 @@ try {
 内容由AI生成，仅供参考
 
 ````
+
+我针对于创建新文件夹和新文件抓取一下日志。
+
+```log
+[(100000:100000:scope)] Handle TouchDown event node: Button
+[(100000:100000:scope)] Consumed id:28486, last id:28480
+ConsumePointerEventInner: InputId:28486,wid:246,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+[][OnPointerEvent:242] ac: move: 28487
+[][OnPointerEvent:242] ac: move, first: 28488-(2026-02-05 14:51:45.721ms), 28506, count: 19, last: ac: up: 28507
+[P:U:28507][OnPointerEvent:649] recv
+HandleInputEvent: eid:45,InputId:28507,wid:246,ac:4
+[(100000:100000:scope)] ITK Id:28507, fId:0, T:1, I=0, M=0
+[(100000:100000:scope)] Handle TouchUp or Cancel event node: Button
+[(100000:100000:scope)] Click try accept
+[(100000:100000:scope)] CLK RACC, T: Button
+[FileTreeViewModel] createDirectory: file:/docs/storage/Users/currentUser/HMVScode/1234
+[FileTreeViewModel] currentPath: file://docs/storage/Users/currentUser/HMVScode
+[FileService] createDirectory: file:/docs/storage/Users/currentUser/HMVScode/1234 -> actualPath: file:/docs/storage/Users/currentUser/HMVScode/1234 recursive: false
+[FileService] Creating single directory: file:/docs/storage/Users/currentUser/HMVScode/1234
+[(100000:100000:scope)] Consumed id:28507, last id:28506
+ConsumePointerEventInner: InputId:28507,wid:246,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+[source_map145]the stack without line info
+[FileService] createDirectory error: {"code":13900002}
+[FileTreeViewModel] createDirectory error: {"name":"FileServiceError","code":"MKDIR_ERROR"}
+```
+
+```log
+[(100000:100000:scope)] Handle TouchUp or Cancel event node: Button
+[(100000:100000:scope)] Click try accept
+[(100000:100000:scope)] CLK RACC, T: Button
+[FileTreeViewModel] createFile: file:/docs/storage/Users/currentUser/HMVScode/1234.md
+[FileTreeViewModel] currentPath: file://docs/storage/Users/currentUser/HMVScode
+[FileService] writeFile: file:/docs/storage/Users/currentUser/HMVScode/1234.md -> actualPath: file:/docs/storage/Users/currentUser/HMVScode/1234.md
+[FileService] content length: 0
+[FileService] Parent directory: file:/docs/storage/Users/currentUser/HMVScode
+[(100000:100000:scope)] Consumed id:28607, last id:28606
+ConsumePointerEventInner: InputId:28607,wid:246,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+[prop_n_exporter.cpp:302->operator()] Accesscore finish ret -2
+[FileService] Directory exists: true
+[FileService] Opening file for writing...
+[source_map145]the stack without line info
+[FileService] writeFile error: {"code":13900002}
+[FileTreeViewModel] createFile error: {"name":"FileServiceError","code":"WRITE_ERROR"}
+```
+
+可以看到报错的核心就是在于错误码`13900002`让我们用官网的智能回答AI来去看看这个错误码是什么意思。
+
+````md
+
+
+针对在鸿蒙应用中创建文件夹和文件时遇到的错误代码 `13900002`，以下是详细分析与解决方案：
+
+**错误原因分析**
+错误码 `13900002` 表示 **权限不足或路径非法**，具体可能由以下原因引起：
+1. **无文件系统权限**：应用未申请读写外部存储的权限。
+2. **路径非法**：
+    - 路径以 `/` 结尾（如 `/data/app/el1/100/base/com.example/`）<sup class="quote">1</sup>
+    - 路径未指向应用沙箱目录（如 `/data/app/el1/100/base/[应用包名]`）
+3. **目标目录已存在**：尝试创建已存在的文件夹。
+4. **跨进程访问限制**：访问其他应用的私有目录。
+
+---
+
+### 解决方案
+**1. **检查路径格式****
+   - **错误示例**：`/data/app/el1/100/base/com.example/`（末尾含 `/`）
+   - **正确写法**：`/data/app/el1/100/base/com.example`（去除末尾斜杠）
+   - 沙箱路径规范：
+     ```typescript
+     // 获取应用沙箱路径
+     import fs from '@ohos.file.fs';
+     import common from '@ohos.app.ability.common';
+
+     const context = getContext(this) as common.UIAbilityContext;
+     const sandboxDir = context.filesDir; // 标准沙箱路径
+     ```
+
+#### 2. **申请文件读写权限**
+   在 `module.json5` 中添加权限声明：
+   ```json
+   {
+     "module": {
+       "requestPermissions": [
+         {
+           "name": "ohos.permission.READ_MEDIA",
+           "reason": "需访问存储"
+         },
+         {
+           "name": "ohos.permission.WRITE_MEDIA",
+           "reason": "需写入文件"
+         }
+       ]
+     }
+   }
+   ```
+
+#### 3. **使用安全路径创建目录**
+   ```typescript
+   import fs from '@ohos.file.fs';
+
+   async function createDir() {
+     const targetDir = `${sandboxDir}/new_folder`; // 沙箱内路径
+     try {
+       // 检查目录是否存在
+       let isExist = await fs.access(targetDir);
+       if (!isExist) {
+         await fs.mkdir(targetDir); // 创建新目录
+         console.log('目录创建成功');
+       }
+     } catch (err) {
+       console.error(`createDirectory error: ${JSON.stringify(err)}`);
+     }
+   }
+   ```
+
+#### 4. **创建文件示例**
+   ```typescript
+   async function createFile() {
+     const filePath = `${sandboxDir}/new_folder/test.txt`;
+     try {
+       let file = await fs.open(filePath, fs.OpenMode.CREATE);
+       await fs.close(file.fd);
+       console.log('文件创建成功');
+     } catch (err) {
+       console.error(`createFile error: ${JSON.stringify(err)}`);
+     }
+   }
+   ```
+
+---
+
+**关键注意事项**
+- **路径范围限制**：
+  - 仅允许操作应用沙箱内路径（通过 `context.filesDir` 获取）。
+  - 禁止跨应用访问私有目录（如其他应用的 `/data/app/el1/100/base`）。
+- **权限时效**：
+  - 动态权限需用户授权（通过 `abilityAccessCtrl` 模块请求）。
+- **错误处理**：
+  - 捕获异常后需解析错误码，常见错误码：
+    - `13900001`：路径不存在
+    - `13900002`：权限/路径非法
+    - `13900005`：目录已存在
+
+> **验证步骤**：  
+> 1. 确保路径格式正确（无末尾 `/`）  
+> 2. 检查 `module.json5` 权限配置  
+> 3. 使用 `fs.access()` 预检路径合法性  
+> 4. 优先在沙箱内操作（`context.filesDir`）  
+
+若仍报错，请检查设备存储状态（如空间是否充足）及路径字符合法性（避免中文或特殊符号）。
+内容由AI生成，仅供参考
+````
+
+![31](HarmonyVScode/31.webp)
+
+<video width="100%" controls>
+  <source src="32.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+<video width="100%" controls>
+  <source src="33.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+从当前测试结果来看，当前新建文件夹的功能已经正常，但是新建文件依旧是失败状态，我来抓取以下日志。
+
+在我重启应用准备抓取日志时发现此前创建的文件已经正常创建在了目录中。
+
+![34](HarmonyVScode/34.webp)
+
+既然如此我接下来会进行如下操作：
+
+1. 创建`111test.md`文件
+2. 点击取消，随后点击HMVScode的文件树刷新按钮检查是否创建成功
+3. 去系统文件管理中查看文件是否创建成功
+
+![35](HarmonyVScode/35.webp)
+
+![36](HarmonyVScode/36.webp)
+
+![37](HarmonyVScode/37.webp)
+
+现象是点击创建后出现报错弹窗，文件树没有自动更新，点击刷新按钮后文件树更新，文件创建成功，系统文件管理中文件也创建成功。
+
+```log
+[common_func.cpp:611->GetWriteArg] Illegal write buffer or encoding
+[prop_n_exporter.cpp:700->Write] Failed to resolve buf and options
+[FileService] writeFile error: {"code":13900020}
+[FileTreeViewModel] createFile error: {"name":"FileServiceError","code":"WRITE_ERROR"}
+line: 1289, function: OnInputStop,unbind before insertText PrintTextChangeLogCount: 6 !
+line: 1289, function: OnInputStop,unbind before insertText PrintTextChangeLogCount: 6 !
+[(100000:100000:scope)] fail to hide subwindow, subwindow is null.
+GetAttachStateSyncResult: lifecycleCallback is null
+```
+
+以上是warn级别以上的日志。现在核心集中解决文件创建成功但是弹窗报错失败的问题。
+
+![38](HarmonyVScode/38.webp)
+
+<video width="100%" controls>
+  <source src="39.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+现在新建
