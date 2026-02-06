@@ -1421,4 +1421,674 @@ GetAttachStateSyncResult: lifecycleCallback is null
   您的浏览器不支持视频标签。
 </video>
 
-现在新建
+现在新建文件和新建文件夹的功能都没问题了。
+
+### 文件树渲染
+
+当前需要结局的就是文件树渲染的问题了。为了测试文件树渲染，我预先设置好了一个多层的文件结构，具体如下图所示。
+
+![40](HarmonyVScode/40.webp)
+
+![41](HarmonyVScode/41.webp)
+
+文件结构如下：
+
+```plantxt
+HMVScodetest/
+├── 123test/
+├── 1234/
+├── test/
+│   ├── 1/
+│   │   └── 1.txt
+│   ├── 2/
+│   └── new.js
+├── 1111test.md
+├── md.md
+├── test.html
+├── test.js
+└── test.txt
+```
+
+当前的核心问题在于它只能渲染当前这一级目录的内容，子目录点击是无法展开的，这有两种可能，一种是没有权限读取子目录导致从数据层级就没有获取到，还有一种可能是渲染层级的问题；还有一种可能就是数据层面成功获取了但是渲染层面出现了问题，没能正确处理点击展开事件。
+
+所以接下来我们需要更详细的日志，首先用日志排查数据层面的获取，同时日志中要有一个明确的标志词以便于有选择性的拉去指定模块的日志。
+
+1. [FILETREE-CLICK] - 点击事件处理层
+2. [FILESERVICE-LIST] - 文件系统操作层
+3. [FILETREE-RENDER] - UI 渲染层
+4. [FILETREE-UI] - UI 交互层
+
+但是点击后这四个关键字都没有任何日志
+
+```md
+好的！现在我添加了三个 error 级别的日志，这样肯定能看到：
+
+新增的调试日志
+=== CLICK TRIGGERED === - 在 onClick 回调的第一行
+
+如果看不到这个，说明点击事件根本没触发（可能是 UI 层被遮挡）
+=== VIEWMODEL onFileClick CALLED === - 在 ViewModel 方法的第一行
+
+如果看到了 CLICK TRIGGERED 但看不到这个，说明方法调用失败
+=== RENDERING FILE LIST === - 在渲染文件列表时
+
+显示有多少个文件项被渲染
+请重新测试
+现在请：
+
+重新运行应用
+点击任意文件夹
+在 HiLog 中搜索 === 或 CLICK 或 RENDERING
+这些 error 级别的日志应该能看到。如果还是看不到任何日志，那说明：
+
+要么应用没有正确重新加载
+要么文件树根本没有渲染出来
+要么点击事件被其他层拦截了
+请告诉我你看到了哪些日志！
+```
+
+```log
+02-05 17:49:17.718   9490-9490     A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === CLICK TRIGGERED === test
+02-05 17:49:24.737   9490-9490     A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === CLICK TRIGGERED === 123test
+02-05 17:49:26.413   9490-9490     A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === CLICK TRIGGERED === 1234
+```
+
+```log
+02-05 17:50:10.573   9490-9490     A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === VIEWMODEL onFileClick CALLED === 1234
+02-05 17:50:11.470   9490-9490     A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === VIEWMODEL onFileClick CALLED === 123test
+02-05 17:50:12.652   9490-9490     A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === VIEWMODEL onFileClick CALLED === test
+02-05 17:50:18.220   9490-9490     A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === VIEWMODEL onFileClick CALLED === test.html
+02-05 17:50:19.388   9490-9490     A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === VIEWMODEL onFileClick CALLED === test.js
+```
+
+以上两个关键字都是点击任何一个文件或是文件夹都正常打印。
+
+```log
+02-05 17:51:11.628   9490-9490     A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === FILE LIST RENDERED === 8 items
+02-05 17:51:13.635   9490-9490     A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === FILE LIST RENDERED === 8 items
+02-05 17:51:14.337   9490-9490     A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === FILE LIST RENDERED === 8 items
+```
+
+这个关键字这三次触发都是在我点击文件树的刷新按钮时触发的点击子文件夹时没有触发。
+
+`[FILETREE-RENDER]`关键字无法触发。
+
+![42](HarmonyVScode/42.webp)
+
+![43](HarmonyVScode/43.webp)
+
+![44](HarmonyVScode/44.webp)
+
+![45](HarmonyVScode/45.webp)
+
+但是点击后还是没能展开……
+
+![46](HarmonyVScode/46.webp)
+
+```log
+02-05 18:05:13.825   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === TEST: Force update fileList ===
+02-05 18:05:17.617   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === TEST: Force update fileList ===
+02-05 18:05:18.136   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === TEST: Force update fileList ===
+```
+
+```log
+02-05 18:05:52.827   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === FILE LIST RENDERED === 8 items
+02-05 18:05:55.953   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === FILE LIST RENDERED === 8 items
+02-05 18:05:56.417   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === FILE LIST RENDERED === 8 items
+```
+
+```log
+02-05 18:06:31.659   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ========== File/Directory Clicked ==========
+02-05 18:06:31.659   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Name: test
+02-05 18:06:31.659   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Path: file://docs/storage/Users/currentUser/HMVScode/test
+02-05 18:06:31.659   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Type: directory
+02-05 18:06:31.659   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] IsExpanded (before): false
+02-05 18:06:31.659   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] This is a DIRECTORY
+02-05 18:06:31.659   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Action: EXPAND directory
+02-05 18:06:31.659   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Starting to load children...
+02-05 18:06:31.659   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Calling fileService.listFiles()...
+02-05 18:06:31.668   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ Successfully loaded 3 children
+02-05 18:06:31.668   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Child[0]: 1 | Type: directory | Path: file://docs/storage/Users/currentUser/HMVScode/test/1
+02-05 18:06:31.668   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Child[1]: 2 | Type: directory | Path: file://docs/storage/Users/currentUser/HMVScode/test/2
+02-05 18:06:31.668   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Child[2]: new.js | Type: file | Path: file://docs/storage/Users/currentUser/HMVScode/test/new.js
+02-05 18:06:31.668   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Prepared child: 1 | isExpanded: false
+02-05 18:06:31.668   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Prepared child: 2 | isExpanded: false
+02-05 18:06:31.668   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Prepared child: new.js | isExpanded: false
+02-05 18:06:31.668   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ Updated file.children, count: 3
+02-05 18:06:31.668   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updating fileList...
+02-05 18:06:31.668   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Found index in fileList: 2
+02-05 18:06:31.668   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updated file isExpanded: true
+02-05 18:06:31.668   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updated file children count: 3
+02-05 18:06:31.668   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ fileList updated, total count: 8
+02-05 18:06:31.668   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ========== Click Handler Finished ==========
+02-05 18:06:32.097   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ========== File/Directory Clicked ==========
+02-05 18:06:32.097   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Name: 123test
+02-05 18:06:32.097   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Path: file://docs/storage/Users/currentUser/HMVScode/123test
+02-05 18:06:32.097   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Type: directory
+02-05 18:06:32.097   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] IsExpanded (before): false
+02-05 18:06:32.097   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] This is a DIRECTORY
+02-05 18:06:32.097   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Action: EXPAND directory
+02-05 18:06:32.098   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Starting to load children...
+02-05 18:06:32.098   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Calling fileService.listFiles()...
+02-05 18:06:32.100   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ Successfully loaded 0 children
+02-05 18:06:32.100   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ Updated file.children, count: 0
+02-05 18:06:32.100   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updating fileList...
+02-05 18:06:32.100   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Found index in fileList: 1
+02-05 18:06:32.100   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updated file isExpanded: true
+02-05 18:06:32.100   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updated file children count: 0
+02-05 18:06:32.100   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ fileList updated, total count: 8
+02-05 18:06:32.100   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ========== Click Handler Finished ==========
+02-05 18:06:33.281   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ========== File/Directory Clicked ==========
+02-05 18:06:33.281   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Name: 1234
+02-05 18:06:33.281   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Path: file://docs/storage/Users/currentUser/HMVScode/1234
+02-05 18:06:33.281   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Type: directory
+02-05 18:06:33.281   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] IsExpanded (before): false
+02-05 18:06:33.281   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] This is a DIRECTORY
+02-05 18:06:33.281   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Action: EXPAND directory
+02-05 18:06:33.281   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Starting to load children...
+02-05 18:06:33.281   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Calling fileService.listFiles()...
+02-05 18:06:33.287   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ Successfully loaded 0 children
+02-05 18:06:33.287   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ Updated file.children, count: 0
+02-05 18:06:33.287   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updating fileList...
+02-05 18:06:33.287   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Found index in fileList: 0
+02-05 18:06:33.287   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updated file isExpanded: true
+02-05 18:06:33.287   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updated file children count: 0
+02-05 18:06:33.287   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ fileList updated, total count: 8
+```
+
+```log
+02-05 18:07:03.372   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Called ==========
+02-05 18:07:03.372   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Input path: file://docs/storage/Users/currentUser/HMVScode/1234
+02-05 18:07:03.372   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Is URI: true
+02-05 18:07:03.373   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Actual path after conversion: /storage/Users/currentUser/HMVScode/1234
+02-05 18:07:03.373   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Calling fs.listFile()...
+02-05 18:07:03.374   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ fs.listFile() returned 0 items
+02-05 18:07:03.374   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Total result count: 0
+02-05 18:07:03.374   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Sorted result
+02-05 18:07:03.375   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Finished ==========
+02-05 18:07:04.095   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Called ==========
+02-05 18:07:04.095   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Input path: file://docs/storage/Users/currentUser/HMVScode/123test
+02-05 18:07:04.095   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Is URI: true
+02-05 18:07:04.096   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Actual path after conversion: /storage/Users/currentUser/HMVScode/123test
+02-05 18:07:04.096   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Calling fs.listFile()...
+02-05 18:07:04.096   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ fs.listFile() returned 0 items
+02-05 18:07:04.096   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Total result count: 0
+02-05 18:07:04.096   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Sorted result
+02-05 18:07:04.096   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Finished ==========
+02-05 18:07:05.316   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Called ==========
+02-05 18:07:05.316   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Input path: file://docs/storage/Users/currentUser/HMVScode/test
+02-05 18:07:05.316   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Is URI: true
+02-05 18:07:05.316   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Actual path after conversion: /storage/Users/currentUser/HMVScode/test
+02-05 18:07:05.316   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Calling fs.listFile()...
+02-05 18:07:05.321   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ fs.listFile() returned 3 items
+02-05 18:07:05.321   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] File[0]: 1
+02-05 18:07:05.321   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] File[1]: 2
+02-05 18:07:05.321   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] File[2]: new.js
+02-05 18:07:05.321   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Processing: 1
+02-05 18:07:05.321   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Full path (original format): file://docs/storage/Users/currentUser/HMVScode/test/1
+02-05 18:07:05.321   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Actual full path: /storage/Users/currentUser/HMVScode/test/1
+02-05 18:07:05.322   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Type: DIRECTORY
+02-05 18:07:05.322   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Size: 3440
+02-05 18:07:05.322   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   ✅ Added to result
+02-05 18:07:05.322   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Processing: 2
+02-05 18:07:05.322   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Full path (original format): file://docs/storage/Users/currentUser/HMVScode/test/2
+02-05 18:07:05.322   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Actual full path: /storage/Users/currentUser/HMVScode/test/2
+02-05 18:07:05.322   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Type: DIRECTORY
+02-05 18:07:05.322   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Size: 3440
+02-05 18:07:05.322   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   ✅ Added to result
+02-05 18:07:05.322   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Processing: new.js
+02-05 18:07:05.322   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Full path (original format): file://docs/storage/Users/currentUser/HMVScode/test/new.js
+02-05 18:07:05.322   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Actual full path: /storage/Users/currentUser/HMVScode/test/new.js
+02-05 18:07:05.322   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Type: FILE
+02-05 18:07:05.322   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Size: 0
+02-05 18:07:05.323   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   ✅ Added to result
+02-05 18:07:05.323   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Total result count: 3
+02-05 18:07:05.323   26964-26964   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Sorted result
+```
+
+![47](HarmonyVScode/47.webp)
+
+这些操作后和此前的现象一样依旧没有展开。
+
+![48](HarmonyVScode/48.webp)
+
+既然是这样我们就需要用V2版本或是每次都深拷贝一个新数组了。
+
+```log
+02-05 18:22:38.036   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Called ==========
+02-05 18:22:38.036   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Input path: file://docs/storage/Users/currentUser/HMVScode/123test
+02-05 18:22:38.036   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Is URI: true
+02-05 18:22:38.037   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Actual path after conversion: /storage/Users/currentUser/HMVScode/123test
+02-05 18:22:38.037   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Calling fs.listFile()...
+02-05 18:22:38.042   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ fs.listFile() returned 0 items
+02-05 18:22:38.042   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Total result count: 0
+02-05 18:22:38.042   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Sorted result
+02-05 18:22:38.042   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Finished ==========
+02-05 18:22:39.270   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Called ==========
+02-05 18:22:39.270   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Input path: file://docs/storage/Users/currentUser/HMVScode/test
+02-05 18:22:39.270   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Is URI: true
+02-05 18:22:39.270   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Actual path after conversion: /storage/Users/currentUser/HMVScode/test
+02-05 18:22:39.270   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Calling fs.listFile()...
+02-05 18:22:39.271   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ fs.listFile() returned 3 items
+02-05 18:22:39.271   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] File[0]: 1
+02-05 18:22:39.271   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] File[1]: 2
+02-05 18:22:39.271   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] File[2]: new.js
+02-05 18:22:39.271   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Processing: 1
+02-05 18:22:39.271   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Full path (original format): file://docs/storage/Users/currentUser/HMVScode/test/1
+02-05 18:22:39.271   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Actual full path: /storage/Users/currentUser/HMVScode/test/1
+02-05 18:22:39.273   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Type: DIRECTORY
+02-05 18:22:39.273   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Size: 3440
+02-05 18:22:39.273   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   ✅ Added to result
+02-05 18:22:39.273   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Processing: 2
+02-05 18:22:39.273   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Full path (original format): file://docs/storage/Users/currentUser/HMVScode/test/2
+02-05 18:22:39.273   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Actual full path: /storage/Users/currentUser/HMVScode/test/2
+02-05 18:22:39.274   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Type: DIRECTORY
+02-05 18:22:39.274   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Size: 3440
+02-05 18:22:39.274   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   ✅ Added to result
+02-05 18:22:39.274   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Processing: new.js
+02-05 18:22:39.274   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Full path (original format): file://docs/storage/Users/currentUser/HMVScode/test/new.js
+02-05 18:22:39.274   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Actual full path: /storage/Users/currentUser/HMVScode/test/new.js
+02-05 18:22:39.274   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Type: FILE
+02-05 18:22:39.274   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Size: 0
+02-05 18:22:39.274   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   ✅ Added to result
+02-05 18:22:39.274   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Total result count: 3
+02-05 18:22:39.274   47106-47106   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Sorted result
+```
+
+那现在就尝试每次深拷贝一个新数组吧，同时清空上一个数组防止内存过度占用。
+
+```log
+02-05 18:26:34.863   51394-51394   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: down: 55343
+02-05 18:26:34.863   51394-51394   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [P:D:55343][OnPointerEvent:649] recv
+02-05 18:26:34.863   51394-51394   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     HandleInputEvent: eid:30,InputId:55343,wid:493,ac:2
+02-05 18:26:34.863   51394-51394   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:55343, fId:0, T:0, I=0, M=0
+02-05 18:26:34.864   51394-51394   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:55343, TTHNI:fId: 0{ T: page, D: 6 };{ T: List, D: 16 };{ T: Row, D: 21 };
+02-05 18:26:34.864   51394-51394   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:55343, TTHRTI: T ClickRecognizer info: { T: Row };
+02-05 18:26:34.867   51394-51394   C03919/com.xbx...InputTracking  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Consumed id:55343, last id:55341
+02-05 18:26:34.867   51394-51394   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     ConsumePointerEventInner: InputId:55343,wid:493,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+02-05 18:26:34.868   51394-51394   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: move: 55344
+02-05 18:26:34.947   51394-52635   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][MarkProcessed:67] Ffrt PE:55161 55354
+02-05 18:26:34.962   51394-51394   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: move, first: 55345-(2026-02-05 18:26:34.872ms), 55356, count: 12, last: ac: up: 55357
+02-05 18:26:34.962   51394-51394   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [P:U:55357][OnPointerEvent:649] recv
+02-05 18:26:34.962   51394-51394   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     HandleInputEvent: eid:31,InputId:55357,wid:493,ac:4
+02-05 18:26:34.963   51394-51394   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:55357, fId:0, T:1, I=0, M=0
+02-05 18:26:34.963   51394-51394   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click try accept
+02-05 18:26:34.963   51394-51394   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] CLK RACC, T: Row
+02-05 18:26:34.964   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === CLICK TRIGGERED === 123test
+02-05 18:26:34.964   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-UI] Item clicked: 123test | Type: directory | Depth: 0
+02-05 18:26:34.964   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === VIEWMODEL onFileClick CALLED === 123test
+02-05 18:26:34.964   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ========== File/Directory Clicked ==========
+02-05 18:26:34.964   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Name: 123test
+02-05 18:26:34.964   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Path: file://docs/storage/Users/currentUser/HMVScode/123test
+02-05 18:26:34.964   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Type: directory
+02-05 18:26:34.964   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] IsExpanded (before): false
+02-05 18:26:34.964   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] This is a DIRECTORY
+02-05 18:26:34.964   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Action: EXPAND directory
+02-05 18:26:34.964   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Starting to load children...
+02-05 18:26:34.964   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Calling fileService.listFiles()...
+02-05 18:26:34.964   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Called ==========
+02-05 18:26:34.964   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Input path: file://docs/storage/Users/currentUser/HMVScode/123test
+02-05 18:26:34.964   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Is URI: true
+02-05 18:26:34.965   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileService] Converted URI to path: file://docs/storage/Users/currentUser/HMVScode/123test -> /storage/Users/currentUser/HMVScode/123test
+02-05 18:26:34.965   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Actual path after conversion: /storage/Users/currentUser/HMVScode/123test
+02-05 18:26:34.965   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Calling fs.listFile()...
+02-05 18:26:34.966   51394-51394   C03919/com.xbx...InputTracking  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Consumed id:55357, last id:55356
+02-05 18:26:34.966   51394-51394   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     ConsumePointerEventInner: InputId:55357,wid:493,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+02-05 18:26:34.967   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ fs.listFile() returned 0 items
+02-05 18:26:34.967   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Total result count: 0
+02-05 18:26:34.967   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Sorted result
+02-05 18:26:34.967   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Finished ==========
+02-05 18:26:34.967   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ Successfully loaded 0 children
+02-05 18:26:34.967   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ Updated file.children, count: 0
+02-05 18:26:34.967   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updating fileList...
+02-05 18:26:34.967   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Found index in fileList: 1
+02-05 18:26:34.967   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updated file isExpanded: true
+02-05 18:26:34.967   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updated file children count: 0
+02-05 18:26:34.967   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ fileList deep copied, total count: 8
+02-05 18:26:34.967   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     [FILETREE-CLICK] ✅ Used deep copy to trigger reactive update
+02-05 18:26:34.967   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ========== Click Handler Finished ==========
+02-05 18:26:35.822   51394-51394   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: down: 55358
+02-05 18:26:35.822   51394-51394   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [P:D:55358][OnPointerEvent:649] recv
+02-05 18:26:35.822   51394-51394   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     HandleInputEvent: eid:32,InputId:55358,wid:493,ac:2
+02-05 18:26:35.824   51394-51394   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:55358, fId:0, T:0, I=0, M=0
+02-05 18:26:35.825   51394-51394   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:55358, TTHNI:fId: 0{ T: page, D: 6 };{ T: List, D: 16 };{ T: Row, D: 21 };
+02-05 18:26:35.825   51394-51394   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:55358, TTHRTI: T ClickRecognizer info: { T: Row };
+02-05 18:26:35.828   51394-51394   C03919/com.xbx...InputTracking  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Consumed id:55358, last id:55356
+02-05 18:26:35.828   51394-51394   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     ConsumePointerEventInner: InputId:55358,wid:493,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+02-05 18:26:35.828   51394-51394   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: move: 55359
+02-05 18:26:35.922   51394-51394   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: move, first: 55360-(2026-02-05 18:26:35.828ms), 55377, count: 18, last: ac: up: 55378
+02-05 18:26:35.922   51394-51394   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [P:U:55378][OnPointerEvent:649] recv
+02-05 18:26:35.922   51394-51394   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     HandleInputEvent: eid:33,InputId:55378,wid:493,ac:4
+02-05 18:26:35.925   51394-51394   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:55378, fId:0, T:1, I=0, M=0
+02-05 18:26:35.925   51394-51394   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click try accept
+02-05 18:26:35.925   51394-51394   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] CLK RACC, T: Row
+02-05 18:26:35.925   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === CLICK TRIGGERED === test
+02-05 18:26:35.925   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-UI] Item clicked: test | Type: directory | Depth: 0
+02-05 18:26:35.926   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === VIEWMODEL onFileClick CALLED === test
+02-05 18:26:35.926   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ========== File/Directory Clicked ==========
+02-05 18:26:35.926   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Name: test
+02-05 18:26:35.926   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Path: file://docs/storage/Users/currentUser/HMVScode/test
+02-05 18:26:35.926   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Type: directory
+02-05 18:26:35.926   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] IsExpanded (before): true
+02-05 18:26:35.926   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] This is a DIRECTORY
+02-05 18:26:35.926   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Action: COLLAPSE directory
+02-05 18:26:35.926   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updating fileList...
+02-05 18:26:35.926   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Found index in fileList: 2
+02-05 18:26:35.926   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updated file isExpanded: false
+02-05 18:26:35.926   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updated file children count: 0
+02-05 18:26:35.927   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ fileList deep copied, total count: 8
+02-05 18:26:35.927   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     [FILETREE-CLICK] ✅ Used deep copy to trigger reactive update
+02-05 18:26:35.927   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ========== Click Handler Finished ==========
+02-05 18:26:35.927   51394-51394   C03919/com.xbx...InputTracking  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Consumed id:55378, last id:55377
+02-05 18:26:35.927   51394-51394   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     ConsumePointerEventInner: InputId:55378,wid:493,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+02-05 18:26:37.939   51394-51394   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: down: 55379
+02-05 18:26:37.940   51394-51394   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [P:D:55379][OnPointerEvent:649] recv
+02-05 18:26:37.940   51394-51394   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     HandleInputEvent: eid:34,InputId:55379,wid:493,ac:2
+02-05 18:26:37.941   51394-51394   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:55379, fId:0, T:0, I=0, M=0
+02-05 18:26:37.943   51394-51394   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:55379, TTHNI:fId: 0{ T: page, D: 6 };{ T: List, D: 16 };{ T: Row, D: 21 };
+02-05 18:26:37.943   51394-51394   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:55379, TTHRTI: T ClickRecognizer info: { T: Row };
+02-05 18:26:37.944   51394-51394   C03919/com.xbx...InputTracking  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Consumed id:55379, last id:55377
+02-05 18:26:37.944   51394-51394   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     ConsumePointerEventInner: InputId:55379,wid:493,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+02-05 18:26:37.944   51394-51394   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: move: 55380
+02-05 18:26:38.034   51394-51394   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: move, first: 55381-(2026-02-05 18:26:37.947ms), 55396, count: 16, last: ac: up: 55397
+02-05 18:26:38.034   51394-51394   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [P:U:55397][OnPointerEvent:649] recv
+02-05 18:26:38.034   51394-51394   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     HandleInputEvent: eid:35,InputId:55397,wid:493,ac:4
+02-05 18:26:38.035   51394-51394   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:55397, fId:0, T:1, I=0, M=0
+02-05 18:26:38.035   51394-51394   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click try accept
+02-05 18:26:38.035   51394-51394   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] CLK RACC, T: Row
+02-05 18:26:38.036   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === CLICK TRIGGERED === 1234
+02-05 18:26:38.036   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-UI] Item clicked: 1234 | Type: directory | Depth: 0
+02-05 18:26:38.036   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === VIEWMODEL onFileClick CALLED === 1234
+02-05 18:26:38.036   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ========== File/Directory Clicked ==========
+02-05 18:26:38.036   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Name: 1234
+02-05 18:26:38.036   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Path: file://docs/storage/Users/currentUser/HMVScode/1234
+02-05 18:26:38.036   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Type: directory
+02-05 18:26:38.036   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] IsExpanded (before): false
+02-05 18:26:38.036   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] This is a DIRECTORY
+02-05 18:26:38.036   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Action: EXPAND directory
+02-05 18:26:38.036   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Starting to load children...
+02-05 18:26:38.036   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Calling fileService.listFiles()...
+02-05 18:26:38.036   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Called ==========
+02-05 18:26:38.036   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Input path: file://docs/storage/Users/currentUser/HMVScode/1234
+02-05 18:26:38.037   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Is URI: true
+02-05 18:26:38.037   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileService] Converted URI to path: file://docs/storage/Users/currentUser/HMVScode/1234 -> /storage/Users/currentUser/HMVScode/1234
+02-05 18:26:38.037   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Actual path after conversion: /storage/Users/currentUser/HMVScode/1234
+02-05 18:26:38.037   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Calling fs.listFile()...
+02-05 18:26:38.038   51394-51394   C03919/com.xbx...InputTracking  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Consumed id:55397, last id:55396
+02-05 18:26:38.038   51394-51394   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     ConsumePointerEventInner: InputId:55397,wid:493,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+02-05 18:26:38.039   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ fs.listFile() returned 0 items
+02-05 18:26:38.039   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Total result count: 0
+02-05 18:26:38.039   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Sorted result
+02-05 18:26:38.039   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Finished ==========
+02-05 18:26:38.039   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ Successfully loaded 0 children
+02-05 18:26:38.039   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ Updated file.children, count: 0
+02-05 18:26:38.039   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updating fileList...
+02-05 18:26:38.039   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Found index in fileList: 0
+02-05 18:26:38.039   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updated file isExpanded: true
+02-05 18:26:38.039   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updated file children count: 0
+02-05 18:26:38.039   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ fileList deep copied, total count: 8
+02-05 18:26:38.039   51394-51394   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     [FILETREE-CLICK] ✅ Used deep copy to trigger reactive update
+```
+
+依旧无效，UI仍旧不改变。从日志看，数据层完全正常，深拷贝也执行了，但 UI 就是不更新。这说明问题不在 ViewModel，而在 UI 渲染层。
+
+找到根本问题了！ForEach 的 key 是 file.path，当我们更新同一个文件的 isExpanded 和 children 时，path 没变，ForEach 认为是同一个项，不会重新渲染！
+
+原来是遇到过的老朋友。好吧，长记性了。
+
+现在来测试一下。
+
+<video width="100%" controls>
+  <source src="49.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+哦哦哦！第一层成功展开了！但是第二层又无法展开了，看来我还是得继续debug。
+
+第一层成功了，说明 ForEach key 的修复是对的。现在需要解决两个问题：
+
+1. 第二层无法展开：递归子项的点击事件没有正确处理
+2. UI 布局改进：实现类似 VSCode 的文件树布局（横向滚动 + 统一缩进）
+
+当然与此同时还需要注意纵向也需要滚动，他是一个双向滚动的模式。
+
+```plantext
+┌─────────────────────────────────┐
+│  外层 Scroll (纵向)              │
+│  ┌───────────────────────────┐  │
+│  │ 内层 Scroll (横向)         │  │
+│  │  ┌─────────────────────┐  │  │
+│  │  │ Column              │  │  │
+│  │  │  ├─ FileItem 1      │  │  │
+│  │  │  ├─ FileItem 2      │  │  │
+│  │  │  ├─ FileItem 3      │  │  │
+│  │  │  └─ ...             │  │  │
+│  │  └─────────────────────┘  │  │
+│  └───────────────────────────┘  │
+└─────────────────────────────────┘
+```
+
+```plantext
+文件树结构：
+├─ 📁 test (depth=0, indent=0px)
+│  ├─ 📁 1 (depth=1, indent=20px)
+│  │  └─ 📄 1.txt (depth=2, indent=40px)
+│  ├─ 📁 2 (depth=1, indent=20px)
+│  └─ 📄 new.js (depth=1, indent=20px)
+├─ 📁 123test (depth=0, indent=0px)
+└─ 📄 test.txt (depth=0, indent=0px)
+```
+
+![50](HarmonyVScode/50.webp)
+
+![51](HarmonyVScode/51.webp)
+
+1. 问题1：test文件夹展开后异常缩进，它原本与 123test 文件夹平级，展开后却缩进了。
+2. 问题2：test/1这个文件夹无法正常展开显示1.txt
+
+```log
+02-05 20:26:16.322   40570-40570   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: down: 57989
+02-05 20:26:16.323   40570-40570   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [P:D:57989][OnPointerEvent:649] recv
+02-05 20:26:16.323   40570-40570   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     HandleInputEvent: eid:90,InputId:57989,wid:522,ac:2
+02-05 20:26:16.324   40570-40570   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:57989, fId:0, T:0, I=0, M=0
+02-05 20:26:16.326   40570-40570   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:57989, TTHNI:fId: 0{ T: page, D: 6 };{ T: Scroll, D: 16 };{ T: Scroll, D: 17 };
+02-05 20:26:16.326   40570-40570   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:57989, TTHRTI: T ClickRecognizer info: { T: Scroll }; { T: Scroll }; { T: Row };T PanRecognizer info: { T: Scroll }; { T: Scroll };
+02-05 20:26:16.328   40570-40570   C03919/com.xbx...InputTracking  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Consumed id:57989, last id:57795
+02-05 20:26:16.328   40570-40570   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     ConsumePointerEventInner: InputId:57989,wid:522,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+02-05 20:26:16.328   40570-40570   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: move: 57990
+02-05 20:26:16.404   40570-40570   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: move, first: 57991-(2026-02-05 20:26:16.328ms), 58005, count: 15, last: ac: up: 58006
+02-05 20:26:16.404   40570-40570   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [P:U:58006][OnPointerEvent:649] recv
+02-05 20:26:16.404   40570-40570   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     HandleInputEvent: eid:91,InputId:58006,wid:522,ac:4
+02-05 20:26:16.406   40570-40570   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:58006, fId:0, T:1, I=0, M=0
+02-05 20:26:16.406   40570-40570   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click try accept
+02-05 20:26:16.406   40570-40570   C0390B/com.xbx...AceScrollable  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Scrollable GestureJudge:0, 0
+02-05 20:26:16.406   40570-40570   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click gesture judge reject
+02-05 20:26:16.406   40570-40570   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click try accept
+02-05 20:26:16.407   40570-40570   C0390B/com.xbx...AceScrollable  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Scrollable GestureJudge:0, 0
+02-05 20:26:16.407   40570-40570   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click gesture judge reject
+02-05 20:26:16.407   40570-40570   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click try accept
+02-05 20:26:16.407   40570-40570   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] CLK RACC, T: Row
+02-05 20:26:16.407   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === CLICK TRIGGERED === test
+02-05 20:26:16.407   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-UI] Item clicked: test | Type: directory | Depth: 0
+02-05 20:26:16.408   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === VIEWMODEL onFileClick CALLED === test
+02-05 20:26:16.408   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ========== File/Directory Clicked ==========
+02-05 20:26:16.408   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Name: test
+02-05 20:26:16.408   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Path: file://docs/storage/Users/currentUser/HMVScode/test
+02-05 20:26:16.408   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Type: directory
+02-05 20:26:16.408   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] IsExpanded (before): false
+02-05 20:26:16.408   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] This is a DIRECTORY
+02-05 20:26:16.408   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Action: EXPAND directory
+02-05 20:26:16.408   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Starting to load children...
+02-05 20:26:16.408   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Calling fileService.listFiles()...
+02-05 20:26:16.408   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Called ==========
+02-05 20:26:16.408   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Input path: file://docs/storage/Users/currentUser/HMVScode/test
+02-05 20:26:16.408   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Is URI: true
+02-05 20:26:16.408   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileService] Converted URI to path: file://docs/storage/Users/currentUser/HMVScode/test -> /storage/Users/currentUser/HMVScode/test
+02-05 20:26:16.408   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Actual path after conversion: /storage/Users/currentUser/HMVScode/test
+02-05 20:26:16.408   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Calling fs.listFile()...
+02-05 20:26:16.409   40570-40570   C03919/com.xbx...InputTracking  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Consumed id:58006, last id:58005
+02-05 20:26:16.409   40570-40570   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     ConsumePointerEventInner: InputId:58006,wid:522,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+02-05 20:26:16.410   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ fs.listFile() returned 3 items
+02-05 20:26:16.410   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] File[0]: 1
+02-05 20:26:16.410   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] File[1]: 2
+02-05 20:26:16.410   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] File[2]: new.js
+02-05 20:26:16.410   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Processing: 1
+02-05 20:26:16.410   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Full path (original format): file://docs/storage/Users/currentUser/HMVScode/test/1
+02-05 20:26:16.410   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Actual full path: /storage/Users/currentUser/HMVScode/test/1
+02-05 20:26:16.411   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Type: DIRECTORY
+02-05 20:26:16.411   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Size: 3440
+02-05 20:26:16.411   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   ✅ Added to result
+02-05 20:26:16.411   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Processing: 2
+02-05 20:26:16.411   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Full path (original format): file://docs/storage/Users/currentUser/HMVScode/test/2
+02-05 20:26:16.411   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Actual full path: /storage/Users/currentUser/HMVScode/test/2
+02-05 20:26:16.411   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Type: DIRECTORY
+02-05 20:26:16.411   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Size: 3440
+02-05 20:26:16.411   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   ✅ Added to result
+02-05 20:26:16.411   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Processing: new.js
+02-05 20:26:16.411   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Full path (original format): file://docs/storage/Users/currentUser/HMVScode/test/new.js
+02-05 20:26:16.411   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Actual full path: /storage/Users/currentUser/HMVScode/test/new.js
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Type: FILE
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Size: 0
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   ✅ Added to result
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Total result count: 3
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Sorted result
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Finished ==========
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ Successfully loaded 3 children
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Child[0]: 1 | Type: directory | Path: file://docs/storage/Users/currentUser/HMVScode/test/1
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Child[1]: 2 | Type: directory | Path: file://docs/storage/Users/currentUser/HMVScode/test/2
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Child[2]: new.js | Type: file | Path: file://docs/storage/Users/currentUser/HMVScode/test/new.js
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Prepared child: 1 | isExpanded: false
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Prepared child: 2 | isExpanded: false
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Prepared child: new.js | isExpanded: false
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ Updated file.children, count: 3
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updating fileList...
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Found index in fileList: 2
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updated file isExpanded: true
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updated file children count: 3
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ fileList deep copied, total count: 8
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     [FILETREE-CLICK] ✅ Used deep copy to trigger reactive update
+02-05 20:26:16.412   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ========== Click Handler Finished ==========
+02-05 20:26:16.426   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-RENDER] Directory item: 1 | isExpanded: false | hasChildren: 0 | Depth: 1
+02-05 20:26:16.426   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-RENDER] Directory item: 2 | isExpanded: false | hasChildren: 0 | Depth: 1
+02-05 20:26:17.998   40570-40570   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: down: 58007
+02-05 20:26:17.998   40570-40570   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [P:D:58007][OnPointerEvent:649] recv
+02-05 20:26:17.998   40570-40570   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     HandleInputEvent: eid:92,InputId:58007,wid:522,ac:2
+02-05 20:26:17.999   40570-40570   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:58007, fId:0, T:0, I=0, M=0
+02-05 20:26:18.000   40570-40570   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:58007, TTHNI:fId: 0{ T: page, D: 6 };{ T: Scroll, D: 16 };{ T: Scroll, D: 17 };
+02-05 20:26:18.000   40570-40570   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:58007, TTHRTI: T ClickRecognizer info: { T: Scroll }; { T: Scroll }; { T: Row };T PanRecognizer info: { T: Scroll }; { T: Scroll };
+02-05 20:26:18.001   40570-40570   C03919/com.xbx...InputTracking  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Consumed id:58007, last id:58005
+02-05 20:26:18.001   40570-40570   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     ConsumePointerEventInner: InputId:58007,wid:522,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+02-05 20:26:18.001   40570-40570   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: move: 58008
+02-05 20:26:18.081   40570-40570   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: move, first: 58009-(2026-02-05 20:26:18.001ms), 58023, count: 15, last: ac: up: 58024
+02-05 20:26:18.081   40570-40570   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [P:U:58024][OnPointerEvent:649] recv
+02-05 20:26:18.081   40570-40570   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     HandleInputEvent: eid:93,InputId:58024,wid:522,ac:4
+02-05 20:26:18.082   40570-40570   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:58024, fId:0, T:1, I=0, M=0
+02-05 20:26:18.083   40570-40570   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click try accept
+02-05 20:26:18.083   40570-40570   C0390B/com.xbx...AceScrollable  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Scrollable GestureJudge:0, 0
+02-05 20:26:18.083   40570-40570   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click gesture judge reject
+02-05 20:26:18.083   40570-40570   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click try accept
+02-05 20:26:18.083   40570-40570   C0390B/com.xbx...AceScrollable  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Scrollable GestureJudge:0, 0
+02-05 20:26:18.083   40570-40570   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click gesture judge reject
+02-05 20:26:18.083   40570-40570   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click try accept
+02-05 20:26:18.083   40570-40570   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] CLK RACC, T: Row
+02-05 20:26:18.083   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === CLICK TRIGGERED === 123test
+02-05 20:26:18.083   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-UI] Item clicked: 123test | Type: directory | Depth: 0
+02-05 20:26:18.083   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === VIEWMODEL onFileClick CALLED === 123test
+02-05 20:26:18.083   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ========== File/Directory Clicked ==========
+02-05 20:26:18.083   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Name: 123test
+02-05 20:26:18.083   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Path: file://docs/storage/Users/currentUser/HMVScode/123test
+02-05 20:26:18.083   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Type: directory
+02-05 20:26:18.083   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] IsExpanded (before): false
+02-05 20:26:18.084   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] This is a DIRECTORY
+02-05 20:26:18.084   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Action: EXPAND directory
+02-05 20:26:18.084   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Starting to load children...
+02-05 20:26:18.084   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Calling fileService.listFiles()...
+02-05 20:26:18.084   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Called ==========
+02-05 20:26:18.084   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Input path: file://docs/storage/Users/currentUser/HMVScode/123test
+02-05 20:26:18.084   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Is URI: true
+02-05 20:26:18.084   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileService] Converted URI to path: file://docs/storage/Users/currentUser/HMVScode/123test -> /storage/Users/currentUser/HMVScode/123test
+02-05 20:26:18.084   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Actual path after conversion: /storage/Users/currentUser/HMVScode/123test
+02-05 20:26:18.084   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Calling fs.listFile()...
+02-05 20:26:18.085   40570-40570   C03919/com.xbx...InputTracking  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Consumed id:58024, last id:58023
+02-05 20:26:18.085   40570-40570   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     ConsumePointerEventInner: InputId:58024,wid:522,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+02-05 20:26:18.085   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ fs.listFile() returned 0 items
+02-05 20:26:18.085   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Total result count: 0
+02-05 20:26:18.086   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Sorted result
+02-05 20:26:18.086   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Finished ==========
+02-05 20:26:18.086   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ Successfully loaded 0 children
+02-05 20:26:18.086   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ Updated file.children, count: 0
+02-05 20:26:18.086   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updating fileList...
+02-05 20:26:18.086   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Found index in fileList: 1
+02-05 20:26:18.086   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updated file isExpanded: true
+02-05 20:26:18.086   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updated file children count: 0
+02-05 20:26:18.086   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ fileList deep copied, total count: 8
+02-05 20:26:18.086   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     [FILETREE-CLICK] ✅ Used deep copy to trigger reactive update
+02-05 20:26:18.086   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ========== Click Handler Finished ==========
+02-05 20:26:20.109   40570-40570   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: down: 58025
+02-05 20:26:20.109   40570-40570   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [P:D:58025][OnPointerEvent:649] recv
+02-05 20:26:20.109   40570-40570   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     HandleInputEvent: eid:94,InputId:58025,wid:522,ac:2
+02-05 20:26:20.110   40570-40570   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:58025, fId:0, T:0, I=0, M=0
+02-05 20:26:20.111   40570-40570   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:58025, TTHNI:fId: 0{ T: page, D: 6 };{ T: Scroll, D: 16 };{ T: Scroll, D: 17 };
+02-05 20:26:20.111   40570-40570   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:58025, TTHRTI: T ClickRecognizer info: { T: Scroll }; { T: Scroll }; { T: Row };T PanRecognizer info: { T: Scroll }; { T: Scroll };
+02-05 20:26:20.113   40570-40570   C03919/com.xbx...InputTracking  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Consumed id:58025, last id:58023
+02-05 20:26:20.113   40570-40570   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     ConsumePointerEventInner: InputId:58025,wid:522,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+02-05 20:26:20.113   40570-40570   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: move: 58026
+02-05 20:26:20.202   40570-40570   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [][OnPointerEvent:242] ac: move, first: 58027-(2026-02-05 20:26:20.113ms), 58033, count: 7, last: ac: up: 58034
+02-05 20:26:20.202   40570-40570   C02805/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [P:U:58034][OnPointerEvent:649] recv
+02-05 20:26:20.202   40570-40570   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     HandleInputEvent: eid:95,InputId:58034,wid:522,ac:4
+02-05 20:26:20.203   40570-40570   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] ITK Id:58034, fId:0, T:1, I=0, M=0
+02-05 20:26:20.203   40570-40570   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click try accept
+02-05 20:26:20.203   40570-40570   C0390B/com.xbx...AceScrollable  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Scrollable GestureJudge:0, 0
+02-05 20:26:20.203   40570-40570   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click gesture judge reject
+02-05 20:26:20.203   40570-40570   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click try accept
+02-05 20:26:20.203   40570-40570   C0390B/com.xbx...AceScrollable  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Scrollable GestureJudge:0, 0
+02-05 20:26:20.203   40570-40570   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click gesture judge reject
+02-05 20:26:20.203   40570-40570   C0391E/com.xbx...de/AceGesture  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Click try accept
+02-05 20:26:20.203   40570-40570   C03951/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] CLK RACC, T: Row
+02-05 20:26:20.204   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === CLICK TRIGGERED === 1
+02-05 20:26:20.204   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-UI] Item clicked: 1 | Type: directory | Depth: 1
+02-05 20:26:20.204   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     === VIEWMODEL onFileClick CALLED === 1
+02-05 20:26:20.204   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ========== File/Directory Clicked ==========
+02-05 20:26:20.204   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Name: 1
+02-05 20:26:20.204   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Path: file://docs/storage/Users/currentUser/HMVScode/test/1
+02-05 20:26:20.204   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Type: directory
+02-05 20:26:20.204   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] IsExpanded (before): false
+02-05 20:26:20.205   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] This is a DIRECTORY
+02-05 20:26:20.205   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Action: EXPAND directory
+02-05 20:26:20.205   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Starting to load children...
+02-05 20:26:20.205   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Calling fileService.listFiles()...
+02-05 20:26:20.205   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Called ==========
+02-05 20:26:20.205   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Input path: file://docs/storage/Users/currentUser/HMVScode/test/1
+02-05 20:26:20.205   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Is URI: true
+02-05 20:26:20.205   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FileService] Converted URI to path: file://docs/storage/Users/currentUser/HMVScode/test/1 -> /storage/Users/currentUser/HMVScode/test/1
+02-05 20:26:20.205   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Actual path after conversion: /storage/Users/currentUser/HMVScode/test/1
+02-05 20:26:20.205   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Calling fs.listFile()...
+02-05 20:26:20.206   40570-40570   C03919/com.xbx...InputTracking  com.xbxyftx.HMVScode  I     [(100000:100000:scope)] Consumed id:58034, last id:58033
+02-05 20:26:20.206   40570-40570   C04213/com.xbxy...InputKeyFlow  com.xbxyftx.HMVScode  I     ConsumePointerEventInner: InputId:58034,wid:522,pointId:0,srcType:2,rect:[0,0,2800,1840],notify:1
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ fs.listFile() returned 1 items
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] File[0]: 1.txt
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] Processing: 1.txt
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Full path (original format): file://docs/storage/Users/currentUser/HMVScode/test/1/1.txt
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Actual full path: /storage/Users/currentUser/HMVScode/test/1/1.txt
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Type: FILE
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   Size: 4
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST]   ✅ Added to result
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Total result count: 1
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ✅ Sorted result
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILESERVICE-LIST] ========== List Files Finished ==========
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ Successfully loaded 1 children
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Child[0]: 1.txt | Type: file | Path: file://docs/storage/Users/currentUser/HMVScode/test/1/1.txt
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Prepared child: 1.txt | isExpanded: false
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] ✅ Updated file.children, count: 1
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Updating fileList...
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  I     [FILETREE-CLICK] Found index in fileList: -1
+02-05 20:26:20.207   40570-40570   A03D00/com.xbx...MVScode/JSAPP  com.xbxyftx.HMVScode  E     [FILETREE-CLICK] ❌ File not found in fileList!
+
+```
+
+### WebView编辑器成功读取现有文件
+
+<video width="100%" controls>
+  <source src="52.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
