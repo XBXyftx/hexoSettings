@@ -2092,3 +2092,182 @@ HMVScodetest/
   <source src="52.mp4" type="video/mp4">
   您的浏览器不支持视频标签。
 </video>
+
+当前进度：
+
+1. WebView可以成功读取到文件内容并正确高亮显示。
+2. WebView可以进行代码内容的编辑。
+3. 文件树可以正确展开前两层目录。
+4. 文件树可以正确选择文件并将对应文件内容传入WebView。
+
+当前问题：
+
+1. 文件树无法正确展开第三层目录。
+2. WebView无法正确保存编辑后的文件内容。点击保存按钮没有反应。
+
+首先我来重申一下当前的文件树结构：
+
+```plantext
+文件树结构：
+├─ 📁 test (depth=0, indent=0px)
+│  ├─ 📁 1 (depth=1, indent=20px)
+│  │  └─ 📄 1.txt (depth=2, indent=40px)
+│  ├─ 📁 2 (depth=1, indent=20px)
+│  └─ 📄 new.js (depth=1, indent=20px)
+├─ 📁 123test (depth=0, indent=0px)
+└─ 📄 test.txt (depth=0, indent=0px)
+```
+
+当前展开后1.txt这一层无法正常展开。
+
+![53](53.webp)
+
+先集中经历彻底解决文件树展开问题。
+
+修复后的逻辑架构
+
+```plantext
+用户点击文件夹
+    ↓
+onFileClick()
+    ↓
+加载 children (listFiles)
+    ↓
+updateFileInTree() ← 递归查找并更新
+    ↓
+rebuildFlatList()
+    ↓
+flattenFiles() ← 递归扁平化
+    ↓
+UI 更新显示
+```
+
+![54](54.webp)
+
+1.txt可以正常展开了，但还不能掉以轻心，接下来我将在文件系统中扩充这个文件夹的深度来进行测试。
+
+![55](55.webp)
+
+这样当前的文件树结构就变成了以下结构。
+
+```plantxt
+HMVScodetest/
+├── 123test/
+├── 1234/
+├── test/
+│   ├── 1/
+│   │   ├── doc/
+│   │   │   └── ets/
+│   │   │       └── page.ts
+│   │   └── 1.txt
+│   ├── 2/
+│   │   └── new.js
+│   └── new.js
+├── 1111test.md
+├── md.md
+├── test.html
+├── test.js
+└── test.txt
+```
+
+![56](56.webp)
+
+没问题都是成功的，语言的识别也是正确的。那文件树渲染这一块我们就可以暂时告一段落了。
+
+### 分级新建文件、文件夹
+
+当前的新建文件功能只能在根目录下去创建，而实际的使用场景是需要在任何位置都能创建文件的。
+
+为了满足这个需求我想了两种方案，一是创建的时候在弹窗中加一个选择新建文件存放路径的按钮，然后拉起系统的文件选择器去选择一个文件夹作为路径，最后将新建的文件名拼接到选择的路径后面，还有一个方案是在文件树的每一级文件夹在被选中高亮时右侧显示新建文件和新建文件夹的按钮。
+
+不过感觉要是用第二种方式可能会有点挤。参考VScode的操作方式，先用点击选中焦点，如果是文件就取统计文件夹，要是文件夹，就在当前文件夹内部创建，但是新建的按钮都统一放置在最上方确实是不错的选择。但是我怕会出现一些交互问题，焦点状态可能会有些“奇怪的问题”不如先试试稳妥点的系统文件选择器去选路径。
+
+````md
+
+
+在鸿蒙应用开发中实现文件路径选择器并限制根目录为当前文件树根文件夹，可通过以下方案实现：
+
+### 核心步骤
+1. **文件选择器能力调用**  
+   使用系统`FilePicker`模块，通过`PickerView`限制根目录：
+   ```typescript
+   import { filePicker } from '@kit.FileKit';
+
+   async openFilePicker() {
+     try {
+       const options: filePicker.PickerViewOptions = {
+         type: filePicker.PickerViewType.DIR, // 选择目录模式
+         rootPath: this.currentRootPath, // 动态绑定当前文件树根路径
+       };
+       const uri = await filePicker.PickerView.pick(options);
+       console.info('Selected path:', uri);
+       // 在此处调用新建文件/文件夹逻辑
+     } catch (err) {
+       console.error('File picker failed:', err);
+     }
+   }
+   ```
+
+2. **新建文件/文件夹操作**  
+   在选定路径创建条目：
+   ```typescript
+   import { fileIo } from '@kit.FileKit';
+   import { common } from '@kit.AbilityKit';
+
+   async createItem(context: common.Context, path: string, isDirectory: boolean) {
+     const fullPath = path + (isDirectory ? '/new_folder' : '/new_file.txt');
+     try {
+       if (isDirectory) {
+         await fileIo.mkdir(context, fullPath);
+       } else {
+         const file = await fileIo.open(context, fullPath, fileIo.OpenMode.CREATE);
+         await file.close();
+       }
+       console.info('Created at:', fullPath);
+     } catch (err) {
+       console.error('Creation failed:', err);
+     }
+   }
+   ```
+
+### 关键配置
+- **根目录动态绑定**  
+  在`PickerViewOptions`中通过`rootPath`参数绑定文件树根路径变量，确保选择器不会超出当前沙箱范围。
+
+- **权限声明**  
+  在`module.json5`中添加必要权限：
+  ```json
+  "requestPermissions": [
+    {
+      "name": "ohos.permission.FILE_ACCESS_PERSIST",
+      "reason": "Manage files in sandbox"
+    }
+  ]
+  ```
+
+### 注意事项
+1. **路径有效性验证**  
+   调用前需检查`currentRootPath`是否存在：
+   ```typescript
+   import { fileIo } from '@kit.FileKit';
+
+   async validateRootPath(path: string) {
+     const exists = await fileIo.access(path);
+     if (!exists) throw new Error('Invalid root path');
+   }
+   ```
+
+2. **沙箱限制**  
+   - 仅能操作应用沙箱内路径（`/data/storage/elX/...`）
+   - 若需访问公共目录，需申请`ohos.permission.READ_IMAGEVIDEO`等受限权限
+
+3. **UI交互优化**  
+   建议在路径选择器触发按钮处添加路径状态提示，实时显示当前根目录位置。
+
+> **避坑指南**  
+> 若遇到`[Fail][E003001] Invalid bundle name`错误：  
+> 1. 确认应用已开启debug模式  
+> 2. 确保应用至少运行过一次以挂载沙箱  
+> 3. 重启DevEco Studio后执行`Synchronize`刷新文件树
+内容由AI生成，仅供参考
+````
