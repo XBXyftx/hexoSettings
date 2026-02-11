@@ -2271,3 +2271,258 @@ HMVScodetest/
 > 3. 重启DevEco Studio后执行`Synchronize`刷新文件树
 内容由AI生成，仅供参考
 ````
+
+<video width="100%" controls>
+  <source src="57.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+<video width="100%" controls>
+  <source src="58.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+待办列表：
+
+1. 右键长按菜单
+2. 文件位置移动
+3. 编辑器保存编辑内容
+
+### 右键/长按菜单栏
+
+从上面最新的测试录屏可以看到，当前版本的在焦点文件目录新建文件和文件夹的功能已经顺利实现。接下来我们顺着思路继续，做一下右键和长按菜单栏。
+
+在鸿蒙中一多有一个重要的概念就是交互归一，而且我们这个软件面向的是平板和电脑这两端，面对的都是触屏和鼠标公用的场景，所以右键和长按菜单栏的交互方式应该是一致的。
+
+````md
+在鸿蒙（HarmonyOS）中实现鼠标右键和长按都能触发弹出菜单，可通过 `bindContextMenu` 接口结合事件归一化设计实现。以下是具体方案：
+
+---
+
+### 1. **核心实现方案**
+使用 `bindContextMenu` 接口绑定菜单，并配置 `responseType` 参数同时支持**右键点击**和**长按**触发：
+```typescript
+// 示例代码
+import { CustomBuilder, ResponseType } from '@kit.ArkUI';
+
+@Entry
+@Component
+struct Index {
+  @Builder menuBuilder() {
+    // 自定义菜单内容（选项列表）
+    Column() {
+      Button('选项一').onClick(() => {})
+      Button('选项二').onClick(() => {})
+    }
+    .padding(10)
+    .backgroundColor(Color.White)
+    .borderRadius(8)
+  }
+
+  build() {
+    Column() {
+      // 在目标组件上绑定菜单
+      Text('长按或右键点击此处')
+        .bindContextMenu(
+          this.menuBuilder as CustomBuilder,
+          ResponseType.RightClick | ResponseType.LongPress, // 同时支持右键和长按
+          {
+            placement: Placement.Bottom, // 设置弹出位置
+          }
+        )
+    }
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.Center)
+  }
+}
+```
+
+---
+
+**2. **关键参数说明****
+- **`responseType`**：  
+  设置为 `ResponseType.RightClick | ResponseType.LongPress` 表示同时支持：
+  - 鼠标右键单击（`RightClick`）
+  - 触屏/鼠标长按（`LongPress`）
+- **`placement`**：  
+  控制菜单弹出位置（如 `Top`、`Bottom`、`Left`、`Right`），**菜单位置与触发位置自动对齐**。
+- **自定义菜单内容**：  
+  通过 `@Builder` 构造器定义菜单项（如按钮、列表等）。
+
+---
+
+**3. **交互行为兼容性****
+根据鸿蒙交互规范：
+| 触发方式       | 设备支持                     |
+|----------------|------------------------------|
+| **鼠标右键**   | 鼠标、触控板（双指单击）     |
+| **长按**       | 触屏、手写笔、鼠标长按左键   |
+- 所有触发行为均会在**接触位置**弹出菜单（[参考来源 1, 2, 6]）。
+
+---
+
+**4. **注意事项****
+1. **禁止在输入法窗口中使用**：  
+   该接口不支持输入法类型的子窗口（[参考来源 5]）。
+2. **API 版本要求**：  
+    - `ResponseType` 需 API 11+。
+    - 双向绑定 `isShown` 需 API 18+（[参考来源 5]）。
+3. **菜单弹出时机**：  
+   确保页面构建完成后再触发菜单，避免位置异常。
+
+---
+
+**5. **扩展场景****
+若需通过代码控制显隐（如点击按钮弹出菜单），可使用 `bindContextMenu` 的 `isShown` 参数：
+```typescript
+@State isShowMenu: boolean = false;
+
+Text('控制菜单')
+  .bindContextMenu(this.menuBuilder, ResponseType.None, { isShown: this.isShowMenu })
+  .onClick(() => {
+    this.isShowMenu = true; // 点击后显示菜单
+  })
+```
+
+> **总结**：通过 `bindContextMenu` 的多事件绑定，可无缝兼容鼠标右键与长按操作，且菜单位置自动对齐触发点，符合鸿蒙交互归一化标准。
+内容由AI生成，仅供参考
+````
+
+````md
+
+
+在鸿蒙（HarmonyOS）中实现文件树右键/长按弹出操作菜单（删除/新建文件），需结合 `bindContextMenu` 和文件操作API实现。以下是具体方案：
+
+---
+
+### 1. 核心实现步骤
+**(1) 绑定上下文菜单到文件树组件**
+```typescript
+import { ResponseType } from '@kit.ArkUI';
+
+@Entry
+@Component
+struct FileTree {
+  @Builder
+  fileOperationMenu() {
+    // 自定义菜单内容（见步骤2）
+  }
+
+  build() {
+    List({ space: 10 }) {
+      // 文件树列表项
+      ForEach(this.fileList, (item) => {
+        ListItem() {
+          Text(item.name)
+            .bindContextMenu(
+              this.fileOperationMenu as CustomBuilder,
+              ResponseType.RightClick | ResponseType.LongPress, // 同时支持右键和长按
+              {
+                placement: Placement.Bottom, // 菜单弹出位置
+              }
+            )
+        }
+      })
+    }
+  }
+}
+```
+
+**(2) 自定义菜单内容（包含删除/新建操作）**
+```typescript
+@Builder
+fileOperationMenu() {
+  Menu() {
+    // 新建文件选项
+    MenuItem({
+      content: '新建文件',
+      icon: $r('app.media.add_icon')
+    }).onClick(() => {
+      this.createNewFile(); // 调用新建文件方法
+    })
+
+    // 删除文件选项
+    MenuItem({
+      content: '删除',
+      icon: $r('app.media.delete_icon')
+    }).onClick(() => {
+      this.deleteSelectedFile(); // 调用删除文件方法
+    })
+  }
+}
+```
+
+---
+
+**2. 文件操作功能实现**
+#### (1) 新建文件（需申请文件权限）
+```typescript
+import fileIO from '@kit.CoreFileKit';
+
+async createNewFile() {
+  try {
+    // 在沙箱路径创建文件 (示例路径)
+    const newFilePath = 'data/storage/el2/base/files/newFile.txt';
+    await fileIO.open(newFilePath, fileIO.OpenMode.CREATE);
+    console.info('文件创建成功');
+    // 刷新文件树
+    this.refreshFileList(); 
+  } catch (error) {
+    console.error(`创建失败: ${error.code}, ${error.message}`);
+  }
+}
+```
+
+#### (2) 删除文件（需申请文件权限）
+```typescript
+async deleteSelectedFile() {
+  try {
+    const selectedPath = this.selectedFilePath;
+    await fileIO.unlink(selectedPath); // 删除文件
+    console.info('文件已删除');
+    // 刷新文件树
+    this.refreshFileList(); 
+  } catch (error) {
+    console.error(`删除失败: ${error.code}, ${error.message}`);
+  }
+}
+```
+
+---
+
+### 3. 关键配置说明
+| **配置项**          | **说明**                                                                 |
+|----------------------|--------------------------------------------------------------------------|
+| **菜单触发方式**     | `ResponseType.RightClick | ResponseType.LongPress` 同时支持鼠标右键和触屏长按 |
+| **沙箱路径权限**     | 新建/删除操作需在应用沙箱内进行（路径如 `data/storage/el2/base/`）       |
+| **文件操作权限**     | 在 `module.json5` 中添加权限声明：                                       |
+| ```json             | ```                                                                      |
+| "requestPermissions":| [{"name": "ohos.permission.FILE_ACCESS_MANAGER"}]                        |
+| ```                 | ```                                                                      |
+| **刷新文件树**       | 操作后需更新 @State 绑定的文件列表数据                                   |
+
+---
+
+### 4. 注意事项
+1. **安全限制**：
+    - 只能操作应用沙箱内文件（`data/storage/el2/base/`）
+    - 无法删除系统保护文件或外部无权限文件
+2. **菜单交互优化**：
+    - 添加菜单振动反馈：设置 `hapticFeedbackMode: HapticFeedbackMode.ENABLED`
+    - 菜单避让屏幕中轴：在大屏设备自动调整位置
+3. **性能建议**：
+    - 文件操作使用异步 API 避免阻塞 UI
+    - 长列表使用 `ForEach` + `ListItem` 优化渲染性能
+
+> 完整流程：用户长按/右键触发菜单 → 选择操作 → 执行文件API → 刷新文件树视图。通过 `bindContextMenu` 的事件归一化设计，可同时兼容触屏设备与键鼠设备操作。
+内容由AI生成，仅供参考
+````
+
+<video width="100%" controls>
+  <source src="59.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
+
+当前测试的效果是在鼠标右键时无任何反应，但是用手指在屏幕上长按正常显示菜单栏，重命名功能尚未开发，删除和新建功能都已经正常可用。
+
