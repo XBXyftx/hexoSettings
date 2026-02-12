@@ -8,3 +8,9 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
 
 scoop install main/libwebp
+
+git config --global user.name "XBXyftx"   
+git config --global user.email "shuaixbx02@outlook.com"
+ssh-keygen -t rsa -C "shuaixbx02@outlook.com"
+
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
