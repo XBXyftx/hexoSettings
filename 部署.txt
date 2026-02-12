@@ -14,3 +14,19 @@ git config --global user.email "shuaixbx02@outlook.com"
 ssh-keygen -t rsa -C "shuaixbx02@outlook.com"
 
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+# 1. 创建自定义 SSH 配置目录（在用户可写目录）
+mkdir -p ~/Documents/ssh_config
+
+# 2. 创建自定义 config 文件（避开 ~/.ssh 的权限检查）
+cat > ~/Documents/ssh_config/config << 'EOF'
+Host github.com
+    Hostname ssh.github.com
+    Port 443
+    User git
+    StrictHostKeyChecking no
+EOF
+
+# 3. 使用 -F 指定自定义配置文件连接
+ssh -F ~/Documents/ssh_config/config -T git@github.com
+
