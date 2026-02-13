@@ -5,7 +5,7 @@ tags:
   - 技术向
   - Nodejs
   - 鸿蒙
-cover: /imgs/ArticleTopImgs/HarmonyVScodeTopImg.webp
+cover: /imgs/ArticleTopImgs/HMNodejsTopImg.webp
 description: 对于鸿蒙nodejs的使用上的一些问题的记录
 typewriter: "鸿蒙 PC 上 Hexo 博客生成崩溃，报错 RangeError: Invalid string length。经排查，问题源于 V8 引擎的字符串长度限制。鸿蒙 PC 采用 ARM64 架构，Node.js 强制开启指针压缩，导致 JSON 序列化字符串超过约 512MB 限制而崩溃。尝试增加内存、回退版本等方法均无效。最终采用在 Windows 生成后同步至鸿蒙 PC 的方案解决。这体现了不同架构下 Node.js 的设计差异。"
 post_copyright:
