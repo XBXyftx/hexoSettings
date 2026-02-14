@@ -907,3 +907,44 @@ function split(nums:number[],str:number,end:number):number{
 ![57](EverydayAlgorithm/57.webp)
 
 分治是个好思想但是他的时间空间好像并不是很优秀。
+
+看到最后一种投票法，我直接小脑萎缩了，思路清晰算法简单，复杂度优秀。
+
+![58](EverydayAlgorithm/58.webp)
+
+我们可以推演一下它的临界情况。
+
+首先题目中的`多数元素是指在数组中出现次数 大于 ⌊ n/2 ⌋ 的元素。`这句话排除了众数与非众数相等的这种临界情况，若相等时就可能会出现最后一位恰好是众数导致最后一次计数器归零但判定到了非众数的情况。
+
+![59](EverydayAlgorithm/59.webp)
+
+就像上面这个数组一样（从官方题解的事例中截取的）
+
+这样一来，验证了临界情况我们就可以保证最后一位算完判定到的一定是众数。
+
+我来实现一下这个算法。
+
+```ts
+function majorityElement(nums: number[]): number {
+    let count:number = 0
+    let num:number
+
+    for(let i = 0;i<nums.length;i++){
+        if(count===0){
+            num = nums[i]
+            count++
+            continue
+        }
+        if(nums[i]===num){
+            count++
+        }else{
+            count--
+        }
+    }
+    return num
+};
+```
+
+![60](EverydayAlgorithm/60.webp)
+
+厉害，确实厉害。
