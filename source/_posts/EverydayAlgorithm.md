@@ -7,7 +7,7 @@ tags:
 cover: /imgs/ArticleTopImgs/EverydayAlgorithmTopImg.webp
 top: 18
 description: 每天都要刷算法！！！
-typewriter: 这篇文章将会记录我所刷的算法题！！！我一定要刷算法！！！
+typewriter: 🧠 算法小白的进阶之路！本文记录了作者每日刷题的完整历程，从合并有序数组的双指针解法，到移除元素的覆盖技巧，再到删除重复项的边界处理，每道题都记录了从错误到正确的思考过程。特别详解了 Boyer-Moore 投票算法这类 O(n) 时间 O(1) 空间的最优解。不仅是题解，更是算法思维培养的实战记录，适合正在刷题路上的你参考学习！
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx
