@@ -772,7 +772,7 @@ function majorityElement(nums: number[]): number {
 
 但很显然还不是最优解。
 
-### 官方题解（太高级了）
+#### 官方题解（太高级了）
 
 没想到这道题官方题解给出了五种思路，确实是我没想到的。第一种是哈希表，是最暴力的求解就不多说了。第二种是排序，大致思路就是说排序后，众数无论是被排到哪里，数组中间的数一定是众数，而且由于众数个数是大于数组长度的一半，所以无论总长是奇是偶都可以去中值为众数。
 
@@ -948,3 +948,158 @@ function majorityElement(nums: number[]): number {
 ![60](EverydayAlgorithm/60.webp)
 
 厉害，确实厉害。
+
+### 轮转数组
+
+![61](EverydayAlgorithm/61.webp)
+
+这道题看到的瞬间我浮现出了两种方法，一是用循环或者递归一次挪动一个模拟整个轮转过程，二是直接讲数组导数的K位接取出来作为一个新数组随后讲前半部分的数组拼接到新数组尾部即可。
+
+#### 模拟轮转法
+
+```ts
+/**
+ Do not return anything, modify nums in-place instead.
+ */
+function rotate(nums: number[], k: number): void {
+    nums = recursionRotate(nums,k)
+};
+
+function recursionRotate(nums:number[],k:number):number[]{
+    let currentNums:number[]
+    if(k!==0){
+        let newNums:number[]=[nums.pop()]
+        newNums.push(...nums)
+        k--
+        currentNums = recursionRotate(newNums,k)
+    }else{
+       return currentNums 
+    }
+    
+}
+```
+
+![62](EverydayAlgorithm/62.webp)
+
+![63](EverydayAlgorithm/63.webp)
+
+可以看到结果中我的操作结果都是讲最后一位移除后就没有其他任何操作了。
+
+我启动调试模式之后发现递归的过程都是正常的，问题依旧是发生在边界情况上。
+
+我们对于当前的算法的预期会在最后一次递归的时候返回最终结果的数组，但实际上问题出现在递归的基准情况（base case）处理上。仔细观察代码：
+
+```ts
+function recursionRotate(nums:number[],k:number):number[]{
+    let currentNums:number[]  // 声明但未初始化，值为 undefined
+    if(k!==0){
+        let newNums:number[]=[nums.pop()]
+        newNums.push(...nums)
+        k--
+        currentNums = recursionRotate(newNums,k)  // 递归结果赋值给 currentNums
+    }else{
+       return currentNums  // 当 k=0 时，直接返回未初始化的 currentNums，即 undefined
+    }
+    
+}
+```
+
+**问题分析：**
+
+当递归到最后一步（k=0）时，函数进入 `else` 分支，此时直接返回了 `currentNums`。但问题是 `currentNums` 只是被声明了，从未被赋值，它的值是 `undefined`。
+
+这就导致递归链的最底层返回了 `undefined`，然后这个 `undefined` 被逐层向上传递，最终 `recursionRotate` 的返回值就是 `undefined`。而 `nums = recursionRotate(nums,k)` 这行代码将 `undefined` 赋值给了 `nums`，所以最终结果显示数组好像"消失"了。
+
+**正确的理解应该是：**
+
+递归函数需要确保在基准情况下返回一个有效的数组。修改后的代码应该是：
+
+```ts
+function recursionRotate(nums:number[],k:number):number[]{
+    if(k===0){
+        return nums  // 基准情况：直接返回当前数组
+    }
+    let newNums:number[]=[nums.pop()]
+    newNums.push(...nums)
+    return recursionRotate(newNums,k-1)
+}
+```
+
+这样每次递归都会明确返回一个数组（要么是基准情况的 `nums`，要么是递归调用的结果），而不是返回未初始化的变量。
+
+另外，`nums = recursionRotate(nums,k)` 这种写法在 TypeScript 中还有一个潜在问题：它修改的是形参 `nums` 的引用，而不是原数组本身。对于 LeetCode 这类要求"原地修改"的题目，这种重新赋值的方式可能无法通过测试，因为函数外部的引用不会感知到这个变化。
+
+
+```ts
+/**
+ Do not return anything, modify nums in-place instead.
+ */
+function rotate(nums: number[], k: number): void {
+    nums = recursionRotate(nums,k)
+};
+
+function recursionRotate(nums1:number[],k:number):number[]{
+    if(k===0){
+        return nums1
+    }
+    let newNums:number[] = [nums1.pop()]
+    newNums.push(...nums1)
+    return recursionRotate(newNums,k-1)
+    
+}
+```
+
+这是我第二次修改后的代码，我所预测的内存地址修改的问题的确是出现了。让我来通过调试模式分析一下。
+
+![64](EverydayAlgorithm/64.webp)
+
+可以看到在经历了我第二版递归之后的nums数组的的确确是正确的结果，但是结果监测到的依旧是仅将数组最后一位摘取后的残缺数组。
+
+其实也很好解释，在我们的递归中，我们将原数组的地址传入递归函数，并且在第1次递归时调用了pop方法，也就相当于将原地址的数组进行了最后一位的摘取，但在第1次递归调用第2次递归的时候，我们就创建了一个新的`newNums`数组，第2次递归就基于第1次创建的这个新地址去进行了修改，就与题干输入的地址无关了。
+
+而后续每一轮的递归，它所传递的地址都是一个新的值，所以说最终力扣检测的是题干所输入的地址值，那个地址值仅在第1次递归时被进行了最后一位截取的操作。而我第1次的错误算法，最终返回的应该是一个undefined,因为它没有被进行初始化，但是结果依旧输出了一个被截取了最后一位的数组，其实这个时候我就已经意识到可能是这个问题了。
+
+针对于这个特性我们可以去进行一下改造。
+
+```ts
+/**
+ Do not return anything, modify nums in-place instead.
+ */
+function rotate(nums: number[], k: number): void {
+    recursionRotate(nums,k)
+};
+
+function recursionRotate(nums:number[],k:number):number[]{
+    if(k===0){
+        return nums
+    }
+    nums.unshift(nums.pop())
+    return recursionRotate(nums,k-1)
+    
+}
+```
+
+有一说一再这样改完其实更简单了。
+
+![65](EverydayAlgorithm/65.webp)
+
+但我们当前的算法时间和空间复杂度都不算优秀，毕竟递归的特点就是很耗费内存，而一步步模拟轮转过程就会导致时间复杂度是与N成正比的。
+
+#### 数组拼接法
+
+```ts
+/**
+ Do not return anything, modify nums in-place instead.
+ */
+function rotate(nums: number[], k: number): void {
+    nums.unshift(...nums.splice(nums.length-k,k))
+};
+```
+
+![66](EverydayAlgorithm/66.webp)
+
+嘶，在本地测试完成后我本来以为稳了，没想到K可能大于数组长度这码事，确实是疏忽了，还是要抓住本质是轮转次数而不是截取长度，模拟操作算法的好处就在于无论取值如何，知道严格模拟就不会出错，想简化就还得去注意边界情况。
+
+![67](EverydayAlgorithm/67.webp)
+
+我嘞个击败百分之百。
