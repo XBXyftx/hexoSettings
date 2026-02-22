@@ -1103,3 +1103,29 @@ function rotate(nums: number[], k: number): void {
 ![67](EverydayAlgorithm/67.webp)
 
 我嘞个击败百分之百。
+
+### 买卖股票的最佳时机
+
+![68](EverydayAlgorithm/68.webp)
+
+看到这道题我首先注意到了几个点，首先这道题肯定不是简简单单的寻找最小值和最大值因为我们有一个明确的要求是不能在买入前卖出，也就是说如果最大值在最小值前我们也是不能这样取的。
+
+最基本的排列组合所有可能性是肯定能做出来但是时间复杂度会很高，所以我们需要去寻找一个更优的解法。
+
+双指针，左指针指买入，右指针指卖出逐一枚举记录最大值。然后用双层循环左右指针分开走，右走完一圈左走一位。
+
+```ts
+function maxProfit(prices: number[]): number {
+    let currentMax:number = 0
+
+    for(let left = 0;left < prices.length-1;left++){
+        for(let right = ++left;right < prices.length;right++){
+            if(prices[right]-prices[left] > currentMax){
+                currentMax = prices[right] - prices[left]
+            }
+        }
+    }
+    return currentMax
+};
+```
+
