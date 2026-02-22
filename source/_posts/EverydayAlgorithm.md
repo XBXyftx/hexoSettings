@@ -1129,3 +1129,108 @@ function maxProfit(prices: number[]): number {
 };
 ```
 
+![69](EverydayAlgorithm/69.webp)
+
+奥我发现问题了，`++left`这步操作会导致left指针随着right指针的移动而移动。修正一下。
+
+```ts
+function maxProfit(prices: number[]): number {
+    let currentMax:number = 0
+
+    for(let left = 0;left < prices.length-1;left++){
+        for(let right = left+1;right < prices.length;right++){
+            if(prices[right]-prices[left] > currentMax){
+                currentMax = prices[right] - prices[left]
+            }
+        }
+    }
+    return currentMax
+};
+```
+
+![70](EverydayAlgorithm/70.webp)
+
+超时，意料之中，我们来进行优化。
+
+首先当前的算法是一个O（N方）的时间复杂度，我们现在需要尽可能的想办法压缩到O（N）。
+
+我们来分析一下这个过程的本质，虽然直接取全局最低值不可取，但我们依旧可以发现当前许多计算是不必要的。
+
+比如`[7,1,5,3,6,4]`中，`1-7` `3-7` `3-5`这些都是非必要的遍历，同样的对于`6-3` `6-5`这种已知前面有更小值的遍历也是不必要的。在卖出日固定的情况下，我们完全可以维护一个此前最低的买入日价格变量，就可以避免上述两种情况的遍历。比最低买入日低就设置新最低买入价，比它高就再去计算利润，这样就可以压缩到O（N）。
+
+```ts
+function maxProfit(prices: number[]): number {
+    let currentMax:number = 0
+    let currentMin:number = prices[0]
+    for(const price of prices){
+        if(price<currentMin){
+            currentMin = price
+        }else if(currentMax<price-currentMin){
+            currentMax = price - currentMin
+        }
+    }
+    return currentMax
+};
+```
+
+![71](EverydayAlgorithm/71.webp)
+
+### 买卖股票的最佳时机 II
+
+![72](EverydayAlgorithm/72.webp)
+
+这道题与上一题的区别在于可以多次买卖，也就是说我们可以将所有上升段都算作利润，所以我们可以直接将所有上升段都算作利润。在预知一切的情况下这样计算每一个上升段价差之和的做法确实可行，但这也就在算法题里敢这么算了（乐
+
+这道题还是双指针好做我感觉，left指当前，right一直找right+1>right的临界值然后计算差值，将left指针移动到right的位置，right指针继续向后遍历。
+
+```ts
+function maxProfit(prices: number[]): number {
+    let profit:number = 0
+    let left:number = 0
+    let right:number = 1
+
+    while(1){
+        if(prices[left]>prices[right]){
+            left++
+            right++
+        }else if(right+1<prices.length){
+            if(prices[right]<prices[right+1]){
+                right++
+            }else if(prices[right]>prices[right+1]){
+                profit += prices[right]-prices[left]
+                left=right
+                right++
+            }
+        }else if(right>=prices.length-1){
+            if(prices[left]<prices[right]){
+                profit += prices[right]-prices[left]
+            }
+            break
+        }
+    }
+
+    return profit
+};
+```
+
+![73](EverydayAlgorithm/73.webp)
+
+部分用例超时，看来还是得检查边界情况。
+
+仔细审查后发现，当 `left` 指针移动时，我们没有判断它是否已经越界，导致在某些情况下会陷入死循环。而且整体逻辑过于复杂，可以进行简化。
+
+换个思路：既然可以多次交易，那么**只要今天比昨天价格高，就卖出**。这样所有上涨的利润都会被捕获。
+
+```ts
+function maxProfit(prices: number[]): number {
+    let profit: number = 0
+    for (let i = 1; i < prices.length; i++) {
+        if (prices[i] > prices[i - 1]) {
+            profit += prices[i] - prices[i - 1]
+        }
+    }
+    return profit
+};
+```
+
+![74](EverydayAlgorithm/74.webp)
