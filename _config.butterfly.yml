@@ -11,7 +11,7 @@
 
 nav:
   # Navigation bar logo image
-  logo: /img/logo.png
+  logo: /img/logo.webp
   display_title: true
   # Whether to fix navigation bar
   fixed: false
@@ -72,10 +72,10 @@ social:
 # Image Settings
 # --------------------------------------
 
-favicon: /img/logo.png
+favicon: /img/logo.webp
 
 avatar:
-  img: /img/logo.png
+  img: /img/logo.webp
   effect: false
 
 # Disable all banner images
@@ -91,7 +91,7 @@ default_top_img: https://bu.dusays.com/2025/07/04/686787f462e79.jpg
 index_img: https://bu.dusays.com/2025/07/04/686787ce02253.png
 
 # The banner image of archive page
-archive_img: /img/archiveTopImg.png
+archive_img: /img/archiveTopImg.webp
 
 # Note: tag page, not tags page
 # tag_img: /img/tagTopImg.png
@@ -113,7 +113,7 @@ category_img: https://bu.dusays.com/2025/07/04/68678853b2b04.png
 category_per_img:
 
 # The background image of footer
-footer_img: /img/footerBg.png
+footer_img: /img/footerBg.webp
 
 # Website Background
 # Can set it to color or image url
@@ -138,7 +138,7 @@ error_img:
 error_404:
   enable: false
   subtitle: 'Page Not Found'
-  background: /img/error-page.png
+  background: /img/error-page.webp
 
 post_meta:
   # Home Page
@@ -192,11 +192,11 @@ subtitle:
   sub:
     - Alia真好听吧，快去听啊啊啊！
     - 在电脑上访问效果更佳哦！真的真的不信你试试！
+    - 大家快去看芦毛灰姑娘啊！呜呜呜！
     - 敲代码敲代码~
     - C,Java,Python,JavaScript,ArkTS,CJ...
     - 鸿蒙生态星河璀璨
     - 伟大的开源事业万岁！
-    - 愿你拥有一个美好的未来！
     - 术式顺转 苍，术式反转 赫，虚式 茈！
 
 
@@ -325,7 +325,7 @@ aside:
     enable: true
   card_announcement:
     enable: true
-    content: welcome！<br/><img src="/imgs/gifs/1.gif" title="1.gif" class="announcementImg"/>
+    content: welcome！<br/><img src="/imgs/gifs/1.webp" title="1.gif" class="announcementImg"/><br/>近期进行了不少的优化，也不知道大家感受出来没，加载速度啊、目录跳转稳定性啊巴拉巴拉的。<br/>总之祝大家2026新春快乐！！！
   card_recent_post:
     enable: true
     # If set 0 will show all

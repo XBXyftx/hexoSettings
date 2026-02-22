@@ -58,8 +58,10 @@ if globalPageType === 'post'
 //- 入场弹窗样式
 link(rel='stylesheet', href=url_for('/css/entrance-popup.css'))
 
-//- 基础懒加载样式
+//- 基础懒加载样式（兼容旧版）
 link(rel='stylesheet', href=url_for('/css/lazy-loading.css'))
+//- 稳定的图片懒加载样式 - 解决布局偏移问题
+link(rel='stylesheet', href=url_for('/css/lazy-loading-stable.css'))
 
 //- 图片懒加载刷新按钮样式
 link(rel='stylesheet', href=url_for('/css/lazy-image-refresh.css'))

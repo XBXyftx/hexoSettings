@@ -33,8 +33,10 @@ div
   script(src=url_for('/js/entrance-popup-config.js'))
   script(src=url_for('/js/entrance-popup.js'))
 
-  // 基础懒加载功能
+  // 基础懒加载功能（兼容旧版）
   script(src=url_for('/js/lazy-loading.js'))
+  // 原生懒加载优化 - 解决布局偏移问题
+  script(src=url_for('/js/lazy-loading-native.js'))
 
   // 图片懒加载刷新按钮功能
   script(src=url_for('/js/lazy-image-refresh.js'))

@@ -21,7 +21,7 @@
 | `https://raw.githubusercontent.com` | GitHub Raw | PNG |
 
 **相关脚本**: 
-- `tools/update-markdown-images.ps1` - Markdown 图片引用更新脚本
+- `tools/update-markdown-images.ps1` - Markdown 和配置文件图片引用更新脚本
 - `tools/convert-to-webp.ps1` - 本地图片 WebP 转换脚本
 
 #### 1.2 本地图片处理
@@ -29,12 +29,22 @@
 - 转换工具: `cwebp` (静态图), `gif2webp` (动态图)
 - 质量设置: 75
 
+#### 1.3 图片尺寸处理（2026-02-22 新增）
+- **文件**: `scripts/image-dimensions.js`
+- **功能**: Hexo 生成阶段自动获取图片尺寸并添加 `width`/`height` 属性
+- **目的**: 解决懒加载导致的布局偏移（CLS）问题
+- **缓存**: 使用内存缓存避免重复读取文件
+
+---
+
 ### 2. 懒加载系统
 
 #### 2.1 核心文件
-- `source/js/lazy-loading.js` - 基础懒加载逻辑
+- `source/js/lazy-loading.js` - 基础懒加载逻辑（兼容旧版）
+- `source/js/lazy-loading-native.js` - 原生懒加载优化版（推荐）
 - `source/js/lazy-loading-optimized.js` - IntersectionObserver 优化版
 - `source/css/lazy-loading.css` - 占位符样式
+- `source/css/lazy-loading-stable.css` - 稳定的懒加载样式（解决布局偏移）
 
 #### 2.2 图片刷新按钮功能（2026-02-04 新增）
 - **文件**: `source/js/lazy-image-refresh.js`, `source/css/lazy-image-refresh.css`
@@ -60,11 +70,25 @@
   - `window.lazyVideoRefresh.refresh(video)` - 刷新指定视频
   - `window.lazyVideoRefresh.refreshAll()` - 刷新所有失败的视频
 
-#### 2.4 PJAX 支持
+#### 2.4 目录跳转优化（2026-02-22 新增）
+- **问题**: 点击目录跳转时，滚动过程中图片加载导致页面高度变化，跳转位置偏移
+- **解决方案**:
+  1. **图片尺寸插件**: 为所有图片添加 `width`/`height` 属性，浏览器可预留正确空间
+  2. **原生懒加载**: 使用 `loading="lazy"` 替代自定义懒加载，减少布局偏移
+  3. **预加载机制**: 目录跳转前预加载目标区域图片
+- **实现文件**: 
+  - `scripts/image-dimensions.js` - Hexo 插件，生成时添加图片尺寸
+  - `source/js/lazy-loading-native.js` - 原生懒加载 + 预加载支持
+  - `themes/butterfly/source/js/main.js` - 目录跳转逻辑优化
+- **排除规则**: 头像、公告栏等关键图片不添加懒加载，避免首屏闪烁
+
+#### 2.5 PJAX 支持
 所有懒加载脚本都支持 PJAX 无刷新加载：
 ```javascript
 document.addEventListener('pjax:complete', init);
 ```
+
+---
 
 ### 3. 目录结构约定
 
@@ -81,24 +105,28 @@ source/
 
 tools/                # 构建工具脚本
 doc/                  # 项目文档（本目录）
+scripts/              # Hexo 插件脚本
 ```
+
+---
 
 ### 4. WebP 转换工作流
 
 #### 4.1 本地图片转换流程
 1. 运行 `tools/convert-to-webp.ps1`
-2. 扫描 `source/img`, `source/imgs` 等目录
+2. 扫描 `source/img`, `source/imgs`, `themes/butterfly/source/img` 等目录
 3. 将 PNG/JPG/GIF 转换为 WebP
 4. **转换成功后自动删除原图**
 
 #### 4.2 Markdown 引用更新流程
 1. 运行 `tools/update-markdown-images.ps1`
-2. 扫描所有 `.md` 文件
+2. 扫描所有 `.md` 文件和配置文件（`_config.butterfly.yml`, `_config.yml`）
 3. 更新图片引用为 `.webp`（**排除外部图床白名单**）
-4. 支持三种格式：
+4. 支持格式：
    - Front-matter: `cover: path.webp`
    - Markdown: `![alt](path.webp)`
    - HTML: `<img src="path.webp">`
+   - 配置: `img: /img/logo.webp`, `favicon: /img/logo.webp`
 
 #### 4.3 图床图片恢复流程
 如果外部图床图片被错误转换为 WebP：
@@ -113,6 +141,8 @@ doc/                  # 项目文档（本目录）
 .\tools\restore-github-simple.ps1
 ```
 
+---
+
 ### 5. 主题自定义
 
 #### 5.1 Butterfly 主题修改位置
@@ -123,6 +153,13 @@ doc/                  # 项目文档（本目录）
 #### 5.2 自定义注入点
 - `themes/butterfly/layout/includes/head.pug` - 头部 CSS/JS
 - `themes/butterfly/layout/includes/additional-js.pug` - 底部 JS
+
+#### 5.3 目录跳转相关修改（2026-02-22）
+- **文件**: `themes/butterfly/source/js/main.js`
+- **修改**: `tocItemClickFn` 函数，添加预加载和位置修正逻辑
+- **依赖**: `window.lazyLoadPreload()` 函数（来自 `lazy-loading-native.js`）
+
+---
 
 ### 6. 网络监控工具
 
@@ -138,6 +175,34 @@ doc/                  # 项目文档（本目录）
 ---
 
 ## 重要历史变更
+
+### 2026-02-22: 图片懒加载布局偏移修复
+- **问题**: 点击目录跳转时，滚动过程中图片加载导致页面高度变化，最终位置偏移，需要反复点击才能正确定位
+- **根本原因**: 懒加载占位符固定高度（150px/200px）与实际图片高度不一致，图片加载后造成布局偏移（CLS）
+- **解决方案**:
+  1. **Hexo 图片尺寸插件** (`scripts/image-dimensions.js`): 生成阶段获取图片真实尺寸，添加 `width`/`height` 属性
+  2. **原生懒加载** (`source/js/lazy-loading-native.js`): 使用浏览器原生 `loading="lazy"`，配合尺寸属性预留空间
+  3. **目录跳转预加载** (`main.js`): 点击目录时预加载目标区域图片，等待加载完成后再跳转
+  4. **稳定 CSS** (`source/css/lazy-loading-stable.css`): 使用 `aspect-ratio` 保持图片比例，添加 `scroll-margin-top` 优化锚点跳转
+- **排除规则**: 头像（`alt="avatar"`）、公告栏（`class="announcementImg"`）等首屏关键图片不添加懒加载
+
+### 2026-02-22: 配置文件 WebP 转换支持
+- **更新**: `tools/update-markdown-images.ps1`
+- **变更**:
+  - 新增对 `_config.butterfly.yml` 和 `_config.yml` 的处理
+  - 支持转换的配置项: `img`, `favicon`, `default_top_img`, `index_img`, `archive_img`, `tag_img`, `category_img`, `footer_img`, `background`, `logo`, `error_img.flink`, `error_img.post_page`
+  - 保持外部图床白名单排除规则
+
+### 2026-02-22: WebP 转换脚本增强
+- **更新**: `tools/convert-to-webp.ps1`
+- **变更**:
+  - 转换成功后**自动删除原图**（PNG/JPG/GIF）
+  - 处理已存在 WebP 的对应原图（直接删除）
+  - 添加严格的转换验证（检查 `$LASTEXITCODE` 和文件大小）
+  - WebP 损坏时自动重新转换
+- **安全机制**:
+  - 验证 WebP 文件有效（存在且非空）后才删除原图
+  - 转换失败时保留原图
 
 ### 2026-02-04: 图片懒加载刷新功能
 - **新增**: 图片刷新按钮功能
@@ -186,7 +251,13 @@ doc/                  # 项目文档（本目录）
 **检查项**:
 1. 确认在文章页面（有 `#post` 或 `#article-container`）
 2. 检查控制台是否有错误
-3. 确认图片有 `lazy-image` 或 `lazy-placeholder` 类
+3. 确认图片有 `loading="lazy"` 属性
+
+### Q4: 目录跳转位置偏移
+**解决方案**:
+1. 确认已运行 `hexo clean && hexo generate` 重新生成
+2. 检查图片尺寸插件是否正常工作（查看生成日志中的 `[Image Dimensions]` 输出）
+3. 确认浏览器支持原生懒加载（Chrome 76+, Firefox 75+, Safari 15.4+）
 
 ---
 
@@ -195,6 +266,7 @@ doc/                  # 项目文档（本目录）
 - [ ] 考虑为所有外部图床图片添加刷新按钮支持
 - [ ] 优化懒加载首次加载体验
 - [ ] 评估是否需要 Service Worker 缓存
+- [ ] 监控图片尺寸插件对生成时间的影响
 
 ---
 
@@ -203,19 +275,6 @@ doc/                  # 项目文档（本目录）
 - **Butterfly 主题文档**: https://butterfly.js.org/
 - **Hexo 官方文档**: https://hexo.io/
 - **bu.dusays.com 图床**: https://bu.dusays.com/
-
----
-
-### 2026-02-22: WebP 转换脚本增强
-- **更新**: `tools/convert-to-webp.ps1`
-- **变更**:
-  - 转换成功后**自动删除原图**（PNG/JPG/GIF）
-  - 处理已存在 WebP 的对应原图（直接删除）
-  - 添加严格的转换验证（检查 `$LASTEXITCODE` 和文件大小）
-  - WebP 损坏时自动重新转换
-- **安全机制**:
-  - 验证 WebP 文件有效（存在且非空）后才删除原图
-  - 转换失败时保留原图
 
 ---
 
