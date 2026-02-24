@@ -1234,3 +1234,186 @@ function maxProfit(prices: number[]): number {
 ```
 
 ![74](EverydayAlgorithm/74.webp)
+
+### 跳跃游戏
+
+![75](EverydayAlgorithm/75.webp)
+
+首先我们从提示信息中可以知道我们的跳跃步数最小为0，不存在负数，所以说明，只要数组中不存在0，我们就一定可以到终点。如果存在0，那我们需要做的就是判断0前面的跳跃步数是否有任何一个的步数值大于其下标到0步下标的值，如果有，则可以跳过0，否则就跳不过去。我来按照这个思路编写一下。
+
+```ts
+function canJump(nums: number[]): boolean {
+    if(!nums.includes(0)){
+        return true
+    }
+    let result:boolean = true
+    let zeroIndexs:number[] = nums.map((value:number,index:number)=>{
+        if(value===0){
+            return index
+        }
+    })
+    zeroIndexs.forEach((value:number,index:number)=>{
+        for(let i = 0;i<value;i++){
+            if(nums[i]>value-i){
+                break
+            }else if(i===value-1){
+                result = false
+                break
+            }
+        }
+        if(result === false){
+            return result
+        }
+    })
+    return result
+};
+```
+
+![76](EverydayAlgorithm/76.webp)
+
+哦，我没注意到如果第一位是0那就一定跳不过去的情况。让我来修正一下。
+
+```ts
+function canJump(nums: number[]): boolean {
+    if(!nums.includes(0)){
+        return true
+    }
+    if(nums[0]===0){
+        return false
+    }
+    let result:boolean = true
+    let zeroIndexs:number[] = nums.map((value:number,index:number)=>{
+        if(value===0){
+            return index
+        }
+    })
+    zeroIndexs.forEach((value:number,index:number)=>{
+        for(let i = 0;i<value;i++){
+            if(nums[i]>value-i){
+                break
+            }else if(i===value-1){
+                result = false
+                break
+            }
+        }
+        if(result === false){
+            return result
+        }
+    })
+    return result
+};
+```
+
+![77](EverydayAlgorithm/77.webp)
+
+奥，对，总长只有一位的也确实是直接到达终点了。
+
+```ts
+function canJump(nums: number[]): boolean {
+    if(!nums.includes(0)||nums.length===1){
+        return true
+    }
+    if(nums[0]===0){
+        return false
+    }
+    let result:boolean = true
+    let zeroIndexs:number[] = nums.map((value:number,index:number)=>{
+        if(value===0){
+            return index
+        }
+    })
+    zeroIndexs.forEach((value:number,index:number)=>{
+        for(let i = 0;i<value;i++){
+            if(nums[i]>value-i){
+                break
+            }else if(i===value-1){
+                result = false
+                break
+            }
+        }
+        if(result === false){
+            return result
+        }
+    })
+    return result
+};
+```
+
+![78](EverydayAlgorithm/78.webp)
+
+如果没有大于但是恰好到终点了那也确实是符合条件的，我来补充一下这个逻辑的判断。
+
+```ts
+function canJump(nums: number[]): boolean {
+    if(!nums.includes(0)||nums.length===1){
+        return true
+    }
+    if(nums[0]===0){
+        return false
+    }
+    let result:boolean = true
+    let zeroIndexs:number[] = nums.map((value:number,index:number)=>{
+        if(value===0){
+            return index
+        }
+    })
+    zeroIndexs.forEach((value:number,index:number)=>{
+        for(let i = 0;i<value;i++){
+            if(nums[i]>value-i||i+nums[i]>=nums.length-1){
+                break
+            }else if(i===value-1){
+                result = false
+                break
+            }
+        }
+        if(result === false){
+            return result
+        }
+    })
+    return result
+};
+```
+
+![79](EverydayAlgorithm/79.webp)
+
+呕吼，过了，接下来看一下官方题解吧。
+
+哦！贪心算法有道理，大致思路就是维护一个最远的可到达位置变量，然后通过不断比较当前元素的最远可到达位置和当下最远可到达位置，来更新最远可到达位置，如果最远可到达位置大于等于数组长度，则说明可以到达终点。
+
+```ts
+function canJump(nums: number[]): boolean {
+    let maxAvailable:number = 0
+
+    nums.forEach((value:number,index:number)=>{
+        if(value+index>maxAvailable){
+            maxAvailable=value+index
+        }
+    })
+    if(maxAvailable>=nums.length-1){
+        return true
+    }
+    return false
+};
+```
+
+![80](EverydayAlgorithm/80.webp)
+
+啊，我疏漏了一个很严重的问题。我应该是先判断当前位置可否到达之后，再去进行下一步的判断，而不是直接去判断每一步的可到达位置。
+
+```ts
+function canJump(nums: number[]): boolean {
+    let maxAvailable:number = 0
+
+    nums.forEach((value:number,index:number)=>{
+        if(value+index>maxAvailable && maxAvailable>=index){
+            maxAvailable=value+index
+        }
+    })
+    if(maxAvailable>=nums.length-1){
+        return true
+    }
+    return false
+};
+```
+
+![81](EverydayAlgorithm/81.webp)
