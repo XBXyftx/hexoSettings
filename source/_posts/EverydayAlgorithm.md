@@ -1417,3 +1417,252 @@ function canJump(nums: number[]): boolean {
 ```
 
 ![81](EverydayAlgorithm/81.webp)
+
+ok，编写成功，我们继续下一题。
+
+### 55. 跳跃游戏 II
+
+![82](EverydayAlgorithm/82.webp)
+
+这道题和上一道题虽然是同一种题设，但是问的点却是完全不一致的，上一题是是否可以顺利到达终点，而这一题每一个测试用例都能确保其会到达终点，求的是最少需要跳跃的次数。感觉简单的使用贪心是解不出来的，我所想的是先去统一的计算一遍每一个位置可被到达的最少跳跃次数，维护这样的一个数组，然后这个数组算到最后一位的时候结果就出现了。
+
+但是这个想法我在代码落实的时候却是怎么都想不通了，无论是向前还是向后都会出现我们需要在循环中嵌套数个小循环的情况，这样时间复杂度会暴增。
+
+我又仔细的考虑了一下贪心的算法逻辑，其实这很符合我的直接，也就是每一次都尽可能的向前跳，但我们肯定不能说每次都是取最大值去跳这样肯定是错的，为了解决这个问题我觉得我们可以维护一个当前可到达最远位置之后，不去直接移动到最远处，而是依旧逐位移动，计算每一位的可达最远位置，若当前位置可达最大位置小于当前记录的值就不记录，当我们走到当前最大位置的覆盖范围时将步数加一，然后更新当前最大位置，继续去记录可达范围内的最大值，直到覆盖范围到达终点。
+
+```ts
+function jump(nums: number[]): number {
+    let currentMaxReachable:number = 0
+    let nextMaxReachable:number = 0
+    let pointer:number = 0
+    let step:number = 0
+
+    while(1){
+        if(nextMaxReachable>=nums.length-1){
+            step++
+            break
+        }
+        if(pointer===0){
+            currentMaxReachable = nums[0]
+            pointer++
+            continue
+        }
+        if(pointer===currentMaxReachable){
+            currentMaxReachable=nextMaxReachable
+            nextMaxReachable=0
+            pointer++
+            step++
+            continue
+        }
+        if((nums[pointer]+pointer)>nextMaxReachable){
+            nextMaxReachable=nums[pointer]+pointer
+            pointer++
+            continue
+        }
+        pointer++
+    }
+    return step
+};
+```
+
+![83](EverydayAlgorithm/83.webp)
+
+当前我们的代码在初始位置的处理出现了一些问题，当`pointer===0`时我们没有正确的添加第一步，我们直接开始了第一步的行走过程。
+
+```ts
+function jump(nums: number[]): number {
+    let currentMaxReachable:number = 0
+    let nextMaxReachable:number = 0
+    let pointer:number = 0
+    let step:number = 0
+
+    while(1){
+        if(nextMaxReachable>=nums.length-1){
+            step++
+            break
+        }
+        if(pointer===0){
+            currentMaxReachable = nums[0]
+            pointer++
+            step++
+            continue
+        }
+        if(pointer===currentMaxReachable){
+            currentMaxReachable=nextMaxReachable
+            nextMaxReachable=0
+            pointer++
+            step++
+            continue
+        }
+        if((nums[pointer]+pointer)>nextMaxReachable){
+            nextMaxReachable=nums[pointer]+pointer
+            pointer++
+            continue
+        }
+        pointer++
+    }
+    return step
+};
+```
+
+![84](EverydayAlgorithm/84.webp)
+
+还存在长度为零的边界情况。
+
+```ts
+    function jump(nums: number[]): number {
+        if(nums.length===1){
+            return 0
+        }
+        let currentMaxReachable:number = 0
+        let nextMaxReachable:number = 0
+        let pointer:number = 0
+        let step:number = 0
+
+        while(1){
+            if(currentMaxReachable>=nums.length-1){
+                break
+            }
+            if(pointer===0){
+                currentMaxReachable = nums[0]
+                pointer++
+                step++
+                continue
+            }
+            if(pointer===currentMaxReachable){
+                currentMaxReachable=nextMaxReachable
+                nextMaxReachable=0
+                pointer++
+                step++
+                continue
+            }
+            if((nums[pointer]+pointer)>nextMaxReachable){
+                nextMaxReachable=nums[pointer]+pointer
+                pointer++
+                continue
+            }
+            pointer++
+        }
+        return step
+    };
+```
+
+![85](EverydayAlgorithm/85.webp)
+
+为什么会超时呢我明明已经判断了边界情况。
+
+让我用一些更简单的的方式来去进行编写
+
+```ts
+function jump(nums: number[]): number {
+    if(nums.length === 1){
+        return 0
+    }
+    let currentMaxReachable: number = 0
+    let nextMaxReachable: number = 0
+    let step: number = 0
+    
+    // 从0开始遍历，每次检查是否到达边界
+    for(let i = 0; i < nums.length - 1; i++){
+        nextMaxReachable = Math.max(nextMaxReachable, nums[i] + i)
+        
+        // 到达当前能跳到的最远位置，需要跳一步
+        if(i === currentMaxReachable){
+            currentMaxReachable = nextMaxReachable
+            step++
+            // 已经能到达终点
+            if(currentMaxReachable >= nums.length - 1){
+                break
+            }
+        }
+    }
+    return step
+}
+
+```
+
+````md
+用户询问了两个版本的代码（第1版1512-1548行和第2版1556-1581行）的区别，以及第一版代码超时的问题。
+
+让我分析一下这两个版本的代码：
+
+第一版代码（1512-1548行）：
+- 使用while(1)循环
+- 使用pointer指针遍历
+- 逻辑比较复杂，有多个if分支
+
+第二版代码（1556-1581行）：
+- 使用for循环遍历
+- 逻辑更清晰
+- 通过了测试
+
+我需要仔细分析第一版代码的问题所在。
+
+第一版的主要问题：
+1. 在 `if((nums[pointer]+pointer)>nextMaxReachable)` 分支中，更新nextMaxReachable后，pointer++，然后continue，这是对的
+2. 但如果 `nums[pointer]+pointer <= nextMaxReachable`，直接pointer++，没有continue，会继续往下走？不对，这里用了continue
+
+等等，让我仔细看...
+
+实际上，第一版代码的问题是：
+- 当 `pointer === currentMaxReachable` 时，会更新currentMaxReachable = nextMaxReachable，然后pointer++，step++
+- 但是这里有个问题，如果nextMaxReachable没有更新过（还是0），那就会出问题
+
+
+- 当第一次到达currentMaxReachable时，currentMaxReachable会被设置为nextMaxReachable
+- 如果nextMaxReachable是0，那pointer可能永远无法前进到数组末尾，导致死循环
+
+我发现了一个关键问题：pointer可能一直卡在0的位置。当pointer为0时，currentMaxReachable被设置为nums[0]，然后pointer自增。但如果后续处理不当，pointer可能会陷入停滞状态。
+
+在指针移动的过程中，如果pointer等于currentMaxReachable，但nextMaxReachable更新为0，就会出现无限循环的风险。
+
+具体来说，当pointer为1，currentMaxReachable为1，且nums[1]为0时，nextMaxReachable会被设为1。随后pointer增加到2，但currentMaxReachable保持为1，这会打破循环条件。
+
+我需要仔细检查pointer的递增逻辑，特别是不同条件下的指针移动规则。
+
+第一版的条件判断较为分散，可能导致指针移动不一致。相比之下，第二版使用简单的for循环，确保每次迭代pointer都会递增，逻辑更加清晰和可控。
+
+关键问题在于第一版的continue语句和条件判断可能导致某些情况下pointer没有正确递增，特别是在处理边界条件时。
+
+如果 `nums[pointer]+pointer > nextMaxReachable`，pointer会递增；但如果小于等于，pointer可能不会移动。这会导致在某些情况下，如 `nums = [2, 0, 0]`，pointer卡在位置1，形成死循环。
+
+具体场景是当pointer为1，currentMaxReachable为2时，pointer始终无法推进，循环陷入僵局。
+
+第二版代码通过for循环确保每次迭代都移动指针，避免了这种潜在的无限循环问题。
+
+核心差异在于指针移动的机制：第一版依赖条件判断递增，可能导致某些情况下指针停滞；第二版则保证每次循环都前进，逻辑更为可靠。
+这两个版本的核心区别在于**指针移动的逻辑**，第一版存在**死循环**风险。
+
+## 问题分析
+
+**第一版的问题**：当 `nums[pointer]+pointer <= nextMaxReachable` 时，虽然执行了 `pointer++`，但随后 `continue` 跳过了后续逻辑。更关键的是，如果 `nums[pointer]` 为 0 且无法更新 `nextMaxReachable`，**`pointer` 可能永远无法超过 `currentMaxReachable`**，导致死循环。
+
+例如 `nums = [2, 0, 0]`：
+- pointer=1 时，`nums[1]+1 = 1`，如果 `nextMaxReachable` 已经是 1，条件不满足，只执行 `pointer++`
+- 但循环继续时可能卡在某种状态导致无法退出
+
+**第二版的改进**：
+```ts
+for(let i = 0; i < nums.length - 1; i++)
+```
+使用 `for` 循环保证**每次迭代 `i` 必定自增**，不会死循环。
+
+## 关键差异对比
+
+| 方面 | 第一版 (while) | 第二版 (for) |
+|------|---------------|-------------|
+| 指针移动 | 条件判断+手动递增 | 循环自带递增 |
+| 终止条件 | 复杂的多重判断 | 明确的 `i < nums.length - 1` |
+| 死循环风险 | 有（某些边界情况） | 无 |
+
+## 建议
+
+第二版是正确的贪心解法：
+- 遍历范围 `0` 到 `nums.length-2`（最后一个位置不用跳）
+- 维护 `nextMaxReachable` 记录下一步能到达的最远位置
+- 到达当前边界时更新步数和新的边界
+
+你的第一版逻辑太分散，容易在某些特殊用例（如包含0的数组）下出现指针停滞。第二版简洁且正确。
+````
+
+![86](EverydayAlgorithm/86.webp)
