@@ -32,17 +32,15 @@ const dimensionsCache = new Map();
 
 // 需要排除的 class（这些区域的图片不添加尺寸和懒加载）
 const EXCLUDE_CLASSES = [
-  'announcementImg',
-  'site-icon',  // Logo 图片，CSS 中固定尺寸，不添加尺寸属性
-  'post-bg',
-  'cover',
-  'friend-avatar'
+  'site-icon',      // Logo，CSS 固定尺寸
+  'announcementImg', // 公告栏 GIF
+  'post-bg',        // 文章背景图
+  'cover',          // 封面图
+  'friend-avatar'   // 友链头像
 ];
 
 // 需要排除的 alt 文本
-const EXCLUDE_ALTS = [
-  'avatar'
-];
+const EXCLUDE_ALTS = ['avatar'];
 
 // 需要排除的图片路径模式
 const EXCLUDE_PATH_PATTERNS = [
@@ -103,9 +101,7 @@ function getImageDimensions(src) {
   return null;
 }
 
-// 检查是否应该排除该图片
 function shouldExclude(attrs, src) {
-  // 检查 class
   const classMatch = attrs.match(/class=["']([^"']*)["']/i);
   if (classMatch) {
     const classNames = classMatch[1];
@@ -116,7 +112,6 @@ function shouldExclude(attrs, src) {
     }
   }
   
-  // 检查 alt
   const altMatch = attrs.match(/alt=["']([^"']*)["']/i);
   if (altMatch) {
     const alt = altMatch[1];
@@ -127,7 +122,6 @@ function shouldExclude(attrs, src) {
     }
   }
   
-  // 检查 src 路径
   for (const pattern of EXCLUDE_PATH_PATTERNS) {
     if (pattern.test(src)) {
       return true;
@@ -161,13 +155,11 @@ function processImages(htmlContent) {
     const src = srcMatch[1];
     let newAttrs = attrs;
 
-    // 检查是否应该排除
     const isExcluded = shouldExclude(attrs, src);
     if (isExcluded) {
       skipCount++;
     }
 
-    // 获取并添加尺寸（只对非排除的图片）
     if ((!hasWidth || !hasHeight) && sizeOf && !isExcluded) {
       const dimensions = getImageDimensions(src);
       if (dimensions) {
@@ -177,7 +169,6 @@ function processImages(htmlContent) {
       }
     }
 
-    // 只对非排除的图片添加懒加载
     if (!hasLoading && !isExcluded) {
       newAttrs += ' loading="lazy"';
       lazyCount++;
