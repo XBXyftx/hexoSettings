@@ -1805,3 +1805,133 @@ function hIndex(citations: number[]): number {
 
 而为了破解这个问题我们就要结合下面判断逻辑中的`right = mid-1`来使用，由于`mid`会被左指针取走，右指针永远不会取到当前的`mid`值，也就代表只要遇到左右差一的情况，我们让mid向上取整，也就是更靠近右指针时就不会出现三指针值无变化的情况，从而避免死循环，同时也因为右指针减一后恰好与左指针相等进而不满足循环条件，跳出循环得出结果。
 {% endnote %}
+
+### 380. O(1) 时间插入、删除和获取随机元素
+
+![94](EverydayAlgorithm/94.webp)
+
+这个题和前面做过的都不太一样，让我来分析一下。
+
+首先初始化，我们需要确定我们都需要什么样的数据结构然后再来确定如何去实现初始化。
+
+其存贮的主体是一个数组，但与此同时我们还需要记录其是否存在，因为插入和删除两个方法都是需要先判断是否存在随后再进行实际操作的。所以我们可以使用一个Map来记录，key为元素值，value为布尔值，表示是否存在。
+
+但实际开始编写代码之后发现好像并不需要这么麻烦，毕竟TS数组中天然包含了这些操作所需的方法，我们不需要单独维护一个Map。
+
+```ts
+class RandomizedSet {
+    nums:number[]
+
+    constructor() {
+        this.nums = []
+    }
+
+    insert(val: number): boolean {
+        if(this.nums.includes(val)){
+            return false
+        }
+        this.nums.push(val)
+        return true
+    }
+
+    remove(val: number): boolean {
+        if(!this.nums.includes(val)){
+            false
+        }
+        let valIndex = this.nums.indexOf(val)
+        if(this.nums.splice(valIndex,1)[0]===val){
+            return true
+        }
+        return false
+    }
+
+    getRandom(): number {
+        let randomNum = Math.floor(Math.random()*this.nums.length)
+        return this.nums[randomNum]
+    }
+}
+
+/**
+ * Your RandomizedSet object will be instantiated and called as such:
+ * var obj = new RandomizedSet()
+ * var param_1 = obj.insert(val)
+ * var param_2 = obj.remove(val)
+ * var param_3 = obj.getRandom()
+ */
+```
+
+![95](EverydayAlgorithm/95.webp)
+
+我们来仔细分析一下错误原因。通过对比输出和预期结果，发现问题出在第6步 `remove(1)` 和第7步 `insert(2)`：
+
+| 步骤 | 操作 | 输入 | 我的输出 | 预期结果 | 实际集合状态 | 分析 |
+|------|------|------|----------|----------|--------------|------|
+| 1 | RandomizedSet | [] | null | null | `[]` | 初始化空集合 |
+| 2 | insert | 1 | true | true | `[1]` | 插入1成功 |
+| 3 | remove | 2 | **false** | false | `[1]` | 2不存在，返回false ✓ |
+| 4 | insert | 2 | true | true | `[1, 2]` | 插入2成功 |
+| 5 | getRandom | [] | 2 | 2 | `[1, 2]` | 随机返回2（可能）|
+| 6 | remove | 1 | **false** ❌ | true | `[2]` → `[2]` | 元素1存在，应返回true，但返回了false |
+| 7 | insert | 2 | **true** ❌ | false | `[2]` → `[2,2]` | 2已存在，应返回false，但返回了true |
+| 8 | getRandom | [] | 2 | 2 | `[2,2]` | 随机返回2 |
+
+**问题定位：**
+
+仔细审查代码后，发现问题出在 `remove` 方法的第3行：
+
+```ts
+remove(val: number): boolean {
+    if(!this.nums.includes(val)){
+        false  // ❌ 这里只写了 false，没有 return false！
+    }
+    let valIndex = this.nums.indexOf(val)
+    if(this.nums.splice(valIndex,1)[0]===val){
+        return true
+    }
+    return false
+}
+```
+
+```ts
+class RandomizedSet {
+    nums:number[]
+
+    constructor() {
+        this.nums = []
+    }
+
+    insert(val: number): boolean {
+        if(this.nums.includes(val)){
+            return false
+        }
+        this.nums.push(val)
+        return true
+    }
+
+    remove(val: number): boolean {
+        if(!this.nums.includes(val)){
+            return false
+        }
+        let valIndex = this.nums.indexOf(val)
+        if(this.nums.splice(valIndex,1)[0]===val){
+            return true
+        }
+        return false
+    }
+
+    getRandom(): number {
+        let randomNum = Math.floor(Math.random()*this.nums.length)
+        return this.nums[randomNum]
+    }
+}
+
+/**
+ * Your RandomizedSet object will be instantiated and called as such:
+ * var obj = new RandomizedSet()
+ * var param_1 = obj.insert(val)
+ * var param_2 = obj.remove(val)
+ * var param_3 = obj.getRandom()
+ */
+```
+
+不好意思我是**让我们继续吧。
