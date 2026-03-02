@@ -1,5 +1,5 @@
 ---
-title: 开源之夏NowInOpenHarmony
+title: 开源之夏
 date: 2025-06-29 14:01:21
 tags:
   - 开源之夏

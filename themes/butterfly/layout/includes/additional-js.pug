@@ -44,6 +44,10 @@ div
   // 视频懒加载刷新按钮功能
   script(src=url_for('/js/lazy-video-refresh.js'))
 
+  // VS Code 风格智能文档导航栏 - 只在文章页面加载
+  if globalPageType === 'post'
+    script(src=url_for('/js/vscode-breadcrumb-toc.js'))
+
   .js-pjax
     if needLoadCountJs
       != partial("includes/third-party/card-post-count/index", {}, { cache: true })

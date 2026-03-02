@@ -159,6 +159,11 @@ scripts/              # Hexo 插件脚本
 - **修改**: `tocItemClickFn` 函数，添加预加载和位置修正逻辑
 - **依赖**: `window.lazyLoadPreload()` 函数（来自 `lazy-loading-native.js`）
 
+#### 5.4 智能文档导航栏（2026-03-02）
+- **文件**: `source/js/vscode-breadcrumb-toc.js`, `source/css/vscode-breadcrumb-toc.css`
+- **功能**: VS Code 风格的面包屑导航，显示当前章节层级
+- **注入点**: 主题模板 `head.pug` 和 `additional-js.pug` 条件加载（仅文章页）
+
 ---
 
 ### 6. 网络监控工具
@@ -175,6 +180,24 @@ scripts/              # Hexo 插件脚本
 ---
 
 ## 重要历史变更
+
+### 2026-03-02: VS Code 风格智能文档导航栏
+- **新增**: 智能文档导航栏（VS Code Breadcrumb 风格）
+- **功能**:
+  - 显示当前章节标题和父级标题（层级关系）
+  - 阅读进度条（底部蓝色细线）
+  - 返回顶部按钮
+  - 点击标题可跳转对应章节
+- **显示逻辑**:
+  - 页面在顶部（滚动 < 100px）：隐藏
+  - 向下滚动（滚动 ≥ 100px）：显示，固定在原生导航栏下方
+  - 原生导航栏收起（`nav-visible` 类移除）：一起隐藏
+- **实现文件**:
+  - `source/js/vscode-breadcrumb-toc.js` - 核心逻辑
+  - `source/css/vscode-breadcrumb-toc.css` - 样式（深色/浅色主题适配）
+- **主题适配**: 支持深色/浅色主题自动切换，支持 `data-theme` 属性覆盖
+
+---
 
 ### 2026-02-22: 图片懒加载布局偏移修复
 - **问题**: 点击目录跳转时，滚动过程中图片加载导致页面高度变化，最终位置偏移，需要反复点击才能正确定位
