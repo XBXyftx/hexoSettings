@@ -1666,3 +1666,142 @@ for(let i = 0; i < nums.length - 1; i++)
 ````
 
 ![86](EverydayAlgorithm/86.webp)
+
+### H指针
+
+![87](EverydayAlgorithm/87.webp)
+
+我第一个想到的是中位数或者是平均数，去中间值后验算，如果不行就再往两边移动，但感觉实现起来很麻烦。这种思路的前提肯定是要先排序才能取得中间位置，但一旦不符合我们向上向下的移动方向选择也是个难题，所以我觉得不如在排序之后，直接从大到小去逐一排查。
+
+这个排查并不需要从头到尾中间某一环节不满足后我们就可以终止。
+
+```ts
+function hIndex(citations: number[]): number {
+    citations.sort((a:number,b:number)=>{
+        return b-a
+    })
+    let h:number = 0
+    for(let i = 0;i < citations.length;i++){
+        if(citations[i]>=h){
+            h++
+            continue
+        }
+        break
+    }
+    return h
+};
+```
+
+![88](EverydayAlgorithm/88.webp)
+
+我们来演算一下当前的错误测试用例。
+
+`[1,3,1]`排序后`[3,1,1]`
+
+第一次循环中：3>0，h++，h=1
+第二次循环中：1>=1，h++，h=2
+
+这里就能看出来问题了，我们应该对比的是h增加后的数字而不是当前的h值，每一次比较时都应该h+1，同时h的最小值不一定是1，因为可能存在全0，没有任何一篇文章被引用过的情况存在，所有我们不能够直接将h初始化为1。
+
+```ts
+function hIndex(citations: number[]): number {
+    citations.sort((a:number,b:number)=>{
+        return b-a
+    })
+    let h:number = 0
+    for(let i = 0;i < citations.length;i++){
+        if(citations[i]>=h+1){
+            h++
+            continue
+        }
+        break
+    }
+    return h
+};
+```
+
+![89](EverydayAlgorithm/89.webp)
+
+ok，来看一下官方题解。
+
+![90](EverydayAlgorithm/90.webp)
+
+基于升序排列后由两侧向中间合拢，其实和我最开始中间向两边找的思路是相似的只不过是方向相反，但很多时候差的就是这样一个逆向思维，但其实和我们基于倒序的方式差距不大。
+
+![91](EverydayAlgorithm/91.webp)
+
+这种解法整体来讲只是换了另一种方式排序，差别不大，就不做过多分析，直接去看最重要的二分。
+
+![92](EverydayAlgorithm/92.webp)
+
+```ts
+/**
+ * @param {number[]} citations
+ * @return {number}
+ */
+var hIndex = function(citations) {
+    let left = 0, right = citations.length
+    while (left<right){
+        // +1 防止死循环
+        let mid = Math.floor((left + right + 1) / 2)
+        let cnt = 0
+        for (let v of citations){
+            if (v >= mid){
+                cnt+=1
+            }
+        }
+        if(cnt>=mid){
+            // 要找的答案在 [mid,right] 区间内
+            left=mid
+        }else{
+            // 要找的答案在 [0,mid) 区间内
+            right=mid-1
+        }
+    }
+    return left
+};
+```
+
+上面是官方题解的代码，但是我认为还可以再简单一些，官方题解并没有进行排序，是直接在初始的乱序状态下进行的二分查找，每次判断二分的移动方向时都要重新计数整个数组，这样效率太低了。我们可以通过一次升序排序来简化这个过程。
+
+```ts
+function hIndex(citations: number[]): number {
+    citations.sort((a:number,b:number)=>{
+        return a-b
+    })
+    let n = citations.length,left = 0,right = n,mid = 0
+    while(left<right){
+        mid = Math.floor((left+right+1)/2)
+        if(citations[n-mid]>=mid){
+            left = mid
+        }else{
+            right = mid-1
+        }
+    }
+    return mid
+};
+```
+
+以 `[3,0,6,1,5]` 为例，排序后为 `[0,1,3,5,6]`：
+
+| 轮次 | left | right | mid | 判断 `citations[5-mid] >= mid` | 操作 |
+|------|------|-------|-----|-------------------------------|------|
+| 1 | 0 | 5 | 3 | `citations[2]=3 >= 3` ✓ | left = 3 |
+| 2 | 3 | 5 | 4 | `citations[1]=1 >= 4` ✗ | right = 3 |
+| **结束** | **3** | **3** | **4** | - | - |
+
+此时：
+
+- `left = 3` ← 正确答案
+- `right = 3` ← 也是正确答案
+- `mid = 4` ← 这是**上一轮**的值，已经过时了！
+
+![93](EverydayAlgorithm/93.webp)
+
+{% note success flat %}
+然后这里来特别说明一下代码中`mid = Math.floor((left+right+1)/2)`这样写的理由。
+
+这是在二分查找避免死循环的一个常用小技巧。二分查找在寻找中间值的时候可能会遇到左右指针仅差1的情况，无论是向上取整还是向下取整都会出现与左指针或右指针相同的情况，这样就会导致下一循环的三个指针与上一循环的三个指针相同，陷入死循环。
+
+而为了破解这个问题我们就要结合下面判断逻辑中的`right = mid-1`来使用，由于`mid`会被左指针取走，右指针永远不会取到当前的`mid`值，也就代表只要遇到左右差一的情况，我们让mid向上取整，也就是更靠近右指针时就不会出现三指针值无变化的情况，从而避免死循环，同时也因为右指针减一后恰好与左指针相等进而不满足循环条件，跳出循环得出结果。
+{% endnote %}
