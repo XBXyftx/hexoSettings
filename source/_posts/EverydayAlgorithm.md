@@ -1934,4 +1934,162 @@ class RandomizedSet {
  */
 ```
 
+![97](EverydayAlgorithm/97.webp)
+
 不好意思我是**让我们继续吧。
+
+```ts
+var RandomizedSet = function() {
+    this.nums = [];
+    this.indices = new Map();
+};
+
+RandomizedSet.prototype.insert = function(val) {
+    if (this.indices.has(val)) {
+        return false;
+    }
+    let index = this.nums.length;
+    this.nums.push(val);
+    this.indices.set(val, index);
+    return true;
+};
+
+RandomizedSet.prototype.remove = function(val) {
+    if (!this.indices.has(val)) {
+        return false;
+    }
+    let id = this.indices.get(val);
+    this.nums[id] = this.nums[this.nums.length - 1];
+    this.indices.set(this.nums[id], id);
+    this.nums.pop();
+    this.indices.delete(val);
+    return true;
+};
+
+RandomizedSet.prototype.getRandom = function() {
+    const randomIndex = Math.floor(Math.random() * this.nums.length);
+    return this.nums[randomIndex];
+};
+
+```
+
+额，官方题解中JS版也是单独维护了一个Map，这是为什么呢？难道更快吗？
+
+#### 复杂度分析对比
+
+要理解为什么官方题解使用 Map，我们需要对比两种解法的时间复杂度：
+
+| 操作 | 我的解法 | 官方题解 |
+|------|---------|---------|
+| **insert** | `O(n)` - `includes()` 需要遍历数组 | `O(1)` - Map 的 `has()` 是哈希查找 |
+| **remove** | `O(n)` - `indexOf()` + `splice()` 都需要遍历/移动元素 | `O(1)` - Map 查找 + 交换元素 |
+| **getRandom** | `O(1)` - 随机访问数组 | `O(1)` - 随机访问数组 |
+
+**关键差异在于 `splice()`：**
+
+在我的代码中：
+```ts
+let valIndex = this.nums.indexOf(val)  // O(n) 查找
+this.nums.splice(valIndex, 1)           // O(n) 移动后续所有元素
+```
+
+`splice()` 删除元素后，需要将删除位置之后的所有元素向前移动一位，这是一个 **O(n)** 的操作。当数据量很大时，这个开销会非常明显。
+
+#### 官方题解的核心技巧
+
+官方题解为了实现 O(1) 的删除，使用了一个巧妙的**交换技巧**：
+
+```ts
+remove(val) {
+    let id = this.indices.get(val);           // O(1) 获取要删除的索引
+    this.nums[id] = this.nums[this.nums.length - 1];  // 用最后一个元素覆盖
+    this.indices.set(this.nums[id], id);      // 更新被移动元素的索引
+    this.nums.pop();                          // O(1) 删除最后一个元素
+    this.indices.delete(val);                 // O(1) 从Map删除
+}
+```
+
+**图解过程：**
+
+假设数组是 `[10, 20, 30, 40]`，要删除 `20`（索引1）：
+
+```
+步骤1: 找到 20 的索引 = 1
+       [10, 20, 30, 40]
+            ↑
+          要删除
+
+步骤2: 用最后一个元素 40 覆盖 20
+       [10, 40, 30, 40]
+            ↑
+          被覆盖
+
+步骤3: 更新 Map 中 40 的新索引为 1
+       {10:0, 40:1, 30:2}
+
+步骤4: pop() 删除最后一个元素
+       [10, 40, 30]
+```
+
+这样就不需要考虑数组中间元素的移动问题了！
+
+#### 为什么需要 Map？
+
+Map 在这里有两个作用：
+
+1. **O(1) 判断元素是否存在** - `this.indices.has(val)` 替代 `this.nums.includes(val)`
+2. **O(1) 获取元素索引** - `this.indices.get(val)` 替代 `this.nums.indexOf(val)`
+
+这两个操作如果直接用数组都是 O(n)，而 Map（哈希表）可以将它们优化到 O(1)。
+
+#### 完整实现
+
+理解了原理后，我用 TypeScript 重写一下官方题解：
+
+```ts
+class RandomizedSet {
+    nums: number[]
+    indices: Map<number, number>  // value -> index
+
+    constructor() {
+        this.nums = []
+        this.indices = new Map()
+    }
+
+    insert(val: number): boolean {
+        if (this.indices.has(val)) {
+            return false
+        }
+        this.indices.set(val, this.nums.length)
+        this.nums.push(val)
+        return true
+    }
+
+    remove(val: number): boolean {
+        if (!this.indices.has(val)) {
+            return false
+        }
+        const index = this.indices.get(val)!
+        const lastVal = this.nums[this.nums.length - 1]
+        
+        // 用最后一个元素覆盖要删除的元素
+        this.nums[index] = lastVal
+        this.indices.set(lastVal, index)
+        
+        // 删除最后一个元素
+        this.nums.pop()
+        this.indices.delete(val)
+        
+        return true
+    }
+
+    getRandom(): number {
+        const randomIndex = Math.floor(Math.random() * this.nums.length)
+        return this.nums[randomIndex]
+    }
+}
+```
+
+![96](EverydayAlgorithm/96.webp)
+
+用空间换时间，确实在某些场景下更吃香。
