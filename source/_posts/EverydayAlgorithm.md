@@ -2093,3 +2093,326 @@ class RandomizedSet {
 ![96](EverydayAlgorithm/96.webp)
 
 用空间换时间，确实在某些场景下更吃香。
+
+### 238. 除了自身以外数组的乘积
+
+![98](EverydayAlgorithm/98.webp)
+
+首先最基础的方式肯定是逐一相乘，这时间复杂度太大了，我必须要优化。
+
+首先我们分析一下，基础方式的计算过程中是有大量的重复计算的，我们不能排列组合全部计算一遍后计算结果再逐层向上计算，这样同样是十分恐怖的时间复杂度，同时空间复杂度也会十分恐怖。
+
+我们必须以某种规律去规整计算的顺序。
+
+每一个位置的计算都可以视为，以目标位置为轴，左右的数字去乘积，那这样就会出现一个规律，左二为基等于左一*1，左三为基等于左二*左一，以此类推，右二为基等于右一*1，右三为基等于右二*右一，以此类推。正反各自遍历一次就可以得到结果。
+
+```ts
+function productExceptSelf(nums: number[]): number[] {
+    let answer:number[] = []
+    let left:number = 1
+    for(let i=0;i<nums.length;i++){
+        answer.push(left)
+        left*=nums[i]
+    }
+    let right:number = 1
+    for(let i=nums.length-1;i>=0;i++){
+        answer[i]*=right
+        right*=nums[i]
+    }
+    return answer
+};
+```
+
+```err
+<--- Last few GCs --->
+[21:0x3c0e6000]      836 ms: Mark-Compact (reduce) 386.8 (396.3) -> 386.8 (388.8) MB, pooled: 0 MB, 5.54 / 0.00 ms  (average mu = 0.924, current mu = 0.026) last resort; GC in old space requested
+[21:0x3c0e6000]      841 ms: Mark-Compact (reduce) 386.8 (388.8) -> 386.8 (388.8) MB, pooled: 0 MB, 4.26 / 0.00 ms  (average mu = 0.892, current mu = 0.002) last resort; GC in old space requested
+<--- JS stacktrace --->
+FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+ 1: 0xe36196 node::OOMErrorHandler(char const*, v8::OOMDetails const&) [nodejs run]
+ 2: 0x123f4a0 v8::Utils::ReportOOMFailure(v8::internal::Isolate*, char const*, v8::OOMDetails const&) [nodejs run]
+ 3: 0x123f777 v8::internal::V8::FatalProcessOutOfMemory(v8::internal::Isolate*, char const*, v8::OOMDetails const&) [nodejs run]
+ 4: 0x145c1fc v8::internal::HeapAllocator::AllocateRawWithRetryOrFailSlowPath(int, v8::internal::AllocationType, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) [nodejs run]
+ 5: 0x143440e v8::internal::Factory::AllocateRaw(int, v8::internal::AllocationType, v8::internal::AllocationAlignment) [nodejs run]
+ 6: 0x1422a6c v8::internal::FactoryBase<v8::internal::Factory>::AllocateRawArray(int, v8::internal::AllocationType) [nodejs run]
+ 7: 0x14231c6 v8::internal::FactoryBase<v8::internal::Factory>::NewFixedDoubleArray(int, v8::internal::AllocationType) [nodejs run]
+ 8: 0x16011b6  [nodejs run]
+ 9: 0x16015ef  [nodejs run]
+10: 0x1883cb6 v8::internal::Runtime_GrowArrayElements(int, unsigned long*, v8::internal::Isolate*) [nodejs run]
+11: 0x1df2476  [nodejs run]
+```
+
+内存溢出？
+
+为什么内存溢出了？
+
+奥！我写错了，倒序的应该是--
+
+```ts
+function productExceptSelf(nums: number[]): number[] {
+    let answer:number[] = []
+    let left:number = 1
+    for(let i=0;i<nums.length;i++){
+        answer.push(left)
+        left*=nums[i]
+    }
+    let right:number = 1
+    for(let i=nums.length-1;i>=0;i--){
+        answer[i]*=right
+        right*=nums[i]
+    }
+    return answer
+};
+```
+
+![99](EverydayAlgorithm/99.webp)
+
+这个算法的额外空间复杂度已经是O（1）
+
+### 134. 加油站
+
+![100](EverydayAlgorithm/100.webp)
+
+这也是个无比经典的题，之前我刷视频刷到过，但确实是很早了，已经忘干净了，让我从新审视一下这个题。
+
+我想的是直接用gas数组减去cost数组，得到一个纯油量数组。我们就以题目示例的数组为例推演一下找一下规律。
+
+```ts
+gas = [1,2,3,4,5], cost = [3,4,5,1,2]
+```
+
+```ts
+[-2,-2,-2,3,3]
+```
+
+这样一对比就可以看出来几个特征：
+
+1. 纯油量总和>=0才有可能存在起点。
+2. 纯油量为负数的位置不可能是起点。
+
+```ts
+gas = [2,3,4], cost = [3,4,3]
+```
+
+```ts
+[-1,-1,1]
+```
+
+这个例子中，纯油量总和为0。这就肯定不可能存在起点了。
+
+所以我们首先可以先计算一下纯油量综合，如果小于0，那肯定不存在起点。
+
+```ts
+function canCompleteCircuit(gas: number[], cost: number[]): number {
+    let gasCost:number[] = []
+    gas.forEach((v,i)=>{
+        gasCost.push(v-cost[i])
+    })
+    let totalGas:number = 0
+
+    gasCost.forEach(v=>{
+        totalGas+=v
+    })
+    if(totalGas<0){
+        return -1
+    }
+};
+```
+
+接下来该解决的是如何判断起点，逐一判断验算应该并非最优解。
+
+我们得想办法找到规律可以快速排除一些点。
+
+首先我们遍历的起始点可以直接越过纯油量为负数的点，因为不可能存在起点。
+
+随后从数组的第一个正数开始遍历，设置一个当前油量变量，如果如果走到某一站时，当前油量小于0，那这个点肯定不是起点，同时从该起点到小于0的那个点之间的所有点都不可能是起点。
+
+```ts
+function canCompleteCircuit(gas: number[], cost: number[]): number {
+    let gasCost:number[] = []
+    gas.forEach((v,i)=>{
+        gasCost.push(v-cost[i])
+    })
+    let totalGas:number = 0
+
+    gasCost.forEach(v=>{
+        totalGas+=v
+    })
+    if(totalGas<0){
+        return -1
+    }
+    let start = 0
+    let currentGas = 0
+    let success = true
+    for(let i=0;i<gasCost.length;i++){
+        if(gasCost[i]<0){
+            continue
+        }
+        for(let j=0;j<gasCost.length;j++){
+            currentGas+=gasCost[(j+i)%gasCost.length]
+            if(currentGas<0){
+                success = false
+                break
+            }
+            start = i
+        }
+        if(success)return start
+    }
+    return -1
+};
+```
+
+![101](EverydayAlgorithm/101.webp)
+
+哦我的currentGas和success都没有重置。
+
+```ts
+function canCompleteCircuit(gas: number[], cost: number[]): number {
+    let gasCost:number[] = []
+    gas.forEach((v,i)=>{
+        gasCost.push(v-cost[i])
+    })
+    let totalGas:number = 0
+
+    gasCost.forEach(v=>{
+        totalGas+=v
+    })
+    if(totalGas<0){
+        return -1
+    }
+    let start = 0
+    let currentGas = 0
+    let success = true
+    for(let i=0;i<gasCost.length;i++){
+        if(gasCost[i]<0){
+            continue
+        }
+        currentGas = 0
+        success = true
+        for(let j=0;j<gasCost.length;j++){
+            currentGas+=gasCost[(j+i)%gasCost.length]
+            if(currentGas<0){
+                success = false
+                break
+            }
+            start = i
+        }
+        if(success)return start
+    }
+    return -1
+};
+```
+
+![102](EverydayAlgorithm/102.webp)
+
+不是，什么鬼测试用例。看来只能想办法减少循环嵌套了。当前我的核心问题一是有多次循环，而且计算内容相似，是可以合并到单次循环中的，二则是存在循环嵌套导致出现O(n^2)的时间复杂度。
+
+我们双层循环的本质就是验证每一个可能点是否是起点。但题目中说了起点如果存在那就是唯一，所以说前面排除的点我们没有必要去再次检查，只需要向后看能否跑通，这样是一种强依赖于题干条件可移植性低但时间复杂度低的解法。
+
+```ts
+function canCompleteCircuit(gas: number[], cost: number[]): number {
+    let n = gas.length
+    let totalGas = 0, currentGas = 0, start = 0
+    
+    for(let i = 0; i < n; i++){
+        let diff = gas[i] - cost[i]
+        totalGas += diff
+        currentGas += diff
+        
+        if(currentGas < 0){
+            start = i + 1
+            currentGas = 0
+        }
+    }
+    
+    return totalGas >= 0 ? start : -1
+};
+```
+
+![103](EverydayAlgorithm/103.webp)
+
+但还有个很严重的问题就是在于我们如何证明纯油量综合不为负就一定有起点呢？
+
+#### 贪心算法的正确性证明
+
+这个贪心算法的核心直觉是：**如果从位置 `start` 出发，走到位置 `i` 时油量变负了，那么 `[start, i]` 之间的所有位置都不可能作为起点。**
+
+**证明：**
+
+假设从 `start` 出发，到达 `i` 之前油量都非负，到达 `i` 时油量变负。
+
+对于 `[start, i]` 中的任意位置 `k`，从 `start` 到 `k` 的过程中累积的油量是非负的（否则早就停了）。
+
+如果从 `k` 出发，相当于少了从 `start` 到 `k` 这一段累积的油量，而从 `k` 到 `i` 需要的油量是一样的。既然从 `start` 出发都到不了 `i`，从 `k` 出发（带着更少的油）更到不了 `i`。
+
+**所以 `[start, i]` 全部排除，直接从 `i+1` 开始新的尝试。**
+
+**为什么总和 >= 0 就一定有解？**
+
+假设贪心算法最终返回了 `start`，我们需要证明从 `start` 出发一定能走完一圈。
+
+用反证法：假设从 `start` 出发还是走不完，会在某个位置 `j` 失败。
+
+但我们的算法只有在 `currentGas < 0` 时才会移动 `start`，而最终 `start` 没有再被移动，说明从 `start` 到最后一个位置的过程中 `currentGas` 始终 >= 0。
+
+更严谨的证明：设总油量为 `totalGas >= 0`。
+
+在贪心过程中，假设 `start` 最终被设为 `k`。这意味着：
+
+- 从位置 0 到 k-1，某几个段的累积油量为负，导致 `start` 不断后移
+- 从位置 k 到 n-1，累积油量始终非负
+
+{% note success flat %}
+而从 0 到 k-1 的所有油量之和 + 从 k 到 n-1 的所有油量之和 = `totalGas >= 0`。
+{% endnote %}
+
+既然从 k 到 n-1 可以顺利到达终点，而从 0 到 k-1 的总油量加上剩余油量也是非负的（因为总和 >= 0），所以从 k 出发绕一圈一定能成功。
+
+#### 推演示例
+
+用题目示例推演一遍：
+
+```
+gas  = [1, 2, 3, 4, 5]
+cost = [3, 4, 5, 1, 2]
+diff = [-2, -2, -2, 3, 3]
+```
+
+| i | diff | currentGas | totalGas | 判断 | start |
+|---|------|------------|----------|------|-------|
+| 0 | -2 | -2 | -2 | < 0，失败 | 0 → 1 |
+| 1 | -2 | -2 | -4 | < 0，失败 | 1 → 2 |
+| 2 | -2 | -2 | -6 | < 0，失败 | 2 → 3 |
+| 3 | 3 | 3 | -3 | >= 0，继续 | 3 |
+| 4 | 3 | 6 | 0 | >= 0，继续 | 3 |
+
+最后 `totalGas = 0 >= 0`，返回 `start = 3`。
+
+验证从 3 出发：
+- 站3：油 4，到下一站消耗 1，剩余 3
+- 站4：油 5，到下一站消耗 2，剩余 6
+- 站0：油 1，到下一站消耗 3，剩余 4
+- 站1：油 2，到下一站消耗 4，剩余 2
+- 站2：油 3，到下一站消耗 5，剩余 0
+
+成功走完全程！
+
+#### 复杂度分析
+
+| 解法 | 时间复杂度 | 空间复杂度 | 说明 |
+|------|-----------|-----------|------|
+| O(n²) 枚举 | O(n²) | O(n) 或 O(1) | 超时，不可接受 |
+| O(n) 贪心 | O(n) | O(1) | ✅ 最优解 |
+
+贪心算法只遍历了一次数组，同时只用了常数个变量，时间和空间都是最优的。
+
+#### 总结
+
+这道题的关键洞察：
+
+1. **总油量 >= 0 是有解的必要条件** - 如果总油量不够，肯定走不完
+2. **失败路段可以直接跳过** - 从 `start` 到 `i` 失败，中间所有点都不可能
+3. **贪心一次遍历即可找到答案** - 利用跳过的性质，单次遍历确定起点
+
+这个"跳过失败路段"的技巧在贪心算法中很常见，核心思想是：**如果一段路都走不通，里面的任意子起点也走不通**。
