@@ -14,7 +14,6 @@ copyright_author_href: https://github.com/XBXyftx
 copyright_url: https://xbxyftx.top
 copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自原作者
 ---
-
 ## 前言
 
 这篇的前言就简介一些吧，在观摩了孙妈的面试之后我意识到我需要练算法！！！OK，就这么多，直接开始正文吧。
@@ -975,7 +974,7 @@ function recursionRotate(nums:number[],k:number):number[]{
     }else{
        return currentNums 
     }
-    
+  
 }
 ```
 
@@ -1000,7 +999,7 @@ function recursionRotate(nums:number[],k:number):number[]{
     }else{
        return currentNums  // 当 k=0 时，直接返回未初始化的 currentNums，即 undefined
     }
-    
+  
 }
 ```
 
@@ -1029,7 +1028,6 @@ function recursionRotate(nums:number[],k:number):number[]{
 
 另外，`nums = recursionRotate(nums,k)` 这种写法在 TypeScript 中还有一个潜在问题：它修改的是形参 `nums` 的引用，而不是原数组本身。对于 LeetCode 这类要求"原地修改"的题目，这种重新赋值的方式可能无法通过测试，因为函数外部的引用不会感知到这个变化。
 
-
 ```ts
 /**
  Do not return anything, modify nums in-place instead.
@@ -1045,7 +1043,7 @@ function recursionRotate(nums1:number[],k:number):number[]{
     let newNums:number[] = [nums1.pop()]
     newNums.push(...nums1)
     return recursionRotate(newNums,k-1)
-    
+  
 }
 ```
 
@@ -1075,7 +1073,7 @@ function recursionRotate(nums:number[],k:number):number[]{
     }
     nums.unshift(nums.pop())
     return recursionRotate(nums,k-1)
-    
+  
 }
 ```
 
@@ -1561,11 +1559,11 @@ function jump(nums: number[]): number {
     let currentMaxReachable: number = 0
     let nextMaxReachable: number = 0
     let step: number = 0
-    
+  
     // 从0开始遍历，每次检查是否到达边界
     for(let i = 0; i < nums.length - 1; i++){
         nextMaxReachable = Math.max(nextMaxReachable, nums[i] + i)
-        
+  
         // 到达当前能跳到的最远位置，需要跳一步
         if(i === currentMaxReachable){
             currentMaxReachable = nextMaxReachable
@@ -1784,11 +1782,12 @@ function hIndex(citations: number[]): number {
 
 以 `[3,0,6,1,5]` 为例，排序后为 `[0,1,3,5,6]`：
 
-| 轮次 | left | right | mid | 判断 `citations[5-mid] >= mid` | 操作 |
-|------|------|-------|-----|-------------------------------|------|
-| 1 | 0 | 5 | 3 | `citations[2]=3 >= 3` ✓ | left = 3 |
-| 2 | 3 | 5 | 4 | `citations[1]=1 >= 4` ✗ | right = 3 |
-| **结束** | **3** | **3** | **4** | - | - |
+
+| 轮次     | left  | right | mid   | 判断`citations[5-mid] >= mid` | 操作      |
+| -------- | ----- | ----- | ----- | ----------------------------- | --------- |
+| 1        | 0     | 5     | 3     | `citations[2]=3 >= 3` ✓      | left = 3  |
+| 2        | 3     | 5     | 4     | `citations[1]=1 >= 4` ✗      | right = 3 |
+| **结束** | **3** | **3** | **4** | -                             | -         |
 
 此时：
 
@@ -1864,16 +1863,16 @@ class RandomizedSet {
 
 我们来仔细分析一下错误原因。通过对比输出和预期结果，发现问题出在第6步 `remove(1)` 和第7步 `insert(2)`：
 
-| 步骤 | 操作 | 输入 | 我的输出 | 预期结果 | 实际集合状态 | 分析 |
-|------|------|------|----------|----------|--------------|------|
-| 1 | RandomizedSet | [] | null | null | `[]` | 初始化空集合 |
-| 2 | insert | 1 | true | true | `[1]` | 插入1成功 |
-| 3 | remove | 2 | **false** | false | `[1]` | 2不存在，返回false ✓ |
-| 4 | insert | 2 | true | true | `[1, 2]` | 插入2成功 |
-| 5 | getRandom | [] | 2 | 2 | `[1, 2]` | 随机返回2（可能）|
-| 6 | remove | 1 | **false** ❌ | true | `[2]` → `[2]` | 元素1存在，应返回true，但返回了false |
-| 7 | insert | 2 | **true** ❌ | false | `[2]` → `[2,2]` | 2已存在，应返回false，但返回了true |
-| 8 | getRandom | [] | 2 | 2 | `[2,2]` | 随机返回2 |
+| 步骤 | 操作          | 输入 | 我的输出     | 预期结果 | 实际集合状态     | 分析                                 |
+| ---- | ------------- | ---- | ------------ | -------- | ---------------- | ------------------------------------ |
+| 1    | RandomizedSet | []   | null         | null     | `[]`             | 初始化空集合                         |
+| 2    | insert        | 1    | true         | true     | `[1]`            | 插入1成功                            |
+| 3    | remove        | 2    | **false**    | false    | `[1]`            | 2不存在，返回false ✓                |
+| 4    | insert        | 2    | true         | true     | `[1, 2]`         | 插入2成功                            |
+| 5    | getRandom     | []   | 2            | 2        | `[1, 2]`         | 随机返回2（可能）                    |
+| 6    | remove        | 1    | **false** ❌ | true     | `[2]` → `[2]`   | 元素1存在，应返回true，但返回了false |
+| 7    | insert        | 2    | **true** ❌  | false    | `[2]` → `[2,2]` | 2已存在，应返回false，但返回了true   |
+| 8    | getRandom     | []   | 2            | 2        | `[2,2]`          | 随机返回2                            |
 
 **问题定位：**
 
@@ -1979,15 +1978,17 @@ RandomizedSet.prototype.getRandom = function() {
 
 要理解为什么官方题解使用 Map，我们需要对比两种解法的时间复杂度：
 
-| 操作 | 我的解法 | 官方题解 |
-|------|---------|---------|
-| **insert** | `O(n)` - `includes()` 需要遍历数组 | `O(1)` - Map 的 `has()` 是哈希查找 |
-| **remove** | `O(n)` - `indexOf()` + `splice()` 都需要遍历/移动元素 | `O(1)` - Map 查找 + 交换元素 |
-| **getRandom** | `O(1)` - 随机访问数组 | `O(1)` - 随机访问数组 |
+
+| 操作          | 我的解法                                              | 官方题解                           |
+| ------------- | ----------------------------------------------------- | ---------------------------------- |
+| **insert**    | `O(n)` - `includes()` 需要遍历数组                    | `O(1)` - Map 的 `has()` 是哈希查找 |
+| **remove**    | `O(n)` - `indexOf()` + `splice()` 都需要遍历/移动元素 | `O(1)` - Map 查找 + 交换元素       |
+| **getRandom** | `O(1)` - 随机访问数组                                 | `O(1)` - 随机访问数组              |
 
 **关键差异在于 `splice()`：**
 
 在我的代码中：
+
 ```ts
 let valIndex = this.nums.indexOf(val)  // O(n) 查找
 this.nums.splice(valIndex, 1)           // O(n) 移动后续所有元素
@@ -2071,15 +2072,15 @@ class RandomizedSet {
         }
         const index = this.indices.get(val)!
         const lastVal = this.nums[this.nums.length - 1]
-        
+  
         // 用最后一个元素覆盖要删除的元素
         this.nums[index] = lastVal
         this.indices.set(lastVal, index)
-        
+  
         // 删除最后一个元素
         this.nums.pop()
         this.indices.delete(val)
-        
+  
         return true
     }
 
@@ -2314,18 +2315,18 @@ function canCompleteCircuit(gas: number[], cost: number[]): number {
 function canCompleteCircuit(gas: number[], cost: number[]): number {
     let n = gas.length
     let totalGas = 0, currentGas = 0, start = 0
-    
+  
     for(let i = 0; i < n; i++){
         let diff = gas[i] - cost[i]
         totalGas += diff
         currentGas += diff
-        
+  
         if(currentGas < 0){
             start = i + 1
             currentGas = 0
         }
     }
-    
+  
     return totalGas >= 0 ? start : -1
 };
 ```
@@ -2379,17 +2380,18 @@ cost = [3, 4, 5, 1, 2]
 diff = [-2, -2, -2, 3, 3]
 ```
 
-| i | diff | currentGas | totalGas | 判断 | start |
-|---|------|------------|----------|------|-------|
-| 0 | -2 | -2 | -2 | < 0，失败 | 0 → 1 |
-| 1 | -2 | -2 | -4 | < 0，失败 | 1 → 2 |
-| 2 | -2 | -2 | -6 | < 0，失败 | 2 → 3 |
-| 3 | 3 | 3 | -3 | >= 0，继续 | 3 |
-| 4 | 3 | 6 | 0 | >= 0，继续 | 3 |
+| i | diff | currentGas | totalGas | 判断       | start  |
+| - | ---- | ---------- | -------- | ---------- | ------ |
+| 0 | -2   | -2         | -2       | < 0，失败  | 0 → 1 |
+| 1 | -2   | -2         | -4       | < 0，失败  | 1 → 2 |
+| 2 | -2   | -2         | -6       | < 0，失败  | 2 → 3 |
+| 3 | 3    | 3          | -3       | >= 0，继续 | 3      |
+| 4 | 3    | 6          | 0        | >= 0，继续 | 3      |
 
 最后 `totalGas = 0 >= 0`，返回 `start = 3`。
 
 验证从 3 出发：
+
 - 站3：油 4，到下一站消耗 1，剩余 3
 - 站4：油 5，到下一站消耗 2，剩余 6
 - 站0：油 1，到下一站消耗 3，剩余 4
@@ -2400,10 +2402,10 @@ diff = [-2, -2, -2, 3, 3]
 
 #### 复杂度分析
 
-| 解法 | 时间复杂度 | 空间复杂度 | 说明 |
-|------|-----------|-----------|------|
-| O(n²) 枚举 | O(n²) | O(n) 或 O(1) | 超时，不可接受 |
-| O(n) 贪心 | O(n) | O(1) | ✅ 最优解 |
+| 解法        | 时间复杂度 | 空间复杂度   | 说明           |
+| ----------- | ---------- | ------------ | -------------- |
+| O(n²) 枚举 | O(n²)     | O(n) 或 O(1) | 超时，不可接受 |
+| O(n) 贪心   | O(n)       | O(1)         | ✅ 最优解      |
 
 贪心算法只遍历了一次数组，同时只用了常数个变量，时间和空间都是最优的。
 
@@ -2416,3 +2418,57 @@ diff = [-2, -2, -2, 3, 3]
 3. **贪心一次遍历即可找到答案** - 利用跳过的性质，单次遍历确定起点
 
 这个"跳过失败路段"的技巧在贪心算法中很常见，核心思想是：**如果一段路都走不通，里面的任意子起点也走不通**。
+
+### [135. 分发糖果](https://leetcode.cn/problems/candy/)
+
+![104](EverydayAlgorithm/104.webp)
+
+这将是我做的第一道困难题，让我来认真审视一下。
+
+首先要做的肯定是抓特征。既然要求总量最少，那我们首先定位全数组的最小值，将其设置为1，然后从最小值为起点，向左倒序随后向右正序遍历，大于上一个值就加一，小于就减一。
+
+```ts
+function candy(ratings: number[]): number {
+    let minIndex = 0
+    let currentMinNum = ratings[0]
+    let result = 0
+    ratings.forEach((v,i)=>{
+        if(v<currentMinNum){
+            minIndex = i
+        }
+    })
+    let currentNum = 1
+    result += currentNum
+    for(let i=minIndex+1;i<ratings.length;i++){
+        if(ratings[i]<ratings[i-1]){
+            result += --currentNum
+        }else if(ratings[i]>ratings[i-1]){
+            result += ++currentNum
+        }else if(ratings[i]===ratings[i-1]){
+            result += 1 
+        }
+    }
+    currentNum = 1
+    for(let i=minIndex-1;i>=0;i--){
+        if(ratings[i]<ratings[i+1]){
+            result += --currentNum
+        }else if(ratings[i]>ratings[i+1]){
+            result += ++currentNum
+        }else if(ratings[i]===ratings[i+1]){
+            result += 1 
+        }
+    }
+    return result
+};
+```
+
+这套代码肯定过不了，只能过一半左右，因为我现在已知的它还有两种情况处理不了。
+
+![105](EverydayAlgorithm/105.webp)
+
+1. 数组中存在上升后下降次数超过上升次数的情况，比如`[1,0,5,4,3,2,1]`，此时我无法处理下降后的值，会出现负值。
+2. 在数组中存在相等后上升或下降时无法处理，比如`[1,2,2,3,4]`，2处由于相等，我们直接加一，但currentNum依旧不变，导致后续上升的第一个值并非最小值2。对应的如果我直接将currentNum设为1，那后续一旦出现下降，比如`[1,2,2,0]`，0处就会出错。
+
+如果引入堆栈来处理出现负数之后的回溯调值问题可能就会出现时空双复杂度爆炸的情况，我需要另寻他法。
+
+其实这道题和昨天我做的其他数字乘积这道题有点像，都是以每一个数字为基准左右比较，两者的条件类似。那道题最终的思路是正序累乘一轮，逆序累乘一轮，就得到了结果数组，这道题我其实也可以去设置一个结果数组然后正序倒序各自遍历一遍，每次遍历只管自己前进方向的值，两边各自遍历完一遍就可以保障其双向满足题目条件，随后为了保障数量是最小的，我还需要将数组初始化为全1，每次比较玩需要改变的话就在目标数字上加一就好。让我来试一试。
