@@ -2471,4 +2471,28 @@ function candy(ratings: number[]): number {
 
 如果引入堆栈来处理出现负数之后的回溯调值问题可能就会出现时空双复杂度爆炸的情况，我需要另寻他法。
 
-其实这道题和昨天我做的其他数字乘积这道题有点像，都是以每一个数字为基准左右比较，两者的条件类似。那道题最终的思路是正序累乘一轮，逆序累乘一轮，就得到了结果数组，这道题我其实也可以去设置一个结果数组然后正序倒序各自遍历一遍，每次遍历只管自己前进方向的值，两边各自遍历完一遍就可以保障其双向满足题目条件，随后为了保障数量是最小的，我还需要将数组初始化为全1，每次比较玩需要改变的话就在目标数字上加一就好。让我来试一试。
+其实这道题和昨天我做的其他数字乘积这道题有点像，都是以每一个数字为基准左右比较，两者的条件类似。那道题最终的思路是正序累乘一轮，逆序累乘一轮，就得到了结果数组，这道题我其实也可以去设置一个结果数组然后正序倒序各自遍历一遍，每次遍历只管自己前进方向的值，两边各自遍历完一遍就可以保障其双向满足题目条件，随后为了保障数量是最小的，我还需要将数组初始化为全1，每次比较完需要改变的话就在目标数字上加一就好。让我来试一试。
+
+```ts
+function candy(ratings: number[]): number {
+    let resultNumms:number[]=Array(ratings.length).fill(1)
+    for(let i=0;i<ratings.length-1;i++){
+        if(ratings[i]<ratings[i+1]){
+            resultNumms[i+1]=resultNumms[i]+1
+        }
+    }
+    for(let j=ratings.length-1;j>0;j--){
+        if(ratings[j]<ratings[j-1]){
+            resultNumms[j-1]=resultNumms[j]+1
+        }
+    }
+    let result:number = 0
+    resultNumms.forEach(v=>{
+        result+=v
+    })
+    return result
+};
+```
+
+![106](EverydayAlgorithm/106.webp)
+
