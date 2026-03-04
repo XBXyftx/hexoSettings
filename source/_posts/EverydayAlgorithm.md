@@ -2496,3 +2496,43 @@ function candy(ratings: number[]): number {
 
 ![106](EverydayAlgorithm/106.webp)
 
+还是解答错误，让我来看检查一下。
+
+**错误分析：**
+
+通过测试用例 `[1,3,4,5,2]` 发现问题，输出结果是 11，但预期应该是 13。
+
+**问题定位：** 在第二次从右向左遍历时，我直接进行了赋值操作 `resultNumms[j-1]=resultNumms[j]+1`，这会导致第一次从左向右遍历的结果被覆盖。
+
+以 `[1,3,4,5,2]` 为例：
+
+- 第一次遍历后（满足右规则）：`[1, 2, 3, 4, 1]`
+- 第二次遍历到 `5>2` 时，把 `5` 位置的值从 4 改成了 2
+- 但此时 `4<5` 的规则被破坏，因为 `5` 的糖果变成了 2，而 `4` 的糖果是 3
+
+**修正方案：** 第二次遍历时应该取两次计算结果的**最大值**，而不是直接覆盖：
+
+```ts
+function candy(ratings: number[]): number {
+    let resultNumms:number[]=Array(ratings.length).fill(1)
+    for(let i=0;i<ratings.length-1;i++){
+        if(ratings[i]<ratings[i+1]){
+            resultNumms[i+1]=resultNumms[i]+1
+        }
+    }
+    for(let j=ratings.length-1;j>0;j--){
+        if(ratings[j]<ratings[j-1]){
+            resultNumms[j-1]=Math.max(resultNumms[j-1],resultNumms[j]+1)
+        }
+    }
+    let result:number = 0
+    resultNumms.forEach(v=>{
+        result+=v
+    })
+    return result
+};
+```
+
+这样既满足了右规则，又不破坏已经满足好的左规则。
+
+![107](EverydayAlgorithm/107.webp)？
