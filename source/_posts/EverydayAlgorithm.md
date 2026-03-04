@@ -2616,4 +2616,44 @@ function trap(height: number[]): number {
 
 首先我们来尝试简化一下模型。
 
-首先我们就模拟一下最简单的桶状模型，总共仅三个位置，高度分别是`1，0，1`。总成
+首先我们就模拟一下最简单的桶状模型，总共仅三个位置，高度分别是`1，0，1`。总盛水量为1，由于左右登高所以看不出规律。
+
+![111](EverydayAlgorithm/111.webp)
+
+![112](EverydayAlgorithm/112.webp)
+
+这两张手绘图略显草率但确实可以说明我的发现。接下来我就来实现一下我的想法。
+
+```ts
+function trap(height: number[]): number {
+    let leftHighest = 0,rightHighest = 0
+    let leftPointer = 0,rightPointer = height.length-1
+
+    let result = 0
+
+    while(leftPointer<rightPointer){
+        //永远先走小的一边
+        if(height[leftPointer]<height[rightPointer]){
+            //左侧小，先记录新左最大值或更新雨水量
+            if(height[leftPointer]>leftHighest){
+                leftHighest = height[leftPointer]
+            }else{
+                result+=leftHighest-height[leftPointer]
+            }
+            leftPointer++
+        }else{
+            //右侧小，记录新右最大值或更新雨水量
+            if(height[rightPointer]>rightHighest){
+                rightHighest = height[rightPointer]
+            }else{
+                result+=rightHighest-height[rightPointer]
+            }
+            rightPointer--
+        }
+    }
+    
+    return result
+};
+```
+
+![113](EverydayAlgorithm/113.webp)
