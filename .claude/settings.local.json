@@ -32,7 +32,13 @@
       "Bash(\"C:\\Program Files\\GitHub CLI\\gh.exe\" pr view 2 --repo ifLabVibe/NowInOpenHarmony --json additions,deletions,title,body)",
       "WebFetch(domain:api.github.com)",
       "Bash(systeminfo)",
-      "Bash(ver)"
+      "Bash(ver)",
+      "Bash(ip -6 addr show 2>/dev/null || ifconfig -a | grep -i inet6)",
+      "Bash(ip -6 route show 2>/dev/null || route -A inet6 -n 2>/dev/null)",
+      "Bash(sysctl -a 2>/dev/null | grep -i ipv6 | head -20)",
+      "WebFetch(domain:developer.harmonyos.com)",
+      "Bash(ip -6 addr show 2>/dev/null || ifconfig | grep -i inet6)",
+      "Bash(sysctl net.ipv6.conf.all.disable_ipv6 2>/dev/null || echo \"sysctl not available\")"
     ],
     "deny": [],
     "ask": []
