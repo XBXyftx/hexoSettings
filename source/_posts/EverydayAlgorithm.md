@@ -2721,4 +2721,39 @@ function intToRoman(num: number): string {
 
 写到这无突然发现好像并不是单纯的键值交换，因为罗马数字的规则是最大的数字在前面，随后以降序向后续数位排列，所以我们在进行转化的时候需要将数字不断寻找其包含的最大罗马字符，随后将其进行填充。
 
-与此同时，我们还应注意到
+与此同时，我们还应注意到我们为了防止在匹配循环的过程中还需要单独拆出一支分支来去处理`4*`和`9*`的数字，我们直接将所有`4*`和`9*`的数字都列进map中去统一处理。
+
+```ts
+function intToRoman(num: number): string {
+    const num2SMap = new Map<number, string>([
+        [1000, 'M'],
+        [900,  'CM'],
+        [500,  'D'],
+        [400,  'CD'],
+        [100,  'C'],
+        [90,   'XC'],
+        [50,   'L'],
+        [40,   'XL'],
+        [10,   'X'],
+        [9,    'IX'],
+        [5,    'V'],
+        [4,    'IV'],
+        [1,    'I']
+    ]);
+
+    let result = ''
+    for(const [key,value] of num2SMap){
+        while(num>=key){
+            result+=value
+            num-=key
+        }
+        if(num===0){
+            break
+        }
+        
+    }
+    return result
+};
+```
+
+![117](EverydayAlgorithm/117.webp)
