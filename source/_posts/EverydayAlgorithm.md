@@ -2657,3 +2657,48 @@ function trap(height: number[]): number {
 ```
 
 ![113](EverydayAlgorithm/113.webp)
+
+
+### 13. 罗马数字转整数
+
+![114](EverydayAlgorithm/114.webp)
+
+看到这道题的第一想法是首先利用map建立起字符与数字之间的对应关系，随后将字符串逐一遍历先将其转化为数组，随后寻找转换的规律对数组进行指定规则的求和遍历即可。
+
+```ts
+function romanToInt(s: string): number {
+    const s2NumMap = new Map();
+    s2NumMap.set('I', 1);
+    s2NumMap.set('V', 5);
+    s2NumMap.set('X', 10);
+    s2NumMap.set('L', 50);
+    s2NumMap.set('C', 100);
+    s2NumMap.set('D', 500);
+    s2NumMap.set('M', 1000); 
+
+    let result = 0
+
+    for(let i=0;i<s.length;i++){
+        let curruntNum = s2NumMap.get(s[i])
+
+        if(i<s.length-1 && curruntNum<s2NumMap.get(s[i+1])){
+            result-=curruntNum
+        }else{
+            result+=curruntNum
+        }
+    }
+
+    return  result
+};
+```
+
+![115](EverydayAlgorithm/115.webp)
+
+ok，直接一遍速杀。
+
+### 12. 整数转罗马数字
+
+嘿，怎么还有双胞胎，真服了。
+
+![116](EverydayAlgorithm/116.webp)
+
