@@ -2702,3 +2702,23 @@ ok，直接一遍速杀。
 
 ![116](EverydayAlgorithm/116.webp)
 
+那肯定还得是先将刚才写好的map搬过来，只不过键值的位置需要交换一下才能更好的映射。
+
+```ts
+function intToRoman(num: number): string {
+    const num2SMap = new Map();
+    num2SMap.set(1, 'I');
+    num2SMap.set(5, 'V');
+    num2SMap.set(10, 'X');
+    num2SMap.set(50, 'L');
+    num2SMap.set(100, 'C');
+    num2SMap.set(500, 'D');
+    num2SMap.set(1000, 'M'); 
+
+    
+};
+```
+
+写到这无突然发现好像并不是单纯的键值交换，因为罗马数字的规则是最大的数字在前面，随后以降序向后续数位排列，所以我们在进行转化的时候需要将数字不断寻找其包含的最大罗马字符，随后将其进行填充。
+
+与此同时，我们还应注意到
