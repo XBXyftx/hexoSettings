@@ -2756,3 +2756,119 @@ function intToRoman(num: number): string {
 ```
 
 ![117](EverydayAlgorithm/117.webp)
+
+### 58. 最后一个单词的长度
+
+![118](EverydayAlgorithm/118.webp)
+
+首先去除两端空格，然后使用正则匹配的方式将字符串以空格为分割去切分为数组，随后直接索引数组最后一个单词输出其长度即可。
+
+```ts
+function lengthOfLastWord(s: string): number {
+    let ss = s.trim().split(/\s+/)
+    return ss[ss.length-1].length
+};
+```
+
+![119](EverydayAlgorithm/119.webp)
+
+这种题纯是门槛题，直到就秒杀，不知道就只能用基础方法解决，算不上什么“算法”。
+
+### 14. 最长公共前缀
+
+![120](EverydayAlgorithm/120.webp)
+
+```ts
+function longestCommonPrefix(strs: string[]): string {
+    if(strs[0].trim()===''){
+        return ''
+    }
+    let pointer:number = 0
+    let result:string = ''
+    let stop:boolean = false
+    while(1){
+        const currentChar = strs[0][pointer]
+        for(const s of strs){
+            if(s[pointer]!==currentChar){
+                stop = true
+                break
+            }
+        }
+        if(stop){
+            return result
+        }else{
+            result+=currentChar
+            pointer++
+        }
+    }
+};
+```
+
+当前代码还缺失了边界条件，也就是假如所有单词的前最小单词长度个字符都是一样的时候就会出现数组越界的情况，所以我们需要在循环中添加一个判断条件，当指针大于等于数组中任意一个单词的长度时，直接返回结果即可。
+
+```ts
+function longestCommonPrefix(strs: string[]): string {
+    if(strs[0].trim()===''){
+        return ''
+    }
+    const lengthNums = strs.map(v=>v.length)
+    const minLength = Math.min(...lengthNums)
+    let pointer:number = 0
+    let result:string = ''
+    let stop:boolean = false
+    while(pointer<minLength){
+        const currentChar = strs[0][pointer]
+        for(const s of strs){
+            if(s[pointer]!==currentChar){
+                stop = true
+                break
+            }
+        }
+        if(stop){
+            return result
+        }else{
+            result+=currentChar
+            pointer++
+        }
+    }
+    return result
+};
+```
+
+![121](EverydayAlgorithm/121.webp)
+
+还有优化空间。
+
+```ts
+function longestCommonPrefix(strs: string[]): string {
+    let minLength:number = strs[0].length
+    strs.forEach(v=>{
+        if(v.length<minLength){
+            minLength = v.length
+        }
+    })
+    let pointer:number = 0
+    let result:string = ''
+    let stop:boolean = false
+    while(pointer<minLength){
+        const currentChar = strs[0][pointer]
+        for(const s of strs){
+            if(s[pointer]!==currentChar){
+                stop = true
+                break
+            }
+        }
+        if(stop){
+            return result
+        }else{
+            result+=currentChar
+            pointer++
+        }
+    }
+    return result
+};
+```
+
+![122](EverydayAlgorithm/122.webp)
+
+![123](EverydayAlgorithm/123.webp)
