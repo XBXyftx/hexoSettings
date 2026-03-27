@@ -193,7 +193,7 @@ subtitle:
     - Alia真好听吧，快去听啊啊啊！
     - 在电脑上访问效果更佳哦！真的真的不信你试试！
     - 大家快去看芦毛灰姑娘啊！呜呜呜！
-    - 敲代码敲代码~
+    - 上班上班~
     - C,Java,Python,JavaScript,ArkTS,CJ...
     - 鸿蒙生态星河璀璨
     - 伟大的开源事业万岁！
@@ -325,7 +325,7 @@ aside:
     enable: true
   card_announcement:
     enable: true
-    content: welcome！<br/><img src="/imgs/gifs/1.webp" title="1.gif" class="announcementImg"/><br/>近期进行了不少的优化，也不知道大家感受出来没，加载速度啊、目录跳转稳定性啊巴拉巴拉的。<br/>总之祝大家2026新春快乐！！！
+    content: welcome！<br/><img src="/imgs/gifs/1.webp" title="1.gif" class="announcementImg"/><br/>近期进行了不少的优化，也不知道大家感受出来没，加载速度啊、目录跳转稳定性啊巴拉巴拉的。<br/>总之祝大家2026新春快乐！！！<br/>（也是开始上班了呢]
   card_recent_post:
     enable: true
     # If set 0 will show all
