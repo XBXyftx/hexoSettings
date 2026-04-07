@@ -239,7 +239,6 @@
         .carousel-slide {
             position: absolute;
             width: 80%;
-            height: 100%;
             opacity: 0;
             transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1);
             transform: translateX(0) translateZ(-500px) rotateY(0);
@@ -248,8 +247,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 20px;
-            overflow: hidden;
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
             transform-style: preserve-3d;
@@ -263,7 +260,6 @@
             z-index: 100;
             filter: none;
             pointer-events: auto;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
         .carousel-slide.active img {
@@ -313,19 +309,31 @@
 
         .carousel-slide img {
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 20px;
+            height: auto;
+            max-height: 320px;
+            object-fit: contain;
+            border-radius: 12px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
             transition: transform 0.7s ease, filter 0.7s ease, opacity 0.7s ease;
             filter: blur(15px);
             backface-visibility: hidden;
             will-change: filter;
+            display: block;
+        }
+
+        /* 轮播项透明背景 */
+        .carousel-slide,
+        .carousel-slide.active,
+        .carousel-slide.prev,
+        .carousel-slide.next,
+        .carousel-slide.prev-hidden,
+        .carousel-slide.next-hidden {
+            background: transparent !important;
         }
 
         /* 悬停放大当前图片 */
         .carousel-slide.active:hover img {
-            transform: scale(1.05);
+            transform: scale(1.02);
         }
 
         /* 图片样式 */
@@ -1080,6 +1088,36 @@
                         <div class="highlights">
                             <div class="highlight-item">iflab & 创客空间</div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-row">
+            <div class="card card-right">
+                <div class="card-images">
+                    <div class="carousel-container" data-carousel="hapstore">
+                        <div class="carousel-slide active">
+                            <img src="HAPstore1.webp" alt="HAP Store 首页">
+                        </div>
+                        <div class="carousel-slide">
+                            <img src="HAPstore2.webp" alt="HAP Store 个人中心">
+                        </div>
+                        <div class="carousel-slide">
+                            <img src="HAPstore3.webp" alt="HAP Store 关于页面">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="card-header">
+                        <div class="card-icon">📦</div>
+                        <h2>HAP Store 开发者</h2>
+                    </div>
+                    <p class="card-description">
+                        HAP Store 是致力于为鸿蒙开发者提供最便捷的应用分发服务的第三方平台，通过自动签名软件可直接完成签名、安装流程。我的应用「鸿易讯」已成功上架该平台。
+                    </p>
+                    <div class="organization-link">
+                        <a href="https://hdc.osbdf.com/detail.php?id=351" target="_blank" rel="noopener" class="org-link">🌐 查看我的应用</a>
                     </div>
                 </div>
             </div>
