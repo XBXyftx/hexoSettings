@@ -20,6 +20,30 @@ copyright_url: https://xbxyftx.top
 copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自原作者
 ---
 
+<div style="background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 15px rgba(26, 35, 126, 0.3);" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(26, 35, 126, 0.4)'; this.style.background='linear-gradient(135deg, #283593 0%, #5c6bc0 100%)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(26, 35, 126, 0.3)'; this.style.background='linear-gradient(135deg, #1a237e 0%, #3949ab 100%)'">
+  <div style="position: relative; z-index: 2;">
+    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="margin-right: 12px;">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+      </svg>
+      <div style="margin: 0; font-size: 20px; font-weight: 600;">📦 鸿易讯 - HAP Store 上架</div>
+    </div>
+    <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">🎉 应用已成功上架 HAP Store，鸿蒙新闻与开发问答助手，为鸿蒙开发者提供便捷的资讯与技术支持。</p>
+    <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">✅ 已上架</span>
+      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">HarmonyOS</span>
+      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">ArkTS</span>
+      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">HAP Store</span>
+    </div>
+    <a href="https://hdc.osbdf.com/detail.php?id=351" target="_blank" style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 10px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); font-weight: 500; transition: all 0.2s ease;" onclick="event.stopPropagation()" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 2px 8px rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="white" style="margin-right: 8px;">
+        <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+      </svg>
+      前往 HAP Store 下载
+    </a>
+  </div>
+</div>
+
 ## 前言
 
 在完成了鸿小易以及NowInOpenHarmony这两个项目的开发之后我们，子安学长将我引荐给了陈若愚老师，陈老师联系到中软国际，想要让我们去开发应用并协助我们将应用上架，这对于我来说可谓是千载难逢的机会了，毕竟我一直渴望能真正上架一个应用，但一致被后端服务器，备案，资质，内容过于简单等等一系列的问题所卡住，这次有了中软的协助我们应该就能更加专注于开发了。
