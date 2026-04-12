@@ -88,7 +88,8 @@ default_top_img: https://bu.dusays.com/2025/07/04/686787f462e79.jpg
 
 # The banner image of index page
 # index_img: /img/bg2.png
-index_img: https://bu.dusays.com/2025/07/04/686787ce02253.png
+# index_img: https://bu.dusays.com/2025/07/04/686787ce02253.png
+index_img: https://bu.dusays.com/2026/04/12/69daf7150097d.webp
 
 # The banner image of archive page
 archive_img: /img/archiveTopImg.webp
