@@ -222,5 +222,5 @@ deploy:
 | `npm run deploy` | `hexo deploy` | 部署到双目标 |
 | `npm run pub` | `opt && deploy` | 完整发布流程 |
 | `npm run opt` | `webp && clean && build` | 优化构建（不部署） |
-| `npm run webp` | PowerShell 脚本 | 批量转 webp + 更新引用 |
+| `npm run webp` | PowerShell 脚本 | 批量转 webp + 更新引用（[详细文档](../03-api-practices/webp-conversion.md)） |
 | `npm run server` | `hexo server` | 仅启动本地服务器 |

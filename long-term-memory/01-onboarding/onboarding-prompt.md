@@ -94,7 +94,8 @@ d:\hexo\hexoSettings/
 
 5. **图片优先使用 webp 格式**
    - 新文章配图应使用 `.webp` 格式
-   - 已有图片可通过 `npm run webp` 批量转换
+   - 已有图片可通过 `npm run webp` 批量转换（**首次需安装 libwebp**，且会**删除源图原图**）
+   - 完整规则与首次环境配置见 [03-api-practices/webp-conversion.md](../03-api-practices/webp-conversion.md)
 
 ### 3.2 技术约束
 
@@ -164,7 +165,7 @@ npm run clean        # 清理生成文件和缓存
 npm run deploy       # 部署到双目标（GitHub + 私有服务器）
 npm run pub          # 完整发布：webp + clean + build + deploy
 
-# 图片处理
+# 图片处理（详见 [webp-conversion.md](../03-api-practices/webp-conversion.md)）
 npm run webp         # 批量转换图片为 webp 并更新 markdown 引用
 npm run opt          # webp + clean + build（不部署）
 ```

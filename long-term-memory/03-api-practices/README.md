@@ -91,6 +91,22 @@
 
 ---
 
+### 4. tools/convert-to-webp.ps1 + tools/update-markdown-images.ps1
+
+**作用**：批量将 `source/` 与主题下的 `.png/.jpg/.jpeg/.gif` 转换为 `.webp`，并同步替换所有 Markdown / 配置文件中的图片引用。
+
+**触发时机**：手动通过 `npm run webp` 触发；`npm run dev / opt / pub` 都会先调用它。
+
+**前置依赖**：本机必须安装 `libwebp`（提供 `cwebp` / `gif2webp` 命令）。
+
+**关键行为**：转换成功后会**物理删除源文件**（不可逆），所以源图必须先 `git add` 跟踪。
+
+**完整规则、首次环境配置、扫描范围、排除规则、常见报错排查**：见 [webp-conversion.md](webp-conversion.md)。
+
+> 修改这两个 PowerShell 脚本前，请先阅读详细文档，并在 `04-operations/operation-log.md` 记录改动。
+
+---
+
 ## 主题配置关键项
 
 ### 注入系统（inject）
@@ -173,5 +189,5 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
 | 不升级 Hexo 大版本 | 主题兼容性未验证 | 构建失败或样式崩坏 |
 | 不修改 themes/butterfly/_config.yml | 用户配置在根目录的 _config.butterfly.yml | 配置被覆盖 |
 | build 前必 clean | Hexo 增量生成缓存问题 | 旧文件残留 |
-| 图片用 webp | 体积优化 | 加载慢 |
+| 图片用 webp | 体积优化（详见 [webp-conversion.md](webp-conversion.md)） | 加载慢 |
 | 不删除 scripts/ 中的文件 | 核心功能依赖 | 功能失效 |

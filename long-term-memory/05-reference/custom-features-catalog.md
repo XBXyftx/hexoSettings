@@ -149,6 +149,33 @@ swiper/
 
 ---
 
+### 6. 生日礼物特限页面（birthday-gift/）
+
+| 项 | 值 |
+|---|---|
+| **入口** | `/birthday-gift/` |
+| **类型** | 完全独立页面（`layout: false`） |
+| **特点** | 突破主题限制，全屏沉浸式体验，五幕剧式叙事 |
+
+**文件**：`index.md`（内含完整 HTML/CSS/JS，自包含）+ `imgs/`（照片资源目录，预留）
+
+**动画系统**：
+
+- SVG 心跳描边动画（`stroke-dasharray` + CSS）
+- 垂直时间轴滚动高亮（IntersectionObserver）
+- Canvas 2D 金色粒子上升背景
+- CSS 文字渐入（`translateY` + IntersectionObserver）
+- CSS 光晕浮动装饰（radial-gradient + blur）
+
+**主题隔离策略**：
+
+- `layout: false` 跳过 Butterfly 主题 layout 包装
+- 所有样式包裹在 `.birthday-page` 命名空间下
+- 脚本使用 IIFE 防止全局变量污染
+- 页面不加载主题任何 CSS/JS 资源
+
+---
+
 ## 三、自定义 CSS（source/css/ + themes/butterfly/source/css/）
 
 ### source/css/ 中的自定义样式

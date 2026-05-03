@@ -80,8 +80,10 @@ post_copyright:
 1. **格式**：优先使用 `.webp`，兼顾质量和体积
 2. **封面图路径**：`/imgs/ArticleTopImgs/文章名TopImg.webp`
 3. **文章内图片**：放在文章同名的 asset 文件夹内，使用相对路径 `文章名/图片名.webp`
-4. **批量转换**：使用 `npm run webp` 将新图片转换为 webp 并自动更新 markdown 引用
+4. **批量转换**：使用 `npm run webp` 将新图片转换为 webp 并自动更新 markdown 引用 — 首次使用前需安装 `libwebp`，且会**删除源图原图**，详见 [03-api-practices/webp-conversion.md](../03-api-practices/webp-conversion.md)
 5. **尺寸**：封面图建议宽度 1200px 以上，比例 16:9 或 3:2
+
+> 💡 **作者写作时不必关心扩展名**：直接以 `.png/.jpg` 引用图片，发布前的 `npm run dev/opt/pub` 会自动把扩展名替换为 `.webp` 并完成转换。
 
 ---
 

@@ -29,7 +29,7 @@
 | [`02-requirements/`](02-requirements/) | 内容规范：文章命名、front matter 规则、标签规范 | **创建/修改文章前** |
 | [`03-api-practices/`](03-api-practices/) | 技术约束：Hexo API、主题配置、自定义脚本规则 | **修改主题或脚本前** |
 | [`04-operations/`](04-operations/) | 操作日志：每次实质性修改的记录 | **上下文压缩后恢复时** |
-| [`05-reference/`](05-reference/) | 参考文档：项目结构、部署配置、自定义功能清单 | **需要全局视角时** |
+| [`05-reference/`](05-reference/) | 参考文档：项目结构、部署配置、自定义功能清单、设计方案 | **需要全局视角时** |
 | [`06-theme-modifications/`](06-theme-modifications/) | 主题修改跟踪：每次对主题文件的改动记录 | **修改主题文件前** |
 | [`07-known-issues/`](07-known-issues/) | 已知问题：技术债务、待修复项、注意事项 | **遇到异常行为时** |
 
@@ -48,6 +48,8 @@
 
 ## 快捷命令
 
+> ⚠️ 涉及 `webp` 的命令（`dev / opt / pub / webp`）首次运行需先安装 `libwebp`，且会**删除源图原图**。详见 [03-api-practices/webp-conversion.md](03-api-practices/webp-conversion.md)。
+
 ```bash
 # 开发
 npm run dev          # 转换webp + clean + 启动本地服务器
@@ -60,8 +62,14 @@ npm run pub          # 完整发布流程：webp + clean + build + deploy
 
 # 维护
 npm run clean        # 清理生成文件和缓存
-npm run webp         # 批量转换图片为webp并更新markdown引用
+npm run webp         # 批量转换图片为webp并更新markdown引用（依赖 libwebp）
 ```
+
+---
+
+## 专题文档（按需深读）
+
+- [WebP 图片转换工作流](03-api-practices/webp-conversion.md) — 首次配置环境 / 跑 webp 报错 / 新增图片前必读
 
 ---
 

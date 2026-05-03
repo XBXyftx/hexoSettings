@@ -68,3 +68,33 @@
 - [x] 所有 6 篇文章标签更新成功
 
 ---
+
+### #4 — 2026-05-04 — 创建生日礼物特限页面
+
+**操作人**：AI 助手（Claude Code）
+
+**涉及文件**：
+
+- 新建 `source/birthday-gift/index.md` — 生日礼物特限页面主体（layout: false，完整独立HTML/CSS/JS）
+- 新建 `source/birthday-gift/imgs/` — 页面图片资源目录（预留）
+- 修改 `_config.butterfly.yml` — 在 menu 导航中新增 `妈妈生日快乐` 入口
+
+**操作详情**：
+
+1. 调研了博客现有自定义页面实现方式（MarkdownPreview、LianlianKan、about、coffer）
+2. 分析了 Hexo + Butterfly 框架的渲染限制（主题layout强制包装、全局CSS污染、底部脚本注入等）
+3. 确定采用 `layout: false` 方案创建完全独立的页面，突破主题限制
+4. 设计了五幕剧式文案结构（开场心跳 → 时间轴 → 我的故事 → 告白高潮 → 落款）
+5. 实现了 5 组动画系统：SVG心跳描边、时间轴滚动高亮、Canvas粒子上升、文字渐入、光晕浮动
+6. 页面完全自包含，不依赖主题任何资源（CSS/JS均内联）
+
+**设计方案文档**：`long-term-memory/05-reference/birthday-gift-page-design.md`
+
+**验证结果**：
+
+- [x] 文件创建成功
+- [ ] 待用户本地运行 `hexo server` 预览
+- [ ] 待用户补充照片后可选加入图片展示区域
+- [ ] 待用户确认文案内容是否满意
+
+---

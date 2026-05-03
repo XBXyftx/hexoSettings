@@ -34,6 +34,7 @@ menu:
   留言板: /comments/ || fa-solid fa-comment
   连连看: /LianlianKan/ || fa-solid fa-gamepad
   MD在线编辑器: /MarkdownPreview/ || fa-solid fa-file-code
+  妈妈生日快乐: /birthday-gift/ || fa-solid fa-heart-pulse
 
 # --------------------------------------
 # 代碼塊設置
