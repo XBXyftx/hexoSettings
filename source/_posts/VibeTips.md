@@ -7,6 +7,10 @@ tags:
   - K2.6
   - KimiCode
   - DeepSeek-V4-Pro
+  - Skills
+  - Agent
+  - 渐进式披露
+  - 上下文工程
 cover: /imgs/ArticleTopImgs/VibeTipsTopImg.webp
 description: Vibe Coding经验分享
 typewriter: 
