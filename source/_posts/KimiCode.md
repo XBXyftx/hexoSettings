@@ -7,6 +7,7 @@ tags:
   - K2.5
   - KimiCode
   - hexo博客搭建
+  - Agent
 cover: /imgs/ArticleTopImgs/KimiCodeTopImg.webp
 description: KimiCode初体验
 typewriter: 最新国产开源大模型，K2.5比肩Gemini3？实践才能出真知。

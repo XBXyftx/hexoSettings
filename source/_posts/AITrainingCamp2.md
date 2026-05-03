@@ -6,6 +6,7 @@ tags:
   - 技术向
   - ClaudeCode
   - cursor
+  - Agent
 cover: /imgs/ArticleTopImgs/AITrainingCampTopImg.webp
 description: 熟练使用CC了，该开始大展身手了！
 typewriter: 在经过了前两次的训练之后，CC已经是我离不开的好伙伴了！接下来该做的就是做实践了！来打比赛！做项目！
