@@ -204,3 +204,139 @@ long-term-memory/                    # 长期记忆根目录
 整套结构的核心思想，其实就是**把大模型当成一个会失忆的同事**。他每天来上班都会忘记昨天发生过什么，所以你必须给他准备一套清晰的、有索引的、可以快速定位的资料库。模型的能力上限我们改变不了，但模型能拿到多少有效信息，完全取决于我们怎么去组织这些信息。组织得好，便宜的模型也能干活；组织得差，再贵的模型也只是在表演幻觉。
 
 ### skills
+
+#### 基本概念
+
+所谓skills，指的其实就是提示词，只不过是将一些重复的、可以反复利用的提示词打包成了一个文档，或者是一个合集，里边会包含一个skill.md文件，里边既可以直接写明skill的内容也可以通过引用的方式，来指明相关skill的具体介绍文档在合集的哪一个部分。
+
+不过在展开讲skill怎么用之前，有必要先把skill和大家平时经常听到的另外两个概念——**workflow（工作流）**和**agent（智能体）**——区分清楚，因为这三者在实际场景中经常被混为一谈，但它们解决的问题、所处的层级其实是完全不同的。
+
+| 概念 | 核心定义 | 餐厅比喻 | 核心特征 |
+| --- | --- | --- | --- |
+| **Skill（技能）** | 单一、可复用的「能力模块」，封装某一类具体任务的 SOP / 脚本 / 资源（如"代码审查""格式校验""数据解析"） | 餐厅的「单品制作手册」（如"红烧肉做法""奶茶调饮标准"） | 细粒度、无状态、纯执行、可复用 |
+| **Workflow（工作流）** | 按「固定顺序 / 条件」串联多个 Skill / 动作的「流程模板」，解决"多步骤标准化任务"（如"用户反馈处理流程 = 接收反馈→分类→派单→跟进→归档"） | 餐厅的「套餐出餐流程」（如"双人餐 = 前菜→主菜→甜品→饮品"，按顺序执行，可加条件：加钱换大份） | 中粒度、有固定流程、无自主决策、可视化配置 |
+| **Agent（智能体）** | 集成「多个 Skill + 工作流 + 自主决策 + 记忆 + 工具调用」的「完整智能系统」，能理解目标、规划步骤、处理异常、动态调整策略（如"编程助手 Agent = 理解需求→选 Skill→执行代码生成→调用审查 Skill→修复问题→输出结果"） | 餐厅的「店长」（能理解顾客需求→安排厨师用对应手册→调整出菜顺序→处理投诉→优化流程） | 粗粒度、有状态、自主决策、端到端解决复杂问题 |
+
+简单来说，skill是最小的能力单元，是一份份独立的"单品制作手册"；workflow是把这些手册按固定顺序串起来的"套餐流程"；而agent则是那个能根据顾客需求灵活指挥厨师、调整菜单、处理突发状况的"店长"。我们日常使用的Claude Code、Cursor、KimiCode这些都是agent，它们内部会自主决策什么时候调用哪一个skill、按什么样的流程去推进任务。理解了这个层级关系，你就会明白——**skill不是要替代agent的决策能力，而是给agent提供更精准、更可复用的"专项手册"**。
+
+之所以叫skill，就是因为它可以教会模型去做一些模型能力之外的事情，利用一套说明书式的MD文档合集去教会模型，做他之前不会做的事情，告诉他训练集中所不包含的数据。就像人学习技能一样，在买到一个新商品，获得一个新工具的时候，总是需要阅读它的说明书，上面会去写明这个工具的使用方法、参数含义、注意事项以及常见故障的排查手段。skill扮演的就是这么一个"说明书"的角色，只不过它面向的不是人类用户，而是大模型。
+
+skill和前面所说的长期记忆相比，最大的区别在于它的**按需加载**。长期记忆里的核心规则是每次会话都要让AI去读的，是底线性质的约束；而skill更像是一个工具箱，里边装着一堆专项能力，平时不需要它们的时候它们就安安静静的躺在角落里，一旦遇到对应的场景，Agent才会去把对应的skill主动加载进上下文中。这种设计的好处是显而易见的——你不需要为了一个偶尔才会用到的能力去常驻几千个token的提示词，避免了上下文的稀释和注意力的浪费。说白了就是，常用的写在长期记忆里，专项的封装成skill，井水不犯河水。
+
+在skill的具体编写上，我个人比较推荐的做法是**主skill.md只写引导和触发条件，具体的内容拆成子文档**。这其实和长期记忆里所说的渐进式引导记忆结构是一脉相承的。skill.md里要写明的东西很简单：这个skill是干什么用的、什么时候应当触发、需要遵循的总体规则、以及具体内容存在哪些子文档里。AI读完这份引导文档之后，会根据当前任务的具体需求去判断要进一步阅读哪些子文档，而不是一股脑的把所有内容全都塞进上下文。这其实就和我们查资料是一个道理，没有人会一开始就把整本书从头读到尾，都是先翻目录定位到自己想要的章节，再去精读相应的内容。
+
+实际上社区里目前已经有了一套相对标准化的skill目录结构，一个标准的skill文件夹大致包含下面这几个部分：
+
+| 文件 / 目录 | 必选 | 作用 |
+| --- | --- | --- |
+| `SKILL.md` | 是 | YAML 元数据（名称、描述、触发条件）+ Markdown 执行 SOP / 最佳实践 |
+| `scripts/` | 否 | 可执行脚本（Python / Shell，处理确定性任务如数据解析） |
+| `references/` | 否 | 参考文档（API 文档、数据库 Schema 等知识库） |
+| `assets/` | 否 | 资源文件（模板、Logo、脚手架等直接使用的素材） |
+
+唯一必选的就是`SKILL.md`这一份元数据文档——它的YAML头部用来声明这个skill的名称、描述、触发条件，让agent能够快速判断当前任务是不是该加载这份skill；下面的Markdown正文则是给模型读的执行手册，写清楚该按什么样的SOP去走、有哪些最佳实践需要遵循。剩下三个目录都是可选的：`scripts/`存放确定性的可执行脚本，比如一段固定逻辑的数据解析、格式校验，能用代码解决的事情就别让模型用自然语言去推理，省token又准确；`references/`存放各类参考文档，比如API手册、数据库schema、第三方接口的字段说明，模型在写代码之前可以按需查阅；`assets/`则是直接拿来用的素材，比如模板文件、脚手架代码、Logo等等。这套结构最大的好处就是**职责清晰**——元数据归元数据、脚本归脚本、文档归文档、素材归素材，AI需要什么就去对应的目录里找，不会出现一个文件里既要描述规则又要塞模板代码的混乱场面。
+
+#### 具体实例分析
+
+举个我自己常用的例子，针对鸿蒙开发我很推荐一个github上大佬开源的skill：
+
+<div style="
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  border: 1px solid #404040;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  max-width: 500px;
+">
+  <div style="display: flex; align-items: center; margin-bottom: 12px;">
+    <svg style="width: 20px; height: 20px; margin-right: 8px; fill: #ffffff;" viewBox="0 0 16 16">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+    </svg>
+    <div style="margin: 0; color: #ffffff; font-size: 18px; font-weight: 600;">
+      <a href="https://github.com/linhay/harmony-next.skills" style="color: #ffffff; text-decoration: none;">
+        linhay/harmony-next.skills
+      </a>
+    </div>
+  </div>
+  <p style="color: #d4d4d4; margin: 0 0 16px 0; font-size: 14px; line-height: 1.5;">
+    给 Gemini CLI、Claude Code、Codex 等 AI 编程助手使用的 HarmonyOS NEXT 离线参考技能库（覆盖 API 12-23，含 ArkTS / ArkUI / NDK / 工具链 / 调试 / 发布）
+  </p>
+  <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
+    <span style="display: flex; align-items: center; color: #d4d4d4; font-size: 12px;">
+      <span style="
+        width: 12px;
+        height: 12px;
+        background: #083fa1;
+        border-radius: 50%;
+        margin-right: 6px;
+      "></span>
+      Markdown
+    </span>
+    <span style="display: flex; align-items: center; color: #d4d4d4; font-size: 12px;">
+      <svg style="width: 12px; height: 12px; margin-right: 4px; fill: #d4d4d4;" viewBox="0 0 16 16">
+        <path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/>
+      </svg>
+      90
+    </span>
+    <span style="display: flex; align-items: center; color: #d4d4d4; font-size: 12px;">
+      <svg style="width: 12px; height: 12px; margin-right: 4px; fill: #d4d4d4;" viewBox="0 0 16 16">
+        <path d="M5 3.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm0 2.122a2.25 2.25 0 10-1.5 0v.878A2.25 2.25 0 005.75 8.5h1.5v2.128a2.251 2.251 0 101.5 0V8.5h1.5a2.25 2.25 0 002.25-2.25v-.878a2.25 2.25 0 10-1.5 0v.878a.75.75 0 01-.75.75h-4.5A.75.75 0 015 6.25v-.878z"/>
+      </svg>
+      10
+    </span>
+    <span style="color: #22c55e; font-size: 12px; background: rgba(34, 197, 94, 0.1); padding: 2px 6px; border-radius: 4px;">
+      v1.2.0
+    </span>
+  </div>
+  <div style="margin-top: 12px;">
+    <a href="https://github.com/linhay/harmony-next.skills"
+       style="
+         color: #ffffff;
+         text-decoration: none;
+         font-size: 12px;
+         border: 1px solid #404040;
+         padding: 6px 12px;
+         border-radius: 6px;
+         background: rgba(255, 255, 255, 0.05);
+         transition: all 0.2s ease;
+         display: inline-block;
+       "
+       onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'"
+       onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
+      查看仓库
+    </a>
+  </div>
+</div>
+
+![7](VibeTips/7.webp)
+
+![8](VibeTips/8.webp)
+
+![9](VibeTips/9.webp)
+
+![10](VibeTips/10.webp)
+
+![11](VibeTips/11.webp)
+
+这五张图其实不是随意排列的，它们合起来正好构成了一套完整的渐进式检索闭环——从仓库全貌到路径设计，从全库索引到范围缩小，最后落到具体的API文档文件。让我按这个由粗到细的顺序逐张解析。
+
+**图7——仓库全貌，建立全局认知。** 这是整个`harmony-next.skills`的GitHub主页全景，从这里我们先获得一个整体印象：这是一个由linhay维护的个人项目，虽然Contributors只有一个人，但commit数已经超过1400次，说明这不是一个简单的demo，而是一套经过长期打磨的成熟方案。仓库的Topics标签标得很准——harmonyos-next、arkts、arkui、napi、ngh，清晰告诉了我们这份skill覆盖的技术范围。右侧About面板里写着"Expert guidance for HarmonyOS NEXT (API 12+) development"，配上v1.2.0的版本号，说明这套skill已经经过了版本迭代，有一定的稳定性。值得注意的是Language显示100% Python——虽然仓库的核心资产是Markdown文档，但GitHub的语言分析主要统计了用于生成和转换文档的Python脚本，这意味着文档不是手动搬运的，而是通过脚本从官方源自动化抓取和格式化出来的，这保证了内容的完整性和后续的可维护性。
+
+**图8——四层检索路径，理解渐进式设计的逻辑。** 这张图展示了整个skill最核心的方法论：`SKILL.md → KITS.md / TASK_MAP.md → INDEX.md → 目标正文`。每一层都有明确的职责——先读`SKILL.md`定规则，避免AI一上来就盲读大库；再通过`KITS.md`或`TASK_MAP.md`按Kit或任务缩小范围，减少误命中；然后用`INDEX.md`索引命中真实路径，而不是凭名称想当然；最后只打开1-3个目标文件读API细节。这四层设计和我们前面讲到的长期记忆渐进式引导结构完全是一个思路：先索引、再缩小、再定位、最后精读。README里还明确给出了推荐命令——`rg "<@ohos.ability.ability>" -g "JsEtsAPIReference/**" head -n 1`，让AI用ripgrep在指定目录里搜索关键词，而不是全局盲目搜索。这种用具体命令替代自然语言描述的方式，避免了模型在执行搜索时的不确定性。
+
+**图9——全库索引INDEX.md，命中路径的核心武器。** 这张图里的内容看起来密密麻麻，几乎全是`JsEtsAPIReference/errors/`和`JsEtsAPIReference/modules/@ohos/`的文件路径。但这正是它的价值所在——这是一张覆盖了全部3614份文档的"大索引表"。当AI通过`KITS.md`缩小了范围之后，它来到`INDEX.md`这里，只需要用关键词匹配到对应的文件路径，就能精准定位到目标文档。比如图里我们可以看到`@ohos.FusionConnectivity`相关的各种组件、错误码、接口类型都按模块归类排列好了。这种结构让AI的搜索变成了"先查索引再读正文"的两步操作，而不是在海量文件里大海捞针。更重要的是，所有这些路径都是本地文件路径，意味着AI可以先用`rg`或`grep`在索引文件里命中关键词，得到确切的路径，然后再`read`那个具体的文件，token消耗被控制在了最小范围。
+
+**图10——Kit导航KITS.md，缩小范围的第一关。** 这是渐进式检索的"范围缩小层"。这张图展示了两个最常用的Kit快速入口：AbilityKit和ArkTS ArkUI。每个Kit都配有关键词、模块路径和具体的`rg`查询命令。以AbilityKit为例，关键词里包含了UIAbility、AbilityStage、Want、ExtensionAbility这些高频概念，模块路径直接指向`JsEtsAPIReference/modules/@ohos/`，快速查询命令则用`rg`精确定位。这个设计的妙处在于——AI不需要去猜测"我想用的这个功能属于哪个Kit"，而是可以根据技能规则直接查表。模型在遇到一个模糊的需求时，比如"用户需要一个启动另一个Ability的按钮"，它可以通过匹配"AbilityKit"这个关键词先缩小到应用能力这个领域，然后再往下细分。这种"先分类、再检索"的思路，比让模型直接在整个大库里搜关键词要精准得多，也省token得多。
+
+**图11——目标文件目录，渐进式检索的终点。** 这是真正要读取的API文档文件。这张图展示的是`references/JsEtsAPIReference/modules/@ohos/`目录下的文件列表，每一个文件就是一个`@ohos.*`模块的Markdown说明文档。我们可以看到文件命名非常规范——`@ohos.FusionConnectivity.PartnerAgentExtensionAbility (支持设备状态通知的ExtensionAbility组件).md`、`@ohos.InputMethodExtensionAbility (InputMethodExtensionAbility).md`、`@ohos.PiPWindow (画中画窗口).md`。这种命名方式把模块名和中文说明放在了一起，既方便AI用英文模块名搜索，也方便人工阅读时快速理解这个模块是干什么的。每个.md文件里包含了对应API的参数签名、返回值、使用示例和注意事项。AI走完前面四层的检索路径之后，最终到达这里，打开1-3个最相关的文件去读细节，整个过程的token消耗被严格控制在可接受的范围内。
+
+五张图合起来，就是一条完整的渐进式检索链路——**从全局到局部、从索引到正文、从模糊到精确**。这种设计不是花拳绣腿，而是为了解决一个真实的问题：3614份Markdown文件，没有这套索引结构，给再大的上下文窗口都装不下。
+
+这位作者把整个鸿蒙NEXT的API（API 12-23）连同IDE操作、签名、调试、发布、性能调优等内容全都做成了一份本地的、可被Agent检索的技能库，仓库里一共3614份Markdown文档，光`JsEtsAPIReference`这一项就有3589份。最让我觉得贴合的是它的目录组织——`SKILL.md → KITS.md / TASK_MAP.md → INDEX.md → 目标正文`，完美的呼应了前面所讲的渐进式引导结构：进来先读`SKILL.md`明确检索规则，再通过`KITS.md`或`TASK_MAP.md`按Kit或任务缩小范围，然后通过`INDEX.md`定位到具体文件，最后才打开目标MD去读API细节。这种设计完美的避免了模型一上来就盲读大库的灾难——3614份MD文件，没有这套索引结构，给再大的上下文窗口都装不下。你可以直接在Claude Code或者Gemini CLI里把它装成skill，AI在写鸿蒙代码之前会先按这个层级去定位文件，根本不需要凭空脑补`@ohos.*`接口存不存在。对于我之前一直头疼的"语料稀缺"问题，这份开源skill算是从根源上给出了一套能落地的解决方案。
+
+skill的另一个好处是**可复用性**。你为一个项目写好的skill，完全可以拿到另一个相同技术栈的项目里直接用。我现在的几个鸿蒙项目共享着同一份ArkTS的skill，每当我在某个项目里发现了一个新的坑、总结出了一个新的最佳实践，我就会把它补充到skill里，然后所有项目都会从中受益。这其实就是把"经验"从一次性的对话中沉淀下来，变成可以反复利用的资产，而不是每开一个新项目就重新踩一遍同样的坑。
+
+不过最后还要强调的一点是——**skill不是越多越好**。我见过有人为了所谓的"完整性"，给项目堆了一大堆skill：什么git操作的skill、shell命令的skill、文件读写的skill，这些其实Agent本身就已经内置了相应的工具，你再写一份反而会和原生工具产生冲突，导致AI在该用原生工具的时候反而去翻你写的那份冗余说明书，徒增上下文消耗。skill真正应该解决的，是**模型本身能力上的盲区**——那些训练数据里覆盖不足的领域、那些项目内独有的范式、那些反复出现且每次都需要重新解释的东西。把刀用在刀刃上，skill才能真正发挥它的价值，否则它就只是另一份没人会去读的"死文档"而已。
