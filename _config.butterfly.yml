@@ -1151,13 +1151,13 @@ CDN:
       link:
         placeholder: /img/link.png #link_card标签默认的图标图片
       CDN:
-        anima: https://npm.elemecdn.com/hexo-butterfly-tag-plugins-plus@latest/lib/assets/font-awesome-animation.min.css #动画标签  anima的依赖
+        anima: https://npm.elemecdn.com/hexo-butterfly-tag-plugins-plus@1.0.18/lib/assets/font-awesome-animation.min.css #动画标签  anima的依赖 # 锁版本 @1.0.18 (2026-05-04 Q8 / B14)
         # jquery: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/jquery/3.6.0/jquery.min.js #issues标签依赖 # 404 - bytecdntp.com failed
         # jquery: https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js #issues标签依赖 # 由 inject.bottom (line 1088) 全站本地 jquery-3.6.0.min.js 接管，避免重复加载（2026-05-04 Q3 / B16）
-        issues: https://npm.elemecdn.com/hexo-butterfly-tag-plugins-plus@latest/lib/assets/issues.js #issues标签依赖
+        issues: https://npm.elemecdn.com/hexo-butterfly-tag-plugins-plus@1.0.18/lib/assets/issues.js #issues标签依赖 # 锁版本 @1.0.18 (2026-05-04 Q8 / B14)
         iconfont: //at.alicdn.com/t/font_2032782_8d5kxvn09md.js #参看https://akilar.top/posts/d2ebecef/
-        carousel: https://npm.elemecdn.com/hexo-butterfly-tag-plugins-plus@latest/lib/assets/carousel-touch.js
-        tag_plugins_css: https://npm.elemecdn.com/hexo-butterfly-tag-plugins-plus@latest/lib/tag_plugins.css
+        carousel: https://npm.elemecdn.com/hexo-butterfly-tag-plugins-plus@1.0.18/lib/assets/carousel-touch.js # 锁版本 @1.0.18 (2026-05-04 Q8 / B14)
+        tag_plugins_css: https://npm.elemecdn.com/hexo-butterfly-tag-plugins-plus@1.0.18/lib/tag_plugins.css # 锁版本 @1.0.18 (2026-05-04 Q8 / B14)
     # chartjs:
     # click_heart:
     # clickShowText:
@@ -1221,10 +1221,10 @@ CDN:
 envelope_comment:
   enable: true #控制开关
   custom_pic:      
-    cover: https://npm.elemecdn.com/hexo-butterfly-envelope/lib/violet.jpg #信笺头部图片
-    line: https://npm.elemecdn.com/hexo-butterfly-envelope/lib/line.png #信笺底部图片
-    beforeimg: https://npm.elemecdn.com/hexo-butterfly-envelope/lib/before.png # 信封前半部分
-    afterimg: https://npm.elemecdn.com/hexo-butterfly-envelope/lib/after.png # 信封后半部分
+    cover: https://npm.elemecdn.com/hexo-butterfly-envelope@1.0.15/lib/violet.jpg #信笺头部图片 # 锁版本 @1.0.15 (2026-05-04 Q8)
+    line: https://npm.elemecdn.com/hexo-butterfly-envelope@1.0.15/lib/line.png #信笺底部图片 # 锁版本 @1.0.15 (2026-05-04 Q8)
+    beforeimg: https://npm.elemecdn.com/hexo-butterfly-envelope@1.0.15/lib/before.png # 信封前半部分 # 锁版本 @1.0.15 (2026-05-04 Q8)
+    afterimg: https://npm.elemecdn.com/hexo-butterfly-envelope@1.0.15/lib/after.png # 信封后半部分 # 锁版本 @1.0.15 (2026-05-04 Q8)
   message: #信笺正文，多行文本，写法如下
     - 有什么想问的？
     - 有什么想说的？
@@ -1273,10 +1273,10 @@ swiper:
     name: recent-posts
     index: 0
   default_descr: 再怎么看我也不知道怎么描述它的啦！快点进来瞧瞧！
-  swiper_css: https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiper.min.css #swiper css依赖
-  swiper_js: https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiper.min.js #swiper js依赖
-  custom_css: https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiperstyle.css # 适配主题样式补丁
-  custom_js: https://npm.elemecdn.com/hexo-butterfly-swiper/lib/swiper_init.js # swiper初始化方法
+  swiper_css: https://npm.elemecdn.com/hexo-butterfly-swiper@1.0.12/lib/swiper.min.css #swiper css依赖 # 锁版本 @1.0.12 (2026-05-04 Q8)
+  swiper_js: https://npm.elemecdn.com/hexo-butterfly-swiper@1.0.12/lib/swiper.min.js #swiper js依赖 # 锁版本 @1.0.12 (2026-05-04 Q8)
+  custom_css: https://npm.elemecdn.com/hexo-butterfly-swiper@1.0.12/lib/swiperstyle.css # 适配主题样式补丁 # 锁版本 @1.0.12 (2026-05-04 Q8)
+  custom_js: https://npm.elemecdn.com/hexo-butterfly-swiper@1.0.12/lib/swiper_init.js # swiper初始化方法 # 锁版本 @1.0.12 (2026-05-04 Q8)
 # math:
 #   engine: 'mathjax' # 使用MathJax引擎来渲染公式
 #   mathjax:
