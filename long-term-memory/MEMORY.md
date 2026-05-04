@@ -27,7 +27,8 @@
 | [`00-index/`](00-index/) | 导航速查：每个子目录的用途一览 | **首次进入项目时** |
 | [`01-onboarding/`](01-onboarding/) | 项目交接：项目概览、核心约束、当前状态 | **每次新会话开始时** |
 | [`02-requirements/`](02-requirements/) | 内容规范：文章命名、front matter 规则、标签规范 | **创建/修改文章前** |
-| [`03-api-practices/`](03-api-practices/) | 技术约束：Hexo API、主题配置、自定义脚本规则 | **修改主题或脚本前** |
+| [`02-custom-pages/`](02-custom-pages/) | 自定义页面实现：coffer/swiper/about/LianlianKan/MarkdownPreview | **修改自定义页面前** |
+| [`03-api-practices/`](03-api-practices/) | 技术约束：Hexo API、主题配置、自定义脚本规则、部署/CDN/性能/懒加载/背景动画 | **修改主题或脚本前** |
 | [`04-operations/`](04-operations/) | 操作日志：每次实质性修改的记录 | **上下文压缩后恢复时** |
 | [`05-reference/`](05-reference/) | 参考文档：项目结构、部署配置、自定义功能清单、设计方案 | **需要全局视角时** |
 | [`06-theme-modifications/`](06-theme-modifications/) | 主题修改跟踪：每次对主题文件的改动记录 | **修改主题文件前** |
@@ -69,7 +70,30 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 
 ## 专题文档（按需深读）
 
+### 部署与构建
+- [部署流水线（dev/opt/pub）](03-api-practices/deployment-pipeline.md) — 3 条部署命令的完整流程、参数差异、适用场景
+- [CDN 策略与资源加载](03-api-practices/cdn-strategy.md) — 7 个 CDN 源盘点、bytecdntp 迁移历史、本地保留理由
 - [WebP 图片转换工作流](03-api-practices/webp-conversion.md) — 首次配置环境 / 跑 webp 报错 / 新增图片前必读
+
+### 运行时模块
+- [兜底模块全览（Twikoo/MathJax/Mermaid + inject）](03-api-practices/fallback-modules.md) — 评论/公式/图表三大模块 + inject.head/bottom 资源全景图
+- [星空背景动画（Universe）](03-api-practices/universe-background.md) — header-universe.js 实现细节、粒子系统、流星效果
+- [图片懒加载系统](03-api-practices/lazy-loading-system.md) — 多套懒加载方案协同、IntersectionObserver、PJAX 重初始化
+- [性能优化策略](03-api-practices/performance-optimization.md) — FPS 节流、visibility 暂停、移动端降级、异步 CSS
+
+### 自定义页面
+- [私密文章系统（Coffer）](02-custom-pages/coffer-private-posts.md) — 扫描器插件、密码验证、客户端渲染
+- [瀑布流图片画廊（Swiper）](02-custom-pages/swiper-waterfall-gallery.md) — IndexedDB 缓存、绝对定位布局、批量加载
+- [关于页面（About）](02-custom-pages/about-page.md) — 卡片式布局、3D 走马灯、头像旋转光环
+- [连连看小游戏（LianlianKan）](02-custom-pages/lianliankan-game.md) — 动态棋盘、3 种连接检测、CSS 自定义属性响应式
+- [Markdown 在线编辑器](02-custom-pages/markdown-preview.md) — marked.js 实时预览、工具栏、全屏模式
+
+### 特色功能
+- [打字机效果（Typewriter）](05-reference/typewriter-effect.md) — 逐字显示动画、PJAX 集成、标签页标题动画
+- [生日礼物特限页面](05-reference/birthday-gift-page-design.md) — 献给护士妈妈的专属页面设计
+
+### 已知问题
+- [全面审计 BUG 清单（20+ 项）](07-known-issues/discovered-issues/README.md) — 重复文件、死代码、性能隐患、PJAX 内存泄漏、安全隐患
 
 ---
 
