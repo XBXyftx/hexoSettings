@@ -7,7 +7,7 @@ tags:
 description: 计算机网络期末复习
 typewriter: 📊 操作系统期末复习，一些真题的详解。
 cover: /imgs/ArticleTopImgs/MachineCollectionFinalReviewTopImg.webp
-mathjax: true
+katex: true
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

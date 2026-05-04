@@ -38,13 +38,14 @@
 
 | 项 | 值 |
 |---|---|
-| **状态** | 待优化 |
+| **状态** | 已修复（待验证渲染效果） |
 | **严重程度** | 中 |
 | **描述** | 本地引入了完整的 MathJax 3.2.2 库（1.1MB），但只有少数文章使用数学公式。影响首屏加载速度 |
 | **影响** | 所有页面的 JS 加载体积 |
-| **相关文件** | `source/js/mathjax.js`, `source/js/MathJax-3.2.2/` |
-| **临时方案** | 当前通过 `per_page: false` 控制，但库文件仍被加载 |
-| **建议修复** | 改用更轻量的 KaTeX，或实现按需加载（仅在含公式的页面加载） |
+| **相关文件** | `source/js/MathJax-3.2.2/`（保留为回滚基点）、`source/js/katex/`（新增 KaTeX 0.16.19） |
+| **修复方案** | 迁移至 KaTeX 客户端渲染：JS 276KB + CSS 23KB + auto-render 3.5KB = 303KB，体积减少 74%。MathJax 3.2.2 完整保留 |
+| **验证状态** | HTML 构建验证通过，需浏览器确认公式渲染效果 |
+| **关联文档** | [../04-operations/2026-05-04-katex-migration/README.md](../04-operations/2026-05-04-katex-migration/README.md) |
 
 ---
 

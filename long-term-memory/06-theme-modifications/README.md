@@ -81,6 +81,19 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 ---
 
+### #4 — 2026-05-04 — katex.pug 添加客户端渲染支持
+
+**修改文件**：`themes/butterfly/layout/includes/third-party/math/katex.pug`
+**修改原因**：BUG-003 — MathJax 3.2.2 体积过大（1.17MB），迁移至 KaTeX（303KB）减少 74% 体积。Butterfly 原 katex.pug 仅做 CSS 加载和 `.katex` 元素显示，假设公式已在服务端渲染（需 hexo-filter-katex），但项目未安装该插件
+**修改内容**：重写 katex.pug，使用 `btf.getCSS` 加载 CSS，`btf.getScript` 顺序加载 katex.min.js 和 auto-render.min.js，然后调用 `renderMathInElement` 在客户端扫描 `$...$` 和 `$$...$$` 语法并渲染。添加 `window.katex_js_loaded` 全局标志防止重复加载
+**改动行数**：+14（完整重写）
+**相关文件**：`_config.butterfly.yml`（math.use: katex, asset.katex 配置）、`source/js/katex/`（KaTeX 0.16.19 文件）、`source/_posts/`（2 篇文章 front-matter 改 katex: true）
+**可回滚性**：可安全回滚。回滚后行为退回为「使用 MathJax 客户端渲染」，MathJax 3.2.2 目录完整保留，回滚只需改 3 处配置
+**关联文档**：[../04-operations/2026-05-04-katex-migration/README.md](../04-operations/2026-05-04-katex-migration/README.md)
+**关联 commit**：_(执行后填充)_
+
+---
+
 ### 已有的主题修改（历史扫描记录）
 
 ### layout/includes/layout.pug

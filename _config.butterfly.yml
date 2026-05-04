@@ -485,7 +485,7 @@ math:
   # 设置为空以禁用数学公式功能，避免加载CSS文件
   # Choose: mathjax, katex
   # Leave it empty if you don't need math
-  use: mathjax
+  use: katex
   per_page: false
   mathjax:
     # Enable the contextual menu
@@ -1187,6 +1187,7 @@ CDN:
     # main:
     # main_css:
     mathjax: /js/MathJax-3.2.2/es5/tex-mml-chtml.js
+    katex: /js/katex/katex.min.css
     # medium_zoom: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/medium-zoom/1.0.6/medium-zoom.min.js # 404 - bytecdntp.com failed
     medium_zoom: https://cdnjs.cloudflare.com/ajax/libs/medium-zoom/1.0.6/medium-zoom.min.js
     # Mermaid (markdwon to flow chart, seq chart, class chart ...)
