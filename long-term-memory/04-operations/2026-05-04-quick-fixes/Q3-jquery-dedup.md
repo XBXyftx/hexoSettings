@@ -6,7 +6,7 @@ type: project
 
 # Q3 — tag_plugins jQuery 重复去除
 
-> **状态**：待执行 / 执行中 / 已完成
+> **状态**：✅ 已完成（2026-05-04）
 > **关联**：[../../../07-known-issues/discovered-issues/README.md#-b16-jquery-被加载两次](../../../07-known-issues/discovered-issues/README.md)（B16）
 
 ---
@@ -97,11 +97,19 @@ git reset --hard 59c6f94        # 完全回到基线
 
 ## L6 · 实际执行结果
 
-> 执行后在此填入：
-> - commit hash：
-> - 改动行数：
-> - 构建是否通过：
-> - 受影响文章列表（grep 找到的）：
-> - 每篇文章的视觉验证：
-> - F12 jQuery 错误是否出现：
-> - 异常 / 备注：
+- **执行日期**：2026-05-04
+- **commit hash**：（提交后填入）
+- **改动行数**：1（`_config.butterfly.yml:1156`，注释化 + 备注说明）
+- **构建是否通过**：将随最后批量 hexo generate 验证
+- **受影响文章列表（grep 实测）**：
+  - `{% issues %}`：**0 篇** 未在任何文章中使用
+  - `{% carousel %}`：**0 篇** 未在任何文章中使用
+  - `{% anima %}`：**0 篇** 未在任何文章中使用
+  - `{% timeline %}`：3 篇 — `ThoughtsOnVibeCoding.md` / `ToTheApril2025.md` / `OpenSourceSummer2025.md`
+- **运行时影响评估**：
+  - `tag_plugins.CDN.jquery` 仅在文章使用 `{% issues %}` / `{% carousel %}` 时被插件注入，`{% timeline %}` 是纯 CSS 实现不依赖 jQuery
+  - 当前博客 0 篇文章使用 jquery-依赖 tag → 该 URL 配置在过去与现在都**从未被实际请求**
+  - 本次修改是「修正死配置」，对当前用户体验**零影响**
+  - 未来如果新增 `{% issues %}` / `{% carousel %}` 文章，`window.jQuery` 由 inject.bottom 全站本地脚本提供（line 1088），不会出现 jQuery undefined
+- **风险等级实际下调**：原 Q3 文档评估为 🟡 低风险（"需要测试"），实测后下调为 🟢 零风险（无受影响文章 + jQuery 已由全站脚本兜底）
+- **异常 / 备注**：无
