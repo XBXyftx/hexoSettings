@@ -111,7 +111,6 @@
     }
 
     prepareImages();
-    console.log('[LazyLoad Native] 初始化完成');
   }
 
   if (document.readyState === 'loading') {

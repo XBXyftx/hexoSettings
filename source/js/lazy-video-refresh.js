@@ -127,7 +127,6 @@
                 removeRefreshButton(video);
             }, 300);
 
-            console.log('[Video Refresh] 视频刷新成功:', originalSrc);
         };
 
         tempVideo.onerror = function() {
@@ -417,11 +416,9 @@
         // 获取所有待加载的视频
         const videos = document.querySelectorAll('video.lazy-video:not(.lazy-loaded)');
         if (videos.length === 0) {
-            console.log('[Video LazyLoad] 没有需要懒加载的视频');
             return;
         }
 
-        console.log(`[Video LazyLoad] 发现 ${videos.length} 个视频需要懒加载`);
 
         // 创建观察器
         createObserver();
@@ -469,7 +466,6 @@
         });
         
         if (failedCount > 0) {
-            console.log(`[Video Refresh] 发现并处理了 ${failedCount} 个加载失败的视频`);
         }
     }
 
@@ -526,7 +522,6 @@
             scanFailedVideos();
         }, 3000);
 
-        console.log('[Video Refresh] 视频刷新功能已初始化');
     }
 
     /**

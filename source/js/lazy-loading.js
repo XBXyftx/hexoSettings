@@ -131,7 +131,6 @@
 
         const visibleElements = elements.filter(isInViewport);
 
-        console.log(`[Lazy Loading] Processing ${visibleElements.length} visible elements`);
 
         const loadPromises = visibleElements.map(element => {
             if (element.tagName.toLowerCase() === 'img') {
@@ -231,13 +230,9 @@
 
     // 初始化懒加载
     function initLazyLoading() {
-        console.log('[Lazy Loading] ==================== 开始初始化懒加载 ====================');
-        console.log('[Lazy Loading] Document ready state:', document.readyState);
-        console.log('[Lazy Loading] 当前页面URL:', window.location.href);
 
         // 检查是否为文章页面，如果不是则直接返回
         if (!document.getElementById('post')) {
-            console.log('[Lazy Loading] 非文章页面，跳过懒加载初始化');
             return;
         }
 
@@ -249,24 +244,15 @@
             'article img'
         ];
 
-        console.log('[Lazy Loading] 使用的选择器:', contentSelectors);
-        console.log('[Lazy Loading] 开始查找文章图片...');
 
         contentSelectors.forEach(selector => {
             try {
                 const images = document.querySelectorAll(selector);
-                console.log(`[Lazy Loading] 选择器 "${selector}" 找到 ${images.length} 张图片`);
 
                 images.forEach((img, index) => {
-                    console.log(`[Lazy Loading] 处理第 ${index + 1} 张图片:`, {
-                        src: img.src,
-                        classes: img.classList.toString(),
-                        parentElement: img.parentElement?.tagName || 'unknown'
-                    });
 
                     // 跳过已由原生懒加载处理的图片
                     if (isNativeLazyHandled(img)) {
-                        console.log(`[Lazy Loading] ⏭️ 图片 ${index + 1} 已由原生懒加载处理，跳过`);
                         return;
                     }
 
@@ -278,7 +264,6 @@
                         !img.closest('.footer') &&
                         !img.classList.contains('lazy-image')) {
 
-                        console.log(`[Lazy Loading] ✅ 图片 ${index + 1} 通过筛选，开始添加懒加载...`);
 
                         // 获取图片尺寸类别
                         const sizeClass = getImageSizeClass(img);
@@ -289,29 +274,14 @@
                             img.classList.add(sizeClass);
                         }
 
-                        console.log('[Lazy Loading] Processing image:', img.src, 'Classes added:', img.classList.toString());
 
                         // 如果已经有src，保存到data-src并替换为占位符
                         if (img.src && !img.dataset.src && !img.src.includes('data:image/gif')) {
                             img.dataset.src = img.src;
                             img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-                            console.log('[Lazy Loading] ✅ 图片src已替换为占位符, data-src:', img.dataset.src);
                         } else {
-                            console.log('[Lazy Loading] ❌ 图片不需要替换src:', {
-                                hasSrc: !!img.src,
-                                hasDataSrc: !!img.dataset.src,
-                                isGif: img.src?.includes('data:image/gif')
-                            });
                         }
                     } else {
-                        console.log(`[Lazy Loading] ❌ 图片 ${index + 1} 被排除:`, {
-                            hasPageHeader: !!img.closest('#page-header'),
-                            hasAvatar: !!img.closest('.avatar'),
-                            hasRelatedPost: !!img.closest('.related-post-item'),
-                            hasAsideCard: !!img.closest('.aside-card'),
-                            hasFooter: !!img.closest('.footer'),
-                            hasLazyClass: img.classList.contains('lazy-image')
-                        });
                     }
                 });
             } catch (e) {
@@ -361,12 +331,10 @@
         // 初始加载可见元素
         setTimeout(processVisibleElements, 100);
 
-        console.log('[Lazy Loading] ==================== 懒加载初始化完成 ====================');
 
         // 最终统计
         const allLazyImages = document.querySelectorAll('.lazy-image');
         const allPlaceholders = document.querySelectorAll('.lazy-placeholder');
-        console.log(`[Lazy Loading] 最终统计: ${allLazyImages.length} 张懒加载图片, ${allPlaceholders.length} 个占位符`);
     }
 
     // 页面加载完成后初始化

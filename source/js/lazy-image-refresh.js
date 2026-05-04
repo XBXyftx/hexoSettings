@@ -126,7 +126,6 @@
                 removeRefreshButton(img);
             }, 300);
 
-            console.log('[Lazy Refresh] 图片刷新成功:', originalSrc);
         };
 
         tempImg.onerror = function() {
@@ -337,7 +336,6 @@
         });
         
         if (failedCount > 0) {
-            console.log(`[Lazy Refresh] 发现并处理了 ${failedCount} 张加载失败的图片`);
         }
     }
 
@@ -396,7 +394,6 @@
             scanFailedImages();
         }, 3000);
 
-        console.log('[Lazy Refresh] 图片刷新功能已初始化');
     }
 
     // 页面加载完成后初始化

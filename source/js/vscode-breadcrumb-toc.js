@@ -230,7 +230,6 @@
     window.addEventListener('resize', handleResize, { passive: true });
 
     state.isInitialized = true;
-    console.log('[VS Code Nav] Initialized');
   }
 
   function destroy() {

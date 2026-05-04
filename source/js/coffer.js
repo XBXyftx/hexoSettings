@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('私密文章系统初始化开始');
   
   // 配置
   const config = {
@@ -32,12 +31,10 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
 
-  console.log('DOM元素检查完成');
 
   // 检查是否已经验证过密码
   function checkAuthentication() {
     const isAuthenticated = sessionStorage.getItem(config.sessionKey) === 'true';
-    console.log('检查认证状态:', isAuthenticated);
     if (isAuthenticated) {
       showPostsSection();
       loadPosts();
@@ -46,11 +43,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 密码验证
   function verifyPassword() {
-    console.log('开始密码验证');
     const inputPassword = passwordInput.value.trim();
 
     if (inputPassword === config.correctPassword) {
-      console.log('密码正确，开始显示文章');
       sessionStorage.setItem(config.sessionKey, 'true');
       
       // 先隐藏密码区域
@@ -65,7 +60,6 @@ document.addEventListener('DOMContentLoaded', function() {
       passwordInput.value = '';
       hideError();
     } else {
-      console.log('密码错误');
       showError();
       passwordInput.value = '';
       passwordInput.focus();
@@ -92,13 +86,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 隐藏密码区域
   function hidePasswordSection() {
-    console.log('隐藏密码区域');
     passwordSection.classList.add('hidden');
   }
 
   // 显示文章区域
   function showPostsSection() {
-    console.log('显示文章区域');
     postsSection.classList.add('visible');
     if (container) {
       container.classList.add('authenticated');
@@ -107,7 +99,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 加载私密文章
   async function loadPosts() {
-    console.log('开始加载文章');
     try {
       loadingState.style.display = 'block';
       emptyState.style.display = 'none';
@@ -121,7 +112,6 @@ document.addEventListener('DOMContentLoaded', function() {
       allPosts = await response.json();
       filteredPosts = [...allPosts];
 
-      console.log('加载的私密文章:', allPosts);
 
       if (allPosts.length === 0) {
         showEmptyState();
@@ -140,7 +130,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 渲染文章列表
   function renderPosts() {
-    console.log('开始渲染文章列表，文章数量:', filteredPosts.length);
     
     if (!postsGrid) {
       console.error('postsGrid元素不存在');
@@ -165,7 +154,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
     
-    console.log('文章列表渲染完成');
   }
 
   // 创建文章卡片
@@ -238,7 +226,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 打开文章
   window.openPost = function(filename) {
-    console.log('打开文章:', filename);
     // 将.md文件名转换为.html路径
     const htmlFilename = filename.replace('.md', '.html');
     const postUrl = '/coffer/private-posts/' + htmlFilename;
@@ -324,8 +311,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // 初始化
-  console.log('开始初始化检查');
   // 清除之前的认证状态，每次都要求重新输入密码
   sessionStorage.removeItem(config.sessionKey);
-  console.log('已清除认证状态，需要重新输入密码');
 }); 
