@@ -1077,6 +1077,8 @@ inject:
     - <link rel="stylesheet" href="/css/twikoo.css" media="print" onload="this.media='all'">
     - <link rel="stylesheet" href="/css/lazy-loading-optimized.css" media="print" onload="this.media='all'">
     - <link rel="stylesheet" href="/css/readmode-enhanced.css" media="print" onload="this.media='all'">
+    # 4. 字体优化（Font Awesome）
+    - <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
 
   bottom:
     # 1. 结构性元素
