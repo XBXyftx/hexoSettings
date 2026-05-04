@@ -6,7 +6,8 @@ type: project
 
 # KaTeX 轻量化迁移 — MathJax → KaTeX
 
-> **状态**: 实施完成,待验证渲染效果
+> **状态**: 已修复（公式保护持久化），待浏览器最终验证
+> **执行轮次**: 第一轮 2026-05-04（基础设施迁移）+ 第二轮 2026-05-05（公式保护修复与持久化）
 > **关联**: [../../07-known-issues/README.md](../../07-known-issues/README.md)(BUG-003) · `source/js/MathJax-3.2.2/`(保留的回滚基点)
 
 ---
@@ -247,7 +248,7 @@ git revert <commit-hash>
 ## L7 · 实际执行结果
 
 - **执行日期**: 2026-05-04
-- **commit hash**: _(执行后填充)_
+- **commit hash**: `5229ef5`
 - **改动文件**:
   - `themes/butterfly/layout/includes/third-party/math/katex.pug`（重写，+14 行客户端渲染）
   - `_config.butterfly.yml`（math.use: mathjax → katex，asset.katex 新增）
@@ -260,8 +261,36 @@ git revert <commit-hash>
   - 数学页面正确加载 katex.min.css + katex.min.js + auto-render.min.js
   - 数学页面**不**加载 MathJax
   - 首页**不**加载任何数学资源
-- **渲染效果评估**: _(需浏览器验证后填充)_
+- **渲染效果评估**: ❌ 第一轮浏览器验证发现公式未渲染（详见第二轮）
 - **异常 / 备注**: 无
+
+### 第二轮修复：kramed 行内公式保护（2026-05-05）
+
+- **触发原因**: 浏览器中打开数学文章，所有含 `_`、`*` 等 Markdown 特殊字符的行内公式（如 `$c_{ij}$`、`$A_{m \times n}$`）未渲染，下标消失或公式完全消失
+- **根本原因**: `hexo-renderer-kramed` 的 `mathjax: true` 选项**不完整**：
+  - ✅ 保护 `$$...$$` 块级公式 → 转为 `<script type="math/tex; mode=display">`
+  - ❌ **不保护** `$...$` 行内公式 → `_` 被当作 Markdown 斜体，`$c_{ij}$` 变成 `$c<em>{ij}</em>$`，KaTeX auto-render 找不到有效的 `$...$` 对
+- **根因分析文档**: [ANALYSIS.md](ANALYSIS.md)（5 层逐层排查，完整数据链）
+- **修复方案**:
+  1. **新建 `scripts/math-protect.js`**：Hexo `before_post_render` 过滤器，在 Markdown 渲染前将含数学符号（`\` `^` `_` `{` `}`）的行内公式预转为 `<script type="math/tex">` 标签，让 kramed 无法破坏它们。该脚本位于项目 `scripts/` 目录，`npm install` 不会影响它
+  2. **重写 `katex.pug`**：从仅 auto-render 升级为**双模式渲染**：
+     - 模式 A：处理 `<script type="math/tex">` 标签 → `katex.render()` 直接渲染（kramed 保护后的公式）
+     - 模式 B：处理原始 `$...$` / `$$...$$` 文本 → `renderMathInElement` auto-render（不含特殊字符的公式）
+  3. **恢复 `node_modules/hexo-renderer-kramed/lib/renderer.js`**：删除第一轮临时添加的正则保护，恢复为原始状态（避免与 Hexo 过滤器双重处理）
+- **改动文件**:
+  - `scripts/math-protect.js`（**新增**，持久化公式保护）
+  - `themes/butterfly/layout/includes/third-party/math/katex.pug`（补充 script tag 处理逻辑，+23 行）
+  - `node_modules/hexo-renderer-kramed/lib/renderer.js`（**恢复原始状态**，-2 行）
+  - `long-term-memory/04-operations/2026-05-04-katex-migration/ANALYSIS.md`（新增，深度分析报告）
+- **构建结果**: `hexo clean && hexo generate` ✅ 2044 files in 8.24s，无报错
+- **HTML 验证**（`public/2026/03/03/最优化理论/index.html`）：
+  - 行内 `<script type="math/tex">` 标签：**165 个**
+  - 块级 `<script type="math/tex; mode=display">` 标签：**67 个**
+  - 被破坏的公式（`$c<em>` 模式）：**0 个**
+  - 总计：**232 个**公式被正确保护
+- **渲染效果评估**: _(需浏览器验证后填充)_
+- **异常 / 备注**:
+  - `$Z = 1100$` 等**不含** `\ ^ _ { }` 特殊字符的公式仍保留为原始 `$...$` 文本，依赖 KaTeX auto-render 渲染。由于不含 Markdown 特殊字符，kramed 不会破坏它们
 
 ---
 

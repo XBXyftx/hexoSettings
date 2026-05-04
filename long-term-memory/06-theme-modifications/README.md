@@ -85,12 +85,15 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 **修改文件**：`themes/butterfly/layout/includes/third-party/math/katex.pug`
 **修改原因**：BUG-003 — MathJax 3.2.2 体积过大（1.17MB），迁移至 KaTeX（303KB）减少 74% 体积。Butterfly 原 katex.pug 仅做 CSS 加载和 `.katex` 元素显示，假设公式已在服务端渲染（需 hexo-filter-katex），但项目未安装该插件
-**修改内容**：重写 katex.pug，使用 `btf.getCSS` 加载 CSS，`btf.getScript` 顺序加载 katex.min.js 和 auto-render.min.js，然后调用 `renderMathInElement` 在客户端扫描 `$...$` 和 `$$...$$` 语法并渲染。添加 `window.katex_js_loaded` 全局标志防止重复加载
-**改动行数**：+14（完整重写）
-**相关文件**：`_config.butterfly.yml`（math.use: katex, asset.katex 配置）、`source/js/katex/`（KaTeX 0.16.19 文件）、`source/_posts/`（2 篇文章 front-matter 改 katex: true）
-**可回滚性**：可安全回滚。回滚后行为退回为「使用 MathJax 客户端渲染」，MathJax 3.2.2 目录完整保留，回滚只需改 3 处配置
-**关联文档**：[../04-operations/2026-05-04-katex-migration/README.md](../04-operations/2026-05-04-katex-migration/README.md)
-**关联 commit**：_(执行后填充)_
+**修改内容**：
+
+1. 第一轮（2026-05-04）：重写 katex.pug，使用 `btf.getCSS` 加载 CSS，`btf.getScript` 顺序加载 katex.min.js 和 auto-render.min.js，然后调用 `renderMathInElement` 在客户端扫描 `$...$` 和 `$$...$$` 语法并渲染。添加 `window.katex_js_loaded` 全局标志防止重复加载
+2. 第二轮（2026-05-05）：补充 `<script type="math/tex">` 标签处理逻辑。发现 kramed 将行内 `$c_{ij}$` 破坏为 `$c<em>{ij}</em>$` 后，katex.pug 新增模式 A（`katex.render()` 直接渲染 script 标签）与原有模式 B（`renderMathInElement` auto-render）并存，覆盖两种公式来源
+**改动行数**：第一轮 +14，第二轮 +23，合计 +37（完整重写）
+**相关文件**：`_config.butterfly.yml`（math.use: katex, asset.katex 配置）、`source/js/katex/`（KaTeX 0.16.19 文件）、`source/_posts/`（2 篇文章 front-matter 改 katex: true）、`scripts/math-protect.js`（Hexo 过滤器，持久化公式保护）
+**可回滚性**：可安全回滚。回滚后行为退回为「使用 MathJax 客户端渲染」，MathJax 3.2.2 目录完整保留，回滚只需改 3 处配置。`scripts/math-protect.js` 删除即可移除公式保护
+**关联文档**：[../04-operations/2026-05-04-katex-migration/README.md](../04-operations/2026-05-04-katex-migration/README.md) · [../04-operations/2026-05-04-katex-migration/ANALYSIS.md](../04-operations/2026-05-04-katex-migration/ANALYSIS.md)
+**关联 commit**：`5229ef5`（第一轮）· _(第二轮 commit 待填充)_
 
 ---
 

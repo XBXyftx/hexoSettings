@@ -2,14 +2,37 @@ script.
   (async () => {
     const renderKatex = () => {
       const container = document.getElementById('article-container')
-      if (!container || typeof window.renderMathInElement !== 'function') return
-      renderMathInElement(container, {
-        delimiters: [
-          {left: '$$', right: '$$', display: true},
-          {left: '$', right: '$', display: false}
-        ],
-        throwOnError: false
-      })
+      if (!container) return
+
+      // 1. 处理 <script type="math/tex"> 标签（kramed 渲染器生成）
+      if (typeof window.katex !== 'undefined') {
+        container.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+          const tex = node.textContent.trim()
+          const isDisplay = node.type.includes('mode=display')
+          const el = document.createElement(isDisplay ? 'div' : 'span')
+          try {
+            katex.render(tex, el, {
+              displayMode: isDisplay,
+              throwOnError: false
+            })
+            node.parentNode.replaceChild(el, node)
+          } catch (e) {
+            // 渲染失败时保留原始文本
+            node.outerHTML = isDisplay ? '$$' + tex + '$$' : '$' + tex + '$'
+          }
+        })
+      }
+
+      // 2. 处理原始的 $...$ 和 $$...$$ 文本（auto-render）
+      if (typeof window.renderMathInElement === 'function') {
+        renderMathInElement(container, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false}
+          ],
+          throwOnError: false
+        })
+      }
     }
 
     if (!window.katex_js_loaded) {
