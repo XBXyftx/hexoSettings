@@ -26,7 +26,13 @@
       loadAllImages();
       return;
     }
-    
+
+    // 释放旧 observer 防止 PJAX 切页时泄漏 (2026-05-04 Q9 / B9)
+    if (observer) {
+      observer.disconnect();
+      observer = null;
+    }
+
     observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {

@@ -15,7 +15,7 @@ type: project
 
 | 项 | 主题 | 风险 | 状态 | 详细文档 | 依赖 |
 |---|---|---|---|---|---|
-| **Q8** | elemecdn @latest 锁版本(B14) | 🟢 0 | 🔍 深度调研中 | [Q8.md](Q8-elemecdn-lock-version.md) | `_config.butterfly.yml` |
+| **Q8** | elemecdn @latest 锁版本(B14) | 🟢 0 | ✅ 已完成 | [Q8.md](Q8-elemecdn-lock-version.md) | `_config.butterfly.yml` |
 | **Q9** | lazy-loading-optimized observer disconnect(B9) | 🟢 0 | ⏳ 待执行 | [Q9.md](Q9-observer-disconnect.md) | `themes/butterfly/source/js/lazy-loading-optimized.js` |
 | **Q10** | lazy-loading-about destroy() 激活(B10) | 🟢 0 | ⏳ 待执行 | [Q10.md](Q10-destroy-activation.md) | `source/about/lazy-loading-about.js` + caller |
 | **Q11** | typewriter clearInterval 防 PJAX 泄漏(B8) | 🟡 低 | ⏳ 待执行 | [Q11.md](Q11-typewriter-clearinterval.md) | `themes/butterfly/source/js/typewriter-effect.js` |
@@ -88,4 +88,5 @@ type: project
 ## L6 · 时间线(按 commit 推进时填充)
 
 - **2026-05-04 (基线)**: commit `3ec6ebd` — Q1-Q7 全部回填完成,所有功能正常
+- **2026-05-04**: commit `9316093` — Q8 完成 — elemecdn 12 处 CDN URL 锁定到当前 npm 版本(B14)
 - _(后续条目按实际 commit 时间填入)_

@@ -220,4 +220,20 @@ git reset --hard 3ec6ebd        # 完全回到基线
 
 ## L7 · 实际执行结果
 
-_(执行后填充)_
+- **执行日期**: 2026-05-04
+- **commit hash**: `9316093`
+- **改动文件**: `_config.butterfly.yml` (12 处 URL 替换)
+- **改动详情**:
+  - tag-plugins-plus: 4 处 `@latest` → `@1.0.18`
+  - envelope: 4 处无版本 → `@1.0.15`
+  - swiper: 4 处无版本 → `@1.0.12`
+- **构建结果**: `hexo clean && hexo generate` ✅ 无报错
+- **产物验证**:
+  - `public/comments/index.html`: 信封 4 张图片 URL 均含 `@1.0.15` ✅
+  - `public/` 全局: swiper URL `@1.0.12` 出现 310 次 ✅
+  - `public/` 全局: `@latest` 残留 1 处(博客文章 `关于传图片的一些坑.md` 内的代码示例,非 active config) ✅
+  - tag-plugins-plus CSS: 当前构建未在 HTML 中检出(预检确认旧版本同样未注入,非本变更引入)
+- **运行时影响评估**:
+  - 默认情况: 零行为变化(当前 `@latest` = 锁定的版本号)
+  - 未来防护: 上游发布新版本时,站点不会自动跟随,避免 breaking change
+- **异常 / 备注**: 无
