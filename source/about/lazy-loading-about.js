@@ -360,6 +360,17 @@
         }
     };
 
+    // PJAX 离开关于页时清理资源 (2026-05-04 Q10 / B10)
+    if (typeof window.pjax !== 'undefined') {
+        function cleanupAboutLazyLoading() {
+            if (window.AboutPageLazyLoading) {
+                window.AboutPageLazyLoading.destroy();
+            }
+            document.removeEventListener('pjax:send', cleanupAboutLazyLoading);
+        }
+        document.addEventListener('pjax:send', cleanupAboutLazyLoading);
+    }
+
     // DOM 加载完成后自动初始化
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initAboutPageLazyLoading);

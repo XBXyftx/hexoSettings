@@ -165,4 +165,13 @@ git reset --hard 3ec6ebd        # 完全回到基线
 
 ## L7 · 实际执行结果
 
-_(执行后填充)_
+- **执行日期**: 2026-05-04
+- **commit hash**: `81d67c9`
+- **改动文件**: `themes/butterfly/source/js/lazy-loading-optimized.js` (+4 行)
+- **改动位置**: `createObserver()` 函数开头
+- **构建结果**: `hexo clean && hexo generate` ✅ 无报错
+- **产物验证**: `public/js/lazy-loading-optimized.js` 包含 disconnect 逻辑 ✅
+- **运行时影响评估**:
+  - 默认情况: 零行为变化(首次加载时 observer 为 null,不触发 disconnect)
+  - PJAX 切页: 旧 observer 及时释放,内存不再泄漏
+- **异常 / 备注**: 无
