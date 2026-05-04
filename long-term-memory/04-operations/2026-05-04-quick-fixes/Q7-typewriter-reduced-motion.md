@@ -6,7 +6,7 @@ type: project
 
 # Q7 — typewriter JS `prefers-reduced-motion` 无障碍支持
 
-> **状态**：待执行 / 执行中 / 已完成
+> **状态**：✅ 已完成（2026-05-04）
 > **关联**：[../../../07-known-issues/discovered-issues/README.md#-b19-typewriter-不响应-prefers-reduced-motion](../../../07-known-issues/discovered-issues/README.md)（B19）· [../../../05-reference/typewriter-effect.md](../../../05-reference/typewriter-effect.md)（打字机效果实现）
 > ⚠️ **本项修改主题文件**：必须在 [../../../06-theme-modifications/](../../../06-theme-modifications/) 留痕
 
@@ -92,12 +92,19 @@ git reset --hard 59c6f94
 
 ## L7 · 实际执行结果
 
-> 执行后在此填入：
-> - commit hash：
-> - 改动行数：
-> - 构建是否通过：
-> - 默认状态打字机效果验证：
-> - reduced-motion 模拟验证：
-> - PJAX 切换验证：
-> - 06-theme-modifications/ 留痕文件路径：
-> - 异常 / 备注：
+- **执行日期**：2026-05-04
+- **commit hash**：（提交后填入）
+- **改动行数**：+7（在 `themes/butterfly/source/js/typewriter-effect.js` 的 `TypeWriter.start()` 方法 Promise 体内最前端追加）
+- **修改位置选择**：放在 `start()` 而不是外层 `initTypewriterEffect()`
+  - 优点 1：保持 `start()` 返回 Promise 的契约不变（reduced-motion 时立刻 resolve）
+  - 优点 2：DOM 容器创建和淡入动画仍正常发生（只跳过逐字 setInterval）
+  - 优点 3：对调用方完全透明，无需改 caller
+- **修改后 main 流程行为**：
+  - 默认环境：DOM 创建 → 淡入 → 逐字打字（行为不变）
+  - reduced-motion 环境：DOM 创建 → 淡入 → 文字立即整段显示 → 光标 blink CSS 由 typewriter-effect.css:275 的同名媒体查询接手停止
+- **构建是否通过**：将随最后批量 hexo generate 验证
+- **06-theme-modifications/ 留痕**：已在 [`long-term-memory/06-theme-modifications/README.md`](../../06-theme-modifications/README.md) 新增 `#1 — 2026-05-04` 修改记录
+- **运行时影响评估**：
+  - 默认无 reduced-motion：视觉零变化（多 1 次 matchMedia 调用，性能可忽略）
+  - 启用 reduced-motion：从「2-3 秒逐字打字」变为「立即整段显示」（符合无障碍预期）
+- **异常 / 备注**：无

@@ -12,6 +12,13 @@
     // 开始打字
     start() {
       return new Promise((resolve) => {
+        // 无障碍：响应 prefers-reduced-motion，跳过逐字动画 (Q7 / B19)
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          this.element.textContent = this.text;
+          this.index = this.text.length;
+          resolve();
+          return;
+        }
         const timer = setInterval(() => {
           if (this.index < this.text.length) {
             this.element.textContent += this.text.charAt(this.index);

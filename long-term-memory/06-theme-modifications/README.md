@@ -30,6 +30,21 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 以下是通过代码扫描发现的已修改文件，但历史修改时间和原因需要人工补充：
 
+### #1 — 2026-05-04 — typewriter-effect.js 增加 prefers-reduced-motion 短路
+
+**修改文件**：`themes/butterfly/source/js/typewriter-effect.js`
+**修改原因**：B19 — typewriter 逐字 setInterval 动画对 reduced-motion 用户不友好，CSS 已在该媒体查询下停 cursor blink/shimmer，但 JS 的逐字动画仍然执行（动画行为最强烈的部分仍存在）
+**修改内容**：在 `TypeWriter.start()` 方法 Promise 内最前端加 `matchMedia('(prefers-reduced-motion: reduce)').matches` 检测，命中则把 `this.text` 整体写入 `this.element.textContent`，立刻 `resolve()` 并 return，跳过 `setInterval` 逐字循环
+**改动行数**：+7（含 1 行注释）
+**相关文件**：`themes/butterfly/source/css/typewriter-effect.css:275`（已有 CSS 媒体查询，本次是把同一原则应用到 JS）
+**可回滚性**：可安全回滚（git revert）。回滚后行为退回为「reduced-motion 用户也看到逐字动画」，是已知的旧行为，不引入新故障
+**关联文档**：[../04-operations/2026-05-04-quick-fixes/Q7-typewriter-reduced-motion.md](../04-operations/2026-05-04-quick-fixes/Q7-typewriter-reduced-motion.md)
+**关联 commit**：（提交后填入）
+
+---
+
+### 已有的主题修改（历史扫描记录）
+
 ### layout/includes/layout.pug
 
 | 项 | 值 |
