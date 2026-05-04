@@ -93,7 +93,7 @@ git reset --hard 59c6f94
 ## L7 · 实际执行结果
 
 - **执行日期**：2026-05-04
-- **commit hash**：（提交后填入）
+- **commit hash**：`fcc1cea`
 - **改动行数**：+7（在 `themes/butterfly/source/js/typewriter-effect.js` 的 `TypeWriter.start()` 方法 Promise 体内最前端追加）
 - **修改位置选择**：放在 `start()` 而不是外层 `initTypewriterEffect()`
   - 优点 1：保持 `start()` 返回 Promise 的契约不变（reduced-motion 时立刻 resolve）

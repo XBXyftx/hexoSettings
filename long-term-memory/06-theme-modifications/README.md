@@ -39,7 +39,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 **相关文件**：`themes/butterfly/source/css/typewriter-effect.css:275`（已有 CSS 媒体查询，本次是把同一原则应用到 JS）
 **可回滚性**：可安全回滚（git revert）。回滚后行为退回为「reduced-motion 用户也看到逐字动画」，是已知的旧行为，不引入新故障
 **关联文档**：[../04-operations/2026-05-04-quick-fixes/Q7-typewriter-reduced-motion.md](../04-operations/2026-05-04-quick-fixes/Q7-typewriter-reduced-motion.md)
-**关联 commit**：（提交后填入）
+**关联 commit**：`fcc1cea`
 
 ---
 

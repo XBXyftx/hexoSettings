@@ -146,5 +146,5 @@ type: project
 - **2026-05-04**：Q2 完成 — avatar-ring 增加 prefers-reduced-motion 媒体查询 (B7)（commit `3cc1b63`）
 - **2026-05-04**：Q3 完成 — tag_plugins jQuery 重复配置注释化 (B16)（commit `eb190ba`）
 - **2026-05-04**：Q5 ⛔ 搁置 — 预检发现 coffer.js openPost 直跳 .html，skip_render 会让点击文章 404；B12 改为后续架构方案专项处理（commit `f7668f6`）
-- **2026-05-04**：Q7 完成 — typewriter `TypeWriter.start()` 增加 prefers-reduced-motion 短路 (B19)（commit hash 待填）
+- **2026-05-04**：Q7 完成 — typewriter `TypeWriter.start()` 增加 prefers-reduced-motion 短路 (B19)（commit `fcc1cea`）
 - _（后续条目按实际 commit 时间填入）_

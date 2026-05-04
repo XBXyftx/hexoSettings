@@ -103,7 +103,7 @@ git reset --hard 59c6f94
 ## L6 · 实际执行结果
 
 - **执行日期**：2026-05-04
-- **commit hash**：（提交后填入）
+- **commit hash**：`3cc1b63`
 - **改动行数**：净增 7 行（5 行有效 CSS + 1 行注释 + 1 行空行），同时附带把 `box-shadow:` 后的尾随空格修正
 - **改动文件**：`source/about/index.html`（位于 `.avatar-ring { ... }` 块之后，约 line 83-89）
 - **构建是否通过**：将随最后批量 hexo generate 验证

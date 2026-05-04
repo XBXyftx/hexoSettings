@@ -98,7 +98,7 @@ git reset --hard 59c6f94        # 完全回到基线
 ## L6 · 实际执行结果
 
 - **执行日期**：2026-05-04
-- **commit hash**：（提交后填入）
+- **commit hash**：`eb190ba`
 - **改动行数**：1（`_config.butterfly.yml:1156`，注释化 + 备注说明）
 - **构建是否通过**：将随最后批量 hexo generate 验证
 - **受影响文章列表（grep 实测）**：
