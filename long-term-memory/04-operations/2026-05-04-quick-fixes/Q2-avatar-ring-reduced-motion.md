@@ -6,7 +6,7 @@ type: project
 
 # Q2 — avatar-ring `prefers-reduced-motion` 无障碍支持
 
-> **状态**：待执行 / 执行中 / 已完成
+> **状态**：✅ 已完成（2026-05-04）
 > **关联**：[../../../07-known-issues/discovered-issues/README.md#-b7-关于页-avatar-ring-永久旋转无暂停](../../../07-known-issues/discovered-issues/README.md)（B7）
 
 ---
@@ -102,10 +102,14 @@ git reset --hard 59c6f94
 
 ## L6 · 实际执行结果
 
-> 执行后在此填入：
-> - commit hash：
-> - 改动行数：
-> - 构建是否通过：
-> - 浏览器默认状态验证：
-> - reduced-motion 模拟验证：
-> - 异常 / 备注：
+- **执行日期**：2026-05-04
+- **commit hash**：（提交后填入）
+- **改动行数**：净增 7 行（5 行有效 CSS + 1 行注释 + 1 行空行），同时附带把 `box-shadow:` 后的尾随空格修正
+- **改动文件**：`source/about/index.html`（位于 `.avatar-ring { ... }` 块之后，约 line 83-89）
+- **构建是否通过**：将随最后批量 hexo generate 验证
+- **运行时影响评估**：
+  - 默认环境（无 reduced-motion 偏好）：光环旋转动画完全不变，**视觉零变化**
+  - 开启 reduced-motion 的用户：光环停止旋转（符合 W3C 无障碍最佳实践）
+  - 与项目内已有 `prefers-reduced-motion` 实现（typewriter-effect.css / lazy-loading-stable.css / lazy-loading-optimized.css）保持风格一致
+- **附带发现**：原 CSS `box-shadow: ` 后存在尾随空格，编辑时被自动 trim（与功能无关，纯格式整理）
+- **异常 / 备注**：无

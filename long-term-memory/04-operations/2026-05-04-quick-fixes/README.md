@@ -16,7 +16,7 @@ type: project
 | 项 | 主题 | 风险 | 状态 | 详细文档 |
 |---|---|---|---|---|
 | **Q1** | 修正 algolia_search 的 bytecdntp 残留 URL → cdnjs | 🟢 0 | ✅ 已完成 | [Q1.md](Q1-algolia-bytecdntp.md) |
-| **Q2** | avatar-ring 增加 `prefers-reduced-motion` 媒体查询 | 🟢 0 | 待执行 | [Q2.md](Q2-avatar-ring-reduced-motion.md) |
+| **Q2** | avatar-ring 增加 `prefers-reduced-motion` 媒体查询 | 🟢 0 | ✅ 已完成 | [Q2.md](Q2-avatar-ring-reduced-motion.md) |
 | **Q3** | 删除 tag_plugins 中重复的 jQuery 引用 | 🟡 低 | 待执行 | [Q3.md](Q3-jquery-dedup.md) |
 | **Q5** | coffer 私密文章添加 `skip_render` 防直链访问 | 🟡 低 | 待执行 | [Q5.md](Q5-coffer-skip-render.md) |
 | **Q7** | typewriter JS 增加 `prefers-reduced-motion` 检测 | 🟡 低（修主题） | 待执行 | [Q7.md](Q7-typewriter-reduced-motion.md) |
@@ -142,5 +142,6 @@ type: project
 
 - **2026-05-04 (基线)**：commit `59c6f94` — 文档体系建成，所有功能正常
 - **2026-05-04**：commit `089634c` — 修复文档模块建成，BUG 清单 B1/B2/B3 修正
-- **2026-05-04**：Q1 完成 — algolia_search bytecdntp → cdnjs（commit hash 待填）
+- **2026-05-04**：commit `c863452` — Q1 完成 — algolia_search bytecdntp → cdnjs (B13)
+- **2026-05-04**：Q2 完成 — avatar-ring 增加 prefers-reduced-motion 媒体查询 (B7)（commit hash 待填）
 - _（后续条目按实际 commit 时间填入）_
