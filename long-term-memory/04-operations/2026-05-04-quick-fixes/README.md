@@ -18,7 +18,7 @@ type: project
 | **Q1** | 修正 algolia_search 的 bytecdntp 残留 URL → cdnjs | 🟢 0 | ✅ 已完成 | [Q1.md](Q1-algolia-bytecdntp.md) |
 | **Q2** | avatar-ring 增加 `prefers-reduced-motion` 媒体查询 | 🟢 0 | ✅ 已完成 | [Q2.md](Q2-avatar-ring-reduced-motion.md) |
 | **Q3** | 删除 tag_plugins 中重复的 jQuery 引用 | 🟢 0（实测下调） | ✅ 已完成 | [Q3.md](Q3-jquery-dedup.md) |
-| **Q5** | coffer 私密文章添加 `skip_render` 防直链访问 | 🟡 低 | 待执行 | [Q5.md](Q5-coffer-skip-render.md) |
+| **Q5** | coffer 私密文章添加 `skip_render` 防直链访问 | 🟡 低 | ⛔ 搁置（预检冲突） | [Q5.md](Q5-coffer-skip-render.md) |
 | **Q7** | typewriter JS 增加 `prefers-reduced-motion` 检测 | 🟡 低（修主题） | 待执行 | [Q7.md](Q7-typewriter-reduced-motion.md) |
 
 > **不在本批**：Q4（elemecdn @latest 锁版本）需要先 `npm view` 调研，作为下一批；Q6（Font Awesome 重复）实际需要改主题 pug，不在快速修复范围。
@@ -144,5 +144,6 @@ type: project
 - **2026-05-04**：commit `089634c` — 修复文档模块建成，BUG 清单 B1/B2/B3 修正
 - **2026-05-04**：commit `c863452` — Q1 完成 — algolia_search bytecdntp → cdnjs (B13)
 - **2026-05-04**：Q2 完成 — avatar-ring 增加 prefers-reduced-motion 媒体查询 (B7)（commit `3cc1b63`）
-- **2026-05-04**：Q3 完成 — tag_plugins jQuery 重复配置注释化 (B16)（commit hash 待填）
+- **2026-05-04**：Q3 完成 — tag_plugins jQuery 重复配置注释化 (B16)（commit `eb190ba`）
+- **2026-05-04**：Q5 ⛔ 搁置 — 预检发现 coffer.js openPost 直跳 .html，skip_render 会让点击文章 404；B12 改为后续架构方案专项处理
 - _（后续条目按实际 commit 时间填入）_

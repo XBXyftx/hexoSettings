@@ -6,7 +6,7 @@ type: project
 
 # Q5 — coffer 私密文章 `skip_render` 防护
 
-> **状态**：待执行 / 执行中 / 已完成
+> **状态**：⛔ 已搁置（2026-05-04 预检发现冲突，必须重新设计后才能执行）
 > **关联**：[../../../07-known-issues/discovered-issues/README.md#-b12-coffer-私密文章可直接访问](../../../07-known-issues/discovered-issues/README.md)（B12）· [../../../02-custom-pages/coffer-private-posts.md](../../../02-custom-pages/coffer-private-posts.md)（私密文章系统全图）
 
 ---
@@ -109,11 +109,32 @@ git reset --hard 59c6f94        # 完全回到基线
 
 ## L6 · 实际执行结果
 
-> 执行后在此填入：
-> - commit hash：
-> - 改动行数：
-> - 构建是否通过：
-> - private-posts.json 是否仍生成：
-> - 私密 .html 是否消失：
-> - coffer.js 文章打开是否仍工作：
-> - 异常 / 备注：
+- **执行日期**：2026-05-04（**未执行 / 搁置**）
+- **commit hash**：N/A
+- **预检结论**：**方案 A 不可行**
+- **决定性证据**：[`source/js/coffer.js:240-248`](../../../../source/js/coffer.js#L240-L248)
+
+  ```js
+  window.openPost = function(filename) {
+    // 将.md文件名转换为.html路径
+    const htmlFilename = filename.replace('.md', '.html');
+    const postUrl = '/coffer/private-posts/' + htmlFilename;
+    window.open(postUrl, '_blank');
+  };
+  ```
+
+  coffer.js 的"📖 阅读文章"按钮**直接跳转到 Hexo 渲染的 `.html`**。如果加 `skip_render: 'coffer/private-posts/**'`，HTML 文件不再生成，点击文章 → 404。
+
+- **同时也意味着 B12 的安全模型本质有缺陷**：
+  - 当前实现：`.html` 必然生成 → 知道文件名即可绕过密码 → 绕过路径已存在
+  - 仅做 skip_render 也无法不破坏功能地修复
+  - 真正修复需要架构改造
+
+- **后续处理排期（不属于 Q5 范畴，记录到 BUG 清单跟踪）**：
+  - 方案 X：保留 .html 渲染，但在每篇 .html 注入「从 sessionStorage 读密码状态，否则跳回 /coffer/」的 JS 守门（和 coffer.js 共享同一密码状态）
+  - 方案 Y：跳过 Hexo 渲染 + 改写 coffer.js，让点击文章时通过 fetch 读 .md 原文，用 marked.js 客户端渲染（方案 A + 客户端渲染）
+  - 方案 Z：把私密文章改为静态 JSON 数组（已渲染好的 HTML 字符串），打包到 `private-posts.json` → 只生成 JSON 不生成 .html
+
+- **三套方案均涉及"重设计"**：B12 已不属于"快速修复"，应在下一批专项任务中处理
+- **本 Q5 的最终结论**：⛔ **不执行**，等架构方案确定后再上 commit
+- **异常 / 备注**：预检流程价值兑现 — 提前避免了一次会让密码页 + 文章列表都失效的错误执行
