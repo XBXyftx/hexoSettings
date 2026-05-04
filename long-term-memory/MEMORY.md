@@ -95,6 +95,9 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 ### 已知问题
 - [全面审计 BUG 清单（20+ 项）](07-known-issues/discovered-issues/README.md) — 重复文件、死代码、性能隐患、PJAX 内存泄漏、安全隐患
 
+### 修复操作
+- [2026-05-04 快速修复批次](04-operations/2026-05-04-quick-fixes/README.md) — Q1-Q7 修复记录、回滚基线 commit、每项独立 commit 与验证步骤
+
 ---
 
 ## 当前重点任务
