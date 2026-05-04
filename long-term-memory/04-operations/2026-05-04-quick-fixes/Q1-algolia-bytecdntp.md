@@ -74,9 +74,17 @@ git reset --hard 59c6f94
 
 ## L6 · 实际执行结果
 
-> 执行后在此填入：
-> - commit hash：
-> - 改动行数：
-> - 构建是否通过：
-> - 浏览器验证结果：
-> - 异常 / 备注：
+- **执行日期**：2026-05-04
+- **commit hash**：（提交后填入）
+- **改动行数**：1（`_config.butterfly.yml:1114`）
+- **构建是否通过**：将随最后批量 hexo generate 验证
+- **运行时影响评估**：
+  - 站点搜索功能 `search.use:`（line 508）当前为空 → **search 未启用**
+  - 因此 `algolia_search` URL 从未被实际请求
+  - 本次修改是「修正死配置」，对当前用户体验零影响；对未来启用 algolia 时则避免了 404
+- **附带发现**：同区域还有两个 bytecdntp 残留 URL：
+  - `_config.butterfly.yml:1115` aplayer_css
+  - `_config.butterfly.yml:1116` aplayer_js
+  - 但 `aplayerInject.enable: false`（line 1006），同样为死配置
+  - 已记录到 BUG 清单备忘，将在下一批同类清理中一起处理（不属于本次 Q1 范围）
+- **异常 / 备注**：无

@@ -1111,7 +1111,7 @@ CDN:
     # abcjs_basic_js:
     # activate_power_mode:
     algolia_js: https://cdn1.tianli0.top/npm/js-heo@1.0.11/algolia/algolia.js
-    algolia_search: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/instantsearch.js/2.10.5/instantsearch.min.js
+    algolia_search: https://cdnjs.cloudflare.com/ajax/libs/instantsearch.js/2.10.5/instantsearch.min.js
     aplayer_css: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/aplayer/1.10.1/APlayer.min.css
     aplayer_js: https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/aplayer/1.10.1/APlayer.min.js
     # artalk_css:
