@@ -77,7 +77,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 **相关文件**：`themes/butterfly/source/js/universe-optimized.js`(参考实现)
 **可回滚性**：可安全回滚。回滚后行为退回为「无节流/无暂停/无移动端降级/无防抖」,是已知的旧行为,但性能较差
 **关联文档**：[../04-operations/2026-05-04-tier1-fixes/Q13-header-universe-optimization.md](../04-operations/2026-05-04-tier1-fixes/Q13-header-universe-optimization.md)
-**关联 commit**：_(执行后填充)_
+**关联 commit**：`f84d526`
 
 ---
 

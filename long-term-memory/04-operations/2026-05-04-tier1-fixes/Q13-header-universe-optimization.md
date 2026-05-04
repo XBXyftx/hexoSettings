@@ -212,4 +212,17 @@ git reset --hard 3ec6ebd        # 完全回到基线
 
 ## L7 · 实际执行结果
 
-_(执行后填充)_
+- **执行日期**: 2026-05-04
+- **commit hash**: `f84d526`
+- **改动文件**:
+  - `themes/butterfly/source/js/header-universe.js` (十项优化,见 L4)
+  - `long-term-memory/06-theme-modifications/README.md` (新增 #3 修改记录)
+- **构建结果**: `hexo clean && hexo generate` ✅ 无报错 (2040 files in 5.78s)
+- **运行时影响评估**:
+  - 桌面端 1920px: 粒子数从 ~415 颗降至 ~153 颗,渲染压力降低 63%
+  - 移动端 ≤768px: 粒子数从 ~166 颗降至 ~30 颗,渲染压力降低 82%
+  - FPS  capped 到 30fps,CPU 占用显著下降
+  - 标签页隐藏时自动暂停,后台零耗电
+  - resize 时 200ms 防抖,避免快速 resize 卡顿
+  - PJAX 导航时自动 cancelAnimationFrame + 移除监听器,无泄漏
+- **异常 / 备注**: 无
