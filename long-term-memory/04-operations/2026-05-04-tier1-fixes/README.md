@@ -19,7 +19,7 @@ type: project
 | **Q9** | lazy-loading-optimized observer disconnect(B9) | 🟢 0 | ✅ 已完成 | [Q9.md](Q9-observer-disconnect.md) | `themes/butterfly/source/js/lazy-loading-optimized.js` |
 | **Q10** | lazy-loading-about destroy() 激活(B10) | 🟢 0 | ✅ 已完成 | [Q10.md](Q10-destroy-activation.md) | `source/about/lazy-loading-about.js` + caller |
 | **Q11** | typewriter clearInterval 防 PJAX 泄漏(B8) | 🟡 低 | ✅ 已完成 | [Q11.md](Q11-typewriter-clearinterval.md) | `themes/butterfly/source/js/typewriter-effect.js` |
-| **Q12** | Font Awesome 重复加载(B17) | 🟡 低(修主题) | ⏳ 待执行 | [Q12.md](Q12-font-awesome-dedup.md) | 主题 pug + `06-theme-modifications/` |
+| **Q12** | Font Awesome 重复加载(B17) | 🟡 低(修主题) | ✅ 已完成 | [Q12.md](Q12-font-awesome-dedup.md) | 主题 pug + `06-theme-modifications/` |
 | **Q13** | header-universe 性能优化(B4) | 🟡 中 | ⏳ 待执行 | [Q13.md](Q13-header-universe-optimization.md) | `themes/butterfly/source/js/header-universe.js` |
 
 ---
@@ -92,4 +92,5 @@ type: project
 - **2026-05-04**: commit `81d67c9` — Q9 完成 — lazy-loading-optimized observer disconnect 防 PJAX 泄漏(B9)
 - **2026-05-04**: commit `4e443b3` — Q10 完成 — lazy-loading-about destroy() 激活, PJAX 离开关于页自动清理(B10)
 - **2026-05-04**: commit `b470367` — Q11 完成 — typewriter 定时器跟踪 + PJAX 切页清理,防 timer 泄漏(B8)
+- **2026-05-04**: commit `539f9d2` — Q12 完成 — Font Awesome 去重,主题异步加载 + 删除 inject.head 重复项(B17)
 - _(后续条目按实际 commit 时间填入)_

@@ -140,4 +140,17 @@ git reset --hard 3ec6ebd        # 完全回到基线
 
 ## L7 · 实际执行结果
 
-_(执行后填充)_
+- **执行日期**: 2026-05-04
+- **commit hash**: `539f9d2`
+- **改动文件**:
+  - `themes/butterfly/layout/includes/head.pug` (1 行修改: 添加 media="print" onload="this.media='all'")
+  - `_config.butterfly.yml` (删除 inject.head 中 Font Awesome 重复项)
+  - `long-term-memory/06-theme-modifications/README.md` (新增 #2 修改记录)
+- **构建结果**: `hexo clean && hexo generate` ✅ 无报错
+- **产物验证**:
+  - `public/index.html` 中 `font-awesome` 仅出现 1 次 ✅
+  - 该处含 `media="print" onload="this.media='all'"` ✅
+- **运行时影响评估**:
+  - 首次加载: Font Awesome 异步加载,不阻塞首屏渲染
+  - 图标显示: 与之前 inject.head 版本行为一致
+- **异常 / 备注**: 无

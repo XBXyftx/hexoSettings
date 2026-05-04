@@ -52,6 +52,31 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 **相关文件**：`_config.butterfly.yml:1080-1081`（删除 inject.head 中的重复项）
 **可回滚性**：可安全回滚。回滚后行为退回为「Font Awesome 阻塞加载 + inject.head 异步加载 = 两份同时存在」，是已知的旧行为
 **关联文档**：[../04-operations/2026-05-04-tier1-fixes/Q12-font-awesome-dedup.md](../04-operations/2026-05-04-tier1-fixes/Q12-font-awesome-dedup.md)
+**关联 commit**：`539f9d2`
+
+---
+
+### #3 — 2026-05-04 — header-universe.js 性能优化
+
+**修改文件**：`themes/butterfly/source/js/header-universe.js`
+**修改原因**：B4 — 星空背景无性能优化,导致移动端低端机卡顿、标签页后台持续耗电
+**修改内容**：
+
+1. 添加 30fps 节流(`frameInterval` + `lastFrameTime`)
+2. 添加 `document.visibilitychange` 监听,标签页隐藏时暂停渲染
+3. 添加移动端检测(`innerWidth <= 768`),粒子数从 `0.216×width` 降级为 `0.04×width`
+4. 桌面端粒子数从 `0.216×width` 降为 `0.08×width`
+5. 流星尾巴从 30 点缩短为 10 点
+6. resize 改为 200ms 防抖,resize 时重新初始化星星
+7. 添加 `cancelAnimationFrame` + `isRunning` 标志,支持生命周期管理
+8. PJAX 切页时自动清理(animationFrame + 事件监听器)
+9. `f()` 添加 `#page-header` null 检查,防止非首页抛异常
+10. 将 `y` 构造函数内的 `setTimeout` 移至初始化后统一触发,消除 400 个冗余定时器
+
+**改动行数**：~+45 / ~-5
+**相关文件**：`themes/butterfly/source/js/universe-optimized.js`(参考实现)
+**可回滚性**：可安全回滚。回滚后行为退回为「无节流/无暂停/无移动端降级/无防抖」,是已知的旧行为,但性能较差
+**关联文档**：[../04-operations/2026-05-04-tier1-fixes/Q13-header-universe-optimization.md](../04-operations/2026-05-04-tier1-fixes/Q13-header-universe-optimization.md)
 **关联 commit**：_(执行后填充)_
 
 ---

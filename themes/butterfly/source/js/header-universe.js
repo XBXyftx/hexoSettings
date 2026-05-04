@@ -1,8 +1,13 @@
 function headerUniverse() {
-    window.requestAnimationFrame = window.requestAnimationFrame 
-        || window.mozRequestAnimationFrame 
-        || window.webkitRequestAnimationFrame 
+    window.requestAnimationFrame = window.requestAnimationFrame
+        || window.mozRequestAnimationFrame
+        || window.webkitRequestAnimationFrame
         || window.msRequestAnimationFrame;
+
+    window.cancelAnimationFrame = window.cancelAnimationFrame
+        || window.mozCancelAnimationFrame
+        || window.webkitCancelAnimationFrame
+        || window.msCancelAnimationFrame;
 
     var n, e, i, h, t = 0.05,
         s = document.createElement("canvas"),
@@ -10,21 +15,29 @@ function headerUniverse() {
         a = "180,184,240",
         r = "226,225,142",
         d = "255,255,255",
-        c = [];
+        c = [],
+        animationId = null,
+        isRunning = !1,
+        lastFrameTime = 0,
+        targetFPS = 30,
+        frameInterval = 1000 / targetFPS,
+        isMobile = window.innerWidth <= 768,
+        resizeTimer = null;
 
-    // 添加canvas到header
     function initCanvas() {
         const header = document.getElementById("page-header");
         if (!header) return;
-        
+
         s.classList.add("universe-header");
         header.appendChild(s);
     }
 
     function f() {
-        n = document.getElementById("page-header").offsetWidth;
-        e = document.getElementById("page-header").offsetHeight;
-        i = 0.216 * n;
+        const header = document.getElementById("page-header");
+        if (!header) return;
+        n = header.offsetWidth;
+        e = header.offsetHeight;
+        i = isMobile ? Math.floor(0.04 * n) : Math.floor(0.08 * n);
         s.setAttribute("width", n);
         s.setAttribute("height", e);
     }
@@ -71,8 +84,8 @@ function headerUniverse() {
             } else if (this.comet) {
                 h.fillStyle = "rgba(" + d + "," + Math.min(this.opacity * 1.5, 1) + ")";
                 h.arc(this.x, this.y, 1.5, 0, 2 * Math.PI, !1);
-                for (var t = 0; t < 30; t++) {
-                    h.fillStyle = "rgba(" + d + "," + (this.opacity - this.opacity/30*t) + ")";
+                for (var t = 0; t < 10; t++) {
+                    h.fillStyle = "rgba(" + d + "," + (this.opacity - this.opacity / 10 * t) + ")";
                     h.rect(this.x - this.dx / 3 * t, this.y - this.dy / 3 * t - 2, 2, 2);
                     h.fill();
                 }
@@ -90,10 +103,6 @@ function headerUniverse() {
             !1 === this.fadingOut && this.reset();
             (this.x > n - n / 4 || this.y < 0) && (this.fadingOut = !0);
         };
-
-        setTimeout(function() {
-            o = !1;
-        }, 50);
     }
 
     function m(t) {
@@ -104,9 +113,77 @@ function headerUniverse() {
         return Math.random() * (i - t) + t;
     }
 
+    function render(currentTime) {
+        if (!isRunning) return;
+
+        var elapsed = currentTime - lastFrameTime;
+        if (elapsed < frameInterval) {
+            animationId = window.requestAnimationFrame(render);
+            return;
+        }
+        lastFrameTime = currentTime - (elapsed % frameInterval);
+
+        u();
+        animationId = window.requestAnimationFrame(render);
+    }
+
+    function start() {
+        if (isRunning) return;
+        isRunning = !0;
+        lastFrameTime = 0;
+        animationId = window.requestAnimationFrame(render);
+    }
+
+    function stop() {
+        isRunning = !1;
+        if (animationId) {
+            cancelAnimationFrame(animationId);
+            animationId = null;
+        }
+    }
+
+    function debouncedResize() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            isMobile = window.innerWidth <= 768;
+            f();
+            c.length = 0;
+            h = s.getContext("2d");
+            for (var t = 0; t < i; t++) {
+                c[t] = new y;
+                c[t].reset();
+            }
+        }, 200);
+    }
+
+    function handleVisibilityChange() {
+        if (document.hidden) {
+            stop();
+        } else {
+            start();
+        }
+    }
+
+    function cleanupHeaderUniverse() {
+        stop();
+        window.removeEventListener("resize", debouncedResize, !1);
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+        if (typeof window.pjax !== 'undefined') {
+            document.removeEventListener('pjax:send', cleanupHeaderUniverse);
+        }
+    }
+
     initCanvas();
     f();
-    window.addEventListener("resize", f, !1);
+
+    if (!s.parentNode) return;
+
+    window.addEventListener("resize", debouncedResize, !1);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    if (typeof window.pjax !== 'undefined') {
+        document.addEventListener('pjax:send', cleanupHeaderUniverse);
+    }
 
     (function() {
         h = s.getContext("2d");
@@ -117,11 +194,11 @@ function headerUniverse() {
         u();
     })();
 
-    (function t() {
-        u();
-        window.requestAnimationFrame(t);
-    })();
+    setTimeout(function() {
+        o = !1;
+    }, 50);
+
+    start();
 }
 
-// 当页面加载完成后初始化星空效果
-document.addEventListener('DOMContentLoaded', headerUniverse); 
+document.addEventListener('DOMContentLoaded', headerUniverse);
