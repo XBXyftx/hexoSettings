@@ -43,6 +43,19 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 ---
 
+### #2 — 2026-05-04 — head.pug Font Awesome 改为异步加载
+
+**修改文件**：`themes/butterfly/layout/includes/head.pug`
+**修改原因**：B17 — Font Awesome CSS 被加载两次（主题内置直接加载 + inject.head 异步加载），浪费 ~80KB 带宽
+**修改内容**：将 `link(rel='stylesheet', href=url_for(theme.asset.fontawesome))` 改为添加 `media="print" onload="this.media='all'"` 异步加载属性；同时删除 `_config.butterfly.yml` inject.head 中的重复 Font Awesome 行
+**改动行数**：+0（1 行修改）
+**相关文件**：`_config.butterfly.yml:1080-1081`（删除 inject.head 中的重复项）
+**可回滚性**：可安全回滚。回滚后行为退回为「Font Awesome 阻塞加载 + inject.head 异步加载 = 两份同时存在」，是已知的旧行为
+**关联文档**：[../04-operations/2026-05-04-tier1-fixes/Q12-font-awesome-dedup.md](../04-operations/2026-05-04-tier1-fixes/Q12-font-awesome-dedup.md)
+**关联 commit**：_(执行后填充)_
+
+---
+
 ### 已有的主题修改（历史扫描记录）
 
 ### layout/includes/layout.pug
@@ -115,7 +128,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 | 文件 | 修改类型 | 风险等级 | 升级时处理建议 |
 |------|---------|---------|--------------|
 | `layout/includes/layout.pug` | 添加 HTML | 中 | 升级后重新注入弹窗结构 |
-| `layout/includes/head.pug` | 添加链接 | 高 | 升级后所有自定义 CSS/JS 链接需重新添加 |
+| `layout/includes/head.pug` | 添加链接 + 修改 Font Awesome 加载方式 | 高 | 升级后重新添加自定义 CSS/JS 链接 + 恢复异步加载属性 |
 | `layout/includes/additional-js.pug` | 添加加载 | 高 | 升级后所有自定义 JS 需重新添加 |
 | `layout/includes/footer.pug` | 添加脚本 | 低 | 升级后重新添加建站时间统计 |
 | `layout/includes/mixins/indexPostUI.pug` | 修改布局 | 高 | 升级后重新实现 layout 8 逻辑 |

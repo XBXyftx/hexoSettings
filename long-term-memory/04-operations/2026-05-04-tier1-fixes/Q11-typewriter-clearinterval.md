@@ -205,4 +205,14 @@ git reset --hard 3ec6ebd        # 完全回到基线
 
 ## L7 · 实际执行结果
 
-_(执行后填充)_
+- **执行日期**: 2026-05-04
+- **commit hash**: `b470367`
+- **改动文件**: `themes/butterfly/source/js/typewriter-effect.js` (+25 行)
+- **改动位置**: IIFE 开头 + TypeWriter.start() + initTypewriterEffect() + main() + pjax 监听
+- **构建结果**: `hexo clean && hexo generate` ✅ 无报错
+- **产物验证**: `public/js/typewriter-effect.js` 包含 `clearAllTypewriterTimers` (3 处) ✅
+- **运行时影响评估**:
+  - 首次加载: 行为不变(定时器跟踪无可见影响)
+  - PJAX 切页: 旧定时器被清理,新页面打字机从头开始
+  - reduced-motion: 短路分支正常,不受定时器跟踪影响
+- **异常 / 备注**: 无

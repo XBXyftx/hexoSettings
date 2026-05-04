@@ -49,7 +49,7 @@ if (theme.pwa && theme.pwa.enable)
 
 //- main css
 link(rel='stylesheet', href=url_for(theme.asset.main_css))
-link(rel='stylesheet', href=url_for(theme.asset.fontawesome))
+link(rel='stylesheet', href=url_for(theme.asset.fontawesome) media="print" onload="this.media='all'")
 
 //- 文章打字机效果CSS - 只在文章页面加载
 if globalPageType === 'post'
