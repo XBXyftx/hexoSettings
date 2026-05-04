@@ -187,4 +187,13 @@ git reset --hard 3ec6ebd        # 完全回到基线
 
 ## L7 · 实际执行结果
 
-_(执行后填充)_
+- **执行日期**: 2026-05-04
+- **commit hash**: `4e443b3`
+- **改动文件**: `source/about/lazy-loading-about.js` (+11 行)
+- **改动位置**: IIFE 末尾、`AboutPageLazyLoading` 导出之后
+- **构建结果**: `hexo clean && hexo generate` ✅ 无报错
+- **产物验证**: `public/about/lazy-loading-about.js` 包含 cleanup 逻辑 ✅
+- **运行时影响评估**:
+  - 进入关于页: 行为不变(自动初始化)
+  - 离开关于页: `destroy()` 被调用,轮播定时器和 observer 及时释放
+- **异常 / 备注**: 无

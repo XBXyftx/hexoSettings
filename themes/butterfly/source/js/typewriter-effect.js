@@ -1,5 +1,18 @@
 // 文章打字机效果
 (function() {
+  // 模块级:跟踪所有活跃定时器,防止 PJAX 切页时泄漏 (2026-05-04 Q11 / B8)
+  const typewriterTimers = {
+    mainTimeout: null,
+    startDelayTimeout: null,
+    charInterval: null
+  };
+
+  function clearAllTypewriterTimers() {
+    if (typewriterTimers.mainTimeout) { clearTimeout(typewriterTimers.mainTimeout); typewriterTimers.mainTimeout = null; }
+    if (typewriterTimers.startDelayTimeout) { clearTimeout(typewriterTimers.startDelayTimeout); typewriterTimers.startDelayTimeout = null; }
+    if (typewriterTimers.charInterval) { clearInterval(typewriterTimers.charInterval); typewriterTimers.charInterval = null; }
+  }
+
   // 打字机效果类
   class TypeWriter {
     constructor(element, text, speed = 50) {
@@ -19,12 +32,19 @@
           resolve();
           return;
         }
-        const timer = setInterval(() => {
+        // 清除旧 timer(防止 PJAX 快速切页时累积)
+        if (typewriterTimers.charInterval) {
+          clearInterval(typewriterTimers.charInterval);
+          typewriterTimers.charInterval = null;
+        }
+
+        typewriterTimers.charInterval = setInterval(() => {
           if (this.index < this.text.length) {
             this.element.textContent += this.text.charAt(this.index);
             this.index++;
           } else {
-            clearInterval(timer);
+            clearInterval(typewriterTimers.charInterval);
+            typewriterTimers.charInterval = null;
             resolve();
           }
         }, this.speed);
@@ -36,7 +56,12 @@
   function initTypewriterEffect() {
     // 只在文章页面执行
     if (!document.querySelector('#post')) return;
-    
+
+    // 清理旧资源和定时器,防止 PJAX 切页或重复调用时累积 (2026-05-04 Q11 / B8)
+    clearAllTypewriterTimers();
+    const oldContainer = document.querySelector('.post-typewriter-container');
+    if (oldContainer) oldContainer.remove();
+
     // 获取文章的打字机专用字段
     let typewriterText = '';
     
@@ -89,7 +114,7 @@
         typewriterContainer.style.transform = 'translateY(0)';
         
         // 开始打字
-        setTimeout(() => {
+        typewriterTimers.startDelayTimeout = setTimeout(() => {
           typewriter.start().then(() => {
             // 打字完成后让光标闪烁
             cursor.style.animation = 'typewriter-cursor-blink 1s infinite';
@@ -134,7 +159,7 @@
     await waitForPageReady();
     
     // 延迟1秒后开始打字机效果
-    setTimeout(() => {
+    typewriterTimers.mainTimeout = setTimeout(() => {
       initTypewriterEffect();
     }, 1000);
   }
@@ -142,6 +167,9 @@
   // 支持PJAX
   if (typeof window.pjax !== 'undefined') {
     document.addEventListener('pjax:complete', main);
+
+    // PJAX 切页前清理所有定时器,防止旧 timer 继续运行 (2026-05-04 Q11 / B8)
+    document.addEventListener('pjax:send', clearAllTypewriterTimers);
   }
   
   // 页面加载时执行
