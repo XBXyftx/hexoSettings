@@ -29,16 +29,8 @@ div
   script(src=url_for('/js/entrance-popup-config.js'))
   script(src=url_for('/js/entrance-popup.js'))
 
-  // 基础懒加载功能（兼容旧版）
-  script(src=url_for('/js/lazy-loading.js'))
-  // 原生懒加载优化 - 解决布局偏移问题
-  script(src=url_for('/js/lazy-loading-native.js'))
-
-  // 图片懒加载刷新按钮功能
-  script(src=url_for('/js/lazy-image-refresh.js'))
-
-  // 视频懒加载刷新按钮功能
-  script(src=url_for('/js/lazy-video-refresh.js'))
+  // 懒加载由 inject.bottom 的 lazy-loading-optimized.js 统一处理
+  // 已移除: lazy-loading.js, lazy-loading-native.js, lazy-image-refresh.js, lazy-video-refresh.js
 
   // VS Code 风格智能文档导航栏 - 只在文章页面加载
   if globalPageType === 'post'
