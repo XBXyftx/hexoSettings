@@ -13,7 +13,7 @@
 ### 1.1 页面渲染链路
 
 ```
-source/birthday-gift/index.md
+source/birthday-gift/index.html
     ↓ Hexo Markdown渲染 (kramed引擎)
 source/birthday-gift/index.html (中间产物)
     ↓ Butterfly theme/layout/*.pug 包装
@@ -543,7 +543,7 @@ mkdir -p source/birthday-gift/imgs
 cp /path/to/photos/* source/birthday-gift/imgs/
 ```
 
-创建 `source/birthday-gift/index.md`，front matter：
+创建 `source/birthday-gift/index.html`，front matter：
 
 ```yaml
 ---
