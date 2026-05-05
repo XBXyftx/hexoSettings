@@ -98,3 +98,34 @@
 - [ ] 待用户确认文案内容是否满意
 
 ---
+
+### #5 — 2026-05-05 — 懒加载系统精简（移除4个冗余脚本）
+
+**操作人**：AI 助手（Claude Code）
+**涉及文件**：
+- `themes/butterfly/layout/includes/additional-js.pug` — 删除 4 个懒加载脚本加载
+- `themes/butterfly/layout/includes/head.pug` — 删除 2 个刷新按钮 CSS 加载
+- `_config.butterfly.yml` — 删除不存在的 `lazy-loading-optimized.css` 引用
+
+**操作详情**：
+
+1. 采用"运行时日志标记法"确认各系统真实行为：给 4 个脚本添加唯一标识日志 → 用户浏览器实测 → 收集控制台日志分析
+2. **关键发现**：`lazy-loading-optimized.js`（通过 `inject.bottom` 加载）是唯一有效工作者，之前调研报告漏掉了这个系统
+3. `lazy-loading.js` init 被架空（0 张处理），scroll 路径仍重复工作
+4. `lazy-loading-native.js` 对 1x1 GIF 执行无意义 fadeIn
+5. `lazy-image-refresh.js` 和 `lazy-video-refresh.js` 持续扫描但从未触发，后者有 `loadVideo(src=undefined)` bug
+6. 依赖审查：`main.js:706` 的 `lazyLoadPreload` 有 `typeof` 保护，删除后安全降级
+
+**验证结果**：
+- [x] 控制台仅剩 `[LazyLoad]` 前缀日志
+- [x] Network 面板确认 4 个脚本不再加载
+- [x] 文章页图片懒加载功能正常
+- [x] 构建成功
+
+**遗留问题**：
+- `source/js/` 和 `source/css/` 下的 6 个文件未物理删除
+- `image-dimensions.js` 注入的 `loading="lazy"` 被占位符覆盖
+
+**详细文档**：[2026-05-05-lazyload-cleanup/README.md](2026-05-05-lazyload-cleanup/README.md)
+**回滚基点**：`ef9d3c7`
+**Git commit**：`40a3207`
