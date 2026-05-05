@@ -44,6 +44,7 @@
     function loadImage(img) {
         return new Promise((resolve, reject) => {
             const originalSrc = img.dataset.src || img.dataset.original || img.getAttribute('data-lazy-src');
+            console.log('[LazyLoading-v3] loadImage() 加载: ' + originalSrc);
             if (!originalSrc) {
                 resolve();
                 return;
@@ -130,7 +131,7 @@
         });
 
         const visibleElements = elements.filter(isInViewport);
-
+        console.log('[LazyLoading-v3] processVisibleElements() 可见元素: ' + visibleElements.length + '/' + elements.length);
 
         const loadPromises = visibleElements.map(element => {
             if (element.tagName.toLowerCase() === 'img') {
@@ -230,11 +231,14 @@
 
     // 初始化懒加载
     function initLazyLoading() {
+        console.log('[LazyLoading-v3] initLazyLoading() 开始执行');
 
         // 检查是否为文章页面，如果不是则直接返回
         if (!document.getElementById('post')) {
+            console.log('[LazyLoading-v3] 非文章页，跳过');
             return;
         }
+        console.log('[LazyLoading-v3] 文章页确认，继续初始化');
 
         // 为文章内容中的所有图片添加懒加载类和占位符
         const contentSelectors = [
@@ -245,6 +249,7 @@
         ];
 
 
+        let processedCount = 0;
         contentSelectors.forEach(selector => {
             try {
                 const images = document.querySelectorAll(selector);
@@ -279,15 +284,15 @@
                         if (img.src && !img.dataset.src && !img.src.includes('data:image/gif')) {
                             img.dataset.src = img.src;
                             img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-                        } else {
                         }
-                    } else {
+                        processedCount++;
                     }
                 });
             } catch (e) {
                 console.warn('Selector failed:', selector, e);
             }
         });
+        console.log('[LazyLoading-v3] 处理了 ' + processedCount + ' 张图片');
 
         // 为文章内容中的视频添加懒加载类和占位符
         const videoSelectors = [
@@ -297,6 +302,7 @@
             'article video',
             '.content video'
         ];
+        let videoCount = 0;
 
         videoSelectors.forEach(selector => {
             try {
@@ -317,19 +323,25 @@
                             video.dataset.src = video.src;
                             video.removeAttribute('src');
                         }
+                        videoCount++;
                     }
                 });
             } catch (e) {
                 console.warn('Selector failed:', selector, e);
             }
         });
+        console.log('[LazyLoading-v3] 处理了 ' + videoCount + ' 个视频');
 
         // 绑定滚动事件
         window.addEventListener('scroll', handleScroll, { passive: true });
         window.addEventListener('resize', handleScroll, { passive: true });
+        console.log('[LazyLoading-v3] scroll/resize 事件已绑定');
 
         // 初始加载可见元素
-        setTimeout(processVisibleElements, 100);
+        setTimeout(function() {
+            console.log('[LazyLoading-v3] 初始 processVisibleElements() 触发');
+            processVisibleElements();
+        }, 100);
 
 
         // 最终统计

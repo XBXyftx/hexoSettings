@@ -301,6 +301,7 @@
      */
     function loadVideo(video) {
         const src = video.dataset.src || video.dataset.original;
+        console.log('[LazyVideoRefresh] loadVideo() 触发, src=' + src);
         if (!src) return;
 
         video.classList.add('lazy-loading');
@@ -367,6 +368,7 @@
             '.post-body video:not([data-src])',
             'article video:not([data-src])'
         ];
+        let preparedCount = 0;
 
         selectors.forEach(selector => {
             try {
@@ -394,11 +396,13 @@
                     // 添加懒加载类
                     video.classList.add('lazy-video', 'lazy-placeholder');
                     video.style.opacity = '0';
+                    preparedCount++;
                 });
             } catch (e) {
                 console.warn('Video selector failed:', selector, e);
             }
         });
+        console.log('[LazyVideoRefresh] prepareVideos() 处理了 ' + preparedCount + ' 个视频');
     }
 
     /**
@@ -407,8 +411,10 @@
     function initLazyLoad() {
         // 检查是否为文章页面
         if (!document.getElementById('post') && !document.getElementById('article-container')) {
+            console.log('[LazyVideoRefresh] initLazyLoad() 非文章页，跳过');
             return;
         }
+        console.log('[LazyVideoRefresh] initLazyLoad() 文章页确认');
 
         // 准备视频
         prepareVideos();
@@ -450,8 +456,9 @@
      */
     function scanFailedVideos() {
         const lazyVideos = document.querySelectorAll('#post .lazy-video, #article-container .lazy-video, #post .lazy-placeholder, #article-container .lazy-placeholder');
+        console.log('[LazyVideoRefresh] scanFailedVideos() 扫描到 ' + lazyVideos.length + ' 个懒加载视频');
         let failedCount = 0;
-        
+
         lazyVideos.forEach(video => {
             // 跳过已处理的视频（已经有刷新按钮的）
             if (video.closest('.lazy-video-container')) {
@@ -466,6 +473,7 @@
         });
         
         if (failedCount > 0) {
+            console.log('[LazyVideoRefresh] scanFailedVideos() 发现 ' + failedCount + ' 个失败视频');
         }
     }
 
@@ -475,8 +483,10 @@
     function initRefresh() {
         // 检查是否为文章页面
         if (!document.getElementById('post') && !document.getElementById('article-container')) {
+            console.log('[LazyVideoRefresh] initRefresh() 非文章页，跳过');
             return;
         }
+        console.log('[LazyVideoRefresh] initRefresh() 文章页确认');
 
         // 监听视频错误事件
         document.addEventListener('error', function(e) {
@@ -528,6 +538,7 @@
      * 主初始化函数
      */
     function init() {
+        console.log('[LazyVideoRefresh] init() 开始执行');
         initLazyLoad();
         initRefresh();
     }

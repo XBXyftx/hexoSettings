@@ -274,6 +274,7 @@
      * @param {HTMLImageElement} img - 图片元素
      */
     function handleImageError(img) {
+        console.log('[LazyImageRefresh] handleImageError() 触发, src=' + img.src);
         // 只处理懒加载图片（包括已有错误标记的）
         if (!img.classList.contains('lazy-image') && 
             !img.classList.contains('lazy-placeholder') &&
@@ -320,8 +321,9 @@
     function scanFailedImages() {
         // 扫描所有懒加载图片（包括占位符和已标记错误的）
         const lazyImages = document.querySelectorAll('#post .lazy-image, #article-container .lazy-image, #post .lazy-placeholder, #article-container .lazy-placeholder');
+        console.log('[LazyImageRefresh] scanFailedImages() 扫描到 ' + lazyImages.length + ' 张懒加载图片');
         let failedCount = 0;
-        
+
         lazyImages.forEach(img => {
             // 跳过已处理的图片（已经有刷新按钮的）
             if (img.closest('.lazy-image-container')) {
@@ -336,6 +338,7 @@
         });
         
         if (failedCount > 0) {
+            console.log('[LazyImageRefresh] scanFailedImages() 发现 ' + failedCount + ' 张失败图片');
         }
     }
 
@@ -343,15 +346,19 @@
      * 初始化刷新功能
      */
     function init() {
+        console.log('[LazyImageRefresh] init() 开始执行');
         // 检查是否为文章页面
         if (!document.getElementById('post') && !document.getElementById('article-container')) {
+            console.log('[LazyImageRefresh] init() 非文章页，跳过');
             return;
         }
+        console.log('[LazyImageRefresh] init() 文章页确认');
 
         // 监听全局图片错误事件（捕获阶段确保能监听到所有错误）
         document.addEventListener('error', function(e) {
             const target = e.target;
             if (target.tagName.toLowerCase() === 'img') {
+                console.log('[LazyImageRefresh] 全局 error 事件捕获到图片错误:', target.src);
                 // 延迟一点处理，等待原有懒加载完成错误处理（添加lazy-error类）
                 setTimeout(() => {
                     handleImageError(target);

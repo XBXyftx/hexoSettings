@@ -15,6 +15,7 @@
   };
 
   function handleImageLoad(img) {
+    console.log('[LazyNative] handleImageLoad() 触发, src=' + img.src);
     if (img.classList.contains(config.loadedClass)) return;
 
     img.classList.add(config.loadingClass);
@@ -41,6 +42,7 @@
   }
 
   function fadeInImage(img) {
+    console.log('[LazyNative] fadeInImage() 触发, src=' + img.src);
     img.style.opacity = '0';
     img.style.transition = 'none';
 
@@ -57,6 +59,7 @@
 
   function prepareImages() {
     const images = document.querySelectorAll(config.placeholderSelector);
+    console.log('[LazyNative] prepareImages() 找到 ' + images.length + ' 张 img[data-src]');
 
     images.forEach(img => {
       if (img.classList.contains(config.loadedClass) || 
@@ -77,6 +80,7 @@
   }
 
   function preloadImagesNearElement(element, offset = 800) {
+    console.log('[LazyNative] preloadImagesNearElement() 触发');
     if (!element) return Promise.resolve();
 
     const targetTop = element.getBoundingClientRect().top + window.scrollY;
@@ -105,10 +109,13 @@
   }
 
   function init() {
-    if (!document.getElementById('article-container') && 
+    console.log('[LazyNative] init() 开始执行');
+    if (!document.getElementById('article-container') &&
         !document.querySelector('.post-content')) {
+      console.log('[LazyNative] init() 非文章页，跳过');
       return;
     }
+    console.log('[LazyNative] init() 文章页确认');
 
     prepareImages();
   }
