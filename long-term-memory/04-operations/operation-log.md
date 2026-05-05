@@ -75,7 +75,7 @@
 
 **涉及文件**：
 
-- 新建 `source/birthday-gift/index.md` — 生日礼物特限页面主体（layout: false，完整独立HTML/CSS/JS）
+- 新建 `source/birthday-gift/index.html` — 生日礼物特限页面主体（layout: false，完整独立HTML/CSS/JS）
 - 新建 `source/birthday-gift/imgs/` — 页面图片资源目录（预留）
 - 修改 `_config.butterfly.yml` — 在 menu 导航中新增 `妈妈生日快乐` 入口
 
@@ -129,3 +129,32 @@
 **详细文档**：[2026-05-05-lazyload-cleanup/README.md](2026-05-05-lazyload-cleanup/README.md)
 **回滚基点**：`ef9d3c7`
 **Git commit**：`40a3207`
+
+---
+
+### #6 — 2026-05-05 — 修复生日页面白边问题
+
+**操作人**：AI 助手（Claude Code）
+**涉及文件**：
+- `source/birthday-gift/index.html` — 添加 `html, body { margin: 0; padding: 0; }` CSS 重置，删除 front matter 后空行
+- `source/birthday-gift/index.md` → `source/birthday-gift/index.html`（重命名并修复）
+- `long-term-memory/05-reference/birthday-gift-page-design.md` — 更新引用
+
+**操作详情**：
+
+1. **问题现象**：用户反馈生日页面顶部出现白边，且生成文件中显示 `<p>&lt;!DOCTYPE html&gt;</p>`
+2. **根因分析**：
+   - 旧生成缓存：文件先前为 `.md` 扩展名时，Hexo 的 `hexo-renderer-kramed` 将 DOCTYPE 当作 Markdown 文本进行了 HTML 实体转义并包裹在 `<p>` 标签中。重命名为 `.html` 后未执行 `hexo clean`，数据库保留旧渲染结果
+   - CSS 缺失：`.birthday-page, .birthday-page *` 的 margin 重置未覆盖 `body` 元素本身，浏览器默认 `body { margin: 8px }` 导致白边
+3. **修复措施**：
+   - 添加 `html, body { margin: 0; padding: 0; }` CSS 规则
+   - 删除 front matter 与 `<!DOCTYPE html>` 之间的空行（hexo-front-matter 解析后保留）
+   - 执行 `hexo clean && hexo generate` 清除旧缓存
+
+**验证结果**：
+- [x] `public/birthday-gift/index.html` 第1行即为 `<!DOCTYPE html>`，无转义
+- [x] CSS 包含 body margin 重置
+- [x] 文件未被主题 layout 包装，以 `</html>` 结尾
+- [x] 构建成功
+
+**Git commit**：`93a58e4`
