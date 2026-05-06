@@ -46,7 +46,8 @@ const EXCLUDE_ALTS = ['avatar'];
 const EXCLUDE_PATH_PATTERNS = [
   /\/img\/logo\.png$/,
   /\/img\/favicon/,
-  /\/imgs\/gifs\//
+  /\/imgs\/gifs\//,
+  /\/birthday-gift\//  // 生日页面使用自定义懒加载系统，排除以避免干扰
 ];
 
 function resolveImagePath(src) {

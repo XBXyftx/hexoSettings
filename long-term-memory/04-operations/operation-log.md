@@ -230,3 +230,45 @@
 - [x] 构建成功
 
 **Git commit**：`93a58e4`
+
+---
+
+### #7 — 2026-05-06 — 重构生日页面为个人成长时间轴
+
+**操作人**：AI 助手（Claude Code）
+
+**涉及文件**：
+- 重写 `source/birthday-gift/index.html` — 全新个人成长时间轴页面（整屏切换、左右交替布局、中央光带、边缘泛光、相册系统、视频弹层、流星效果）
+- 新建 `source/js/birthday-gift.js` — 页面交互脚本（整屏滚动、相册展开、懒加载、流星Canvas、键盘导航）
+- 新建 `scripts/birthday-gift-scanner.js` — Hexo 扫描脚本（扫描事件文件夹、解析 front matter、渲染 Markdown、生成 JSON）
+- 修改 `scripts/image-dimensions.js` — 添加 `/birthday-gift/` 路径排除，避免干扰页面自定义懒加载
+- 新建 `source/birthday-gift/events/01-childhood/index.md` — 测试事件：童年时光
+- 新建 `source/birthday-gift/events/02-teenager/index.md` — 测试事件：青春岁月
+- 新建 `source/birthday-gift/events/03-now/index.md` — 测试事件：逐梦前行
+- 新建 `source/birthday-gift/README.md` — 操作文档（如何添加事件、命名规范、字段说明）
+- 删除 `source/birthday-gift/index.md`（旧页面）
+
+**操作详情**：
+
+1. **需求来源**：用户编写需求文档 `long-term-memory/02-requirements/生日页面需求文档.md`，要求将"献给妈妈的生日礼物"页面替换为个人成长时间轴
+2. **架构设计**：
+   - 事件驱动：每个事件一个子文件夹（`01-childhood/` 等），包含 `index.md` + 图片/视频
+   - Hexo 扫描器：生成 `birthday-gift/events-data.json` 供页面异步加载
+   - 整屏切换：wheel/touch/键盘导航，CSS transform 动画
+   - 视觉系统：中央流动光带（CSS animation）、背景虚化切换（双缓冲）、边缘泛光（CSS variable）
+   - 相册系统：缩略图堆叠（CSS transform）、点击展开弹层（backdrop-filter 模糊）、原图懒加载
+   - 视频支持：SVG 播放按钮、video 弹层
+   - 流星效果：无图片事件时激活 Canvas 流星动画（30fps 节流）
+3. **主题隔离**：`layout: false` + 全内联 CSS + IIFE JS，确保不受 Butterfly 主题样式和脚本干扰
+4. **渐进式实现**：Phase 1（MVP）→ Phase 2（视觉增强）→ Phase 3（相册）→ Phase 4（视频）→ Phase 5（完善）
+
+**验证结果**：
+- [x] `hexo generate` 成功，扫描器正确识别 3 个测试事件
+- [x] `public/birthday-gift/events-data.json` 正确生成
+- [x] `public/birthday-gift/index.html` 未被主题包装，以 `</html>` 结尾
+- [x] `public/js/birthday-gift.js` 正确复制
+- [x] glowColor 引号问题已修复
+- [x] image-dimensions.js 排除规则生效
+- [ ] 需要用户补充真实图片和视频进行完整测试
+
+**Git commit**：`[待补录]`
