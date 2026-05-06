@@ -126,6 +126,19 @@ deploy:
     repo: git@113.47.8.204:/home/git/blog.git
     branch: main
   
+# 资源压缩优化
+filter_optimize:
+  enable: true
+  versioning: true
+  css:
+    minify: true
+    bundle: false    # 暂不开合并，避免影响条件加载
+  js:
+    minify: true
+    bundle: false    # 暂不开合并，避免影响条件加载
+  html:
+    minify: true
+
 mermaid:
   enable: true
 
