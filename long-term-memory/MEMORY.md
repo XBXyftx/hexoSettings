@@ -1,7 +1,7 @@
 # 长期记忆索引 — XBXyftx Hexo 博客项目
 
 > **AI 必读**：每次进入新会话，第一步必须阅读本文件。严禁跳过索引直接操作代码。
-> **当前日期**：2026-05-04
+> **当前日期**：2026-05-06
 > **项目状态**：活跃维护中，持续发布新文章
 
 ---
@@ -90,7 +90,8 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 
 ### 特色功能
 - [打字机效果（Typewriter）](05-reference/typewriter-effect.md) — 逐字显示动画、PJAX 集成、标签页标题动画
-- [生日礼物特限页面](05-reference/birthday-gift-page-design.md) — 献给护士妈妈的专属页面设计
+- [个人成长时间轴页面](05-reference/birthday-gift-page-design.md) — 事件驱动整屏切换时间轴，含相册/视频/流星效果
+- [时间轴页面操作指南](../source/birthday-gift/README.md) — 如何添加事件、命名规范、字段说明
 
 ### 已知问题
 - [全面审计 BUG 清单（20+ 项）](07-known-issues/discovered-issues/README.md) — 重复文件、死代码、性能隐患、PJAX 内存泄漏、安全隐患
