@@ -313,3 +313,7 @@
 **注意事项**：
 - 目前三个事件没有真实图片/视频，页面会走无媒体流星视觉。补充媒体时仍按 `thumb-*`、`photo-*`、`video-*`、`thumb-video-*` 命名即可。
 - PowerShell 执行策略会阻止 `npm`，本次使用 `npm.cmd run build` 完成验证。
+
+**Git commit**：`f5286e7`
+
+---
