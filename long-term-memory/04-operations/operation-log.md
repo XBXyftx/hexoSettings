@@ -204,7 +204,39 @@
 
 ---
 
-### #8 — 2026-05-05 — 修复生日页面白边问题
+### #8 — 2026-05-06 — Twikoo 按需加载策略深度调研
+
+**操作人**：AI 助手（Claude Code）
+**涉及文件**（仅调研，无代码修改）：
+- `themes/butterfly/layout/includes/third-party/comments/twikoo.pug`
+- `themes/butterfly/layout/includes/third-party/comments/index.pug`
+- `themes/butterfly/layout/page.pug`
+- `themes/butterfly/layout/post.pug`
+- `themes/butterfly/source/js/utils.js`
+- `themes/butterfly/layout/includes/additional-js.pug`
+- `_config.butterfly.yml`
+
+**调研结论**：Twikoo **已经是按需加载的**，无需任何改动。
+
+| 页面类型 | JS 加载？ | 机制 |
+|---|---|---|
+| 首页/归档/标签 | ❌ 不加载 | `commentsJsLoad = false` |
+| 文章页 | ✅ 懒加载 | `btf.loadComment` + `IntersectionObserver` |
+| 说说页 | ✅ 懒加载 | 同上 |
+| CSS (5.5KB) | 全站异步 | `inject.head` + `media="print"`，不阻塞首屏 |
+
+**关键证据**：
+1. `comments.lazyload: true` (`_config.butterfly.yml:567`) — 评论懒加载已开启
+2. `btf.loadComment` (`utils.js:107`) — 使用 `IntersectionObserver` 监听 `#twikoo-wrap`
+3. `commentsJsLoad = false` (`page.pug:5`) — 首页默认不加载评论 JS
+4. `card_post_count: false` + `card_newest_comments: false` — 侧边栏不触发加载
+
+**Git commit**：无（纯调研，无代码变更）
+**关联文档**：性能审计 `README.md` 4.1 节已更新
+
+---
+
+### #9 — 2026-05-05 — 修复生日页面白边问题
 
 **操作人**：AI 助手（Claude Code）
 **涉及文件**：

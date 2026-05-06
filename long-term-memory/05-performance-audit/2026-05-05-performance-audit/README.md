@@ -27,7 +27,8 @@ type: project
 | 删除 universe.js / lazy-loading-native.js 重复文件 | ✅ 已删除 | `eb6a824` |
 | 卸载 hexo-theme-landscape | ✅ 已卸载 | `eb6a824` |
 | 安装 hexo-filter-optimize（CSS/JS/HTML minify） | ✅ 已安装 | `ac83c10` |
-| twikoo 按需加载 | ⏸️ 待调研 | — |
+| twikoo 按需加载 | ✅ 已优化（无需改动） | — |
+| twikoo 加载策略调研 | ✅ 调研完成 | `调研结论` |
 | 代码高亮行号关闭 | ❌ 用户不接受 | — |
 | hexo-butterfly 插件清理 | ❌ 用户确认在用 | — |
 
@@ -257,16 +258,26 @@ console.log('已清除认证状态，需要重新输入密码');
 
 ### 4.1 twikoo.js — 457K 评论系统
 
+> **状态更新（2026-05-06）**：经深入调研，Twikoo **已经是按需加载的**，无需改动。详见下方调研结论。
+
 **文件**: `themes/butterfly/source/js/twikoo.js` (457K)
-**加载位置**: `themes/butterfly/layout/includes/additional-js.pug`
-**问题**: 全站加载 457KB 的评论系统，但大多数页面没有评论
+**加载位置**: `theme.asset.twikoo` → `btf.getScript()` 动态加载
 
-**优化方案**:
-1. **按需加载**: 只在文章页加载，首页/归档页不加载
-2. **IntersectionObserver 延迟加载**: 当用户滚动到评论区时再加载
-3. **CDN 替代**: 从 CDN 加载而不是本地（可能已缓存）
+**调研结论**:
 
-**需调研**: `_config.butterfly.yml` 中 `comments.use` 配置了哪些评论系统？是否实际使用 Twikoo？
+| 页面类型 | JS 加载？ | 机制 | 证据 |
+|---|---|---|---|
+| **首页/归档/标签** | ❌ 不加载 | `commentsJsLoad = false` (`page.pug:5`) | `additional-js.pug:49` 条件跳过 |
+| **文章页** | ✅ 懒加载 | `btf.loadComment` + `IntersectionObserver` | `utils.js:107-117`，监听 `#twikoo-wrap` 进入视口 |
+| **说说页** | ✅ 懒加载 | 同上 | `shuoshuo.pug:13` 设置 `commentsJsLoad = true` |
+| **CSS (5.5KB)** | 全站异步 | `inject.head` + `media="print"` | 不阻塞首屏，收益远大于改动风险 |
+
+**关键配置**:
+- `_config.butterfly.yml:567` `comments.lazyload: true` — 评论懒加载已开启
+- `_config.butterfly.yml:571` `comments.card_post_count: false` — 首页不显示评论数
+- `_config.butterfly.yml:339` `aside.card_newest_comments.enable: false` — 首页不显示最新评论
+
+**结论**: Twikoo JS 已经是 Butterfly 主题内置的最佳加载策略。457KB 的 JS 只在文章页、评论区域进入视口时才加载。CSS 仅 5.5KB 且异步，无需优化。
 
 ### 4.2 Butterfly 主题版本
 
