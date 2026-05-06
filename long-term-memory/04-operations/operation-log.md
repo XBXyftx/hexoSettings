@@ -166,7 +166,45 @@
 
 ---
 
-### #7 — 2026-05-05 — 修复生日页面白边问题
+### #7 — 2026-05-06 — 安装 hexo-filter-optimize 资源压缩插件
+
+**操作人**：AI 助手（Claude Code）
+**涉及文件**：
+- `package.json` / `package-lock.json` — 新增 `hexo-filter-optimize` 依赖
+- `_config.yml` — 添加 `filter_optimize` 配置段
+
+**操作详情**：
+
+1. **安装插件**：`npm install hexo-filter-optimize`
+2. **配置策略**（保守优先）：
+   ```yaml
+   filter_optimize:
+     enable: true
+     versioning: true
+     css:
+       minify: true
+       bundle: false    # 暂不开合并，避免影响条件加载
+     js:
+       minify: true
+       bundle: false    # 暂不开合并，避免影响条件加载
+     html:
+       minify: true
+   ```
+3. **构建验证**：`hexo clean && hexo generate` → 1921 文件成功生成，无报错
+4. **效果确认**：HTML 头部已被压缩（标签间空白消除），关键页面全部正常
+
+**验证结果**：
+- [x] `npm install` 成功（新增 54 个包）
+- [x] `hexo generate` 构建成功，1921 文件
+- [x] index.html / archives / about / 文章页均正常存在
+- [x] lazy-loading-optimized.js 等关键资源正常
+
+**回滚基点**：`baec5a3`
+**Git commit**：`ac83c10`
+
+---
+
+### #8 — 2026-05-05 — 修复生日页面白边问题
 
 **操作人**：AI 助手（Claude Code）
 **涉及文件**：

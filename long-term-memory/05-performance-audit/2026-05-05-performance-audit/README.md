@@ -26,6 +26,7 @@ type: project
 | 懒加载系统物理清理 | ✅ 已执行 | `eb6a824` |
 | 删除 universe.js / lazy-loading-native.js 重复文件 | ✅ 已删除 | `eb6a824` |
 | 卸载 hexo-theme-landscape | ✅ 已卸载 | `eb6a824` |
+| 安装 hexo-filter-optimize（CSS/JS/HTML minify） | ✅ 已安装 | `ac83c10` |
 | twikoo 按需加载 | ⏸️ 待调研 | — |
 | 代码高亮行号关闭 | ❌ 用户不接受 | — |
 | hexo-butterfly 插件清理 | ❌ 用户确认在用 | — |
