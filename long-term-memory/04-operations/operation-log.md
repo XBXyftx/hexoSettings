@@ -132,7 +132,41 @@
 
 ---
 
-### #6 — 2026-05-05 — 修复生日页面白边问题
+### #6 — 2026-05-06 — 物理清理废弃懒加载文件与未使用 npm 依赖
+
+**操作人**：AI 助手（Claude Code）
+**涉及文件**：
+- 删除 `source/js/lazy-loading.js` — 16KB 已废弃懒加载脚本
+- 删除 `source/js/lazy-loading-native.js` — 3.9KB 已废弃原生懒加载脚本
+- 删除 `source/js/lazy-image-refresh.js` — 15.7KB 已废弃图片刷新脚本
+- 删除 `source/js/lazy-video-refresh.js` — 19.8KB 已废弃视频刷新脚本
+- 删除 `source/css/lazy-image-refresh.css` — 6KB 已废弃刷新按钮样式
+- 删除 `source/css/lazy-video-refresh.css` — 8.8KB 已废弃刷新按钮样式
+- 删除 `themes/butterfly/source/js/universe.js` — 3.5KB 旧版星空脚本（`header-universe.js` 已替代）
+- 删除 `themes/butterfly/source/js/lazy-loading-native.js` — 4.3KB 重复文件
+- 修改 `package.json` / `package-lock.json` — 卸载 `hexo-theme-landscape`
+
+**操作详情**：
+
+2026-05-05 懒加载系统精简操作（#5）遗留了 6 个物理文件未删除（仅移除了加载引用）。本次执行彻底清理：
+
+1. `source/js/` 和 `source/css/` 下 6 个懒加载相关文件 — 加载引用已在 #5 中从 `additional-js.pug` 和 `head.pug` 移除
+2. `themes/butterfly/source/js/universe.js` — 确认 `head.pug:97` 只加载 `header-universe.js`，旧版无引用
+3. `themes/butterfly/source/js/lazy-loading-native.js` — 与 `source/js/lazy-loading-native.js` 内容几乎相同，无任何引用
+4. `hexo-theme-landscape` — 确认博客使用 Butterfly 主题，此包完全未使用
+
+**验证结果**：
+- [x] `git status` 确认 10 个文件变更（8 删除 + 2 package 修改）
+- [x] `hexo generate` 构建成功
+- [x] 文章页图片懒加载功能正常
+
+**收益**：仓库体积减少 ~76KB（JS/CSS）+ `hexo-theme-landscape` 体积
+**Git commit**：`eb6a824`
+**关联操作**：#5 懒加载系统精简的后续物理清理
+
+---
+
+### #7 — 2026-05-05 — 修复生日页面白边问题
 
 **操作人**：AI 助手（Claude Code）
 **涉及文件**：

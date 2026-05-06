@@ -22,7 +22,10 @@ type: project
 | 删除 mathjax.js（1.2M） | ✅ 已删除 | `1a26cc9` |
 | 删除 katex-auto-render.js | ✅ 已删除 | `1a26cc9` |
 | 清理 6 个 JS 文件的 console.log（57 行） | ✅ 已清理 | `1a26cc9` |
-| 懒加载系统统一 | ⏸️ 搁置（用户暂不清楚） | — |
+| 懒加载系统统一（移除引用） | ✅ 已执行 | `40a3207` |
+| 懒加载系统物理清理 | ✅ 已执行 | `eb6a824` |
+| 删除 universe.js / lazy-loading-native.js 重复文件 | ✅ 已删除 | `eb6a824` |
+| 卸载 hexo-theme-landscape | ✅ 已卸载 | `eb6a824` |
 | twikoo 按需加载 | ⏸️ 待调研 | — |
 | 代码高亮行号关闭 | ❌ 用户不接受 | — |
 | hexo-butterfly 插件清理 | ❌ 用户确认在用 | — |

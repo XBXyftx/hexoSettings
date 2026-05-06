@@ -277,16 +277,19 @@ git checkout ef9d3c7 -- \
 
 ---
 
-## 十、遗留问题
+## 十、遗留问题（已解决）
 
-1. **`source/js/` 下的 4 个脚本文件未物理删除** — 仅移除了加载引用，文件仍存在于仓库中。如需完全清理，可删除：
-   - `source/js/lazy-loading.js`
-   - `source/js/lazy-loading-native.js`
-   - `source/js/lazy-image-refresh.js`
-   - `source/js/lazy-video-refresh.js`
-   - `source/css/lazy-image-refresh.css`
-   - `source/css/lazy-video-refresh.css`
+> **状态更新（2026-05-06）**：以下遗留问题已在操作 #6 中全部解决。详见 [operation-log.md](../../operation-log.md#6--2026-05-06--物理清理废弃懒加载文件与未使用-npm-依赖)。
 
-2. **`image-dimensions.js` 注入的 `loading="lazy"` 被覆盖** — 虽然 `optimized.js` 的占位符机制不需要原生 lazy，但 `image-dimensions.js` 的 `width/height` 注入仍有价值（防止 CLS）。如未来想完全改用原生 `loading="lazy"`，需要关闭 `optimized.js`。
+1. ~~**`source/js/` 下的 4 个脚本文件未物理删除**~~ ✅ 已删除 `eb6a824`
+   - ~~`source/js/lazy-loading.js`~~
+   - ~~`source/js/lazy-loading-native.js`~~
+   - ~~`source/js/lazy-image-refresh.js`~~
+   - ~~`source/js/lazy-video-refresh.js`~~
+   - ~~`source/css/lazy-image-refresh.css`~~
+   - ~~`source/css/lazy-video-refresh.css`~~
 
-3. **`lazy-loading-native.js` 在主题目录下仍有副本** — `themes/butterfly/source/js/lazy-loading-native.js` 与 `source/js/lazy-loading-native.js` 内容几乎相同，之前已知为重复文件（B1 问题）。
+2. **`image-dimensions.js` 注入的 `loading="lazy"` 被覆盖** — 仍维持现状。`optimized.js` 的占位符机制已足够，`width/height` 注入仍有 CLS 预防价值。
+
+3. ~~**`lazy-loading-native.js` 在主题目录下仍有副本**~~ ✅ 已删除 `eb6a824`
+   - ~~`themes/butterfly/source/js/lazy-loading-native.js`~~ 与 ~~`source/js/lazy-loading-native.js`~~ 均已删除
