@@ -1,589 +1,707 @@
 /**
  * 生日页面交互脚本
- * 整屏滚动时间轴 + 相册系统 + 懒加载 + 流星效果
+ * 独立整屏时间轴 + 事件媒体懒加载 + 相册/图片/视频弹层 + 流星背景
  */
 (function() {
   'use strict';
 
-  // ========== 配置 ==========
   const CONFIG = {
-    transitionDuration: 800,  // 整屏切换动画时长(ms)
-    scrollThreshold: 50,      // 触摸滑动阈值(px)
-    preloadNextBg: true,      // 预加载下一个背景图
-    meteorFPS: 30             // 流星效果帧率
+    dataUrl: '/birthday-gift/events-data.json',
+    transitionMs: 860,
+    wheelLockMs: 900,
+    touchThreshold: 46,
+    reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    fallbackBackgrounds: [
+      '/birthday-gift/imgs/bg-childhood.webp',
+      '/birthday-gift/imgs/bg-teenager.webp',
+      '/birthday-gift/imgs/bg-now.webp'
+    ],
+    fallbackGlow: ['255, 206, 139', '124, 178, 255', '116, 232, 174']
   };
 
-  // ========== 状态 ==========
-  let eventsData = [];
-  let currentIndex = 0;
-  let isTransitioning = false;
-  let touchStartY = 0;
-  let meteorAnimationId = null;
-  let meteorCtx = null;
-  let meteorStars = [];
-  let isMeteorActive = false;
+  const state = {
+    events: [],
+    currentIndex: 0,
+    locked: false,
+    touchStartY: 0,
+    lastWheelAt: 0,
+    meteorActive: false,
+    meteorFrame: null,
+    meteorParticles: [],
+    loadedThumbs: new Set(),
+    modalStack: []
+  };
 
-  // DOM 元素引用
   const els = {};
 
-  // ========== 初始化 ==========
   function init() {
     cacheElements();
+    bindShellEvents();
     loadEvents();
-    bindEvents();
   }
 
   function cacheElements() {
+    els.app = document.getElementById('birthdayApp');
+    els.backgroundLayer = document.getElementById('backgroundLayer');
+    els.timelineTrack = document.getElementById('timelineTrack');
+    els.progressRail = document.getElementById('progressRail');
+    els.currentNumber = document.getElementById('currentNumber');
+    els.totalNumber = document.getElementById('totalNumber');
     els.loadingScreen = document.getElementById('loadingScreen');
-    els.loadingBarFill = document.getElementById('loadingBarFill');
-    els.bgLayer = document.getElementById('bgLayer');
-    els.edgeGlow = document.getElementById('edgeGlow');
-    els.timelineContainer = document.getElementById('timelineContainer');
-    els.progressDots = document.getElementById('progressDots');
     els.meteorCanvas = document.getElementById('meteorCanvas');
     els.albumModal = document.getElementById('albumModal');
-    els.albumModalClose = document.getElementById('albumModalClose');
-    els.albumModalContent = document.getElementById('albumModalContent');
-    els.lightboxModal = document.getElementById('lightboxModal');
-    els.lightboxModalClose = document.getElementById('lightboxModalClose');
-    els.lightboxImage = document.getElementById('lightboxImage');
-    els.videoModal = document.getElementById('videoModal');
-    els.videoModalClose = document.getElementById('videoModalClose');
-    els.videoPlayer = document.getElementById('videoPlayer');
+    els.albumTitle = document.getElementById('albumTitle');
+    els.albumSubtitle = document.getElementById('albumSubtitle');
+    els.albumGrid = document.getElementById('albumGrid');
+    els.albumClose = document.getElementById('albumClose');
+    els.imageViewer = document.getElementById('imageViewer');
+    els.viewerImage = document.getElementById('viewerImage');
+    els.imageClose = document.getElementById('imageClose');
+    els.videoViewer = document.getElementById('videoViewer');
+    els.viewerVideo = document.getElementById('viewerVideo');
+    els.videoClose = document.getElementById('videoClose');
   }
 
-  // ========== 加载事件数据 ==========
   function loadEvents() {
-    updateLoadingProgress(20);
-
-    fetch('/birthday-gift/events-data.json')
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to load events data');
+    fetch(CONFIG.dataUrl, { cache: 'no-cache' })
+      .then(function(res) {
+        if (!res.ok) {
+          throw new Error('HTTP ' + res.status);
+        }
         return res.json();
       })
-      .then(data => {
-        eventsData = data;
-        updateLoadingProgress(60);
-        renderEvents();
-        renderProgressDots();
-        initBackgrounds();
-        updateLoadingProgress(100);
-
-        setTimeout(() => {
-          if (els.loadingScreen) {
-            els.loadingScreen.classList.add('hidden');
-          }
-          // 预加载第一个事件的缩略图
-          preloadEventMedia(0);
-          // 初始化流星效果
-          initMeteorCanvas();
-          // 更新流星状态
-          updateMeteorState();
-        }, 600);
+      .then(function(data) {
+        state.events = normalizeEvents(Array.isArray(data) ? data : []);
+        renderPage();
+        requestAnimationFrame(function() {
+          setActiveEvent(0, { immediate: true });
+          hideLoading();
+        });
       })
-      .catch(err => {
-        console.error('[Birthday Gift] 加载事件数据失败:', err);
-        els.timelineContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:rgba(255,255,255,0.5);"><p>加载失败，请刷新页面重试</p></div>';
-        if (els.loadingScreen) els.loadingScreen.classList.add('hidden');
+      .catch(function(error) {
+        console.error('[Birthday Gift] 事件数据加载失败:', error);
+        renderError();
+        hideLoading();
       });
   }
 
-  function updateLoadingProgress(percent) {
-    if (els.loadingBarFill) {
-      els.loadingBarFill.style.width = percent + '%';
-    }
+  function normalizeEvents(events) {
+    return events.map(function(event, index) {
+      const media = Array.isArray(event.media) ? event.media.filter(Boolean).map(function(item, mediaIndex) {
+        return {
+          type: item.type === 'video' ? 'video' : 'image',
+          thumb: normalizePath(item.thumb || ''),
+          full: normalizePath(item.full || item.src || item.thumb || ''),
+          poster: normalizePath(item.poster || item.thumb || ''),
+          index: mediaIndex
+        };
+      }) : [];
+
+      return {
+        id: String(event.id || 'event-' + index),
+        order: Number(event.order || index + 1),
+        title: String(event.title || '未命名事件'),
+        date: String(event.date || ''),
+        period: String(event.period || ''),
+        mood: String(event.mood || ''),
+        achievement: String(event.achievement || ''),
+        contentHtml: String(event.contentHtml || '<p>这段时光还在整理中。</p>'),
+        background: normalizePath(event.background || CONFIG.fallbackBackgrounds[index % CONFIG.fallbackBackgrounds.length]),
+        glowColor: sanitizeGlow(event.glowColor || CONFIG.fallbackGlow[index % CONFIG.fallbackGlow.length]),
+        media: media,
+        hasMedia: media.length > 0,
+        mediaCount: media.length
+      };
+    });
   }
 
-  // ========== 渲染事件 ==========
-  function renderEvents() {
-    if (!eventsData.length) {
-      els.timelineContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:rgba(255,255,255,0.5);"><p>暂无事件</p></div>';
+  function normalizePath(path) {
+    return typeof path === 'string' ? path.trim() : '';
+  }
+
+  function sanitizeGlow(value) {
+    const match = String(value || '').match(/(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/);
+    if (!match) return '255, 255, 255';
+    return [match[1], match[2], match[3]].map(function(part) {
+      return Math.max(0, Math.min(255, Number(part) || 0));
+    }).join(', ');
+  }
+
+  function renderPage() {
+    if (!state.events.length) {
+      renderEmpty();
       return;
     }
 
-    const html = eventsData.map((event, index) => {
-      const isFirst = index === 0;
-      const mediaHtml = event.hasMedia
-        ? renderAlbumStack(event.media, event.id)
-        : '<div class="album-placeholder">回忆在时光中流淌</div>';
+    renderBackgrounds();
+    renderTimeline();
+    renderProgress();
+    setupMeteorCanvas();
 
-      const achievementHtml = event.achievement
-        ? '<span class="event-achievement">' + escapeHtml(event.achievement) + '</span>'
+    els.totalNumber.textContent = '/ ' + pad2(state.events.length);
+  }
+
+  function renderBackgrounds() {
+    els.backgroundLayer.innerHTML = state.events.map(function(event, index) {
+      return '<div class="background-image" data-bg-index="' + index + '" data-bg="' + escapeAttr(event.background) + '"></div>';
+    }).join('');
+  }
+
+  function renderTimeline() {
+    els.timelineTrack.innerHTML = state.events.map(function(event, index) {
+      const reverse = index % 2 === 1;
+      const mediaHtml = event.hasMedia ? renderAlbum(event, index) : renderOrbit(event);
+      const achievement = event.achievement
+        ? '<div class="achievement">' + escapeHtml(event.achievement) + '</div>'
         : '';
 
-      return '<section class="event-section" data-index="' + index + '" data-event-id="' + event.id + '">' +
-        '<div class="event-content">' +
-          '<div class="event-text">' +
-            '<div class="event-period">' + escapeHtml(event.period) + ' · ' + escapeHtml(event.date) + '</div>' +
-            '<h2 class="event-title">' + escapeHtml(event.title) + '</h2>' +
-            '<div class="event-mood">心境：' + escapeHtml(event.mood) + '</div>' +
-            '<div class="event-body">' + event.contentHtml + '</div>' +
-            achievementHtml +
-          '</div>' +
-          '<div class="event-album">' + mediaHtml + '</div>' +
-        '</div>' +
-      '</section>';
+      return [
+        '<section class="memory-panel' + (reverse ? ' is-reverse' : '') + '" data-index="' + index + '" data-order="' + pad2(index + 1) + '">',
+          '<div class="memory-grid">',
+            '<article class="memory-copy">',
+              '<div class="memory-kicker">',
+                '<span>' + escapeHtml(event.period || '阶段') + '</span>',
+                '<span>' + escapeHtml(event.date || '时间未定') + '</span>',
+              '</div>',
+              '<h1 class="memory-title">' + escapeHtml(event.title) + '</h1>',
+              '<p class="memory-mood">' + escapeHtml(event.mood ? '心境 · ' + event.mood : '心境 · 仍在生长') + '</p>',
+              '<div class="memory-body">' + event.contentHtml + '</div>',
+              achievement,
+            '</article>',
+            '<aside class="memory-media">' + mediaHtml + '</aside>',
+          '</div>',
+        '</section>'
+      ].join('');
     }).join('');
 
-    els.timelineContainer.innerHTML = html;
-
-    // 绑定相册点击事件
-    document.querySelectorAll('.album-stack').forEach(stack => {
-      stack.addEventListener('click', function() {
-        const eventId = this.dataset.eventId;
-        openAlbumModal(eventId);
+    els.timelineTrack.querySelectorAll('.album-stack').forEach(function(button) {
+      button.addEventListener('click', function() {
+        openAlbum(Number(button.dataset.index));
       });
     });
   }
 
-  // ========== 渲染相册堆叠 ==========
-  function renderAlbumStack(media, eventId) {
-    // 最多显示3张缩略图
-    const thumbs = media.slice(0, 3);
-    const count = media.length;
+  function renderAlbum(event, eventIndex) {
+    const visible = event.media.slice(0, 3);
+    while (visible.length < 3) {
+      visible.push(event.media[event.media.length - 1]);
+    }
 
-    let thumbsHtml = '';
-    thumbs.forEach((item, i) => {
-      thumbsHtml += '<div class="album-thumb" data-type="' + item.type + '" data-src="' + item.full + '"' +
-        ' style="background-image:url(' + item.thumb + ')" data-index="' + i + '"></div>';
-    });
-
-    const countHtml = count > 3 ? '<div class="album-count">+' + (count - 3) + '</div>' : '';
-
-    return '<div class="album-stack" data-event-id="' + eventId + '">' +
-      thumbsHtml + countHtml +
-    '</div>';
-  }
-
-  // ========== 渲染进度指示器 ==========
-  function renderProgressDots() {
-    if (!eventsData.length) return;
-
-    const html = eventsData.map((_, i) => {
-      return '<div class="progress-dot' + (i === 0 ? ' active' : '') + '" data-index="' + i + '"></div>';
+    const cards = visible.map(function(item, i) {
+      const label = item.type === 'video' ? '视频缩略图' : '相册缩略图';
+      const src = item.thumb || item.poster || '';
+      return [
+        '<span class="album-card" data-lazy-thumb="' + escapeAttr(src) + '">',
+          '<span class="media-placeholder">' + (i === 2 ? '回忆载入中' : '') + '</span>',
+          src ? '<img alt="' + label + '" decoding="async">' : '',
+          item.type === 'video' ? renderPlayBadge() : '',
+        '</span>'
+      ].join('');
     }).join('');
 
-    els.progressDots.innerHTML = html;
+    return [
+      '<button class="album-stack" type="button" data-index="' + eventIndex + '" aria-label="打开 ' + escapeAttr(event.title) + ' 相册">',
+        cards,
+        '<span class="album-sheen"></span>',
+        '<span class="album-caption"><span>' + escapeHtml(event.mediaCount + ' 份回忆') + '</span></span>',
+      '</button>'
+    ].join('');
+  }
 
-    document.querySelectorAll('.progress-dot').forEach(dot => {
+  function renderOrbit(event) {
+    const text = event.achievement || event.mood || event.period || '这段记忆暂时没有影像，先让光替它留下位置。';
+    return [
+      '<div class="memory-orbit" aria-label="无媒体事件的流星视觉">',
+        '<div class="orbit-core"></div>',
+        '<div class="orbit-label">' + escapeHtml(text) + '</div>',
+      '</div>'
+    ].join('');
+  }
+
+  function renderProgress() {
+    els.progressRail.innerHTML = state.events.map(function(event, index) {
+      return '<button class="progress-dot" type="button" data-index="' + index + '" aria-label="跳转到 ' + escapeAttr(event.title) + '"></button>';
+    }).join('');
+
+    els.progressRail.querySelectorAll('.progress-dot').forEach(function(dot) {
       dot.addEventListener('click', function() {
-        const index = parseInt(this.dataset.index);
-        if (index !== currentIndex && !isTransitioning) {
-          goToEvent(index);
-        }
+        setActiveEvent(Number(dot.dataset.index));
       });
     });
   }
 
-  // ========== 初始化背景 ==========
-  function initBackgrounds() {
-    if (!eventsData.length) return;
+  function renderEmpty() {
+    els.timelineTrack.innerHTML = '<div class="empty-state"><div><strong>暂无时间轴事件</strong><span>请在 source/birthday-gift/events/ 下添加事件文件夹。</span></div></div>';
+    els.totalNumber.textContent = '/ 00';
+  }
 
-    const html = eventsData.map((event, index) => {
-      const bgUrl = event.background || '';
-      return '<div class="bg-item' + (index === 0 ? ' active' : '') + '"' +
-        ' data-index="' + index + '"' +
-        ' style="background-image:url(' + bgUrl + ')"' +
-      '></div>';
-    }).join('');
+  function renderError() {
+    els.timelineTrack.innerHTML = '<div class="error-state"><div><strong>时间轴加载失败</strong><span>请检查 birthday-gift/events-data.json 是否已生成。</span></div></div>';
+  }
 
-    els.bgLayer.innerHTML = html;
+  function setActiveEvent(index, options) {
+    if (!state.events.length) return;
+    if (index < 0 || index >= state.events.length) return;
+    if (state.locked && !(options && options.immediate)) return;
 
-    // 设置初始泛光颜色
-    if (eventsData[0]) {
-      updateGlowColor(eventsData[0].glowColor);
+    const immediate = options && options.immediate;
+    const previous = state.currentIndex;
+    state.currentIndex = index;
+    state.locked = !immediate;
+
+    els.timelineTrack.style.transitionDuration = immediate ? '0ms' : CONFIG.transitionMs + 'ms';
+    els.timelineTrack.style.transform = 'translate3d(0, -' + (index * 100) + 'vh, 0)';
+
+    updateActiveClasses(index);
+    updateEventChrome(index);
+    loadEventAssets(index);
+    loadEventAssets(index + 1, true);
+    loadEventAssets(index - 1, true);
+
+    if (!immediate && previous !== index) {
+      setTimeout(function() {
+        state.locked = false;
+      }, CONFIG.transitionMs + 30);
+    } else {
+      state.locked = false;
     }
   }
 
-  // ========== 整屏滚动切换 ==========
-  function goToEvent(index) {
-    if (index < 0 || index >= eventsData.length || isTransitioning) return;
-
-    isTransitioning = true;
-    const direction = index > currentIndex ? 'down' : 'up';
-    currentIndex = index;
-
-    // 移动容器
-    els.timelineContainer.style.transform = 'translateY(-' + (index * 100) + 'vh)';
-
-    // 切换背景
-    document.querySelectorAll('.bg-item').forEach((bg, i) => {
-      bg.classList.toggle('active', i === index);
+  function updateActiveClasses(index) {
+    els.timelineTrack.querySelectorAll('.memory-panel').forEach(function(panel, i) {
+      panel.classList.toggle('is-active', i === index);
     });
 
-    // 更新泛光颜色
-    const event = eventsData[index];
-    if (event && event.glowColor) {
-      updateGlowColor(event.glowColor);
-    }
-
-    // 更新进度指示器
-    document.querySelectorAll('.progress-dot').forEach((dot, i) => {
-      dot.classList.toggle('active', i === index);
+    els.backgroundLayer.querySelectorAll('.background-image').forEach(function(bg, i) {
+      bg.classList.toggle('is-active', i === index);
+      if (i === index && !bg.style.backgroundImage && bg.dataset.bg) {
+        bg.style.backgroundImage = 'url("' + bg.dataset.bg.replace(/"/g, '\\"') + '")';
+      }
     });
 
-    // 预加载媒体
-    preloadEventMedia(index);
-    if (CONFIG.preloadNextBg && index < eventsData.length - 1) {
-      preloadEventMedia(index + 1);
+    els.progressRail.querySelectorAll('.progress-dot').forEach(function(dot, i) {
+      dot.classList.toggle('is-active', i === index);
+      dot.setAttribute('aria-current', i === index ? 'step' : 'false');
+    });
+  }
+
+  function updateEventChrome(index) {
+    const event = state.events[index];
+    if (!event) return;
+
+    document.documentElement.style.setProperty('--glow-color', event.glowColor);
+    els.currentNumber.textContent = pad2(index + 1);
+    document.title = event.title + ' | 成长之路';
+
+    updateMeteorState(!event.hasMedia);
+  }
+
+  function loadEventAssets(index, neighbor) {
+    if (index < 0 || index >= state.events.length) return;
+
+    const event = state.events[index];
+    if (event.background) preloadImage(event.background);
+
+    if (!event.hasMedia) return;
+
+    const selector = '.memory-panel[data-index="' + index + '"] .album-card[data-lazy-thumb]';
+    els.timelineTrack.querySelectorAll(selector).forEach(function(card) {
+      const src = card.dataset.lazyThumb;
+      if (!src || state.loadedThumbs.has(src)) {
+        if (src) loadThumbIntoCard(card, src);
+        return;
+      }
+
+      if (neighbor && CONFIG.reducedMotion) return;
+      loadThumbIntoCard(card, src);
+      state.loadedThumbs.add(src);
+    });
+  }
+
+  function loadThumbIntoCard(card, src) {
+    let img = card.querySelector('img');
+    if (!img || !src) return;
+    if (img.dataset.loaded === 'true') {
+      card.classList.add('is-loaded');
+      return;
     }
 
-    // 更新流星状态
-    updateMeteorState();
+    img.addEventListener('load', function() {
+      img.dataset.loaded = 'true';
+      card.classList.add('is-loaded');
+    }, { once: true });
+    img.addEventListener('error', function() {
+      card.classList.add('is-loaded');
+      const placeholder = card.querySelector('.media-placeholder');
+      if (placeholder) placeholder.textContent = '缩略图暂不可用';
+    }, { once: true });
+    img.src = src;
+  }
 
-    // 解锁
-    setTimeout(() => {
-      isTransitioning = false;
-    }, CONFIG.transitionDuration);
+  function bindShellEvents() {
+    window.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchend', onTouchEnd, { passive: true });
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('resize', debounce(resizeMeteorCanvas, 120));
+
+    els.albumClose.addEventListener('click', closeAlbum);
+    els.albumModal.addEventListener('click', function(event) {
+      if (event.target === els.albumModal) closeAlbum();
+    });
+
+    els.imageClose.addEventListener('click', closeImageViewer);
+    els.imageViewer.addEventListener('click', function(event) {
+      if (event.target === els.imageViewer) closeImageViewer();
+    });
+
+    els.videoClose.addEventListener('click', closeVideoViewer);
+    els.videoViewer.addEventListener('click', function(event) {
+      if (event.target === els.videoViewer) closeVideoViewer();
+    });
+  }
+
+  function onWheel(event) {
+    if (isAnyModalOpen()) return;
+    event.preventDefault();
+
+    const now = Date.now();
+    if (state.locked || now - state.lastWheelAt < CONFIG.wheelLockMs) return;
+    state.lastWheelAt = now;
+
+    if (event.deltaY > 0) {
+      nextEvent();
+    } else if (event.deltaY < 0) {
+      prevEvent();
+    }
+  }
+
+  function onTouchStart(event) {
+    if (!event.touches || !event.touches.length) return;
+    state.touchStartY = event.touches[0].clientY;
+  }
+
+  function onTouchEnd(event) {
+    if (isAnyModalOpen() || state.locked || !event.changedTouches || !event.changedTouches.length) return;
+    const diff = state.touchStartY - event.changedTouches[0].clientY;
+    if (Math.abs(diff) < CONFIG.touchThreshold) return;
+    diff > 0 ? nextEvent() : prevEvent();
+  }
+
+  function onKeyDown(event) {
+    if (event.key === 'Escape') {
+      closeTopModal();
+      return;
+    }
+
+    if (isAnyModalOpen()) return;
+
+    if (event.key === 'ArrowDown' || event.key === 'PageDown' || event.key === ' ') {
+      event.preventDefault();
+      nextEvent();
+    } else if (event.key === 'ArrowUp' || event.key === 'PageUp') {
+      event.preventDefault();
+      prevEvent();
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      setActiveEvent(0);
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      setActiveEvent(state.events.length - 1);
+    }
   }
 
   function nextEvent() {
-    if (currentIndex < eventsData.length - 1) {
-      goToEvent(currentIndex + 1);
-    }
+    setActiveEvent(Math.min(state.currentIndex + 1, state.events.length - 1));
   }
 
   function prevEvent() {
-    if (currentIndex > 0) {
-      goToEvent(currentIndex - 1);
+    setActiveEvent(Math.max(state.currentIndex - 1, 0));
+  }
+
+  function openAlbum(index) {
+    const event = state.events[index];
+    if (!event || !event.hasMedia) return;
+
+    els.albumTitle.textContent = event.title;
+    els.albumSubtitle.textContent = [event.period, event.date, event.mediaCount + ' 份影像'].filter(Boolean).join(' · ');
+    els.albumGrid.innerHTML = event.media.map(function(item, mediaIndex) {
+      const poster = item.thumb || item.poster || '';
+      const typeLabel = item.type === 'video' ? '视频' : '照片';
+      return [
+        '<button class="gallery-item" type="button" data-event-index="' + index + '" data-media-index="' + mediaIndex + '">',
+          '<span class="media-placeholder">' + typeLabel + '</span>',
+          poster ? '<img alt="' + escapeAttr(event.title + typeLabel) + '" decoding="async">' : '',
+          item.type === 'video' ? renderPlayBadge() : '',
+        '</button>'
+      ].join('');
+    }).join('');
+
+    els.albumGrid.querySelectorAll('.gallery-item').forEach(function(item) {
+      const media = event.media[Number(item.dataset.mediaIndex)];
+      lazyLoadGalleryItem(item, media);
+      item.addEventListener('click', function() {
+        media.type === 'video' ? openVideoViewer(media.full) : openImageViewer(media.full || media.thumb);
+      });
+    });
+
+    openModal(els.albumModal, 'album');
+  }
+
+  function closeAlbum() {
+    closeModal(els.albumModal, 'album');
+    els.albumGrid.innerHTML = '';
+  }
+
+  function lazyLoadGalleryItem(item, media) {
+    const img = item.querySelector('img');
+    const src = media && (media.thumb || media.poster);
+    if (!img || !src) {
+      item.classList.add('is-loaded');
+      return;
+    }
+
+    img.addEventListener('load', function() {
+      item.classList.add('is-loaded');
+    }, { once: true });
+    img.addEventListener('error', function() {
+      item.classList.add('is-loaded');
+      const placeholder = item.querySelector('.media-placeholder');
+      if (placeholder) placeholder.textContent = '封面暂不可用';
+    }, { once: true });
+    img.src = src;
+  }
+
+  function openImageViewer(src) {
+    if (!src) return;
+    els.viewerImage.classList.remove('is-loaded');
+    els.viewerImage.removeAttribute('src');
+    els.viewerImage.onload = function() {
+      els.viewerImage.classList.add('is-loaded');
+    };
+    els.viewerImage.alt = '回忆大图';
+    openModal(els.imageViewer, 'image');
+    requestAnimationFrame(function() {
+      els.viewerImage.src = src;
+    });
+  }
+
+  function closeImageViewer() {
+    closeModal(els.imageViewer, 'image');
+    els.viewerImage.onload = null;
+    els.viewerImage.removeAttribute('src');
+    els.viewerImage.classList.remove('is-loaded');
+  }
+
+  function openVideoViewer(src) {
+    if (!src) return;
+    els.viewerVideo.src = src;
+    els.viewerVideo.load();
+    openModal(els.videoViewer, 'video');
+    const playPromise = els.viewerVideo.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(function() {});
     }
   }
 
-  function updateGlowColor(color) {
-    document.documentElement.style.setProperty('--glow-color', color || '255, 255, 255');
+  function closeVideoViewer() {
+    closeModal(els.videoViewer, 'video');
+    els.viewerVideo.pause();
+    els.viewerVideo.removeAttribute('src');
+    els.viewerVideo.load();
   }
 
-  // ========== 预加载媒体 ==========
-  function preloadEventMedia(index) {
-    if (index < 0 || index >= eventsData.length) return;
-    const event = eventsData[index];
-    if (!event || !event.hasMedia) return;
-
-    // 预加载缩略图
-    event.media.forEach(item => {
-      if (item.thumb) {
-        const img = new Image();
-        img.src = item.thumb;
-      }
-    });
+  function openModal(el, key) {
+    el.classList.add('is-open');
+    el.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    state.modalStack = state.modalStack.filter(function(item) { return item !== key; });
+    state.modalStack.push(key);
   }
 
-  // ========== 事件绑定 ==========
-  function bindEvents() {
-    // 鼠标滚轮
-    let wheelTimeout = null;
-    window.addEventListener('wheel', function(e) {
-      if (isTransitioning) {
-        e.preventDefault();
-        return;
-      }
-
-      if (isModalOpen()) return;
-
-      e.preventDefault();
-
-      if (wheelTimeout) return;
-
-      wheelTimeout = setTimeout(() => {
-        wheelTimeout = null;
-      }, 100);
-
-      if (e.deltaY > 0) {
-        nextEvent();
-      } else if (e.deltaY < 0) {
-        prevEvent();
-      }
-    }, { passive: false });
-
-    // 触摸滑动
-    window.addEventListener('touchstart', function(e) {
-      touchStartY = e.touches[0].clientY;
-    }, { passive: true });
-
-    window.addEventListener('touchend', function(e) {
-      if (isTransitioning || isModalOpen()) return;
-
-      const touchEndY = e.changedTouches[0].clientY;
-      const diff = touchStartY - touchEndY;
-
-      if (Math.abs(diff) > CONFIG.scrollThreshold) {
-        if (diff > 0) {
-          nextEvent();
-        } else {
-          prevEvent();
-        }
-      }
-    }, { passive: true });
-
-    // 键盘导航
-    window.addEventListener('keydown', function(e) {
-      if (isModalOpen()) {
-        if (e.key === 'Escape') {
-          closeAllModals();
-        }
-        return;
-      }
-
-      if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
-        e.preventDefault();
-        nextEvent();
-      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-        e.preventDefault();
-        prevEvent();
-      } else if (e.key === 'Home') {
-        e.preventDefault();
-        goToEvent(0);
-      } else if (e.key === 'End') {
-        e.preventDefault();
-        goToEvent(eventsData.length - 1);
-      }
-    });
-
-    // 相册弹层关闭
-    els.albumModalClose.addEventListener('click', closeAlbumModal);
-    els.albumModal.addEventListener('click', function(e) {
-      if (e.target === els.albumModal) closeAlbumModal();
-    });
-
-    // 大图弹层关闭
-    els.lightboxModalClose.addEventListener('click', closeLightboxModal);
-    els.lightboxModal.addEventListener('click', function(e) {
-      if (e.target === els.lightboxModal) closeLightboxModal();
-    });
-
-    // 视频弹层关闭
-    els.videoModalClose.addEventListener('click', closeVideoModal);
-    els.videoModal.addEventListener('click', function(e) {
-      if (e.target === els.videoModal) closeVideoModal();
-    });
+  function closeModal(el, key) {
+    el.classList.remove('is-open');
+    el.setAttribute('aria-hidden', 'true');
+    state.modalStack = state.modalStack.filter(function(item) { return item !== key; });
+    if (!state.modalStack.length) {
+      document.body.style.overflow = '';
+    }
   }
 
-  // ========== 弹层状态 ==========
-  function isModalOpen() {
-    return els.albumModal.classList.contains('open') ||
-           els.lightboxModal.classList.contains('open') ||
-           els.videoModal.classList.contains('open');
+  function closeTopModal() {
+    const top = state.modalStack[state.modalStack.length - 1];
+    if (top === 'video') closeVideoViewer();
+    else if (top === 'image') closeImageViewer();
+    else if (top === 'album') closeAlbum();
   }
 
-  function closeAllModals() {
-    closeAlbumModal();
-    closeLightboxModal();
-    closeVideoModal();
+  function isAnyModalOpen() {
+    return state.modalStack.length > 0;
   }
 
-  // ========== 相册弹层 ==========
-  function openAlbumModal(eventId) {
-    const event = eventsData.find(e => e.id === eventId);
-    if (!event || !event.hasMedia) return;
-
-    const html = event.media.map((item, i) => {
-      if (item.type === 'image') {
-        return '<div class="album-modal-item" data-type="image" data-src="' + item.full + '"' +
-          ' style="background-image:url(' + item.thumb + ')" data-index="' + i + '"></div>';
-      } else if (item.type === 'video') {
-        return '<div class="album-modal-item" data-type="video" data-src="' + item.full + '"' +
-          ' style="background-image:url(' + (item.thumb || item.full) + ')" data-index="' + i + '">' +
-          '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">' +
-            '<svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="24" fill="rgba(255,255,255,0.2)"/><polygon points="19,16 19,32 35,24" fill="white"/></svg>' +
-          '</div>' +
-        '</div>';
-      }
-      return '';
-    }).join('');
-
-    els.albumModalContent.innerHTML = html;
-    els.albumModal.classList.add('open');
-
-    // 绑定点击事件
-    document.querySelectorAll('.album-modal-item').forEach(item => {
-      item.addEventListener('click', function() {
-        const type = this.dataset.type;
-        const src = this.dataset.src;
-
-        if (type === 'image') {
-          openLightbox(src);
-        } else if (type === 'video') {
-          openVideo(src);
-        }
-      });
-    });
-  }
-
-  function closeAlbumModal() {
-    els.albumModal.classList.remove('open');
-  }
-
-  // ========== 大图弹层 ==========
-  function openLightbox(src) {
-    els.lightboxImage.src = src;
-    els.lightboxModal.classList.add('open');
-  }
-
-  function closeLightboxModal() {
-    els.lightboxModal.classList.remove('open');
-    els.lightboxImage.src = '';
-  }
-
-  // ========== 视频弹层 ==========
-  function openVideo(src) {
-    els.videoPlayer.src = src;
-    els.videoPlayer.load();
-    els.videoModal.classList.add('open');
-    els.videoPlayer.play().catch(() => {});
-  }
-
-  function closeVideoModal() {
-    els.videoModal.classList.remove('open');
-    els.videoPlayer.pause();
-    els.videoPlayer.src = '';
-  }
-
-  // ========== 流星效果 ==========
-  function initMeteorCanvas() {
-    const canvas = els.meteorCanvas;
-    if (!canvas) return;
-
-    meteorCtx = canvas.getContext('2d');
+  function setupMeteorCanvas() {
+    if (!els.meteorCanvas) return;
+    state.meteorCtx = els.meteorCanvas.getContext('2d');
     resizeMeteorCanvas();
-    window.addEventListener('resize', resizeMeteorCanvas);
-
-    // 初始化星星
-    createMeteorStars();
+    createMeteorParticles();
   }
 
   function resizeMeteorCanvas() {
-    if (!els.meteorCanvas) return;
-    els.meteorCanvas.width = window.innerWidth;
-    els.meteorCanvas.height = window.innerHeight;
+    if (!els.meteorCanvas || !state.meteorCtx) return;
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+    const width = Math.max(1, window.innerWidth);
+    const height = Math.max(1, window.innerHeight);
+    els.meteorCanvas.width = Math.floor(width * ratio);
+    els.meteorCanvas.height = Math.floor(height * ratio);
+    els.meteorCanvas.style.width = width + 'px';
+    els.meteorCanvas.style.height = height + 'px';
+    state.meteorCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    createMeteorParticles();
   }
 
-  function createMeteorStars() {
-    meteorStars = [];
-    const count = Math.floor(window.innerWidth * 0.06); // 比 universe 少
-    for (let i = 0; i < count; i++) {
-      meteorStars.push(createStar());
-    }
+  function createMeteorParticles() {
+    const count = Math.max(58, Math.floor(window.innerWidth / 16));
+    state.meteorParticles = Array.from({ length: count }, function(_, index) {
+      return createParticle(index % 9 === 0);
+    });
   }
 
-  function createStar() {
-    const isComet = Math.random() < 0.05; // 5% 流星概率
+  function createParticle(isMeteor) {
     return {
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
-      r: 0.5 + Math.random() * 1.5,
-      dx: isComet ? 3 + Math.random() * 4 : (Math.random() - 0.5) * 0.3,
-      dy: isComet ? 3 + Math.random() * 4 : (Math.random() - 0.5) * 0.3,
-      opacity: Math.random(),
-      isComet: isComet,
-      tail: [],
-      maxTailLength: isComet ? 15 : 0
+      r: isMeteor ? 1.1 + Math.random() * 1.2 : 0.5 + Math.random() * 1.2,
+      vx: isMeteor ? 4.4 + Math.random() * 4 : (Math.random() - 0.5) * 0.24,
+      vy: isMeteor ? 2.6 + Math.random() * 2.8 : (Math.random() - 0.5) * 0.2,
+      alpha: 0.24 + Math.random() * 0.68,
+      twinkle: Math.random() * Math.PI * 2,
+      meteor: isMeteor
     };
   }
 
-  function updateMeteorState() {
-    if (!eventsData.length) return;
+  function updateMeteorState(active) {
+    if (!els.meteorCanvas || CONFIG.reducedMotion) return;
+    if (active === state.meteorActive) return;
+    state.meteorActive = active;
+    els.meteorCanvas.classList.toggle('is-active', active);
+    active ? startMeteor() : stopMeteor();
+  }
 
-    const event = eventsData[currentIndex];
-    const shouldShowMeteor = !event.hasMedia;
+  function startMeteor() {
+    if (state.meteorFrame || !state.meteorCtx) return;
+    const loop = function() {
+      drawMeteorFrame();
+      state.meteorFrame = requestAnimationFrame(loop);
+    };
+    state.meteorFrame = requestAnimationFrame(loop);
+  }
 
-    if (shouldShowMeteor && !isMeteorActive) {
-      isMeteorActive = true;
-      els.meteorCanvas.classList.add('active');
-      startMeteorAnimation();
-    } else if (!shouldShowMeteor && isMeteorActive) {
-      isMeteorActive = false;
-      els.meteorCanvas.classList.remove('active');
-      stopMeteorAnimation();
+  function stopMeteor() {
+    if (state.meteorFrame) {
+      cancelAnimationFrame(state.meteorFrame);
+      state.meteorFrame = null;
+    }
+    if (state.meteorCtx) {
+      state.meteorCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     }
   }
 
-  let lastMeteorFrame = 0;
-  function startMeteorAnimation() {
-    if (meteorAnimationId) return;
+  function drawMeteorFrame() {
+    const ctx = state.meteorCtx;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    ctx.clearRect(0, 0, width, height);
 
-    function animate(timestamp) {
-      if (!isMeteorActive) return;
+    state.meteorParticles.forEach(function(particle) {
+      particle.x += particle.vx;
+      particle.y += particle.vy;
+      particle.twinkle += 0.035;
 
-      // FPS 节流
-      if (timestamp - lastMeteorFrame < 1000 / CONFIG.meteorFPS) {
-        meteorAnimationId = requestAnimationFrame(animate);
-        return;
+      if (particle.x > width + 80 || particle.y > height + 80) {
+        particle.x = Math.random() * width * 0.9 - 80;
+        particle.y = -40 - Math.random() * height * 0.3;
       }
-      lastMeteorFrame = timestamp;
+      if (particle.x < -90) particle.x = width + 40;
+      if (particle.y < -90) particle.y = height + 40;
 
-      const ctx = meteorCtx;
-      const w = els.meteorCanvas.width;
-      const h = els.meteorCanvas.height;
+      const alpha = particle.alpha * (0.72 + Math.sin(particle.twinkle) * 0.28);
 
-      ctx.clearRect(0, 0, w, h);
-
-      meteorStars.forEach(star => {
-        // 更新位置
-        star.x += star.dx;
-        star.y += star.dy;
-
-        // 边界检查
-        if (star.x > w) star.x = 0;
-        if (star.x < 0) star.x = w;
-        if (star.y > h) star.y = 0;
-        if (star.y < 0) star.y = h;
-
-        // 更新透明度
-        star.opacity += (Math.random() - 0.5) * 0.05;
-        if (star.opacity > 1) star.opacity = 1;
-        if (star.opacity < 0.2) star.opacity = 0.2;
-
-        // 流星尾巴
-        if (star.isComet) {
-          star.tail.unshift({ x: star.x, y: star.y, opacity: star.opacity });
-          if (star.tail.length > star.maxTailLength) {
-            star.tail.pop();
-          }
-
-          // 绘制尾巴
-          star.tail.forEach((pt, i) => {
-            const ratio = 1 - (i / star.tail.length);
-            ctx.beginPath();
-            ctx.arc(pt.x, pt.y, star.r * ratio * 0.6, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(255, 255, 255, ' + (pt.opacity * ratio * 0.6) + ')';
-            ctx.fill();
-          });
-        }
-
-        // 绘制星星
+      if (particle.meteor) {
+        const gradient = ctx.createLinearGradient(
+          particle.x,
+          particle.y,
+          particle.x - particle.vx * 9,
+          particle.y - particle.vy * 9
+        );
+        gradient.addColorStop(0, 'rgba(255,255,255,' + alpha + ')');
+        gradient.addColorStop(0.45, 'rgba(255,231,189,' + (alpha * 0.34) + ')');
+        gradient.addColorStop(1, 'rgba(255,255,255,0)');
         ctx.beginPath();
-        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
-        ctx.fillStyle = star.isComet
-          ? 'rgba(255, 255, 255, ' + star.opacity + ')'
-          : 'rgba(226, 225, 142, ' + star.opacity + ')';
+        ctx.moveTo(particle.x, particle.y);
+        ctx.lineTo(particle.x - particle.vx * 10, particle.y - particle.vy * 10);
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = particle.r;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+      } else {
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,' + alpha + ')';
         ctx.fill();
-      });
-
-      meteorAnimationId = requestAnimationFrame(animate);
-    }
-
-    meteorAnimationId = requestAnimationFrame(animate);
+      }
+    });
   }
 
-  function stopMeteorAnimation() {
-    if (meteorAnimationId) {
-      cancelAnimationFrame(meteorAnimationId);
-      meteorAnimationId = null;
-    }
-    if (meteorCtx && els.meteorCanvas) {
-      meteorCtx.clearRect(0, 0, els.meteorCanvas.width, els.meteorCanvas.height);
-    }
+  function renderPlayBadge() {
+    return [
+      '<span class="play-badge" aria-hidden="true">',
+        '<svg viewBox="0 0 64 64">',
+          '<circle cx="32" cy="32" r="28" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.62)" stroke-width="1.5"></circle>',
+          '<path d="M27 21v22l19-11z" fill="white"></path>',
+        '</svg>',
+      '</span>'
+    ].join('');
   }
 
-  // ========== 工具函数 ==========
-  function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+  function hideLoading() {
+    if (!els.loadingScreen) return;
+    setTimeout(function() {
+      els.loadingScreen.classList.add('is-hidden');
+    }, 220);
   }
 
-  // ========== 启动 ==========
+  function preloadImage(src) {
+    if (!src) return;
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = src;
+  }
+
+  function debounce(fn, wait) {
+    let timer = null;
+    return function() {
+      clearTimeout(timer);
+      timer = setTimeout(fn, wait);
+    };
+  }
+
+  function pad2(value) {
+    return String(value).padStart(2, '0');
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function escapeAttr(value) {
+    return escapeHtml(value).replace(/`/g, '&#96;');
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

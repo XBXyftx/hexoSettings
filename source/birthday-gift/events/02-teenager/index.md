@@ -4,7 +4,7 @@ date: 2010-2019
 period: 中学
 mood: 迷茫倔强
 achievement: ""
-background: /birthday-gift/assets/bg-teenager.jpg
+background: /birthday-gift/imgs/bg-teenager.webp
 glowColor: "100, 150, 255"
 ---
 

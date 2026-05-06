@@ -18,16 +18,16 @@
 
 在文件夹中创建 `index.md`，格式如下：
 
-```markdown
----
+```text
+[三横线 front matter 起始]
 title: 事件标题
 date: 时间范围（如 2019-2023）
 period: 阶段名称（如 大学）
 mood: 心境标签（如 迷茫但坚定）
 achievement: 主要成就（可选，没有就留空）
-background: /birthday-gift/assets/背景图文件名.jpg（可选）
+background: /birthday-gift/imgs/背景图文件名.webp（可选）
 glowColor: "R, G, B"（边缘泛光颜色，如 "255, 200, 100"）
----
+[三横线 front matter 结束]
 
 在这里写事件的详细描述，支持 Markdown 格式。
 
@@ -43,7 +43,7 @@ glowColor: "R, G, B"（边缘泛光颜色，如 "255, 200, 100"）
 | `period` | 是 | 阶段名称，如"童年""中学""大学" |
 | `mood` | 是 | 心境标签，如"懵懂好奇""迷茫倔强" |
 | `achievement` | 否 | 成就标签，会显示为金色徽章。没有就留空 |
-| `background` | 否 | 背景图路径。没有则使用默认黑色背景 |
+| `background` | 否 | 背景图路径。没有或文件不存在时使用页面内置回退背景 |
 | `glowColor` | 否 | 边缘泛光的 RGB 颜色，格式 `"R, G, B"`。默认白色 |
 
 ### 3. 添加图片（可选）
@@ -83,17 +83,17 @@ npm run server   # 或: hexo server
 
 打开 `http://localhost:4000/birthday-gift/` 查看效果。
 
----
+[三横线 front matter 起始]
 
 ## 注意事项
 
 1. **缩略图尺寸建议**：`thumb-*` 图片建议宽度 400px 左右，用于相册堆叠显示
 2. **原图尺寸建议**：`photo-*` 图片可以大一些，相册展开后显示原图
 3. **没有图片的事件**：如果不放任何 `thumb-*` 或 `video-*` 文件，页面会自动显示流星动画背景
-4. **背景图**：`background` 字段指定的图片会被虚化处理作为页面背景
+4. **背景图**：`background` 字段指定的图片会被虚化处理作为页面背景，建议放在 `source/birthday-gift/imgs/` 或事件文件夹内
 5. **排序**：事件按文件夹名排序，务必使用数字前缀（`01-`, `02-`...）
 
----
+[三横线 front matter 结束]
 
 ## 示例：完整的事件文件夹
 
@@ -110,16 +110,16 @@ source/birthday-gift/events/
 
 `index.md` 内容示例：
 
-```markdown
----
+```text
+[三横线 front matter 起始]
 title: 大学时光
 date: 2019-2023
 period: 大学
 mood: 迷茫但坚定
 achievement: ""
-background: /birthday-gift/assets/bg-university.jpg
+background: /birthday-gift/imgs/bg-university.webp
 glowColor: "100, 150, 255"
----
+[三横线 front matter 结束]
 
 大学选择了计算机专业。
 

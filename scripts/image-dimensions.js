@@ -137,6 +137,10 @@ function processImages(htmlContent) {
     return htmlContent;
   }
 
+  if (htmlContent.includes('id="birthdayApp"') || htmlContent.includes("id='birthdayApp'")) {
+    return htmlContent;
+  }
+
   const imgRegex = /<img([^>]*)>/gi;
   let modifiedCount = 0;
   let matchCount = 0;

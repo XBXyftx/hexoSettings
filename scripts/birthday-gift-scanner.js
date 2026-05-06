@@ -1,8 +1,6 @@
 /**
  * 生日页面事件扫描器
- * 扫描 source/birthday-gift/events/ 下的所有子文件夹
- * 解析 index.md 的 front matter 和正文，识别媒体文件
- * 生成 birthday-gift/events-data.json 供页面使用
+ * 扫描 source/birthday-gift/events/ 下的事件文件夹，生成前端使用的 JSON 数据。
  */
 
 'use strict';
@@ -11,55 +9,50 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-// 缓存上次扫描的哈希
+let frontMatterParser = null;
+try {
+  frontMatterParser = require('hexo-front-matter');
+} catch (error) {
+  frontMatterParser = null;
+}
+
 let lastScanHash = '';
-// 扫描结果缓存，供 generator 使用
 let cachedEventsData = null;
 
-// 支持的图片格式
 const IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
 const VIDEO_EXTS = ['.mp4', '.webm'];
+const FALLBACK_BACKGROUNDS = [
+  '/birthday-gift/imgs/bg-childhood.webp',
+  '/birthday-gift/imgs/bg-teenager.webp',
+  '/birthday-gift/imgs/bg-now.webp'
+];
+const FALLBACK_GLOW_COLORS = [
+  '255, 206, 139',
+  '124, 178, 255',
+  '116, 232, 174'
+];
 
-/**
- * 扫描事件文件夹并生成数据
- */
 function scanEvents() {
   const eventsDir = path.join(hexo.source_dir, 'birthday-gift', 'events');
 
-  // 检查目录是否存在
   if (!fs.existsSync(eventsDir)) {
     cachedEventsData = [];
     return cachedEventsData;
   }
 
-  // 获取所有子文件夹（事件文件夹）
   const eventDirs = fs.readdirSync(eventsDir)
     .filter(name => {
       const fullPath = path.join(eventsDir, name);
       return fs.statSync(fullPath).isDirectory();
     })
-    .sort(); // 按文件夹名排序（01-, 02- ...）
+    .sort((a, b) => a.localeCompare(b, 'zh-CN', { numeric: true }));
 
-  // 计算目录内容的哈希值，用于检测变化
-  const currentHash = crypto.createHash('md5');
-  eventDirs.forEach(dirName => {
-    const dirPath = path.join(eventsDir, dirName);
-    const files = fs.readdirSync(dirPath).sort();
-    files.forEach(file => {
-      const filePath = path.join(dirPath, file);
-      const stats = fs.statSync(filePath);
-      currentHash.update(`${dirName}/${file}:${stats.mtime.getTime()}:${stats.size}`);
-    });
-  });
-
-  const currentHashValue = currentHash.digest('hex');
-
-  // 如果内容没有变化，返回缓存
-  if (currentHashValue === lastScanHash && cachedEventsData !== null) {
+  const currentHash = createEventsHash(eventsDir, eventDirs);
+  if (currentHash === lastScanHash && cachedEventsData !== null) {
     return cachedEventsData;
   }
 
-  lastScanHash = currentHashValue;
+  lastScanHash = currentHash;
   console.log('[Birthday Gift Scanner] 检测到事件变化，开始扫描...');
 
   const events = [];
@@ -74,124 +67,29 @@ function scanEvents() {
     }
 
     try {
-      const content = fs.readFileSync(mdPath, 'utf8');
-
-      // 解析 front matter
-      const frontMatterMatch = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-      if (!frontMatterMatch) {
-        console.warn(`[Birthday Gift Scanner] 跳过 ${dirName}: 无效的 front matter`);
-        return;
-      }
-
-      const frontMatter = frontMatterMatch[1];
-      const markdownContent = content.substring(frontMatterMatch[0].length).trim();
-
-      // 解析 front matter 字段
-      const titleMatch = frontMatter.match(/title:\s*(.+?)(?:\r?\n|$)/);
-      const dateMatch = frontMatter.match(/date:\s*(.+?)(?:\r?\n|$)/);
-      const periodMatch = frontMatter.match(/period:\s*(.+?)(?:\r?\n|$)/);
-      const moodMatch = frontMatter.match(/mood:\s*(.+?)(?:\r?\n|$)/);
-      const achievementMatch = frontMatter.match(/achievement:\s*["']?(.+?)["']?(?:\r?\n|$)/);
-      const backgroundMatch = frontMatter.match(/background:\s*(.+?)(?:\r?\n|$)/);
-      const glowColorMatch = frontMatter.match(/glowColor:\s*["']?(.+?)["']?(?:\r?\n|$)/);
-
-      // 渲染 markdown 正文为 HTML
-      let contentHtml = '';
-      if (markdownContent) {
-        try {
-          const renderResult = hexo.render.renderSync({
-            text: markdownContent,
-            engine: 'markdown'
-          });
-          contentHtml = renderResult ? renderResult.toString() : '';
-        } catch (err) {
-          console.warn(`[Birthday Gift Scanner] Markdown 渲染失败 ${dirName}:`, err.message);
-          contentHtml = `<p>${markdownContent.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
-        }
-      }
-
-      // 扫描媒体文件
-      const files = fs.readdirSync(dirPath);
-      const thumbnails = [];
-      const fullImages = [];
-      const videos = [];
-
-      files.forEach(file => {
-        const ext = path.extname(file).toLowerCase();
-        const filePath = `/birthday-gift/events/${dirName}/${file}`;
-
-        if (file.startsWith('thumb-') && IMAGE_EXTS.includes(ext)) {
-          thumbnails.push({
-            src: filePath,
-            filename: file,
-            ext: ext
-          });
-        } else if (file.startsWith('photo-') && IMAGE_EXTS.includes(ext)) {
-          fullImages.push({
-            src: filePath,
-            filename: file,
-            ext: ext
-          });
-        } else if (file.startsWith('video-') && VIDEO_EXTS.includes(ext)) {
-          videos.push({
-            src: filePath,
-            filename: file,
-            ext: ext
-          });
-        }
-      });
-
-      // 按文件名排序
-      thumbnails.sort((a, b) => a.filename.localeCompare(b.filename));
-      fullImages.sort((a, b) => a.filename.localeCompare(b.filename));
-      videos.sort((a, b) => a.filename.localeCompare(b.filename));
-
-      // 构建媒体列表（缩略图对应的原图）
-      const mediaList = [];
-      thumbnails.forEach(thumb => {
-        const thumbIndex = thumb.filename.replace('thumb-', '').replace(thumb.ext, '');
-        const photoName = `photo-${thumbIndex}${thumb.ext}`;
-        const fullSrc = fullImages.find(p => p.filename === photoName);
-
-        mediaList.push({
-          thumb: thumb.src,
-          full: fullSrc ? fullSrc.src : thumb.src,
-          type: 'image'
-        });
-      });
-
-      // 添加视频
-      videos.forEach(video => {
-        const videoIndex = video.filename.replace('video-', '').replace(video.ext, '');
-        const thumbName = `thumb-video-${videoIndex}.jpg`;
-        const thumbFile = thumbnails.find(t => t.filename === thumbName);
-
-        mediaList.push({
-          thumb: thumbFile ? thumbFile.src : '',
-          full: video.src,
-          type: 'video'
-        });
-      });
+      const parsed = parseEventMarkdown(mdPath);
+      const media = scanMedia(dirPath, dirName);
+      const background = resolveBackground(parsed.frontMatter.background, index);
+      const glowColor = normalizeGlowColor(parsed.frontMatter.glowColor, index);
 
       const eventData = {
         id: dirName,
-        order: index + 1,
-        title: titleMatch ? titleMatch[1].trim().replace(/['"]/g, '') : dirName,
-        date: dateMatch ? dateMatch[1].trim().replace(/['"]/g, '') : '',
-        period: periodMatch ? periodMatch[1].trim().replace(/['"]/g, '') : '',
-        mood: moodMatch ? moodMatch[1].trim().replace(/['"]/g, '') : '',
-        achievement: achievementMatch ? achievementMatch[1].trim().replace(/['"]/g, '') : '',
-        background: backgroundMatch ? backgroundMatch[1].trim().replace(/['"]/g, '') : '',
-        glowColor: glowColorMatch ? glowColorMatch[1].trim().replace(/['"]/g, '') : '255, 255, 255',
-        contentHtml: contentHtml,
-        media: mediaList,
-        hasMedia: mediaList.length > 0,
-        mediaCount: mediaList.length
+        order: events.length + 1,
+        title: normalizeText(parsed.frontMatter.title) || dirName,
+        date: normalizeText(parsed.frontMatter.date),
+        period: normalizeText(parsed.frontMatter.period),
+        mood: normalizeText(parsed.frontMatter.mood),
+        achievement: normalizeText(parsed.frontMatter.achievement),
+        background,
+        glowColor,
+        contentHtml: renderMarkdown(parsed.body, dirName),
+        media,
+        hasMedia: media.length > 0,
+        mediaCount: media.length
       };
 
       events.push(eventData);
-      console.log(`[Birthday Gift Scanner] 已处理: ${eventData.title} (${mediaList.length} 个媒体)`);
-
+      console.log(`[Birthday Gift Scanner] 已处理: ${eventData.title} (${media.length} 个媒体)`);
     } catch (error) {
       console.error(`[Birthday Gift Scanner] 处理失败 ${dirName}:`, error.message);
     }
@@ -199,21 +97,217 @@ function scanEvents() {
 
   cachedEventsData = events;
   console.log(`[Birthday Gift Scanner] 完成: 共 ${events.length} 个事件`);
-
-  // 同时写入 source 目录供开发参考
-  const sourceOutputPath = path.join(hexo.source_dir, 'birthday-gift', 'events-data.json');
-  fs.writeFileSync(sourceOutputPath, JSON.stringify(events, null, 2), 'utf8');
-
+  writeSourceData(events);
   return events;
 }
 
-// before_generate filter：在生成前扫描
+function createEventsHash(eventsDir, eventDirs) {
+  const hash = crypto.createHash('md5');
+
+  eventDirs.forEach(dirName => {
+    const dirPath = path.join(eventsDir, dirName);
+    const files = fs.readdirSync(dirPath).sort((a, b) => a.localeCompare(b, 'zh-CN', { numeric: true }));
+    files.forEach(file => {
+      const filePath = path.join(dirPath, file);
+      const stats = fs.statSync(filePath);
+      if (!stats.isFile()) return;
+      hash.update(`${dirName}/${file}:${stats.mtimeMs}:${stats.size}`);
+    });
+  });
+
+  return hash.digest('hex');
+}
+
+function parseEventMarkdown(mdPath) {
+  const raw = fs.readFileSync(mdPath, 'utf8');
+  const parsed = frontMatterParser ? frontMatterParser.parse(raw) : fallbackParseFrontMatter(raw);
+
+  return {
+    frontMatter: parsed || {},
+    body: parsed && typeof parsed._content === 'string' ? parsed._content.trim() : ''
+  };
+}
+
+function fallbackParseFrontMatter(raw) {
+  const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
+  if (!match) return { _content: raw };
+
+  const frontMatter = {};
+  match[1].split(/\r?\n/).forEach(line => {
+    const field = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
+    if (!field) return;
+    frontMatter[field[1]] = stripQuotes(field[2]);
+  });
+  frontMatter._content = raw.slice(match[0].length);
+  return frontMatter;
+}
+
+function renderMarkdown(markdown, dirName) {
+  if (!markdown) return '<p>这段时光还在整理中。</p>';
+
+  try {
+    const rendered = hexo.render.renderSync({
+      text: markdown,
+      engine: 'markdown'
+    });
+    return rendered ? rendered.toString() : '';
+  } catch (error) {
+    console.warn(`[Birthday Gift Scanner] Markdown 渲染失败 ${dirName}: ${error.message}`);
+    return markdown
+      .split(/\n{2,}/)
+      .map(paragraph => `<p>${escapeHtml(paragraph.trim())}</p>`)
+      .join('\n');
+  }
+}
+
+function scanMedia(dirPath, dirName) {
+  const files = fs.readdirSync(dirPath)
+    .filter(file => fs.statSync(path.join(dirPath, file)).isFile())
+    .sort((a, b) => a.localeCompare(b, 'zh-CN', { numeric: true }));
+
+  const thumbs = new Map();
+  const photos = new Map();
+  const videoThumbs = new Map();
+  const videos = new Map();
+
+  files.forEach(file => {
+    const ext = path.extname(file).toLowerCase();
+    const basename = path.basename(file, ext);
+    const publicPath = `/birthday-gift/events/${dirName}/${file}`;
+
+    let match = basename.match(/^thumb-video-(.+)$/);
+    if (match && IMAGE_EXTS.includes(ext)) {
+      videoThumbs.set(match[1], { src: publicPath, filename: file, ext });
+      return;
+    }
+
+    match = basename.match(/^thumb-(.+)$/);
+    if (match && IMAGE_EXTS.includes(ext)) {
+      thumbs.set(match[1], { src: publicPath, filename: file, ext });
+      return;
+    }
+
+    match = basename.match(/^photo-(.+)$/);
+    if (match && IMAGE_EXTS.includes(ext)) {
+      photos.set(match[1], { src: publicPath, filename: file, ext });
+      return;
+    }
+
+    match = basename.match(/^video-(.+)$/);
+    if (match && VIDEO_EXTS.includes(ext)) {
+      videos.set(match[1], { src: publicPath, filename: file, ext });
+    }
+  });
+
+  const media = [];
+
+  Array.from(thumbs.keys()).sort(naturalSort).forEach(key => {
+    const thumb = thumbs.get(key);
+    const photo = findPhotoForKey(photos, key);
+    media.push({
+      type: 'image',
+      thumb: thumb.src,
+      full: photo ? photo.src : thumb.src
+    });
+  });
+
+  Array.from(photos.keys()).sort(naturalSort).forEach(key => {
+    if (thumbs.has(key)) return;
+    const photo = photos.get(key);
+    media.push({
+      type: 'image',
+      thumb: photo.src,
+      full: photo.src
+    });
+  });
+
+  Array.from(videos.keys()).sort(naturalSort).forEach(key => {
+    const video = videos.get(key);
+    const poster = videoThumbs.get(key) || thumbs.get(`video-${key}`) || null;
+    media.push({
+      type: 'video',
+      thumb: poster ? poster.src : '',
+      poster: poster ? poster.src : '',
+      full: video.src
+    });
+  });
+
+  return media;
+}
+
+function findPhotoForKey(photos, key) {
+  if (photos.has(key)) return photos.get(key);
+
+  const normalizedKey = String(key).replace(/^0+/, '') || '0';
+  for (const [photoKey, photo] of photos.entries()) {
+    const normalizedPhotoKey = String(photoKey).replace(/^0+/, '') || '0';
+    if (normalizedPhotoKey === normalizedKey) return photo;
+  }
+
+  return null;
+}
+
+function resolveBackground(value, index) {
+  const clean = normalizeText(value);
+  if (clean && sourceAssetExists(clean)) return clean;
+
+  if (clean) {
+    console.warn(`[Birthday Gift Scanner] 背景不存在，使用回退图: ${clean}`);
+  }
+
+  return FALLBACK_BACKGROUNDS[index % FALLBACK_BACKGROUNDS.length];
+}
+
+function sourceAssetExists(publicPath) {
+  if (!publicPath || /^https?:\/\//i.test(publicPath)) return true;
+  const cleanPath = publicPath.replace(/^\/+/, '').replace(/\?.*$/, '');
+  const sourcePath = path.join(hexo.source_dir, cleanPath);
+  return fs.existsSync(sourcePath);
+}
+
+function normalizeGlowColor(value, index) {
+  const fallback = FALLBACK_GLOW_COLORS[index % FALLBACK_GLOW_COLORS.length];
+  const match = String(value || '').match(/(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/);
+  if (!match) return fallback;
+
+  return [match[1], match[2], match[3]]
+    .map(part => Math.max(0, Math.min(255, Number(part) || 0)))
+    .join(', ');
+}
+
+function writeSourceData(events) {
+  const outputPath = path.join(hexo.source_dir, 'birthday-gift', 'events-data.json');
+  fs.writeFileSync(outputPath, JSON.stringify(events, null, 2), 'utf8');
+}
+
+function normalizeText(value) {
+  if (value === undefined || value === null) return '';
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return stripQuotes(String(value).trim());
+}
+
+function stripQuotes(value) {
+  return String(value || '').trim().replace(/^['"]|['"]$/g, '');
+}
+
+function naturalSort(a, b) {
+  return String(a).localeCompare(String(b), 'zh-CN', { numeric: true });
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 hexo.extend.filter.register('before_generate', function() {
   scanEvents();
 }, 100);
 
-// generator：将 JSON 输出到 public 目录
-hexo.extend.generator.register('birthday-gift-data', function(locals) {
+hexo.extend.generator.register('birthday-gift-data', function() {
   const events = cachedEventsData !== null ? cachedEventsData : scanEvents();
 
   return {

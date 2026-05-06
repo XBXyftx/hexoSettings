@@ -274,3 +274,42 @@
 **Git commit**：
 - 代码实现：`d1b6f60`
 - 文档记录：`a077c40`
+
+---
+
+### #9 — 2026-05-06 — 重写生日页面视觉与交互体验
+
+**操作人**：AI 助手（Codex）
+
+**涉及文件**：
+- 重写 `source/birthday-gift/index.html` — 独立舞台式时间轴页面，重做背景、中央光带、边缘泛光、左右交替布局、弹层样式和移动端布局
+- 重写 `source/js/birthday-gift.js` — 重做整屏滚动、键盘/触摸导航、相册弹层、大图/视频弹层、缩略图懒加载、无媒体流星 Canvas
+- 重写 `scripts/birthday-gift-scanner.js` — 使用 front matter 解析器、修复视频封面识别、补背景文件存在性检查与回退背景
+- 修改 `scripts/image-dimensions.js` — 对生日页做页面级跳过，避免全局图片尺寸/懒加载注入干扰自定义逻辑
+- 新增 `source/birthday-gift/imgs/bg-childhood.webp`
+- 新增 `source/birthday-gift/imgs/bg-teenager.webp`
+- 新增 `source/birthday-gift/imgs/bg-now.webp`
+- 修改 `source/birthday-gift/events/*/index.md` — 将背景路径更新为实际存在的 WebP 资源
+- 修改 `source/birthday-gift/README.md` — 更新背景路径说明，并规避 README 示例 front matter 被 Hexo 误解析
+- 更新 `source/birthday-gift/events-data.json` — 构建时由扫描器重新生成
+
+**操作详情**：
+
+1. 保留“事件文件夹 + `index.md` + 媒体文件 + JSON 扫描器”的数据架构，前端视觉与交互全部重写
+2. 页面继续使用 `layout: false`，不依赖 Butterfly 主题 DOM、全局 CSS 或全局懒加载脚本
+3. 无媒体事件不再显示空占位，改为抽象记忆球 + Canvas 流星背景，匹配需求中的异常场景
+4. 相册逻辑改为：主页面只加载缩略图；打开相册后加载封面；点击图片/视频后再加载原图或视频
+5. 修复旧数据中 `/birthday-gift/assets/*.jpg` 不存在导致背景 404 的问题，新增三张本地 WebP 回退背景
+6. 修复 `thumb-video-*` 可能被识别为普通 `thumb-*` 的媒体关联问题
+
+**验证结果**：
+- [x] `node --check source/js/birthday-gift.js` 通过
+- [x] `node --check scripts/birthday-gift-scanner.js` 通过
+- [x] `npm.cmd run build` 构建成功
+- [x] `public/birthday-gift/index.html` 第一行是 `<!DOCTYPE html>`，确认未被主题 layout 包装
+- [x] `public/birthday-gift/events-data.json` 背景路径已更新为 `/birthday-gift/imgs/*.webp`
+- [x] `public/js/birthday-gift.js` 语法检查通过
+
+**注意事项**：
+- 目前三个事件没有真实图片/视频，页面会走无媒体流星视觉。补充媒体时仍按 `thumb-*`、`photo-*`、`video-*`、`thumb-video-*` 命名即可。
+- PowerShell 执行策略会阻止 `npm`，本次使用 `npm.cmd run build` 完成验证。

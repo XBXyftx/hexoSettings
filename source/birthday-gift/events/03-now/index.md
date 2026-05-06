@@ -4,7 +4,7 @@ date: 2019-2026
 period: 大学至今
 mood: 坚定热忱
 achievement: "鸿蒙开发技术博主"
-background: /birthday-gift/assets/bg-now.jpg
+background: /birthday-gift/imgs/bg-now.webp
 glowColor: "100, 255, 150"
 ---
 
