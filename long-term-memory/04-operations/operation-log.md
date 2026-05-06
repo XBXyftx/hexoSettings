@@ -271,4 +271,4 @@
 - [x] image-dimensions.js 排除规则生效
 - [ ] 需要用户补充真实图片和视频进行完整测试
 
-**Git commit**：`[待补录]`
+**Git commit**：`d1b6f60`
