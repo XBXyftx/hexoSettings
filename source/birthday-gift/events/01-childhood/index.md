@@ -4,7 +4,7 @@ date: 2004-2010
 period: 童年
 mood: 懵懂好奇
 achievement: ""
-background: /birthday-gift/imgs/bg-childhood.webp
+background: /birthday-gift/imgs/bg-childhood.jpg
 glowColor: "255, 200, 100"
 ---
 

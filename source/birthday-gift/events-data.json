@@ -7,12 +7,18 @@
     "period": "童年",
     "mood": "懵懂好奇",
     "achievement": "",
-    "background": "/birthday-gift/imgs/bg-childhood.webp",
+    "background": "/birthday-gift/imgs/bg-childhood.jpg",
     "glowColor": "255, 200, 100",
     "contentHtml": "<p>那是非典刚过去的第二年，我来到了这个世界。</p>\n<p>妈妈后来常讲起那一年——防护服、隔离区、还有她走进病房时同事们惊讶的眼神。我听得似懂非懂，只觉得她穿白大褂的样子很好看。</p>\n<p>小时候最开心的事，是妈妈下班回来给我带医院食堂的小点心。她总说那是”奖励给勇敢的小朋友”，其实我知道，她只是觉得内疚，内疚于不能像其他妈妈那样准时出现在幼儿园门口。</p>\n<p>那时候我不懂什么叫”责任”，只知道我的妈妈和别人不太一样。她会在深夜被电话惊醒后匆匆出门，会在节假日突然消失几天，会在我发烧时一边给我量体温一边往包里塞口罩。</p>\n<p>后来我才慢慢明白，那些”不一样”的背后，是一个普通护士对这份职业的坚守。她没有惊天动地的壮举，只是把每一件小事都做到了极致。</p>\n<p>这份对小事的认真，潜移默化地刻进了我的骨子里。</p>\n",
-    "media": [],
-    "hasMedia": false,
-    "mediaCount": 0
+    "media": [
+      {
+        "type": "image",
+        "thumb": "/birthday-gift/events/01-childhood/01.jpg",
+        "full": "/birthday-gift/events/01-childhood/01.jpg"
+      }
+    ],
+    "hasMedia": true,
+    "mediaCount": 1
   },
   {
     "id": "02-teenager",

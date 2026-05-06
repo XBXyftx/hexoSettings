@@ -317,3 +317,40 @@
 **Git commit**：`f5286e7`
 
 ---
+
+### #10 — 2026-05-06 — 生日页面交互优化与扫描器增强
+
+**操作人**：AI 助手（Claude Code）
+
+**涉及文件**：
+- 修改 `scripts/birthday-gift-scanner.js` — 支持"快速放图"模式（无需 `thumb-*`/`photo-*` 命名对），排除保留名图片（`bg|background|cover|poster`）
+- 重写 `source/birthday-gift/README.md` — 从简单操作指南升级为完整事件编写指南，涵盖最小结构/完整结构/快速放图三种模式
+- 修改 `source/birthday-gift/index.html` — 背景虚化降低（28px→12px）、亮度提升（0.72→0.78）、文字区域添加滚动优化 CSS
+- 修改 `source/js/birthday-gift.js` — 文字区域独立滚动不触发整屏切换、流星效果性能优化
+- 新增 `source/birthday-gift/events/01-childhood/01.jpg` — 童年事件第一张真实图片
+- 替换 `source/birthday-gift/imgs/bg-childhood.webp` → `bg-childhood.jpg`
+- 修改 `source/birthday-gift/events/01-childhood/index.md` — 背景路径同步更新为 `.jpg`
+- 更新 `source/birthday-gift/events-data.json` — 构建时由扫描器重新生成
+
+**操作详情**：
+
+1. **扫描器增强**：新增 `plainImages` 数组收集未按命名规范但合法的后缀图片文件，支持用户直接放入 `01.jpg` 等文件即可展示，无需成对创建 `thumb-*`/`photo-*`。同时新增 `isReservedImageFile()` 排除 `bg|background|cover|poster` 等保留名，避免背景图被误识别为相册媒体。
+2. **文字区域可滚动**：事件文案较长时，`.memory-body` 区域支持独立滚动。通过 `findScrollableText()` 检测目标元素，结合 `shouldLetScrollableConsumeWheel()` / `shouldLetScrollableConsumeTouch()` 判断是否在文字区域边缘，非边缘时让滚动事件由文字区域消费，不触发整屏切换。
+3. **流星效果性能优化**：
+   - Canvas 使用 `{ desynchronized: true }` 减少绘制延迟
+   - 添加 FPS 节流（22fps），通过 `timestamp` 差值控制 `drawMeteorFrame()` 调用频率
+   - 动态渲染缩放：根据 `devicePixelRatio` 和屏幕宽度（≤768px 时额外降频）计算 `renderScale`
+   - 监听 `visibilitychange`，页面不可见时自动暂停流星动画
+   - 流星粒子参数调优（速度、透明度、尾迹长度）
+4. **页面视觉微调**：背景虚化程度降低使背景图更清晰可辨，亮度提升改善暗部细节，文字区域添加 `overscroll-behavior: contain` / `touch-action: pan-y` / `-webkit-overflow-scrolling: touch` 优化移动端滚动体验。
+5. **README 重写**：围绕"新增事件时只需要做什么"重新组织文档结构，用三种文件夹结构示例覆盖不同使用场景，front matter 字段表格明确每个字段的页面效果。
+
+**验证结果**：
+- [x] `npm run build` 构建成功
+- [x] `public/birthday-gift/events-data.json` 正确生成，包含 `01-childhood` 的媒体信息
+- [x] 扫描器语法检查通过
+- [x] 页面 JS 语法检查通过
+
+**Git commit**：
+- 代码实现：（待补充）
+- 文档记录：（待补充）

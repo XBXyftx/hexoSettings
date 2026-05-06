@@ -16,7 +16,15 @@
       '/birthday-gift/imgs/bg-teenager.webp',
       '/birthday-gift/imgs/bg-now.webp'
     ],
-    fallbackGlow: ['255, 206, 139', '124, 178, 255', '116, 232, 174']
+    fallbackGlow: ['255, 206, 139', '124, 178, 255', '116, 232, 174'],
+    meteor: {
+      fps: 22,
+      renderScale: 0.72,
+      maxParticles: 70,
+      minParticles: 28,
+      particleStep: 34,
+      meteorEvery: 14
+    }
   };
 
   const state = {
@@ -28,8 +36,12 @@
     meteorActive: false,
     meteorFrame: null,
     meteorParticles: [],
+    meteorLastFrame: 0,
+    meteorCanvasScale: 1,
     loadedThumbs: new Set(),
-    modalStack: []
+    modalStack: [],
+    touchScrollable: null,
+    touchScrollableStartTop: 0
   };
 
   const els = {};
@@ -344,6 +356,7 @@
     window.addEventListener('touchend', onTouchEnd, { passive: true });
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('resize', debounce(resizeMeteorCanvas, 120));
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     els.albumClose.addEventListener('click', closeAlbum);
     els.albumModal.addEventListener('click', function(event) {
@@ -363,6 +376,12 @@
 
   function onWheel(event) {
     if (isAnyModalOpen()) return;
+
+    const scrollable = findScrollableText(event.target);
+    if (scrollable && shouldLetScrollableConsumeWheel(scrollable, event.deltaY)) {
+      return;
+    }
+
     event.preventDefault();
 
     const now = Date.now();
@@ -379,13 +398,44 @@
   function onTouchStart(event) {
     if (!event.touches || !event.touches.length) return;
     state.touchStartY = event.touches[0].clientY;
+    state.touchScrollable = findScrollableText(event.target);
+    state.touchScrollableStartTop = state.touchScrollable ? state.touchScrollable.scrollTop : 0;
   }
 
   function onTouchEnd(event) {
     if (isAnyModalOpen() || state.locked || !event.changedTouches || !event.changedTouches.length) return;
     const diff = state.touchStartY - event.changedTouches[0].clientY;
     if (Math.abs(diff) < CONFIG.touchThreshold) return;
+
+    if (state.touchScrollable && shouldLetScrollableConsumeTouch(state.touchScrollable, diff)) {
+      state.touchScrollable = null;
+      return;
+    }
+
+    state.touchScrollable = null;
     diff > 0 ? nextEvent() : prevEvent();
+  }
+
+  function findScrollableText(target) {
+    if (!target || target === window || target === document) return null;
+    const element = target.nodeType === 1 ? target : target.parentElement;
+    if (!element || typeof element.closest !== 'function') return null;
+    const scrollable = element.closest('.memory-body');
+    if (!scrollable) return null;
+    return scrollable.scrollHeight > scrollable.clientHeight + 1 ? scrollable : null;
+  }
+
+  function shouldLetScrollableConsumeWheel(scrollable, deltaY) {
+    if (!deltaY) return true;
+    const atTop = scrollable.scrollTop <= 0;
+    const atBottom = scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight - 1;
+    return (deltaY < 0 && !atTop) || (deltaY > 0 && !atBottom);
+  }
+
+  function shouldLetScrollableConsumeTouch(scrollable, diff) {
+    const atTopOnStart = state.touchScrollableStartTop <= 0;
+    const atBottomOnStart = state.touchScrollableStartTop + scrollable.clientHeight >= scrollable.scrollHeight - 1;
+    return (diff < 0 && !atTopOnStart) || (diff > 0 && !atBottomOnStart);
   }
 
   function onKeyDown(event) {
@@ -539,30 +589,45 @@
     return state.modalStack.length > 0;
   }
 
+  function onVisibilityChange() {
+    if (document.hidden) {
+      stopMeteor();
+    } else if (state.meteorActive) {
+      startMeteor();
+    }
+  }
+
   function setupMeteorCanvas() {
     if (!els.meteorCanvas) return;
-    state.meteorCtx = els.meteorCanvas.getContext('2d');
+    state.meteorCtx = els.meteorCanvas.getContext('2d', { alpha: true, desynchronized: true });
     resizeMeteorCanvas();
-    createMeteorParticles();
   }
 
   function resizeMeteorCanvas() {
     if (!els.meteorCanvas || !state.meteorCtx) return;
-    const ratio = Math.min(window.devicePixelRatio || 1, 2);
     const width = Math.max(1, window.innerWidth);
     const height = Math.max(1, window.innerHeight);
-    els.meteorCanvas.width = Math.floor(width * ratio);
-    els.meteorCanvas.height = Math.floor(height * ratio);
+    const scale = getMeteorRenderScale();
+    state.meteorCanvasScale = scale;
+    els.meteorCanvas.width = Math.max(1, Math.floor(width * scale));
+    els.meteorCanvas.height = Math.max(1, Math.floor(height * scale));
     els.meteorCanvas.style.width = width + 'px';
     els.meteorCanvas.style.height = height + 'px';
-    state.meteorCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    state.meteorCtx.setTransform(scale, 0, 0, scale, 0, 0);
     createMeteorParticles();
   }
 
+  function getMeteorRenderScale() {
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.35);
+    const smallScreenBias = window.innerWidth <= 768 ? 0.62 : CONFIG.meteor.renderScale;
+    return Math.max(0.5, Math.min(1, pixelRatio * smallScreenBias));
+  }
+
   function createMeteorParticles() {
-    const count = Math.max(58, Math.floor(window.innerWidth / 16));
+    const rawCount = Math.floor(window.innerWidth / CONFIG.meteor.particleStep);
+    const count = Math.max(CONFIG.meteor.minParticles, Math.min(CONFIG.meteor.maxParticles, rawCount));
     state.meteorParticles = Array.from({ length: count }, function(_, index) {
-      return createParticle(index % 9 === 0);
+      return createParticle(index % CONFIG.meteor.meteorEvery === 0);
     });
   }
 
@@ -570,10 +635,10 @@
     return {
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
-      r: isMeteor ? 1.1 + Math.random() * 1.2 : 0.5 + Math.random() * 1.2,
-      vx: isMeteor ? 4.4 + Math.random() * 4 : (Math.random() - 0.5) * 0.24,
-      vy: isMeteor ? 2.6 + Math.random() * 2.8 : (Math.random() - 0.5) * 0.2,
-      alpha: 0.24 + Math.random() * 0.68,
+      r: isMeteor ? 1 + Math.random() * 0.9 : 0.45 + Math.random() * 0.9,
+      vx: isMeteor ? 4 + Math.random() * 3 : (Math.random() - 0.5) * 0.18,
+      vy: isMeteor ? 2.2 + Math.random() * 2.2 : (Math.random() - 0.5) * 0.16,
+      alpha: 0.22 + Math.random() * 0.58,
       twinkle: Math.random() * Math.PI * 2,
       meteor: isMeteor
     };
@@ -588,9 +653,18 @@
   }
 
   function startMeteor() {
-    if (state.meteorFrame || !state.meteorCtx) return;
-    const loop = function() {
-      drawMeteorFrame();
+    if (state.meteorFrame || !state.meteorCtx || document.hidden) return;
+    state.meteorLastFrame = 0;
+    const loop = function(timestamp) {
+      if (!state.meteorActive || document.hidden) {
+        state.meteorFrame = null;
+        return;
+      }
+      const frameGap = 1000 / CONFIG.meteor.fps;
+      if (!state.meteorLastFrame || timestamp - state.meteorLastFrame >= frameGap) {
+        state.meteorLastFrame = timestamp;
+        drawMeteorFrame();
+      }
       state.meteorFrame = requestAnimationFrame(loop);
     };
     state.meteorFrame = requestAnimationFrame(loop);
@@ -601,6 +675,7 @@
       cancelAnimationFrame(state.meteorFrame);
       state.meteorFrame = null;
     }
+    state.meteorLastFrame = 0;
     if (state.meteorCtx) {
       state.meteorCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     }
@@ -627,22 +702,17 @@
       const alpha = particle.alpha * (0.72 + Math.sin(particle.twinkle) * 0.28);
 
       if (particle.meteor) {
-        const gradient = ctx.createLinearGradient(
-          particle.x,
-          particle.y,
-          particle.x - particle.vx * 9,
-          particle.y - particle.vy * 9
-        );
-        gradient.addColorStop(0, 'rgba(255,255,255,' + alpha + ')');
-        gradient.addColorStop(0.45, 'rgba(255,231,189,' + (alpha * 0.34) + ')');
-        gradient.addColorStop(1, 'rgba(255,255,255,0)');
         ctx.beginPath();
         ctx.moveTo(particle.x, particle.y);
-        ctx.lineTo(particle.x - particle.vx * 10, particle.y - particle.vy * 10);
-        ctx.strokeStyle = gradient;
+        ctx.lineTo(particle.x - particle.vx * 8, particle.y - particle.vy * 8);
+        ctx.strokeStyle = 'rgba(255, 240, 210, ' + (alpha * 0.5) + ')';
         ctx.lineWidth = particle.r;
         ctx.lineCap = 'round';
         ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.r * 0.65, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,' + alpha + ')';
+        ctx.fill();
       } else {
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.r, 0, Math.PI * 2);

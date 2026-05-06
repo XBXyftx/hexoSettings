@@ -169,6 +169,7 @@ function scanMedia(dirPath, dirName) {
   const photos = new Map();
   const videoThumbs = new Map();
   const videos = new Map();
+  const plainImages = [];
 
   files.forEach(file => {
     const ext = path.extname(file).toLowerCase();
@@ -196,6 +197,11 @@ function scanMedia(dirPath, dirName) {
     match = basename.match(/^video-(.+)$/);
     if (match && VIDEO_EXTS.includes(ext)) {
       videos.set(match[1], { src: publicPath, filename: file, ext });
+      return;
+    }
+
+    if (IMAGE_EXTS.includes(ext) && !isReservedImageFile(basename)) {
+      plainImages.push({ src: publicPath, filename: file, ext });
     }
   });
 
@@ -221,6 +227,14 @@ function scanMedia(dirPath, dirName) {
     });
   });
 
+  plainImages.sort((a, b) => naturalSort(a.filename, b.filename)).forEach(image => {
+    media.push({
+      type: 'image',
+      thumb: image.src,
+      full: image.src
+    });
+  });
+
   Array.from(videos.keys()).sort(naturalSort).forEach(key => {
     const video = videos.get(key);
     const poster = videoThumbs.get(key) || thumbs.get(`video-${key}`) || null;
@@ -233,6 +247,10 @@ function scanMedia(dirPath, dirName) {
   });
 
   return media;
+}
+
+function isReservedImageFile(basename) {
+  return /^(bg|background|cover|poster)$/i.test(basename);
 }
 
 function findPhotoForKey(photos, key) {
