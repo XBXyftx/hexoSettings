@@ -1,7 +1,7 @@
 # 长期记忆索引 — XBXyftx Hexo 博客项目
 
 > **AI 必读**：每次进入新会话，第一步必须阅读本文件。严禁跳过索引直接操作代码。
-> **当前日期**：2026-05-06
+> **当前日期**：2026-05-07
 > **项目状态**：活跃维护中，持续发布新文章
 
 ---
@@ -71,6 +71,7 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 ## 专题文档（按需深读）
 
 ### 部署与构建
+- [Hexo 8 升级可行性报告](05-performance-audit/2026-05-07-hexo-upgrade-feasibility/README.md) — 🔴 22 依赖逐项分析、3 方案对比、数学渲染链断裂、自定义脚本影响
 - [部署流水线（dev/opt/pub）](03-api-practices/deployment-pipeline.md) — 3 条部署命令的完整流程、参数差异、适用场景
 - [CDN 策略与资源加载](03-api-practices/cdn-strategy.md) — 7 个 CDN 源盘点、bytecdntp 迁移历史、本地保留理由
 - [WebP 图片转换工作流](03-api-practices/webp-conversion.md) — 首次配置环境 / 跑 webp 报错 / 新增图片前必读
@@ -91,7 +92,7 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 ### 特色功能
 - [打字机效果（Typewriter）](05-reference/typewriter-effect.md) — 逐字显示动画、PJAX 集成、标签页标题动画
 - [个人成长时间轴页面](05-reference/birthday-gift-page-design.md) — 事件驱动整屏切换时间轴，含相册/视频/流星效果
-- [时间轴页面操作指南](../source/birthday-gift/README.md) — 如何添加事件、命名规范、字段说明
+- [时间轴页面事件编写指南](../source/birthday-gift/README.md) — 事件编写完整指南：三种结构示例、front matter 字段效果表、快速放图模式
 
 ### 已知问题
 - [全面审计 BUG 清单（20+ 项）](07-known-issues/discovered-issues/README.md) — 重复文件、死代码、性能隐患、PJAX 内存泄漏、安全隐患
