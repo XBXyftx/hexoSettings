@@ -66,6 +66,7 @@ layout: false
       z-index: 0;
       overflow: hidden;
       background: #070812;
+      contain: paint;
     }
 
     .background-image {
@@ -74,15 +75,16 @@ layout: false
       background-size: cover;
       background-position: center;
       opacity: 0;
-      transform: scale(1.08);
+      transform: translateZ(0) scale(1.08);
       filter: blur(12px) saturate(1.08) brightness(0.78);
-      transition: opacity 900ms ease, transform 1200ms ease, filter 1200ms ease;
+      transition: opacity 900ms ease, transform 1200ms ease;
+      backface-visibility: hidden;
       will-change: opacity, transform;
     }
 
     .background-image.is-active {
       opacity: 0.74;
-      transform: scale(1.015);
+      transform: translateZ(0) scale(1.015);
     }
 
     .background-aurora {
@@ -311,12 +313,14 @@ layout: false
       width: 100%;
       height: 100%;
       overflow: hidden;
+      contain: layout paint;
     }
 
     .timeline-track {
       height: 100%;
       transform: translate3d(0, 0, 0);
       transition: transform 860ms cubic-bezier(0.22, 1, 0.36, 1);
+      backface-visibility: hidden;
       will-change: transform;
     }
 
@@ -327,6 +331,7 @@ layout: false
       display: grid;
       place-items: center;
       padding: clamp(88px, 14vh, 138px) var(--page-x) clamp(66px, 10vh, 104px);
+      contain: layout paint;
     }
 
     .memory-panel::before {
@@ -403,6 +408,7 @@ layout: false
       border: 1px solid rgba(255, 255, 255, 0.16);
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.06);
+      -webkit-backdrop-filter: blur(16px);
       backdrop-filter: blur(16px);
     }
 
@@ -630,6 +636,12 @@ layout: false
       border-radius: 50%;
       transform: rotateX(64deg) rotateZ(-18deg);
       animation: orbitSpin 12s linear infinite;
+      animation-play-state: paused;
+    }
+
+    .memory-panel.is-active .memory-orbit::before,
+    .memory-panel.is-active .memory-orbit::after {
+      animation-play-state: running;
     }
 
     .memory-orbit::after {
@@ -667,6 +679,7 @@ layout: false
       color: rgba(255, 255, 255, 0.76);
       font-size: 0.9rem;
       line-height: 1.7;
+      -webkit-backdrop-filter: blur(18px);
       backdrop-filter: blur(18px);
     }
 
@@ -739,6 +752,13 @@ layout: false
       animation: hintMove 1.8s ease-in-out infinite;
     }
 
+    .birthday-app.is-transitioning .light-ribbon::before,
+    .birthday-app.is-transitioning .light-ribbon::after,
+    .birthday-app.is-transitioning .ribbon-sparks i,
+    .birthday-app.is-transitioning .nav-hint::before {
+      animation-play-state: paused;
+    }
+
     @keyframes hintMove {
       0%, 100% { transform: translateY(-5px); opacity: 0.35; }
       50% { transform: translateY(5px); opacity: 0.9; }
@@ -757,6 +777,7 @@ layout: false
       opacity: 0;
       visibility: hidden;
       transition: opacity 280ms ease, visibility 280ms ease;
+      -webkit-backdrop-filter: blur(26px);
       backdrop-filter: blur(26px);
     }
 
@@ -1123,6 +1144,13 @@ layout: false
 
       .album-grid {
         grid-template-columns: 1fr;
+      }
+
+      .memory-kicker span,
+      .orbit-label,
+      .modal {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
       }
     }
 

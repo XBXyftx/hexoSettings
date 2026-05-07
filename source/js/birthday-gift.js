@@ -33,12 +33,19 @@
     locked: false,
     touchStartY: 0,
     lastWheelAt: 0,
+    transitionTimer: null,
+    transitioning: false,
     meteorActive: false,
     meteorFrame: null,
     meteorParticles: [],
     meteorLastFrame: 0,
     meteorCanvasScale: 1,
     loadedThumbs: new Set(),
+    preloadedImages: new Set(),
+    imagePreloads: new Map(),
+    panelNodes: [],
+    backgroundNodes: [],
+    dotNodes: [],
     modalStack: [],
     touchScrollable: null,
     touchScrollableStartTop: 0
@@ -148,6 +155,7 @@
     renderBackgrounds();
     renderTimeline();
     renderProgress();
+    cacheDynamicElements();
     setupMeteorCanvas();
 
     els.totalNumber.textContent = '/ ' + pad2(state.events.length);
@@ -242,6 +250,12 @@
     });
   }
 
+  function cacheDynamicElements() {
+    state.panelNodes = Array.prototype.slice.call(els.timelineTrack.querySelectorAll('.memory-panel'));
+    state.backgroundNodes = Array.prototype.slice.call(els.backgroundLayer.querySelectorAll('.background-image'));
+    state.dotNodes = Array.prototype.slice.call(els.progressRail.querySelectorAll('.progress-dot'));
+  }
+
   function renderEmpty() {
     els.timelineTrack.innerHTML = '<div class="empty-state"><div><strong>暂无时间轴事件</strong><span>请在 source/birthday-gift/events/ 下添加事件文件夹。</span></div></div>';
     els.totalNumber.textContent = '/ 00';
@@ -258,43 +272,69 @@
 
     const immediate = options && options.immediate;
     const previous = state.currentIndex;
+    const changed = previous !== index;
     state.currentIndex = index;
     state.locked = !immediate;
+
+    if (!immediate && changed) beginTransition();
 
     els.timelineTrack.style.transitionDuration = immediate ? '0ms' : CONFIG.transitionMs + 'ms';
     els.timelineTrack.style.transform = 'translate3d(0, -' + (index * 100) + 'vh, 0)';
 
-    updateActiveClasses(index);
+    updateActiveClasses(index, previous);
     updateEventChrome(index);
     loadEventAssets(index);
     loadEventAssets(index + 1, true);
     loadEventAssets(index - 1, true);
 
-    if (!immediate && previous !== index) {
-      setTimeout(function() {
+    if (!immediate && changed) {
+      clearTimeout(state.transitionTimer);
+      state.transitionTimer = setTimeout(function() {
+        endTransition();
         state.locked = false;
       }, CONFIG.transitionMs + 30);
     } else {
+      endTransition();
       state.locked = false;
     }
   }
 
-  function updateActiveClasses(index) {
-    els.timelineTrack.querySelectorAll('.memory-panel').forEach(function(panel, i) {
-      panel.classList.toggle('is-active', i === index);
-    });
+  function beginTransition() {
+    if (state.transitioning) return;
+    state.transitioning = true;
+    if (els.app) els.app.classList.add('is-transitioning');
+    pauseMeteorFrame();
+  }
 
-    els.backgroundLayer.querySelectorAll('.background-image').forEach(function(bg, i) {
-      bg.classList.toggle('is-active', i === index);
-      if (i === index && !bg.style.backgroundImage && bg.dataset.bg) {
-        bg.style.backgroundImage = 'url("' + bg.dataset.bg.replace(/"/g, '\\"') + '")';
-      }
-    });
+  function endTransition() {
+    if (!state.transitioning) return;
+    state.transitioning = false;
+    if (els.app) els.app.classList.remove('is-transitioning');
+    if (state.meteorActive) startMeteor();
+  }
 
-    els.progressRail.querySelectorAll('.progress-dot').forEach(function(dot, i) {
-      dot.classList.toggle('is-active', i === index);
+  function updateActiveClasses(index, previous) {
+    toggleIndexedClass(state.panelNodes, previous, index, 'is-active');
+    toggleIndexedClass(state.backgroundNodes, previous, index, 'is-active', activateBackground);
+    toggleIndexedClass(state.dotNodes, previous, index, 'is-active', function(dot, i) {
       dot.setAttribute('aria-current', i === index ? 'step' : 'false');
     });
+  }
+
+  function toggleIndexedClass(nodes, previous, current, className, afterToggle) {
+    const targets = previous === current ? [current] : [previous, current];
+    targets.forEach(function(i) {
+      const node = nodes[i];
+      if (!node) return;
+      node.classList.toggle(className, i === current);
+      if (afterToggle) afterToggle(node, i);
+    });
+  }
+
+  function activateBackground(bg, i) {
+    if (i === state.currentIndex && !bg.style.backgroundImage && bg.dataset.bg) {
+      bg.style.backgroundImage = 'url("' + bg.dataset.bg.replace(/"/g, '\\"') + '")';
+    }
   }
 
   function updateEventChrome(index) {
@@ -316,8 +356,10 @@
 
     if (!event.hasMedia) return;
 
-    const selector = '.memory-panel[data-index="' + index + '"] .album-card[data-lazy-thumb]';
-    els.timelineTrack.querySelectorAll(selector).forEach(function(card) {
+    const panel = state.panelNodes[index];
+    if (!panel) return;
+
+    panel.querySelectorAll('.album-card[data-lazy-thumb]').forEach(function(card) {
       const src = card.dataset.lazyThumb;
       if (!src || state.loadedThumbs.has(src)) {
         if (src) loadThumbIntoCard(card, src);
@@ -340,6 +382,7 @@
 
     img.addEventListener('load', function() {
       img.dataset.loaded = 'true';
+      state.preloadedImages.add(src);
       card.classList.add('is-loaded');
     }, { once: true });
     img.addEventListener('error', function() {
@@ -653,10 +696,10 @@
   }
 
   function startMeteor() {
-    if (state.meteorFrame || !state.meteorCtx || document.hidden) return;
+    if (state.meteorFrame || !state.meteorCtx || document.hidden || state.transitioning) return;
     state.meteorLastFrame = 0;
     const loop = function(timestamp) {
-      if (!state.meteorActive || document.hidden) {
+      if (!state.meteorActive || document.hidden || state.transitioning) {
         state.meteorFrame = null;
         return;
       }
@@ -670,12 +713,15 @@
     state.meteorFrame = requestAnimationFrame(loop);
   }
 
-  function stopMeteor() {
-    if (state.meteorFrame) {
-      cancelAnimationFrame(state.meteorFrame);
-      state.meteorFrame = null;
-    }
+  function pauseMeteorFrame() {
+    if (!state.meteorFrame) return;
+    cancelAnimationFrame(state.meteorFrame);
+    state.meteorFrame = null;
     state.meteorLastFrame = 0;
+  }
+
+  function stopMeteor() {
+    pauseMeteorFrame();
     if (state.meteorCtx) {
       state.meteorCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     }
@@ -741,10 +787,33 @@
   }
 
   function preloadImage(src) {
-    if (!src) return;
+    if (!src) return Promise.resolve();
+    if (state.loadedThumbs.has(src) || state.preloadedImages.has(src)) return Promise.resolve();
+    if (state.imagePreloads.has(src)) return state.imagePreloads.get(src);
+
     const img = new Image();
     img.decoding = 'async';
-    img.src = src;
+    const preload = new Promise(function(resolve) {
+      img.onload = function() {
+        state.preloadedImages.add(src);
+        state.imagePreloads.delete(src);
+        resolve();
+      };
+      img.onerror = function() {
+        state.imagePreloads.delete(src);
+        resolve();
+      };
+      img.src = src;
+      if (typeof img.decode === 'function') {
+        img.decode().then(function() {
+          state.preloadedImages.add(src);
+          state.imagePreloads.delete(src);
+          resolve();
+        }).catch(function() {});
+      }
+    });
+    state.imagePreloads.set(src, preload);
+    return preload;
   }
 
   function debounce(fn, wait) {
