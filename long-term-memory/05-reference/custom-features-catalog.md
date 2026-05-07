@@ -149,30 +149,38 @@ swiper/
 
 ---
 
-### 6. 生日礼物特限页面（birthday-gift/）
+### 6. 生日礼物时间轴页面（birthday-gift/）
 
 | 项 | 值 |
 |---|---|
 | **入口** | `/birthday-gift/` |
 | **类型** | 完全独立页面（`layout: false`） |
-| **特点** | 突破主题限制，全屏沉浸式体验，五幕剧式叙事 |
+| **特点** | 送给妈妈的生日礼物；用成长事件整屏切换呈现“我的成长与感谢” |
 
-**文件**：`index.md`（内含完整 HTML/CSS/JS，自包含）+ `imgs/`（照片资源目录，预留）
+**当前实现入口**：[`02-custom-pages/birthday-gift-timeline.md`](../02-custom-pages/birthday-gift-timeline.md)
 
-**动画系统**：
+**核心文件**：
 
-- SVG 心跳描边动画（`stroke-dasharray` + CSS）
-- 垂直时间轴滚动高亮（IntersectionObserver）
-- Canvas 2D 金色粒子上升背景
-- CSS 文字渐入（`translateY` + IntersectionObserver）
-- CSS 光晕浮动装饰（radial-gradient + blur）
+- `source/birthday-gift/index.html` — 独立页面、顶部“给妈妈的生日礼物”标题、内联 CSS、弹层 DOM
+- `source/js/birthday-gift.js` — 整屏滚动、文字块独立滚动、相册/图片/视频弹层、流星 Canvas
+- `scripts/birthday-gift-scanner.js` — 扫描事件目录并生成 `events-data.json`
+- `source/birthday-gift/events/` — 每个子目录是一条成长事件
+- `source/birthday-gift/README.md` — 作者新增事件/放图指南
 
 **主题隔离策略**：
 
 - `layout: false` 跳过 Butterfly 主题 layout 包装
-- 所有样式包裹在 `.birthday-page` 命名空间下
-- 脚本使用 IIFE 防止全局变量污染
-- 页面不加载主题任何 CSS/JS 资源
+- 页面样式自包含，不依赖主题类名或全局 CSS
+- 全局图片尺寸/懒加载注入对生日页做隔离，避免干扰自定义懒加载
+- 事件数据由 Hexo 扫描器生成，正常新增事件不需要改 HTML/JS
+
+**当前交互能力**：
+
+- 鼠标滚轮、键盘、触摸切换整屏事件
+- 长文案可在文字块内部滚动，不抢整屏切换
+- 普通图片（如 `01.jpg`）可直接被识别为相册媒体
+- 无媒体事件使用流星/抽象视觉替代空相册
+- 顶部标题明确页面是“给妈妈的生日礼物”
 
 ---
 

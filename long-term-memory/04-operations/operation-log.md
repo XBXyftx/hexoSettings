@@ -384,3 +384,39 @@
 - [x] 页面 JS 语法检查通过
 
 **Git commit**：`98ccd17`
+
+---
+
+### #11 — 2026-05-07 — 生日页面顶部礼物标题与长期记忆同步
+
+**操作人**：AI 助手（Codex）
+
+**涉及文件**：
+- 修改 `source/birthday-gift/index.html` — 顶部新增“给妈妈的生日礼物”主标题和副标题，页面 `<title>` / description 同步更新
+- 新增 `long-term-memory/02-custom-pages/birthday-gift-timeline.md` — 当前生日礼物时间轴页面实现文档，按渐进式披露组织 L1-L7
+- 修改 `long-term-memory/MEMORY.md` — 将生日页当前实现入口加入“自定义页面”，将旧设计标注为历史归档
+- 修改 `long-term-memory/00-index/README.md` — 自定义页面速查表新增生日礼物时间轴，并在决策树中加入生日页修改路径
+- 修改 `long-term-memory/02-requirements/生日页面需求文档.md` — 补充页面礼物定位、快速放图模式和当前实现文档入口
+- 修改 `long-term-memory/05-reference/README.md` — 标明 `birthday-gift-page-design.md` 是历史设计归档
+- 修改 `long-term-memory/05-reference/custom-features-catalog.md` — 修正生日页旧信息，替换“五幕剧/index.md”描述为当前时间轴实现摘要
+
+**操作详情**：
+
+1. **顶部礼物语境补足**：用户反馈页面当前只像“我自己的勇敢历程”，缺少“送给妈妈的生日礼物”的第一眼信号。因此在 `.topbar` 中新增 `.gift-heading`，主标题为「给妈妈的生日礼物」，副标题为「把我的成长与感谢，慢慢讲给你听」。
+2. **布局策略**：顶部从左右 flex 改为三栏 grid：左侧保留“成长之路 · 蜕变与成长”，中间显示礼物标题，右侧保留事件计数。移动端下标题换到第二行，并增加首屏上内边距，避免遮挡事件内容。
+3. **元信息同步**：将页面 front matter title 改为「给妈妈的生日礼物」，浏览器标题改为「给妈妈的生日礼物 | 成长之路」，SEO 描述改为“送给妈妈的生日礼物”语境。
+4. **长期记忆渐进式披露**：
+   - L1 总索引只放导航入口与一句摘要，不承载实现细节。
+   - L2/L3 需求文档记录当前不应丢失的产品约束：顶部必须保留礼物语境、媒体支持快速放图。
+   - L3/L4 `02-custom-pages/birthday-gift-timeline.md` 记录当前实现的文件职责、数据流、关键交互和验证方式。
+   - L4 操作日志记录本次实际变更，便于上下文压缩后恢复。
+5. **旧文档纠偏**：`custom-features-catalog.md` 仍描述早期五幕剧式页面和 `index.md`，已改为当前 `index.html + birthday-gift.js + scanner + events` 架构；历史方案继续保留在 `birthday-gift-page-design.md`，但明确是归档。
+
+**验证结果**：
+- [x] `npm.cmd run build` 构建成功
+- [x] `public/birthday-gift/index.html` 中能找到 `给妈妈的生日礼物` 与 `.gift-heading`
+- [x] 长期记忆新增文档与索引链接均指向当前实现
+
+**注意事项**：
+- 构建日志中仍会出现现有图片尺寸插件的 `no src attr, skipped...` 输出，来源是生日页大图预览器的空 `img` 占位符；本次构建最终成功。
+- 本次未修改事件 Markdown 内容，也未回退工作区中用户已有的事件目录变更。

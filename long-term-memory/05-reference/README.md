@@ -10,7 +10,7 @@
 |------|------|
 | [`project-overview.md`](project-overview.md) | 项目结构详解、部署配置、依赖清单 |
 | [`custom-features-catalog.md`](custom-features-catalog.md) | 所有自定义功能的完整清单和实现细节 |
-| [`birthday-gift-page-design.md`](birthday-gift-page-design.md) | 生日礼物特限页面完整设计方案 |
+| [`birthday-gift-page-design.md`](birthday-gift-page-design.md) | 生日礼物特限页面历史设计归档（当前实现见 `02-custom-pages/birthday-gift-timeline.md`） |
 
 ---
 

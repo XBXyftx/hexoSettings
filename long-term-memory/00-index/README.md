@@ -46,6 +46,7 @@
 | 连连看游戏 | `/source/LianlianKan/` | 自定义小游戏页面 |
 | Markdown 编辑器 | `/source/MarkdownPreview/` | 自定义在线工具 |
 | 关于页面 | `/source/about/` | 自定义 HTML 关于页 |
+| 生日礼物时间轴 | `/source/birthday-gift/` | 独立页面，给妈妈的生日礼物，事件驱动成长时间轴 |
 
 ---
 
@@ -63,6 +64,10 @@
 ├── 修改自定义脚本
 │   └── 先读 03-api-practices/ 的脚本说明
 │   └── 再读 05-reference/ 的自定义功能清单
+├── 修改生日礼物时间轴
+│   └── 页面/交互先读 02-custom-pages/birthday-gift-timeline.md
+│   └── 事件文案/图片先读 source/birthday-gift/README.md
+│   └── 改完记录到 04-operations/operation-log.md
 ├── 部署或构建
 │   └── 先读 05-reference/ 的部署配置
 │   └── 执行后在 04-operations/ 记录

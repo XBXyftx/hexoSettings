@@ -88,10 +88,11 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 - [关于页面（About）](02-custom-pages/about-page.md) — 卡片式布局、3D 走马灯、头像旋转光环
 - [连连看小游戏（LianlianKan）](02-custom-pages/lianliankan-game.md) — 动态棋盘、3 种连接检测、CSS 自定义属性响应式
 - [Markdown 在线编辑器](02-custom-pages/markdown-preview.md) — marked.js 实时预览、工具栏、全屏模式
+- [生日礼物时间轴页面](02-custom-pages/birthday-gift-timeline.md) — 当前实现：送给妈妈的生日礼物、成长事件整屏切换、相册/视频/流星效果
 
 ### 特色功能
 - [打字机效果（Typewriter）](05-reference/typewriter-effect.md) — 逐字显示动画、PJAX 集成、标签页标题动画
-- [个人成长时间轴页面](05-reference/birthday-gift-page-design.md) — 事件驱动整屏切换时间轴，含相册/视频/流星效果
+- [生日礼物历史设计归档](05-reference/birthday-gift-page-design.md) — 2026-05-04 旧版五幕剧方案，仅供历史追溯
 - [时间轴页面事件编写指南](../source/birthday-gift/README.md) — 事件编写完整指南：三种结构示例、front matter 字段效果表、快速放图模式
 
 ### 已知问题

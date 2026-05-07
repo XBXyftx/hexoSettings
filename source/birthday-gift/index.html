@@ -1,6 +1,6 @@
 ---
-title: 成长之路
-subtitle: 蜕变与成长
+title: 给妈妈的生日礼物
+subtitle: 成长之路
 layout: false
 ---
 <!DOCTYPE html>
@@ -8,8 +8,8 @@ layout: false
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>成长之路 | 蜕变与成长</title>
-  <meta name="description" content="以时间轴记录成长、心境与能力蜕变。">
+  <title>给妈妈的生日礼物 | 成长之路</title>
+  <meta name="description" content="一份送给妈妈的生日礼物，用时间轴记录成长、心境与感谢。">
   <meta name="theme-color" content="#070812">
   <style>
     :root {
@@ -220,9 +220,9 @@ layout: false
       left: var(--page-x);
       right: var(--page-x);
       z-index: 20;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: start;
       gap: 18px;
       pointer-events: none;
     }
@@ -248,7 +248,43 @@ layout: false
       box-shadow: 0 0 26px rgba(var(--glow-color), 0.34);
     }
 
+    .gift-heading {
+      justify-self: center;
+      display: grid;
+      justify-items: center;
+      gap: 2px;
+      min-width: 0;
+      padding: 3px 18px 8px;
+      text-align: center;
+      color: #fff;
+      text-shadow: 0 2px 22px rgba(0, 0, 0, 0.52);
+    }
+
+    .gift-heading::after {
+      content: "";
+      width: min(180px, 42vw);
+      height: 1px;
+      margin-top: 5px;
+      background: linear-gradient(90deg, transparent, rgba(var(--glow-color), 0.86), transparent);
+      box-shadow: 0 0 18px rgba(var(--glow-color), 0.28);
+    }
+
+    .gift-heading strong {
+      font-size: clamp(1.18rem, 2.4vw, 2.05rem);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .gift-heading span {
+      color: rgba(255, 255, 255, 0.72);
+      font-size: clamp(0.72rem, 1.2vw, 0.9rem);
+      line-height: 1.4;
+      white-space: nowrap;
+    }
+
     .event-counter {
+      justify-self: end;
       display: flex;
       align-items: baseline;
       gap: 5px;
@@ -1018,11 +1054,19 @@ layout: false
       .topbar {
         left: 18px;
         right: 18px;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px 14px;
+      }
+
+      .gift-heading {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        padding-top: 0;
       }
 
       .memory-panel {
         align-items: stretch;
-        padding: 84px 18px 64px 54px;
+        padding: 124px 18px 64px 54px;
       }
 
       .memory-grid {
@@ -1096,6 +1140,14 @@ layout: false
         font-size: 1.05rem;
       }
 
+      .gift-heading {
+        padding-inline: 4px;
+      }
+
+      .gift-heading span {
+        white-space: normal;
+      }
+
       .memory-panel {
         padding-left: 46px;
       }
@@ -1165,6 +1217,10 @@ layout: false
 
     <header class="topbar">
       <div class="brand-mark">成长之路 · 蜕变与成长</div>
+      <div class="gift-heading" aria-label="给妈妈的生日礼物">
+        <strong>给妈妈的生日礼物</strong>
+        <span>把我的成长与感谢，慢慢讲给你听</span>
+      </div>
       <div class="event-counter" aria-live="polite">
         <strong id="currentNumber">01</strong>
         <span id="totalNumber">/ 00</span>
