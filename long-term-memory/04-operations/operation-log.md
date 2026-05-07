@@ -420,3 +420,40 @@
 **注意事项**：
 - 构建日志中仍会出现现有图片尺寸插件的 `no src attr, skipped...` 输出，来源是生日页大图预览器的空 `img` 占位符；本次构建最终成功。
 - 本次未修改事件 Markdown 内容，也未回退工作区中用户已有的事件目录变更。
+
+---
+
+### #12 — 2026-05-07 — 生日页面滚动性能优化
+
+**操作人**：AI 助手
+
+**涉及文件**：
+
+- 修改 `long-term-memory/02-custom-pages/birthday-gift-timeline.md` — 新增 L6 滚动性能优化方案，并绑定优化前基线 commit `7f4a6f9`
+- 修改 `source/birthday-gift/index.html` — 收敛背景过渡、增加合成/绘制边界、暂停离屏动画与切换期装饰动画、补充 Safari/iOS `backdrop-filter` 前缀与移动端降级
+- 修改 `source/js/birthday-gift.js` — 缓存 panels/backgrounds/dots 节点、切换时只更新前后两个索引、过渡期间暂停流星帧、背景/图片预加载去重
+
+**操作详情**：
+
+1. **基线提交**：开始优化前按用户要求先提交当前工作区，基线 commit 为 `7f4a6f9`，用于后续对照滚动性能改动。
+2. **切换期间降负载**：整屏切换开始时给 `.birthday-app` 增加 `is-transitioning` 状态，暂停中央光带火花、底部提示和流星 Canvas 帧，切换完成后恢复。
+3. **离屏动画暂停**：无媒体事件的 `.memory-orbit` 默认暂停，仅当前 `.memory-panel.is-active` 运行动画，避免隐藏事件页持续消耗绘制资源。
+4. **DOM 查询缓存**：页面渲染完成后缓存动态节点数组，`setActiveEvent()` 只切换上一页和当前页的 class / aria 状态，不再每次滚动全量查询。
+5. **预加载去重**：新增 `preloadedImages` 与 `imagePreloads`，背景和缩略图预加载复用同一 Promise，避免反复创建 `Image` 与重复解码。
+6. **CSS 合成边界收敛**：保留原有背景虚化视觉，但移除 `filter` 过渡；为背景层、轨道和面板增加 `contain` / `backface-visibility` / `translateZ(0)`，降低重绘扩散。
+
+**验证结果**：
+
+- [x] `node --check source/js/birthday-gift.js` 通过
+- [x] `node --check scripts/birthday-gift-scanner.js` 通过
+- [x] `npm.cmd run clean && npm.cmd run build` 构建成功，输出 `1933 files generated in 5.57 s`
+
+**Git commit**：
+
+- 优化前基线：`7f4a6f9`
+- 滚动性能优化实现：`7e267fe`
+
+**注意事项**：
+
+- 本次优先做幕后性能治理，没有改动生日页事件文案、事件目录结构或主要视觉方向。
+- `01-childhood/01.jpg` 仍同时作为缩略图与原图使用；如果后续仍感觉首屏或相册入口卡顿，可再补一张更小的 `thumb-*` 缩略图作为资源层优化。
