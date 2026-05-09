@@ -6,15 +6,15 @@ type: reference
 
 # 数学公式编写与编译指南
 
-> **适用范围**: 所有使用 `katex: true` 或 `mathjax: true` front-matter 的文章
-> **关联**: [README.md](README.md) · [ANALYSIS.md](ANALYSIS.md) · `scripts/math-protect.js`
+> **适用范围**: 当前使用 `katex: true` front-matter 的数学文章；`mathjax: true` 仅作为回滚历史参考
+> **关联**: [README.md](README.md) · [ANALYSIS.md](ANALYSIS.md) · `scripts/math-protect.js` · `themes/butterfly/source/css/_layout/third-party.styl`
 
 ---
 
 ## 一、基本语法
 
 | 类型 | 语法 | 示例 | 渲染结果 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **行内公式** | `$...$` | `$c_{ij}$` | 行内嵌入 |
 | **块级公式** | `$$...$$` | `$$Z = \sum_{i=1}^{n} c_{ij}x_{ij}$$` | 居中独立块 |
 
@@ -65,7 +65,7 @@ $x + y = z$        ⚠️ 无特殊字符
 在 Markdown 中写数学公式时，以下 LaTeX 语法在 Hexo 编译阶段**不会**遇到问题（已被保护）：
 
 | 字符 | LaTeX 用法 | 是否安全 |
-|---|---|---|
+| --- | --- | --- |
 | `\` | `\alpha`, `\times`, `\sum` | ✅ 保护 |
 | `^` | `x^2`, `A^{T}` | ✅ 保护 |
 | `_` | `c_{ij}`, `x_1` | ✅ 保护 |
@@ -73,6 +73,28 @@ $x + y = z$        ⚠️ 无特殊字符
 | `~` | 空格 | ⚠️ 无保护，但 kramed 不处理 |
 | `&` | 矩阵对齐 | ⚠️ 无保护，但 kramed 不处理 |
 | `\|` | 范数 `\|x\|` | ✅ 含反斜杠，保护 |
+
+### 2.5 Markdown 表格中的公式（重点）
+
+在表格中可以直接使用 `$...$` 行内公式，但要同时注意 **Markdown 表格解析** 和 **KaTeX 客户端渲染** 两层问题。
+
+**推荐写法**：
+
+```markdown
+| 符号 | 含义 | 说明 |
+| --- | --- | --- |
+| $F_i$ | 第 $i$ 个部件的可改进比例 | $0 \leq F_i \leq 1$ |
+| $S_i$ | 第 $i$ 个部件的加速比 | $S_i \geq 1$ |
+```
+
+**表格公式排查顺序**：
+
+1. 先看 Markdown 表格是否规范：表格前后留空行，分隔行使用 `| --- | --- | --- |` 或左对齐 `| :--- | :--- | :--- |`。
+2. 再看生成 HTML 是否保留公式：搜索 `public/.../index.html` 中是否存在 `<script type="math/tex">F_i</script>`。
+3. 如果 HTML 中有 `math/tex` 但浏览器显示为空，优先检查 CSS 是否隐藏 `.katex`。
+4. 当前已删除 `themes/butterfly/source/css/_layout/third-party.styl` 中旧的 `.katex { display: none }` 规则；主题升级后需重新确认该规则没有被恢复。
+
+**常见误判**：表格里一整列公式为空，并不一定是 Markdown 表格语法错；在 KaTeX 客户端渲染链路下，更可能是 `<script type="math/tex">` 已被渲染成 `.katex`，但被主题 CSS 隐藏。
 
 ---
 
@@ -130,7 +152,7 @@ grep -c '\$c<em>' public/2026/03/03/最优化理论/index.html
 ### 3.4 构建性能
 
 | 场景 | 影响 |
-|---|---|
+| --- | --- |
 | `scripts/math-protect.js` | 每篇文章一次正则替换，开销可忽略（<1ms） |
 | KaTeX 资源加载 | 仅 `katex: true` 的文章加载（303KB JS/CSS） |
 | 无数学标记的文章 | 零额外开销 |
@@ -155,7 +177,7 @@ grep -c '\$c<em>' public/2026/03/03/最优化理论/index.html
 ### 5.1 公式完全未渲染
 
 | 检查项 | 命令/方法 | 期望结果 |
-|---|---|---|
+| --- | --- | --- |
 | front-matter 标记 | `grep "katex:" source/_posts/文章名.md` | 有 `katex: true` |
 | HTML 中是否加载 JS | `grep "katex.min.js" public/.../index.html` | 有加载代码 |
 | math/tex 标签数 | `grep -c "math/tex" public/.../index.html` | > 0 |
@@ -181,6 +203,27 @@ grep -o '\$[^\$\n]*\$' public/.../index.html | head -20
 1. 浏览器网络问题导致 katex.min.js 未加载
 2. PJAX 导航后未触发渲染（检查 `katex_js_loaded` 标志是否正常）
 3. 公式语法不被 KaTeX 支持（极少数复杂 LaTeX 宏）
+
+### 5.4 表格内公式为空白
+
+这通常不是表格 Markdown 语法本身的问题，而是 KaTeX 客户端渲染链路中某一层失败或被 CSS 隐藏。
+
+**排查方法**：
+
+```bash
+# 1. 检查生成 HTML 中是否仍有公式占位
+grep -n 'math/tex.*F_i\|math/tex.*S_i' public/.../index.html
+
+# 2. 检查主题 CSS 是否重新出现旧隐藏规则
+grep -n 'katex.*display: none\|display: none.*katex' public/css/index.css
+```
+
+**判断方式**：
+
+1. HTML 中没有 `math/tex`，说明 Markdown 渲染或 `scripts/math-protect.js` 保护阶段出问题。
+2. HTML 中有 `math/tex`，但浏览器空白，优先检查 `katex.min.js`、`auto-render.min.js` 是否加载。
+3. JS 已加载但仍空白，检查 `public/css/index.css` 中是否有 `.katex { display: none }`。
+4. 如果主题升级恢复了隐藏规则，重新删除 `themes/butterfly/source/css/_layout/third-party.styl` 中 `.katex { display: none }` 与 `.katex.katex-show { display: inline }`。
 
 ---
 
@@ -213,9 +256,10 @@ grep -c "math/tex" public/2026/03/03/文章名/index.html
 ## 七、文件速查
 
 | 文件 | 作用 | 修改风险 |
-|---|---|---|
+| --- | --- | --- |
 | `scripts/math-protect.js` | Hexo 过滤器，保护行内公式 | **项目文件，安全修改** |
 | `themes/.../math/katex.pug` | 客户端 KaTeX 渲染逻辑 | 主题文件，升级需重新应用 |
+| `themes/.../css/_layout/third-party.styl` | KaTeX 显示样式，需避免恢复 `.katex { display: none }` | 主题文件，升级需复查 |
 | `_config.butterfly.yml` | 数学引擎配置 | 主题配置，安全修改 |
 | `source/js/katex/` | KaTeX JS/CSS 资源 | 项目文件，安全修改 |
 | `node_modules/hexo-renderer-kramed/...` | **不要直接修改** | npm install 后会丢失 |

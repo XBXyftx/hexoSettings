@@ -6,8 +6,8 @@ type: project
 
 # KaTeX 轻量化迁移 — MathJax → KaTeX
 
-> **状态**: 已修复（公式保护持久化），待浏览器最终验证
-> **执行轮次**: 第一轮 2026-05-04（基础设施迁移）+ 第二轮 2026-05-05（公式保护修复与持久化）
+> **状态**: 已修复（公式保护持久化 + 表格公式显示修复），需浏览器最终验证
+> **执行轮次**: 第一轮 2026-05-04（基础设施迁移）+ 第二轮 2026-05-05（公式保护修复与持久化）+ 第三轮 2026-05-09（表格公式显示修复）
 > **关联**: [../../07-known-issues/README.md](../../07-known-issues/README.md)(BUG-003) · `source/js/MathJax-3.2.2/`(保留的回滚基点)
 
 ---
@@ -288,9 +288,34 @@ git revert <commit-hash>
   - 块级 `<script type="math/tex; mode=display">` 标签：**67 个**
   - 被破坏的公式（`$c<em>` 模式）：**0 个**
   - 总计：**232 个**公式被正确保护
-- **渲染效果评估**: _(需浏览器验证后填充)_
+- **渲染效果评估**: 第二轮解决了公式内容被 kramed 破坏的问题，但浏览器中仍可能因 Butterfly 旧 CSS 隐藏 `.katex` 而出现表格公式空白（详见第三轮）
 - **异常 / 备注**:
   - `$Z = 1100$` 等**不含** `\ ^ _ { }` 特殊字符的公式仍保留为原始 `$...$` 文本，依赖 KaTeX auto-render 渲染。由于不含 Markdown 特殊字符，kramed 不会破坏它们
+
+### 第三轮修复：表格内公式渲染后被主题 CSS 隐藏（2026-05-09）
+
+- **触发原因**: `source/_posts/高性能计算复习.md` 中多处表格的公式列显示为空，例如 Amdahl 定律符号表中的 `$S_{\text{system}}$`、`$F_i$`、`$S_i$`。同类问题此前在最优化理论的表格中也出现过。
+- **现象特征**:
+  - 表格单元格只有公式时，整格看起来为空白。
+  - 表格单元格是“文字 + 公式”时，文字保留但公式位置消失，例如“第 个部件”。
+  - 块级公式通常仍能显示，因此容易误判为“只有表格不支持公式”。
+- **排查结论**:
+  1. Markdown 源文件中的公式没有丢失。
+  2. `hexo clean && hexo generate` 后，目标 HTML 中仍可看到 `<script type="math/tex">F_i</script>`、`<script type="math/tex">S_i</script>` 等占位，说明 `scripts/math-protect.js` 保护链路正常。
+  3. `themes/butterfly/layout/includes/third-party/math/katex.pug` 也会扫描 `script[type^="math/tex"]` 并调用 `katex.render()`，说明渲染入口存在。
+  4. 真正问题是 Butterfly 主题旧样式仍保留 `.katex { display: none }`，而当前客户端渲染出来的 KaTeX DOM 没有依赖 `.katex-show` 显示，导致“已经渲染但被 CSS 隐藏”。
+- **根本原因**: Butterfly 原生 KaTeX 方案假设公式已由服务端插件预渲染，并通过 `.katex-show` 控制显示；本项目迁移为客户端 KaTeX 渲染后，生成的 `.katex` 元素仍命中主题旧隐藏规则。
+- **修复方案**: 删除 `themes/butterfly/source/css/_layout/third-party.styl` 中 `.katex { display: none }` 与 `.katex.katex-show { display: inline }` 规则，保留 `.katex-display` 的滚动与 padding 样式。
+- **改动文件**:
+  - `themes/butterfly/source/css/_layout/third-party.styl`（移除旧的 `.katex` 隐藏/显示开关）
+- **验证结果**:
+  - `npx hexo clean; npx hexo generate` ✅ 无构建错误
+  - 生成后的 `public/css/index.css` 不再包含 `.katex { display: none }`
+  - `public/2026/05/08/高性能计算复习/index.html` 仍包含表格内 `math/tex` 占位和双模式 KaTeX 渲染脚本
+- **后续注意**:
+  - 若主题升级覆盖 `themes/butterfly/source/css/_layout/third-party.styl`，需重新确认 `.katex { display: none }` 是否被恢复。
+  - 看到“表格内公式空白”时，不要只改 Markdown 表格格式；先检查生成 HTML 是否有 `math/tex`，再检查 CSS 是否隐藏 `.katex`。
+  - `doc/math-formats-guide.md` 是 MathJax 时代文档，已标注为过时，仅供历史版本参考。当前写作与排障以 `FORMATTING-GUIDE.md` 为准。
 
 ---
 
