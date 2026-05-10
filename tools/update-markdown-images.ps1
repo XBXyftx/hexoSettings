@@ -3,8 +3,7 @@ param(
     [string]$configPath = "$PSScriptRoot\.."
 )
 
-# 扫描目录列表
-$directories = @('_posts', 'about', 'coffer', 'categories', 'tags', 'link')
+# 需要处理的图片扩展名
 $imageExtensions = @('.png','.jpg','.jpeg','.gif')
 
 # 排除的路径模式（这些路径的图片不会被转换）
@@ -32,12 +31,10 @@ function ShouldExcludePath($path) {
 }
 
 # 处理文件中的图片引用
-function Process-FileContent($filePath, $isConfig = $false) {
+function Update-FileContent($filePath, $isConfig = $false) {
     try {
         $content = [System.IO.File]::ReadAllText($filePath, [System.Text.Encoding]::UTF8)
         $originalContent = $content
-        $fileModified = $false
-        
         foreach ($ext in $imageExtensions) {
             $escExt = [regex]::Escape($ext)
             
@@ -52,12 +49,11 @@ function Process-FileContent($filePath, $isConfig = $false) {
                     if (ShouldExcludePath $val) {
                         return $m.Value
                     }
-                    $fileModified = $true
                     return "${key}: ${val}.webp" 
                 })
             } else {
-                # 1. 替换 Front-matter 配置 (cover, top_img, index_img, bg_img, load_image)
-                $yamlPattern = "(?m)^(cover|top_img|index_img|bg_img|load_image):\s*(.+)$escExt"
+                # 1. 替换 Front-matter 配置 (cover, top_img, index_img, bg_img, load_image, background)
+                $yamlPattern = "(?m)^(cover|top_img|index_img|bg_img|load_image|background):\s*(.+)$escExt"
                 $content = [regex]::Replace($content, $yamlPattern, { 
                     param($m) 
                     $k = $m.Groups[1].Value
@@ -66,7 +62,6 @@ function Process-FileContent($filePath, $isConfig = $false) {
                     if (ShouldExcludePath $v) {
                         return $m.Value
                     }
-                    $fileModified = $true
                     return "${k}: ${v}.webp" 
                 })
 
@@ -79,7 +74,6 @@ function Process-FileContent($filePath, $isConfig = $false) {
                     if (ShouldExcludePath $path) {
                         return $path
                     }
-                    $fileModified = $true
                     return $path -replace $escExt, ".webp" 
                 }, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
                 
@@ -92,7 +86,6 @@ function Process-FileContent($filePath, $isConfig = $false) {
                     if (ShouldExcludePath $path) {
                         return $path
                     }
-                    $fileModified = $true
                     return $path -replace $escExt, ".webp" 
                 }, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
             }
@@ -122,7 +115,7 @@ $markdownFiles = Get-ChildItem -Path $basePath -Recurse -Include "*.md"
 $mdUpdatedCount = 0
 
 foreach ($file in $markdownFiles) {
-    if (Process-FileContent $file.FullName -isConfig $false) {
+    if (Update-FileContent $file.FullName -isConfig $false) {
         $mdUpdatedCount++
     }
 }
@@ -138,7 +131,7 @@ foreach ($configFile in $configFiles) {
     $fullConfigPath = Join-Path $configPath $configFile
     if (Test-Path $fullConfigPath) {
         Write-Host "Checking: $configFile" -ForegroundColor Gray
-        if (Process-FileContent $fullConfigPath -isConfig $true) {
+        if (Update-FileContent $fullConfigPath -isConfig $true) {
             $configUpdatedCount++
         }
     } else {

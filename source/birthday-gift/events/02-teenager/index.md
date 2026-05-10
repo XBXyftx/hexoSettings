@@ -1,6 +1,6 @@
 ---
 title: 初中时代
-date: 2016-2019
+date: 2017-2020
 period: 初中
 mood: 飞速蜕变
 achievement: ""

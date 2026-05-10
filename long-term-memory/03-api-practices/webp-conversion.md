@@ -79,7 +79,7 @@ gif2webp -version
 | 项 | 配置 |
 |---|---|
 | **扫描根** | `source/` 和 `themes/butterfly/source/` |
-| **扫描子目录** | source 下：`img, imgs, _posts, about, swiper, coffer`；theme 下：`img` |
+| **扫描子目录** | source 下：`img, imgs, _posts, about, swiper, coffer, birthday-gift`；theme 下：`img` |
 | **递归** | 是（`Get-ChildItem -Recurse`） |
 | **处理格式** | `.png, .jpg, .jpeg, .gif` |
 | **不处理** | 其他扩展名（包括已经是 `.webp` 的） |
@@ -101,16 +101,16 @@ gif2webp -version
 | 项 | 配置 |
 |---|---|
 | **扫描根** | `source/` |
-| **扫描子目录** | `_posts, about, coffer, categories, tags, link` |
+| **扫描范围** | `source/` 下所有 Markdown 文件（包括 `birthday-gift/events/*/index.md`） |
 | **处理格式** | `.md` 文件 + 项目根的 `_config.yml`、`_config.butterfly.yml` |
 
 **Markdown 中替换的位置**：
 
 | 类型 | 模式 | 示例（替换前 → 替换后） |
 |---|---|---|
-| Front-matter | `cover/top_img/index_img/bg_img/load_image: …` | `cover: /imgs/foo.png` → `cover: /imgs/foo.png.webp` |
-| Markdown 语法 | `![](…)` 中的路径 | `![](bar/x.jpg)` → `![](bar/x.jpg.webp)` |
-| HTML 标签 | `<img src="…">` | `src="x.jpeg"` → `src="x.jpeg.webp"` |
+| Front-matter | `cover/top_img/index_img/bg_img/load_image/background: …` | `cover: /imgs/foo.png` → `cover: /imgs/foo.webp` |
+| Markdown 语法 | `![](…)` 中的路径 | `![](bar/x.jpg)` → `![](bar/x.webp)` |
+| HTML 标签 | `<img src="…">` | `src="x.jpeg"` → `src="x.webp"` |
 
 **配置文件中替换的字段**（`_config.yml` / `_config.butterfly.yml`）：
 
@@ -127,6 +127,10 @@ gif2webp -version
 
 **写入编码**：UTF-8 无 BOM（避免某些 Markdown 渲染器的编码问题）。
 
+### 与生日页面的关系
+
+`source/birthday-gift/` 已纳入转换脚本扫描范围。事件目录中的普通相册图片、`thumb-*` / `photo-*` 图片、视频封面、以及 `source/birthday-gift/imgs/` 下的背景图都会被转换。`update-markdown-images.ps1` 会同步更新事件 `index.md` front matter 里的 `background` 字段，避免背景图源文件删除后路径失效。
+
 ---
 
 ## L5 · 在项目工作流中的位置
@@ -142,7 +146,7 @@ gif2webp -version
 6. npm run pub                   # 正式发布（再次执行 webp 是幂等的）
 ```
 
-> **关键观察**：作者写文章时**不需要关心 webp 扩展名**——脚本会负责把 `.png` 引用全部改写成 `.png.webp`。先用 png/jpg 工作，发布前一键转换。
+> **关键观察**：作者写文章时**不需要关心 webp 扩展名**——脚本会负责把 `.png` 引用改写成 `.webp`。先用 png/jpg 工作，发布前一键转换。
 
 ### 与项目其它系统的交互
 
@@ -151,7 +155,7 @@ gif2webp -version
 | `auto-image-list.js`（轮播图扫描） | 该脚本支持 webp 格式，所以 swiper 图片在 webp 转换后仍能被正确收录 |
 | `private-posts-scanner.js`（隐私文章） | `source/coffer/` 在 webp 转换的扫描列表内，隐私文章的图片也会被转换 |
 | `image-dimensions.js`（注入 width/height） | 在 webp 转换之后运行（构建期），读取的是 webp 文件，不冲突 |
-| `hexo-asset-image` | 文章相对路径图片（如 `文章名/图.png.webp`）由它解析 |
+| `hexo-asset-image` | 文章相对路径图片（如 `文章名/图.webp`）由它解析 |
 
 ---
 

@@ -1,10 +1,10 @@
 ---
-title: 学前 & 小学
+title: 学前小学
 date: 2006-2016
 period: 童年
 mood: 天真烂漫
 achievement: ""
-background: /birthday-gift/imgs/bg-childhood.jpg
+background: /birthday-gift/imgs/bg-childhood.webp
 glowColor: "255, 200, 100"
 ---
 

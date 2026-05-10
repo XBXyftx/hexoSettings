@@ -4,7 +4,7 @@ param(
 )
 
 $imageExtensions = @('.png','.jpg','.jpeg','.gif')
-$directories = @('img', 'imgs', '_posts', 'about', 'swiper', 'coffer')
+$directories = @('img', 'imgs', '_posts', 'about', 'swiper', 'coffer', 'birthday-gift')
 $themeDirectories = @('img')
 
 # Find cwebp tool

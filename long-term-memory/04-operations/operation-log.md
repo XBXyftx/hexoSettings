@@ -457,3 +457,29 @@
 
 - 本次优先做幕后性能治理，没有改动生日页事件文案、事件目录结构或主要视觉方向。
 - `01-childhood/01.jpg` 仍同时作为缩略图与原图使用；如果后续仍感觉首屏或相册入口卡顿，可再补一张更小的 `thumb-*` 缩略图作为资源层优化。
+
+---
+
+### #13 — 2026-05-10 — WebP 转换覆盖生日页面图片
+
+**操作人**：AI 助手
+
+**涉及文件**：
+
+- 修改 `tools/convert-to-webp.ps1` — 将 `birthday-gift` 加入 source 图片扫描目录
+- 修改 `tools/update-markdown-images.ps1` — 将 Markdown front matter 的 `background` 字段纳入 WebP 引用同步
+- 修改 `long-term-memory/03-api-practices/webp-conversion.md` — 同步 WebP 工作流文档中的扫描范围与生日页说明
+- 修改 `long-term-memory/04-operations/operation-log.md` — 记录本次脚本范围变更
+
+**操作详情**：
+
+1. 根据生日页面当前实现文档，生日页图片位于 `source/birthday-gift/imgs/` 与 `source/birthday-gift/events/*/`。
+2. 将 `birthday-gift` 加入 `tools/convert-to-webp.ps1` 的 `$directories` 列表，使 `npm run webp` 后续会递归处理生日页下的 `.png/.jpg/.jpeg/.gif` 图片。
+3. 将 `background` 加入 `tools/update-markdown-images.ps1` 的 Markdown front matter 字段列表，使事件背景图转为 WebP 后路径能同步更新。
+4. 未直接执行 `npm run webp`，因为转换脚本成功后会删除源图；本次仅调整覆盖范围并做非破坏性验证。
+
+**验证结果**：
+
+- [x] PowerShell 语法解析通过：`tools/convert-to-webp.ps1`
+- [x] PowerShell 语法解析通过：`tools/update-markdown-images.ps1`
+- [x] 本次未直接执行 `npm.cmd run webp`，避免在未确认源图已纳入 git 前触发源图删除
