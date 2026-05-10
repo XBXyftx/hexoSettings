@@ -34,7 +34,7 @@ menu:
     昨日重现: /swiper/ || fa-solid fa-star-of-david
     关于我: /about/ || fas fa-heart
   留言板: /comments/ || fa-solid fa-comment
-  妈妈生日快乐: /birthday-gift/ || fa-solid fa-heart-pulse
+  # 妈妈生日快乐: /birthday-gift/ || fa-solid fa-heart-pulse
 
 # --------------------------------------
 # 代碼塊設置
