@@ -37,6 +37,13 @@
 | 隐私文章扫描 | `/scripts/private-posts-scanner.js` | 扫描 `source/coffer/private-posts/` 生成索引（MD5优化） |
 | 图片尺寸注入 | `/scripts/image-dimensions.js` | 为 `<img>` 标签注入 width/height 防布局抖动 |
 
+### 内容创作技术
+
+| 技术 | 参考文档 | 用途 |
+|------|----------|------|
+| Plotly.js 函数可视化 | `03-api-practices/plotly-function-visualization.md` | 文章中嵌入交互式函数图像（曲线/3D曲面） |
+| KaTeX 数学公式 | `04-operations/2026-05-04-katex-migration/FORMATTING-GUIDE.md` | 数学公式编写规范与编译验证 |
+
 ### 自定义页面
 
 | 页面 | 路径 | 类型 |

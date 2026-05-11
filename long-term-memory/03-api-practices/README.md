@@ -15,6 +15,7 @@
 | **样式预处理** | Stylus | ^3.0.1 | 主题样式语言 |
 | **代码高亮** | highlight.js | — | 行号已启用 |
 | **图表** | Mermaid | — | 流程图/时序图支持 |
+| **函数可视化** | Plotly.js | 2.27.0 (CDN) | 交互式函数图像、3D 曲面（详见 [plotly-function-visualization.md](plotly-function-visualization.md)） |
 | **公式** | MathJax | 3.2.2 | 本地完整版（1.1MB） |
 | **评论** | Twikoo | — | 通过 Netlify 函数部署 |
 
@@ -190,4 +191,5 @@ hexo.extend.filter.register('after_render:html', function(html, data) {
 | 不修改 themes/butterfly/_config.yml | 用户配置在根目录的 _config.butterfly.yml | 配置被覆盖 |
 | build 前必 clean | Hexo 增量生成缓存问题 | 旧文件残留 |
 | 图片用 webp | 体积优化（详见 [webp-conversion.md](webp-conversion.md)） | 加载慢 |
+| 函数图像用 Plotly | 交互式可视化规范（详见 [plotly-function-visualization.md](plotly-function-visualization.md)） | 静态图无交互 |
 | 不删除 scripts/ 中的文件 | 核心功能依赖 | 功能失效 |
