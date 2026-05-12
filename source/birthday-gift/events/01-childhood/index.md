@@ -4,7 +4,7 @@ date: 2006-2016
 period: 童年
 mood: 天真烂漫
 achievement: ""
-background: 01.webp
+background: /birthday-gift/imgs/06.webp
 glowColor: "255, 200, 100"
 ---
 

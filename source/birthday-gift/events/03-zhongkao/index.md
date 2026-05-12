@@ -4,7 +4,7 @@ date: 2020
 period: 中考
 mood: 忐忑与期待交织
 achievement: ""
-background: 01.webp
+background: /birthday-gift/imgs/04.webp
 glowColor: "180, 140, 255"
 ---
 

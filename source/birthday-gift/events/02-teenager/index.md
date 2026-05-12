@@ -4,7 +4,7 @@ date: 2017-2020
 period: 初中
 mood: 飞速蜕变
 achievement: ""
-background: 01.webp
+background: /birthday-gift/imgs/05.webp
 glowColor: "100, 150, 255"
 ---
 

@@ -4,7 +4,7 @@ date: 2023-至今
 period: 大学
 mood: 坚定前行
 achievement: "鸿蒙开发技术博主"
-background: 01.webp
+background: /birthday-gift/imgs/01.webp
 glowColor: "100, 255, 150"
 ---
 

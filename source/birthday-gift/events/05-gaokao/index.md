@@ -4,7 +4,7 @@ date: 2023
 period: 高考
 mood: 魔幻与平静
 achievement: ""
-background: 01.webp
+background: /birthday-gift/imgs/02.webp
 glowColor: "160, 200, 220"
 ---
 
