@@ -4,7 +4,7 @@ date: 2020-2023
 period: 高中
 mood: 活在当下
 achievement: ""
-background: /birthday-gift/imgs/bg-now.webp
+background: 01.webp
 glowColor: "255, 180, 120"
 ---
 
