@@ -7,7 +7,9 @@
     "clean": "hexo clean",
     "deploy": "hexo deploy",
     "server": "hexo server",
-    "webp": "powershell ./tools/convert-to-webp.ps1 && powershell ./tools/update-markdown-images.ps1",
+    "webp": "node ./tools/dispatch-webp.js",
+    "webp:win": "pwsh ./tools/convert-to-webp.ps1 && pwsh ./tools/update-markdown-images.ps1",
+    "webp:mac": "bash ./tools/convert-to-webp.sh && bash ./tools/update-markdown-images.sh",
     "opt": "npm run webp && npm run clean && npm run build",
     "pub": "npm run opt && hexo deploy",
     "dev": "npm run webp && npm run clean && hexo server"

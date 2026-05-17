@@ -1,24 +1,65 @@
-npm run dev：写完文章后，执行图片 WebP 转换并启动本地预览。
-npm run opt：仅执行优化和本地静态文件构建。
-npm run pub：全自动化流程，执行优化后直接发布上线。
-npm run webp
+## npm 命令速查
 
+| 命令 | 用途 |
+|------|------|
+| npm run dev | 写完文章后，执行图片 WebP 转换并启动本地预览 |
+| npm run opt | 仅执行优化和本地静态文件构建 |
+| npm run pub | 全自动化流程，执行优化后直接发布上线 |
+| npm run webp | 仅执行图片 WebP 转换 + Markdown 引用更新（跨平台自动适配） |
 
+> `webp` 命令通过 `tools/dispatch-webp.js` 自动检测操作系统：
+> - Windows → `pwsh` 执行 `.ps1` 脚本
+> - macOS/Linux → `bash` 执行 `.sh` 脚本
+
+---
+
+## Windows 环境配置
+
+```powershell
+# 1. 解锁 PowerShell 脚本执行权限
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# 2. 安装 Scoop 包管理器
 Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
 
+# 3. 安装 libwebp（提供 cwebp / gif2webp）
 scoop install main/libwebp
 
-git config --global user.name "XBXyftx"   
-git config --global user.email "shuaixbx02@outlook.com"
-ssh-keygen -t rsa -C "shuaixbx02@outlook.com"
-
+# 4. 刷新 PATH（避免重启终端）
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 
-# 1. 创建自定义 SSH 配置目录（在用户可写目录）
-mkdir -p ~/Documents/ssh_config
+# 5. 验证安装
+cwebp -version
+gif2webp -version
+```
 
-# 2. 创建自定义 config 文件（避开 ~/.ssh 的权限检查）
+## macOS 环境配置
+
+```bash
+# 1. 安装 Homebrew（如已安装跳过）
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# 2. 安装 PowerShell (pwsh) + libwebp
+brew install powershell webp
+
+# 3. 验证安装
+pwsh --version
+cwebp -version
+```
+
+## Git 全局配置（所有平台通用）
+
+```bash
+git config --global user.name "XBXyftx"
+git config --global user.email "shuaixbx02@outlook.com"
+ssh-keygen -t ed25519 -C "shuaixbx02@outlook.com"
+```
+
+## SSH 端口 443 备用方案（22 端口被封时使用）
+
+```bash
+# 1. 创建自定义 SSH 配置
+mkdir -p ~/Documents/ssh_config
 cat > ~/Documents/ssh_config/config << 'EOF'
 Host github.com
     Hostname ssh.github.com
@@ -27,6 +68,18 @@ Host github.com
     StrictHostKeyChecking no
 EOF
 
-# 3. 使用 -F 指定自定义配置文件连接
+# 2. 使用自定义配置测试连接
 ssh -F ~/Documents/ssh_config/config -T git@github.com
+```
 
+## 相关文件
+
+| 文件 | 说明 |
+|------|------|
+| tools/convert-to-webp.ps1 | Windows 图片转换脚本 |
+| tools/update-markdown-images.ps1 | Windows Markdown 引用更新脚本 |
+| tools/convert-to-webp.sh | macOS/Linux 图片转换脚本 |
+| tools/update-markdown-images.sh | macOS/Linux Markdown 引用更新脚本 |
+| tools/dispatch-webp.js | 跨平台调度器（npm run webp 入口） |
+| package.json | 所有 npm scripts 定义 |
+| _config.yml | Hexo 主配置（含 deploy 双目标） |

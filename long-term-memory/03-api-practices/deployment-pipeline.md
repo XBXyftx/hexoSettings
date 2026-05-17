@@ -56,7 +56,9 @@ type: project
     "clean":  "hexo clean",
     "deploy": "hexo deploy",
     "server": "hexo server",
-    "webp":   "powershell ./tools/convert-to-webp.ps1 && powershell ./tools/update-markdown-images.ps1",
+    "webp":   "node ./tools/dispatch-webp.js",
+    "webp:win": "pwsh ./tools/convert-to-webp.ps1 && pwsh ./tools/update-markdown-images.ps1",
+    "webp:mac": "bash ./tools/convert-to-webp.sh && bash ./tools/update-markdown-images.sh",
     "opt":    "npm run webp && npm run clean && npm run build",
     "pub":    "npm run opt && hexo deploy",
     "dev":    "npm run webp && npm run clean && hexo server"
@@ -64,7 +66,7 @@ type: project
 }
 ```
 
-> ⚠️ 注意 `pub` 末段是 `hexo deploy` 而不是 `npm run deploy`，二者运行时等价（`deploy` script 内容也是 `hexo deploy`），但脚本里**没有走 npm 这一层**。修改 `deploy` script 时不会影响 `pub`。
+> `npm run webp` 通过 `tools/dispatch-webp.js` 自动检测 OS 并调用对应脚本（`.ps1` 或 `.sh`），Windows/macOS/Linux 均可直接使用。
 
 ---
 
@@ -156,24 +158,31 @@ type: project
 
 ## L5 · 首次环境准备（新机器要跑通 webp 必须完成）
 
-> 用户原话存档（`部署.txt`）：
+### Windows
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+scoop install main/libwebp
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+```
+
+### macOS
+
+```bash
+brew install powershell webp
+```
+
+### 所有平台通用
+
+```bash
+git config --global user.name "XBXyftx"
+git config --global user.email "shuaixbx02@outlook.com"
+ssh-keygen -t ed25519 -C "shuaixbx02@outlook.com"
+```
+
+> 完整步骤见 [webp-conversion.md](webp-conversion.md) 的 L2 节，以及项目根 `部署.txt`。
 >
-> ```powershell
-> Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-> Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
-> scoop install main/libwebp
-> $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
-> ```
-
-完整步骤见 [webp-conversion.md](webp-conversion.md) 的 L2 节。这里记录关键节点：
-
-1. **PowerShell 执行策略**：`Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` —— 否则两条 `.ps1` 跑不起来。
-2. **Scoop 包管理器**：用于安装 `libwebp`（提供 `cwebp` / `gif2webp` 命令）。
-3. **PATH 刷新**：`$env:Path = ...` 让当前 PowerShell 会话立刻看到新装的可执行文件，不必重启终端。
-4. **SSH 配置**（推送到 GitHub 失败时的曲线方案）：
-   - 创建 `~/Documents/ssh_config/config`，使用 `Hostname ssh.github.com` + `Port 443` 绕过 22 端口被防火墙拦截。
-   - 使用 `ssh -F ~/Documents/ssh_config/config -T git@github.com` 连接测试。
-
 > ⚠️ 如果只是**写文章和本地预览**，不需要 libwebp。此前提仅在你想跑 `webp / dev / opt / pub` 任一命令时强制要求。临时绕过：直接 `hexo server`。
 
 ---
@@ -282,8 +291,11 @@ type: project
 | 内容 | 路径 |
 |---|---|
 | 主入口 | `package.json` 的 `scripts` 节 |
-| webp 转换 | `tools/convert-to-webp.ps1` |
-| 引用同步 | `tools/update-markdown-images.ps1` |
+| 跨平台调度器 | `tools/dispatch-webp.js` |
+| webp 转换 (Win) | `tools/convert-to-webp.ps1` |
+| webp 转换 (Mac) | `tools/convert-to-webp.sh` |
+| 引用同步 (Win) | `tools/update-markdown-images.ps1` |
+| 引用同步 (Mac) | `tools/update-markdown-images.sh` |
 | 部署目标 | `_config.yml` 的 `deploy` 节 |
 | 用户备忘 | `部署.txt`（项目根） |
 | 详细 webp 文档 | [webp-conversion.md](webp-conversion.md) |

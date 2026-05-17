@@ -1,7 +1,7 @@
 # 长期记忆索引 — XBXyftx Hexo 博客项目
 
 > **AI 必读**：每次进入新会话，第一步必须阅读本文件。严禁跳过索引直接操作代码。
-> **当前日期**：2026-05-07
+> **当前日期**：2026-05-17
 > **项目状态**：活跃维护中，持续发布新文章
 
 ---
@@ -49,7 +49,7 @@
 
 ## 快捷命令
 
-> ⚠️ 涉及 `webp` 的命令（`dev / opt / pub / webp`）首次运行需先安装 `libwebp`，且会**删除源图原图**。详见 [03-api-practices/webp-conversion.md](03-api-practices/webp-conversion.md)。
+> ⚠️ 涉及 `webp` 的命令（`dev / opt / pub / webp`）首次运行需先安装 `libwebp`，且会**删除源图原图**。跨平台自动适配（Win: `.ps1`, Mac: `.sh`）。详见 [03-api-practices/webp-conversion.md](03-api-practices/webp-conversion.md) 和项目根 `部署.txt`。
 
 ```bash
 # 开发

@@ -15,12 +15,19 @@ This is a Hexo static site generator blog using the Butterfly theme. The blog is
 - `hexo new page "page-name"` - Create a new page
 
 ### Build & Deploy
+- `npm run dev` - Full pipeline (webp convert + clean + local server)
+- `npm run opt` - Optimize build (webp convert + clean + generate)
+- `npm run pub` - Full publish (opt + deploy to both targets)
+- `npm run webp` - Image to WebP conversion only (auto-detects OS, runs .ps1 on Win / .sh on Mac)
 - `npm run clean` - Clean generated files and cache
 - `npm run build` or `hexo generate` - Generate static files
 - `npm run deploy` or `hexo deploy` - Deploy to configured git repositories
 
 ### Maintenance
 - `hexo clean && hexo generate` - Full rebuild (recommended before deploy)
+- `npm run opt` - Optimized local build with WebP conversion
+- `npm run pub` - Full publish pipeline to both GitHub Pages and private server
+- `npm run dev` - Start local dev server with WebP conversion
 
 ## Architecture & Key Features
 
@@ -68,6 +75,13 @@ This is a Hexo static site generator blog using the Butterfly theme. The blog is
 - `hexo-filter-mermaid-diagrams` - Diagram support
 - `hexo-wordcount` - Reading time and word count
 
+### External Tool Dependencies
+- **libwebp** (`cwebp` / `gif2webp`) - Required for WebP image conversion
+  - Windows: `scoop install main/libwebp`
+  - macOS: `brew install webp`
+- **PowerShell** (`pwsh`) - Required on macOS for cross-platform script compatibility
+  - macOS: `brew install powershell`
+
 ### Post Front Matter
 When creating posts, use these fields:
 ```yaml
@@ -86,6 +100,9 @@ categories: [category]
 - Mermaid diagrams are supported
 - Custom CSS/JS can be added to `source/css/` and `source/js/`
 - Scripts in `/scripts` directory are auto-loaded by Hexo
+- WebP conversion tools in `/tools` directory (`.ps1` for Windows, `.sh` for macOS, `dispatch-webp.js` for auto-detection)
+- Environment setup guide: `部署.txt` (project root)
+- Detailed documentation: `long-term-memory/03-api-practices/`
 
 ### Performance Optimizations
 - Private posts scanner uses file hashing to avoid unnecessary rescans

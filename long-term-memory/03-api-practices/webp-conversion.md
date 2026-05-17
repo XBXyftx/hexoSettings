@@ -16,46 +16,62 @@
 
 ## L2 · 首次使用 — 环境准备（新机器必做）
 
-> 来源：项目根目录 `部署.txt`，整理为如下规范步骤。仅在 **Windows + PowerShell** 环境验证过。
+### Windows 环境
 
-### 步骤 1：解锁 PowerShell 脚本执行权限
+#### 步骤 1：解锁 PowerShell 脚本执行权限
 
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
-> 默认策略 `Restricted` 会阻止 `.ps1` 脚本运行。`RemoteSigned` 仅对当前用户生效，且只允许已签名的远程脚本，是安全与可用的折中。
-
-### 步骤 2：安装 Scoop 包管理器（已有可跳过）
+#### 步骤 2：安装 Scoop 包管理器（已有可跳过）
 
 ```powershell
 Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
 ```
 
-### 步骤 3：通过 Scoop 安装 libwebp
+#### 步骤 3：通过 Scoop 安装 libwebp
 
 ```powershell
 scoop install main/libwebp
 ```
 
-> 这一步同时提供 `cwebp.exe`（处理 png/jpg/jpeg）与 `gif2webp.exe`（处理 gif）两个命令行工具，安装到 `~\scoop\shims\` 并自动加入 PATH。
-
-### 步骤 4：刷新当前会话的环境变量（避免重启终端）
+#### 步骤 4：刷新当前会话的环境变量
 
 ```powershell
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 ```
 
-### 步骤 5：验证安装
+#### 步骤 5：验证安装
 
 ```powershell
 cwebp -version
 gif2webp -version
 ```
 
-两条命令都能输出版本号 = 环境就绪。
+### macOS 环境
 
-> **脚本兜底逻辑**：即便 PATH 未刷新，`convert-to-webp.ps1` 也会主动尝试 `$HOME\scoop\shims\cwebp.exe` 和 `C:\Users\$env:USERNAME\scoop\shims\cwebp.exe` 两个常见路径作为后备。
+#### 步骤 1：确认 Homebrew 已安装
+
+```bash
+brew --version
+# 如未安装：/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+#### 步骤 2：安装 PowerShell + libwebp
+
+```bash
+brew install powershell webp
+```
+
+#### 步骤 3：验证安装
+
+```bash
+pwsh --version
+cwebp -version
+```
+
+> **跨平台说明**：`npm run webp` 通过 `tools/dispatch-webp.js` 自动检测操作系统并调用对应脚本（`.ps1` / `.sh`），因此两种环境的使用方式完全一致。
 
 ---
 
@@ -74,7 +90,17 @@ gif2webp -version
 
 ## L4 · 脚本细节（按需深读）
 
-### 4.1 `tools/convert-to-webp.ps1` — 图片转换脚本
+> 脚本有两套实现，功能等价：
+> - **Windows**：`.ps1` (PowerShell)
+> - **macOS/Linux**：`.sh` (Bash)
+> - `npm run webp` 通过 `tools/dispatch-webp.js` 自动选择，无需手动判断。
+
+### 4.1 图片转换脚本
+
+| 路径 | 平台 |
+|------|------|
+| `tools/convert-to-webp.ps1` | Windows (PowerShell) |
+| `tools/convert-to-webp.sh` | macOS/Linux (Bash) |
 
 | 项 | 配置 |
 |---|---|
@@ -96,7 +122,12 @@ gif2webp -version
 
 > 「Webp 已存在则直接删源」是日常重复运行时几乎所有图片走的分支，所以脚本是**幂等**的。
 
-### 4.2 `tools/update-markdown-images.ps1` — 引用同步脚本
+### 4.2 引用同步脚本
+
+| 路径 | 平台 |
+|------|------|
+| `tools/update-markdown-images.ps1` | Windows (PowerShell) |
+| `tools/update-markdown-images.sh` | macOS/Linux (Bash) |
 
 | 项 | 配置 |
 |---|---|
@@ -191,10 +222,13 @@ gif2webp -version
 
 | 用途 | 路径 |
 |---|---|
-| 转换脚本 | `tools/convert-to-webp.ps1` |
-| 引用同步脚本 | `tools/update-markdown-images.ps1` |
+| 跨平台调度器 | `tools/dispatch-webp.js`（npm run webp 入口） |
+| 转换脚本 (Win) | `tools/convert-to-webp.ps1` |
+| 转换脚本 (Mac) | `tools/convert-to-webp.sh` |
+| 引用同步脚本 (Win) | `tools/update-markdown-images.ps1` |
+| 引用同步脚本 (Mac) | `tools/update-markdown-images.sh` |
 | npm scripts 定义 | `package.json` 的 `scripts` 段 |
-| 命令记录原始来源 | `部署.txt`（项目根） |
+| 环境配置原始来源 | `部署.txt`（项目根） |
 | 主配置文件 | `_config.yml`、`_config.butterfly.yml` |
 
 > 修改任一脚本前，必须在 `04-operations/operation-log.md` 记录改动。
