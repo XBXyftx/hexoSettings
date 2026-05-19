@@ -42,7 +42,11 @@
       "Bash(svn --version)",
       "Read(//Users/xbxyftx/**)",
       "Read(//Users/xbxyftx/.ssh/**)",
-      "Bash(ssh -o ConnectTimeout=5 -T git@113.47.8.204)"
+      "Bash(ssh -o ConnectTimeout=5 -T git@113.47.8.204)",
+      "Bash(bash *)",
+      "Bash(perl -pe ' *)",
+      "Bash(perl -wle ' *)",
+      "Bash(set +H)"
     ],
     "deny": [],
     "ask": []
