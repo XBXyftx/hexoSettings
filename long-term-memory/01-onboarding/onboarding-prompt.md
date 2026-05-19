@@ -36,12 +36,14 @@ d:\hexo\hexoSettings/
 ├── _config.butterfly.yml          # Butterfly 主题配置（**核心配置**）
 ├── package.json                   # npm 依赖和 scripts
 ├── CLAUDE.md                      # 给 Claude Code 的项目说明
-├── scripts/                       # 自定义 Hexo 脚本（3个）
+├── scripts/                       # 自定义 Hexo 脚本（5个）
 │   ├── auto-image-list.js         # 轮播图自动生成
 │   ├── private-posts-scanner.js   # 隐私文章扫描（MD5优化）
-│   └── image-dimensions.js        # 图片尺寸注入防 CLS
+│   ├── image-dimensions.js        # 图片尺寸注入防 CLS
+│   ├── birthday-gift-scanner.js   # 生日页面事件扫描
+│   └── math-protect.js            # KaTeX 公式保护（防 kramed 破坏）
 ├── source/                        # 博客内容源
-│   ├── _posts/                    # 51 篇文章 + asset 文件夹
+│   ├── _posts/                    # 53 篇文章 + asset 文件夹
 │   ├── _data/link.yml             # 友情链接配置
 │   ├── about/                     # 自定义关于页面（HTML）
 │   ├── categories/                # 分类索引页
@@ -94,7 +96,7 @@ d:\hexo\hexoSettings/
 
 5. **图片优先使用 webp 格式**
    - 新文章配图应使用 `.webp` 格式
-   - 已有图片可通过 `npm run webp` 批量转换（**首次需安装 libwebp**，且会**删除源图原图**）
+   - 已有图片可通过 `npm run webp` 批量转换（`dispatch-webp.js` 自动检测 OS，**首次需安装 libwebp**，且会**删除源图原图**）
    - 完整规则与首次环境配置见 [03-api-practices/webp-conversion.md](../03-api-practices/webp-conversion.md)
 
 ### 3.2 技术约束
@@ -127,6 +129,8 @@ d:\hexo\hexoSettings/
 | **连连看游戏** | `source/LianlianKan/` | 独立的连连看小游戏页面 |
 | **Markdown 编辑器** | `source/MarkdownPreview/` | 在线 Markdown 实时预览工具 |
 | **图片尺寸注入** | `scripts/image-dimensions.js` | 自动为图片注入 width/height 防 CLS |
+| **生日页面扫描器** | `scripts/birthday-gift-scanner.js` | 扫描生日事件文件夹生成 JSON |
+| **KaTeX 公式保护** | `scripts/math-protect.js` | 在 kramed 渲染前保护公式语法 |
 
 ---
 
@@ -137,13 +141,12 @@ d:\hexo\hexoSettings/
 1. **主题升级困难**：Butterfly 主题已被大量修改（8个模板文件 + 大量自定义 CSS/JS），升级主题版本需要手动合并
 2. **懒加载系统冗余**：同时存在主题内置懒加载、自定义懒加载、vanilla-lazyload 库，逻辑有重叠
 3. **CDN 配置分散**：第三方库 CDN 来源分散（cloudflare、elemecdn、baomitu、tianli0 等），部分可能不稳定
-4. **MathJax 体积过大**：本地引入了完整的 MathJax 3.2.2（1.1MB），影响加载速度
+4. **KaTeX 替代 MathJax**：已从 MathJax 3.2.2（1.1MB）迁移至 KaTeX 0.16.19（303KB），体积减少 74%。MathJax 文件已物理删除，KaTeX 通过客户端渲染
 5. **部分脚本未启用**：`cache-manager.js` 等脚本在主题中被注释掉了
 
 ### 5.2 待优化项
 
 - [ ] 统一懒加载方案，移除冗余逻辑
-- [ ] 评估 MathJax 按需加载或改用 KaTeX
 - [ ] 整理 CDN 来源，统一为 1-2 个可靠源
 - [ ] 考虑将主题修改提取为独立插件，降低升级成本
 - [ ] 完善隐私文章系统的访问控制（当前仅有前端密码验证）

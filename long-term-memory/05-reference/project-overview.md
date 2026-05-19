@@ -25,10 +25,12 @@ d:\hexo\hexoSettings/
 ├── scripts/                             # 自定义 Hexo 脚本
 │   ├── auto-image-list.js               # 轮播图自动生成
 │   ├── private-posts-scanner.js         # 隐私文章扫描
-│   └── image-dimensions.js              # 图片尺寸注入
+│   ├── image-dimensions.js              # 图片尺寸注入
+│   ├── birthday-gift-scanner.js         # 生日页面事件扫描
+│   └── math-protect.js                  # KaTeX 公式保护
 │
 ├── source/                              # 博客内容源
-│   ├── _posts/                          # 51 篇文章
+│   ├── _posts/                          # 53 篇文章
 │   │   ├── [文章名].md                   # 文章正文
 │   │   └── [文章名]/                     # 文章 asset 文件夹（图片等）
 │   │
@@ -80,24 +82,16 @@ d:\hexo\hexoSettings/
 │   │   └── marked.min.js                # Markdown 解析器
 │   │
 │   ├── css/                             # 【自定义】自定义样式表
-│   │   ├── lazy-image-refresh.css
 │   │   ├── lazy-loading-stable.css
 │   │   ├── lazy-loading.css
-│   │   ├── lazy-video-refresh.css
 │   │   └── vscode-breadcrumb-toc.css
 │   │
 │   ├── js/                              # 【自定义】自定义脚本
 │   │   ├── coffer.js                    # 隐私文章逻辑
-│   │   ├── lazy-image-refresh.js
-│   │   ├── lazy-loading-native.js
-│   │   ├── lazy-loading.js
-│   │   ├── lazy-video-refresh.js
-│   │   ├── mathjax.js                   # MathJax 入口（1.1MB）
-│   │   ├── network-monitor.js           # 网络监控
-│   │   ├── topimg-monitor.js            # 顶部图片监控
-│   │   ├── typed.umd.js                # Typed.js 打字机库
-│   │   ├── vscode-breadcrumb-toc.js    # VS Code 面包屑导航
-│   │   └── MathJax-3.2.2/              # MathJax 完整库
+│   │   ├── birthday-gift.js             # 生日页面交互
+│   │   ├── typed.umd.js                 # Typed.js 打字机库
+│   │   ├── vscode-breadcrumb-toc.js     # VS Code 面包屑导航
+│   │   └── katex/                       # KaTeX 0.16.19 完整库（303KB）
 │   │
 │   └── imgs/                            # 图片资源
 │       ├── ArticleTopImgs/              # 文章封面图（50+张 webp）
@@ -222,5 +216,5 @@ deploy:
 | `npm run deploy` | `hexo deploy` | 部署到双目标 |
 | `npm run pub` | `opt && deploy` | 完整发布流程 |
 | `npm run opt` | `webp && clean && build` | 优化构建（不部署） |
-| `npm run webp` | PowerShell 脚本 | 批量转 webp + 更新引用（[详细文档](../03-api-practices/webp-conversion.md)） |
+| `npm run webp` | `dispatch-webp.js` 自动调度 | 批量转 webp + 更新引用（[详细文档](../03-api-practices/webp-conversion.md)） |
 | `npm run server` | `hexo server` | 仅启动本地服务器 |

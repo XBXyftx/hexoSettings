@@ -190,10 +190,8 @@ swiper/
 
 | 文件 | 作用 | 加载位置 |
 |------|------|---------|
-| `lazy-image-refresh.css` | 图片懒加载刷新按钮样式 | head.pug |
 | `lazy-loading-stable.css` | 稳定懒加载样式（防 CLS） | head.pug |
 | `lazy-loading.css` | 基础懒加载样式 | head.pug |
-| `lazy-video-refresh.css` | 视频懒加载刷新按钮样式 | head.pug |
 | `vscode-breadcrumb-toc.css` | VS Code 面包屑导航样式 | head.pug（仅文章页） |
 
 ### themes/butterfly/source/css/ 中的自定义样式
@@ -222,16 +220,10 @@ swiper/
 | 文件 | 作用 | 大小 |
 |------|------|------|
 | `coffer.js` | 隐私文章系统前端逻辑 | ~10KB |
-| `lazy-image-refresh.js` | 图片懒加载刷新 | ~15KB |
-| `lazy-loading-native.js` | 原生懒加载优化 | ~3KB |
-| `lazy-loading.js` | 基础懒加载 | ~16KB |
-| `lazy-video-refresh.js` | 视频懒加载刷新 | ~19KB |
-| `mathjax.js` | MathJax 入口 | 1.1MB |
-| `network-monitor.js` | 网络状态监控（503诊断） | ~10KB |
-| `topimg-monitor.js` | 顶部图片监控 | ~8KB |
+| `birthday-gift.js` | 生日页面交互逻辑 | ~30KB |
 | `typed.umd.js` | Typed.js 打字机库 | ~10KB |
 | `vscode-breadcrumb-toc.js` | VS Code 面包屑导航 | ~8KB |
-| `MathJax-3.2.2/` | MathJax 完整库 | — |
+| `katex/` | KaTeX 0.16.19 完整库（含 auto-render） | ~303KB |
 
 ### themes/butterfly/source/js/ 中的自定义脚本
 
@@ -322,8 +314,8 @@ swiper/
 
 | 项 | 值 |
 |---|---|
-| **说明** | 多套懒加载脚本共存，替代主题内置懒加载 |
-| **相关文件** | `lazy-loading.js`, `lazy-loading-native.js`, `lazy-loading-optimized.js`, `lazy-image-refresh.js`, `lazy-video-refresh.js` 及对应 CSS |
+| **说明** | 多套懒加载脚本共存，替代主题内置懒加载。已精简（2026-05-05 移除 4 个冗余脚本 + 2026-05-06 物理清理） |
+| **相关文件** | `lazy-loading-optimized.js`（主题目录，主力）、`lazy-loading.js` + `lazy-loading.css`（source/，兼容回退）、`lazy-loading-stable.css`（防 CLS）、`lazy-loading-about.js`（关于页专用） |
 | **主题配置** | `_config.butterfly.yml` 中 `lazyload.enable: false` |
 
 ### 9. 预加载动画

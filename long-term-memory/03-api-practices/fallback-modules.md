@@ -1,10 +1,10 @@
 ---
-name: 兜底模块全览（Twikoo 评论 + MathJax 公式 + Mermaid 图表 + inject 总图）
+name: 兜底模块全览（Twikoo 评论 + KaTeX 公式 + Mermaid 图表 + inject 总图）
 description: 三个关键运行时模块的配置、加载方式、故障模式和 inject.head/bottom 资源加载全景图
 type: project
 ---
 
-# 兜底模块全览 — Twikoo / MathJax / Mermaid + inject 总图
+# 兜底模块全览 — Twikoo / KaTeX / Mermaid + inject 总图
 
 > **何时阅读**：评论不加载、数学公式不渲染、Mermaid 图表空白、新增 inject 资源、排查资源加载顺序冲突时。
 > **关联文档**：[performance-optimization.md](performance-optimization.md)（inject 异步/同步策略）· [cdn-strategy.md](cdn-strategy.md)（本地资源保留理由）
@@ -18,7 +18,7 @@ type: project
 | 模块 | 用途 | 加载方式 | 体积 | 故障影响 |
 |---|---|---|---|---|
 | **Twikoo** | 评论系统 | 本地 `/js/twikoo.js` + Netlify 后端 | ~200KB | 评论区空白 |
-| **MathJax 3.2.2** | 数学公式渲染 | 本地 `/js/MathJax-3.2.2/es5/tex-mml-chtml.js` | ~1.1MB | 公式显示为 LaTeX 源码 |
+| **KaTeX 0.16.19** | 数学公式渲染 | 本地 `/js/katex/` + 客户端 auto-render | ~303KB（含 CSS） | 公式显示为 LaTeX 源码 |
 | **Mermaid** | 图表渲染 | `hexo-filter-mermaid-diagrams` 插件 | 插件体积 | 代码块显示为原始 mermaid 语法 |
 
 ---
@@ -71,53 +71,70 @@ twikoo:
 
 ---
 
-## L3 · MathJax 3.2.2 数学公式
+## L3 · KaTeX 0.16.19 数学公式
 
-### 3.1 配置
+### 3.1 迁移背景
+
+于 2026-05-04 从 MathJax 3.2.2（1.1MB）迁移至 KaTeX 0.16.19（303KB），体积减少 74%。MathJax 3.2.2 目录已物理删除，仅保留 KaTeX。
+
+### 3.2 配置
 
 ```yaml
 # _config.butterfly.yml
 math:
-  use: mathjax
+  use: katex
   per_page: false       # 不全局加载，按文章 front matter 控制
-  mathjax:
+  katex:
     enableMenu: true    # 右键菜单（公式复制/查看源码）
-    tags: none          # 公式编号（all/ams/none）
 ```
 
-### 3.2 按需加载机制
+### 3.3 加载方式
+
+KaTeX 通过客户端渲染（非服务端 hexo-filter-katex）：
+
+1. `katex.pug`（主题修改）负责加载 `katex.min.js` + `katex.min.css` + `auto-render.min.js`
+2. `scripts/math-protect.js`（Hexo 过滤器）在 kramed 渲染前保护 `$...$` 和 `$$...$$` 语法不被破坏
+3. 前端 `renderMathInElement` 在客户端扫描并渲染公式
+
+**双模式渲染**：
+- **模式 A**：`<script type="math/tex">` 标签 → `katex.render()` 直接渲染（处理被 kramed 破坏的公式）
+- **模式 B**：`renderMathInElement` auto-render 扫描 `$...$` 和 `$$...$$` 语法
+
+### 3.4 按需加载机制
 
 ```yaml
 # 文章 front matter
 ---
 title: 数学文章
-mathjax: true    # 有此字段才加载 MathJax
+katex: true    # 有此字段才加载 KaTeX
 ---
 ```
 
-`per_page: false` + 文章 `mathjax: true` → 只在含公式的文章加载 1.1MB 的 MathJax。不含公式的文章不加载。
+`per_page: false` + 文章 `katex: true` → 只在含公式的文章加载 KaTeX。不含公式的文章不加载。
 
-### 3.3 为何本地
+### 3.5 KaTeX 本地文件
 
-- **体积 1.1MB**：CDN 首次加载慢（尤其国内），本地与博客同 CDN 同域
-- **稳定性**：MathJax 版本变更可能影响公式渲染效果
-- **离线可用**：本地 `hexo server` 完整预览公式
+| 文件 | 体积 | 用途 |
+|---|---|---|
+| `katex.min.js` | 276KB | 核心渲染引擎 |
+| `katex.min.css` | 23KB | 公式样式 |
+| `auto-render.min.js` | 3.5KB | 自动扫描并渲染 |
+| `fonts/` | — | 数学字体文件 |
 
-### 3.4 支持的公式语法
+### 3.6 支持的公式语法
 
 | 模式 | 语法 | 示例 |
 |---|---|---|
 | 行内 | `$...$` | `$E = mc^2$` |
 | 块级 | `$$...$$` | `$$\sum_{i=1}^n x_i$$` |
-| \\( \\) | `\\(...\\)` | `\\(\\alpha\\)` |
 
-### 3.5 故障排查
+### 3.7 故障排查
 
 | 现象 | 可能原因 | 检查方法 |
 |---|---|---|
-| 公式显示为 LaTeX 源码 | MathJax 未加载 | F12 Network 找 `tex-mml-chtml.js` |
-| 公式渲染一半 | 网络中断 / 文件损坏 | 检查文件完整性 |
-| 非公式页也加载 MathJax | `per_page: true` | 检查配置 |
+| 公式显示为 LaTeX 源码 | KaTeX 未加载 | F12 Network 找 `katex.min.js` |
+| 公式渲染一半/乱码 | kramed 破坏了公式语法 | 检查 `math-protect.js` 是否启用 |
+| 非公式页也加载 KaTeX | `per_page: true` | 检查配置 |
 
 ---
 
@@ -234,10 +251,11 @@ Twikoo
   └── twikoo.js (本地) → Netlify Function (外部)
        └── twikoo.css (本地，inject.head 异步加载)
 
-MathJax
-  └── tex-mml-chtml.js (本地)
-       ├── 文章 front matter: mathjax: true
-       └── math.per_page: false
+KaTeX
+  └── katex.min.js + katex.min.css + auto-render.min.js (本地)
+       ├── 文章 front matter: katex: true
+       ├── math.per_page: false
+       └── scripts/math-protect.js (Hexo 过滤器，防 kramed 破坏公式)
 
 Mermaid
   └── hexo-filter-mermaid-diagrams (npm 插件)
@@ -263,7 +281,7 @@ inject 系统
 | Twikoo JS | `source/js/twikoo.js` |
 | Twikoo CSS | `source/css/twikoo.css` |
 | Twikoo 后端 | `https://twikooxbx.netlify.app/.netlify/functions/twikoo` |
-| MathJax | `source/js/MathJax-3.2.2/` |
+| KaTeX | `source/js/katex/` |
 | Mermaid 插件 | `node_modules/hexo-filter-mermaid-diagrams/` |
 | inject 配置 | `_config.butterfly.yml` inject 节 |
 | Math 配置 | `_config.butterfly.yml` math 节 |

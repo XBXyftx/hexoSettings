@@ -74,23 +74,30 @@ type: project
 
 ### 4.1 `npm run webp`（共享前置步骤，副作用最大）
 
-`webp` = `convert-to-webp.ps1` ➜ `update-markdown-images.ps1`，**两条 PowerShell 脚本顺序执行，前者失败后者不会跑**（`&&` 短路）。
+`npm run webp` → `node ./tools/dispatch-webp.js` → 自动检测 OS → 调用对应脚本：
 
-#### 子步骤 1：`tools/convert-to-webp.ps1`
+| 平台 | 调度方式 | 转换脚本 | 引用同步脚本 |
+|---|---|---|---|
+| **Windows** | `pwsh` (PowerShell) | `tools/convert-to-webp.ps1` | `tools/update-markdown-images.ps1` |
+| **macOS / Linux** | `bash` | `tools/convert-to-webp.sh` | `tools/update-markdown-images.sh` |
+
+> `dispatch-webp.js` 通过 `process.platform === 'win32'` 判断平台，两个脚本顺序执行（`&&` 短路：前者失败后者不会跑）。
+
+#### 子步骤 1：图片转换（`convert-to-webp.ps1` / `convert-to-webp.sh`）
 
 | 项 | 行为 |
 |---|---|
 | **扫描根** | `source/` 下：`img / imgs / _posts / about / swiper / coffer`；`themes/butterfly/source/` 下：`img` |
 | **目标格式** | `.png / .jpg / .jpeg / .gif` |
 | **转换工具** | `cwebp -q 75`（PNG/JPG），`gif2webp -q 75 -mixed`（GIF） |
-| **依赖** | 必须本机已安装 `libwebp`（安装步骤见 L5） |
-| **fallback 路径** | `$HOME\scoop\shims\cwebp.exe`、`C:\Users\$env:USERNAME\scoop\shims\cwebp.exe` |
+| **依赖** | 必须本机已安装 `libwebp`（安装步骤见 L5）。macOS: `brew install webp`；Windows: `scoop install main/libwebp` |
+| **fallback 路径** | Windows: `$HOME\scoop\shims\cwebp.exe`；macOS: `/opt/homebrew/bin/cwebp` → `/usr/local/bin/cwebp` |
 | **三个分支** | ① webp 不存在或源图更新 → 重转 → 删源图  ② webp 存在且有效 → 仅删源图  ③ webp 损坏 → 删 webp 重转 → 删源图 |
 | **副作用 ⚠️** | 转换成功后**物理删除**对应 `.png/.jpg/.jpeg/.gif`（不可逆）|
 
 > ⚠️ **删图前必须先 `git add` 跟踪原图**，否则误用此命令将永久丢失源图（webp 是有损压缩，无法回滚）。
 
-#### 子步骤 2：`tools/update-markdown-images.ps1`
+#### 子步骤 2：引用同步（`update-markdown-images.ps1` / `update-markdown-images.sh`）
 
 | 项 | 行为 |
 |---|---|
@@ -125,9 +132,9 @@ type: project
 | 主题渲染 | 使用 Butterfly 模板 + `_config.butterfly.yml` |
 | Markdown 渲染 | `kramed`（非默认 `marked`） |
 | 自定义生成器 | `scripts/auto-image-list.js`（生成 `swiper/images-auto.json`） |
-| 自定义过滤器 | `scripts/private-posts-scanner.js`（生成 `coffer/private-posts.json`） + `scripts/image-dimensions.js`（HTML 注入 width/height + loading="lazy"）|
-| 第三方插件 | `hexo-asset-image`（asset 文件夹相对路径解析）、`hexo-filter-mermaid-diagrams`、`hexo-filter-gitcalendar`、`hexo-butterfly-swiper` 等 |
-| **输出** | `public/` 完整站点 |
+| 自定义过滤器 | `scripts/private-posts-scanner.js`（生成 `coffer/private-posts.json`） + `scripts/image-dimensions.js`（HTML 注入 width/height + loading="lazy"）+ `scripts/math-protect.js`（KaTeX 公式保护）+ `scripts/birthday-gift-scanner.js`（生成生日事件 JSON）|
+| 第三方插件 | `hexo-asset-image`（asset 文件夹相对路径解析）、`hexo-filter-mermaid-diagrams`、`hexo-filter-gitcalendar`、`hexo-butterfly-swiper`、`hexo-filter-optimize`（CSS/JS/HTML minify）等 |
+| **输出** | `public/` 完整站点（经过 minify 压缩） |
 
 > **关键耦合**：`image-dimensions.js` 依赖 `image-size` 包对图片解析尺寸；如果 webp 转换出问题导致缺图，此处会有大量警告，但不致命。
 
@@ -170,8 +177,10 @@ $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";
 ### macOS
 
 ```bash
-brew install powershell webp
+brew install webp
 ```
+
+> macOS/Linux 上 `dispatch-webp.js` 使用 `bash` 执行 `.sh` 脚本，**不需要安装 PowerShell**。
 
 ### 所有平台通用
 
@@ -199,11 +208,15 @@ ssh-keygen -t ed25519 -C "shuaixbx02@outlook.com"
 │   ├── 有新图？  ──►  npm run opt
 │   └── 没新图？  ──►  npm run clean && npm run build
 │
-└── 要发布上线
-    ├── 标准流程        ──►  npm run pub        （webp + clean + build + deploy）
-    ├── 已经 build 过、只想推送  ──►  hexo deploy
-    └── 部署失败要重发    ──►  npm run clean && npm run build && hexo deploy
-                              （webp 已经做过，没必要再删一次原图）
+├── 要发布上线
+│   ├── 标准流程        ──►  npm run pub        （webp + clean + build + deploy）
+│   ├── 已经 build 过、只想推送  ──►  hexo deploy
+│   └── 部署失败要重发    ──►  npm run clean && npm run build && hexo deploy
+│                              （webp 已经做过，没必要再删一次原图）
+│
+└── 调试 webp 转换问题
+    ├── dispatch 自动检测失败？ ──►  npm run webp:win 或 npm run webp:mac 强制平台
+    └── 只想转图不改引用？   ──►  bash ./tools/convert-to-webp.sh（仅转换，不更新引用）
 ```
 
 > **常见错误**：第二次发布时再跑 `npm run pub`。这等于又跑了一次 webp，但这一次因为 markdown 引用早就指向 `.webp`，扫描时不会再有源图被删——**除非你新增了 png/jpg 文件**。但 update-markdown-images.ps1 仍会全量扫描所有 markdown，速度上会慢一截。无害，但不必要。
@@ -256,7 +269,7 @@ ssh-keygen -t ed25519 -C "shuaixbx02@outlook.com"
 
 **症状**：`hexo server` 起来后所有图都 404。
 
-**根本原因**：`update-markdown-images.ps1` 把引用改成了 `.webp`，但 `convert-to-webp.ps1` 因为 libwebp 没装，转换失败但没 abort 整个流程。
+**根本原因**：`update-markdown-images` 脚本把引用改成了 `.webp`，但 `convert-to-webp` 脚本因为 libwebp 没装而转换失败，没有 abort 整个流程（dispatch-webp.js 中转换脚本失败会阻止引用同步脚本执行，但如果是 cwebp 找不到导致的部分失败则不一定）。
 
 **解决**：
 
@@ -291,15 +304,15 @@ ssh-keygen -t ed25519 -C "shuaixbx02@outlook.com"
 | 内容 | 路径 |
 |---|---|
 | 主入口 | `package.json` 的 `scripts` 节 |
-| 跨平台调度器 | `tools/dispatch-webp.js` |
+| 跨平台调度器 | `tools/dispatch-webp.js`（`npm run webp` 入口，自动检测 OS） |
 | webp 转换 (Win) | `tools/convert-to-webp.ps1` |
-| webp 转换 (Mac) | `tools/convert-to-webp.sh` |
+| webp 转换 (Mac/Linux) | `tools/convert-to-webp.sh` |
 | 引用同步 (Win) | `tools/update-markdown-images.ps1` |
-| 引用同步 (Mac) | `tools/update-markdown-images.sh` |
+| 引用同步 (Mac/Linux) | `tools/update-markdown-images.sh` |
 | 部署目标 | `_config.yml` 的 `deploy` 节 |
 | 用户备忘 | `部署.txt`（项目根） |
 | 详细 webp 文档 | [webp-conversion.md](webp-conversion.md) |
-| 自定义生成器 | `scripts/auto-image-list.js`、`scripts/private-posts-scanner.js`、`scripts/image-dimensions.js` |
+| 自定义生成器 | `scripts/auto-image-list.js`、`scripts/private-posts-scanner.js`、`scripts/image-dimensions.js`、`scripts/birthday-gift-scanner.js`、`scripts/math-protect.js` |
 | 双部署仓库 | `git@github.com:XBXyftx/XBXyftx.github.io.git` + `git@113.47.8.204:/home/git/blog.git` |
 
 ---
@@ -309,16 +322,20 @@ ssh-keygen -t ed25519 -C "shuaixbx02@outlook.com"
 ```text
 deployment-pipeline
   ├── webp-conversion.md ─── L2 / L4.1 完整规则
+  ├── dispatch-webp.js ─── 跨平台自动调度（Win→pwsh+.ps1, Mac→bash+.sh）
   ├── scripts/auto-image-list.js ─── 在 build 阶段生成 swiper 索引
   ├── scripts/private-posts-scanner.js ─── 在 before_generate 生成隐私索引
   ├── scripts/image-dimensions.js ─── 在 after_render:html 注入图片尺寸
+  ├── scripts/birthday-gift-scanner.js ─── 在 before_generate 生成生日事件数据
+  ├── scripts/math-protect.js ─── 在 before_post_render 保护 KaTeX 公式
   ├── _config.yml#deploy ─── 决定推送目标
   ├── _config.butterfly.yml#inject ─── 决定打包进 public 的 CSS/JS
   └── 06-theme-modifications/ ─── 主题模板被改后必须 clean 才能生效
 ```
 
-> **如果删除/重命名 `tools/*.ps1`**：所有四条 npm script（`webp / dev / opt / pub`）都会立即失效，且 `package.json` 不会自动同步。在做这件事前请：
+> **如果删除/重命名 `tools/*` 脚本**：`npm run webp` 和所有依赖它的命令（`dev / opt / pub`）会立即失效。修改脚本前必须：
 >
 > 1. 在 [04-operations/operation-log.md](../04-operations/operation-log.md) 记录
-> 2. 同步更新 `package.json` 的 `scripts`
+> 2. 同步更新 `package.json` 的 `scripts`（如有必要）
 > 3. 更新 [webp-conversion.md](webp-conversion.md) 与本文档
+> 4. **确保 `.ps1` 和 `.sh` 两套实现保持功能等价**

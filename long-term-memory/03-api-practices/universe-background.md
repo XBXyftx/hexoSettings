@@ -28,16 +28,17 @@ type: project
 |---|---|---|
 | Canvas 位置 | `<canvas id="universe">` 全屏 fixed 背景 | `<canvas class="universe-header">` 附加到 `#page-header` 内 |
 | z-index | `-1`（在内容下方） | 默认（在 page-header 内） |
-| 帧率 | 30fps（targetFPS = 30） | **不限**，跟随 requestAnimationFrame（60fps） |
-| 移动端检测 | `window.innerWidth <= 768` → 星星数量减半 | **无** |
-| 星星数量 | 移动端 `width*0.04`，PC `width*0.08` | `0.216 * n`（n=宽度）≈ 21.6% |
+| 帧率 | 30fps（targetFPS = 30） | 30fps（已于 2026-05-04 优化） |
+| 移动端检测 | `window.innerWidth <= 768` → 星星数量减半 | 已于 2026-05-04 添加（粒子数降为 `0.04×width`） |
+| 星星数量 | 移动端 `width*0.04`，PC `width*0.08` | 移动端 `width*0.04`，PC `width*0.08`（优化后） |
 | 流星密度 | 0.04 | ≈ 0.01（`m(10)`，10/1000） |
-| 流星尾巴 | **10 个点**（已优化） | **30 个点**（未优化） |
-| visibility 暂停 | ✅ 标签页隐藏时暂停 | ❌ 始终运行 |
-| resize 节流 | ✅ 200ms 防抖 | ❌ 立即响应 |
+| 流星尾巴 | **10 个点**（已优化） | **10 个点**（已于 2026-05-04 从 30 缩短） |
+| visibility 暂停 | ✅ 标签页隐藏时暂停 | ✅ 已于 2026-05-04 添加 |
+| resize 节流 | ✅ 200ms 防抖 | ✅ 已于 2026-05-04 添加（200ms 防抖 + 重新初始化） |
 | 启动延迟 | 500ms | 0ms（DOMContentLoaded 立即） |
+| PJAX 清理 | 部分 | ✅ 已于 2026-05-04 添加（animationFrame + 事件监听器清理） |
 
-> **优化提示**：`header-universe.js` 是早期版本（缩略变量名 `n/e/i/h/o`，疑似从 minify 版回写），未经性能优化。如果后续要优化，可以参考 universe-optimized.js 的实现移植 30fps 节流和 visibility API。
+> **2026-05-04 更新**：`header-universe.js` 已移植 `universe-optimized.js` 的优化模式（30fps 节流 + visibility 暂停 + 移动端降级 + resize 防抖 + PJAX 清理）。详见 [06-theme-modifications/README.md](../06-theme-modifications/README.md) #3。
 
 ---
 
@@ -231,25 +232,25 @@ inject:
 
 ## L6 · 性能影响
 
-### 6.1 实测开销
+### 6.1 实测开销（优化后）
 
-| 场景 | universe-optimized | header-universe | 总和 |
+| 场景 | universe-optimized | header-universe（优化后） | 总和 |
 |---|---|---|---|
-| **PC（1920×1080）首页** | ~153 颗 × 30fps ≈ 5k 渲染op/s | ~414 颗 × 60fps ≈ 25k op/s | ~30k op/s |
-| **PC 文章页** | ~153 颗 × 30fps | ~414 颗（page-header 高度更小）× 60fps | 类似 |
-| **手机（375×667）首页** | ~15 颗 × 30fps ≈ 450 op/s | ~81 颗 × 60fps ≈ 5k op/s | ~5.5k op/s |
+| **PC（1920×1080）首页** | ~153 颗 × 30fps ≈ 5k op/s | ~153 颗 × 30fps ≈ 5k op/s | ~10k op/s |
+| **PC 文章页** | ~153 颗 × 30fps | ~153 颗 × 30fps | 类似 |
+| **手机（375×667）首页** | ~15 颗 × 30fps ≈ 450 op/s | ~15 颗 × 30fps ≈ 450 op/s | ~900 op/s |
 
-> **手机端的瓶颈在 header-universe.js**，因为它没有移动端降级。低端机（< Snapdragon 660）可能产生肉眼可见的卡顿。
+> **2026-05-04 更新**：header-universe.js 优化后，两套动画性能特征已基本对齐。总 CPU 开销约为优化前的一半。
 
-### 6.2 候选优化
+### 6.2 候选优化（已全部实施）
 
-| 优化项 | 收益 | 风险 |
-|---|---|---|
-| **header-universe.js 加 30fps 节流** | 减半 CPU 占用 | 视觉略不流畅 |
-| **header-universe.js 加 visibility 暂停** | 切标签页省电 | 几乎无风险 |
-| **header-universe.js 移动端粒子减半** | 移动端流畅度提升 | 视觉密度变化 |
-| **统一为单 canvas 复用** | 减少一次 canvas 上下文切换 | 重写工作量大 |
-| **CSS 替代（@property + animation）** | 完全 GPU 加速 | 流星轨迹难以表达 |
+| 优化项 | 状态 |
+|---|---|
+| **header-universe.js 加 30fps 节流** | ✅ 已完成（2026-05-04） |
+| **header-universe.js 加 visibility 暂停** | ✅ 已完成（2026-05-04） |
+| **header-universe.js 移动端粒子减半** | ✅ 已完成（2026-05-04） |
+| **统一为单 canvas 复用** | 未实施（重写工作量大，收益有限） |
+| **CSS 替代（@property + animation）** | 未实施（流星轨迹难以表达） |
 
 ---
 
@@ -332,11 +333,11 @@ header-universe.js
 
 ---
 
-## L12 · 候选 BUG / 待优化
+## L12 · 候选 BUG / 待优化（已解决）
 
-> 详见 [07-known-issues/discovered-issues/](../07-known-issues/discovered-issues/)（待建）
+> 以下问题已于 2026-05-04 修复（详见 [06-theme-modifications/README.md](../06-theme-modifications/README.md) #3）：
 
-1. `header-universe.js` 没有移动端降级，可能造成低端机卡顿
-2. `header-universe.js` 没有 visibility API，切标签页时仍消耗 CPU
-3. `header-universe.js` 没有 resize 防抖，连续拖动窗口可能 jank
-4. PJAX 切页后两套 canvas 都不重新初始化（如果 page-header 重建可能丢失 universe-header canvas）—— 需验证
+1. ~~`header-universe.js` 没有移动端降级~~ → ✅ 已添加
+2. ~~`header-universe.js` 没有 visibility API~~ → ✅ 已添加
+3. ~~`header-universe.js` 没有 resize 防抖~~ → ✅ 已添加
+4. PJAX 切页后两套 canvas 都不重新初始化（如果 page-header 重建可能丢失 universe-header canvas）— 需验证

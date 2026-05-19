@@ -34,17 +34,16 @@
 
 ---
 
-### BUG-003 — MathJax 体积过大
+### BUG-003 — MathJax 体积过大（已修复）
 
 | 项 | 值 |
 |---|---|
-| **状态** | 已修复（待验证渲染效果） |
+| **状态** | ✅ 已修复（2026-05-04 迁移至 KaTeX，已验证） |
 | **严重程度** | 中 |
 | **描述** | 本地引入了完整的 MathJax 3.2.2 库（1.1MB），但只有少数文章使用数学公式。影响首屏加载速度 |
-| **影响** | 所有页面的 JS 加载体积 |
-| **相关文件** | `source/js/MathJax-3.2.2/`（保留为回滚基点）、`source/js/katex/`（新增 KaTeX 0.16.19） |
-| **修复方案** | 迁移至 KaTeX 客户端渲染：JS 276KB + CSS 23KB + auto-render 3.5KB = 303KB，体积减少 74%。MathJax 3.2.2 完整保留 |
-| **验证状态** | HTML 构建验证通过，需浏览器确认公式渲染效果 |
+| **影响** | 已消除 — KaTeX 0.16.19 仅 303KB，体积减少 74% |
+| **相关文件** | `source/js/katex/`（KaTeX 当前方案）、`source/js/MathJax-3.2.2/`（已删除） |
+| **修复方案** | 迁移至 KaTeX 客户端渲染（katex.min.js 276KB + katex.min.css 23KB + auto-render 3.5KB）。`scripts/math-protect.js` 防 kramed 破坏公式语法 |
 | **关联文档** | [../04-operations/2026-05-04-katex-migration/README.md](../04-operations/2026-05-04-katex-migration/README.md) |
 
 ---

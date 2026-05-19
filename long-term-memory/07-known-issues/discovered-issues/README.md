@@ -23,51 +23,48 @@ type: project
 
 ## 1. 重复文件
 
-### 🔴 B1: lazy-loading-native.js 双份存在（**已修正：内容不完全相同**）
+### 🟢 B1: lazy-loading-native.js 双份存在 → ✅ 已清理（2026-05-06）
 
-- **位置**：`source/js/lazy-loading-native.js`（159 行）和 `themes/butterfly/source/js/lazy-loading-native.js`（159 行）
-- **内容**：⚠️ **MD5 不同**（`source/js`=`93A7…E414`，`themes/`=`B2F1…D47A`），不是 100% 复制粘贴
-- **Hexo 行为**：当同名文件同时存在于 `source/` 和 `themes/<theme>/source/`，**`source/` 会覆盖 `themes/`**——浏览器拿到的是 `source/js/lazy-loading-native.js` 的内容
-- **后果**：`themes/butterfly/source/js/lazy-loading-native.js` 实际是被遮蔽的死文件，但其内容与 source/ 那份不同步——长期维护时容易引发"我改了文件没生效"的疑问
-- **建议**：先做 diff 看清两者差异，如果 themes/ 那份是过时备份则删除；如果有独特内容则需先合并；**不要盲删任一份**
+- **原位置**：`source/js/lazy-loading-native.js` 和 `themes/butterfly/source/js/lazy-loading-native.js`
+- **处理**：两份文件已于 2026-05-06 物理删除（操作日志 #6），连同 `lazy-loading.js`、`lazy-image-refresh.js`、`lazy-video-refresh.js` 等一并清理
 
 ---
 
 ## 2. 死代码（**已修正：原列入死代码的文件实际仍在加载**）
 
-### 🟢 B2: lazy-loading.js 387 行 — **已修正：仍在使用，不是死代码**
+### 🟢 B2: lazy-loading.js 387 行 → ✅ 已删除（2026-05-06）
 
-- **位置**：`source/js/lazy-loading.js`（387 行）
-- **当初判断**：不被 inject 引用 → 误判为死代码
-- **实际**：被 `themes/butterfly/layout/includes/additional-js.pug:37` 通过 `script(src=url_for('/js/lazy-loading.js'))` 加载
-- **结论**：**不可删除**。删除会破坏图片懒加载兼容回退（jQuery + scroll 监听的旧版）
-- **后续**：如要简化懒加载架构，需先确认 `lazy-loading-optimized.js` 已完全覆盖兼容回退场景，再统一收敛
+- **原位置**：`source/js/lazy-loading.js`（387 行）
+- **处理**：于 2026-05-06 物理删除（操作日志 #6）。init 确认被架空，scroll 路径重复工作，安全移除
+- **兼容确认**：`additional-js.pug` 中的加载引用已于 2026-05-05 移除（操作日志 #5）
 
-### 🟢 B3: lazy-loading.css 235 行 — **已修正：仍在使用，不是死代码**
+### 🟢 B3: lazy-loading.css 235 行 — 仍保留作为兼容回退
 
-- **位置**：`source/css/lazy-loading.css`（235 行，魔法漩涡风格占位符）
-- **当初判断**：不被 inject 引用 → 误判为死代码
-- **实际**：被 `themes/butterfly/layout/includes/head.pug:62` 通过 `link(rel='stylesheet', href=url_for('/css/lazy-loading.css'))` 加载
-- **结论**：**不可删除**。删除会丢失占位符样式，部分页面（特别是用 `lazy-loading.js` 兼容路径的）将看到无样式占位
-- **后续**：如要清理"魔法漩涡风格"占位符，需先确认所有页面都用 `lazy-loading-optimized.css` 的占位符再切换
+- **位置**：`source/css/lazy-loading.css`（魔法漩涡风格占位符）
+- **状态**：仍被 `head.pug:62` 引用，作为兼容回退的占位符样式
+- **注意**：对应 JS（`lazy-loading.js`）已删除，但 CSS 保留以确保旧页面兼容
 
-> **教训**（同时给本项目和未来 AI 阅读者）：判断"是否被引用"必须 grep **三个层面**——`_config.butterfly.yml` inject 节、`source/` 内引用、**主题 pug 模板**。漏掉主题 pug 是本次审计的事实错误，已在 2026-05-04 修正。
+> **教训**（同时给本项目和未来 AI 阅读者）：判断"是否被引用"必须 grep **三个层面**——`_config.butterfly.yml` inject 节、`source/` 内引用、**主题 pug 模板**。B2/B3 最初因只检查 inject 层被误判为死代码，后经 pug 模板检查修正，最终在懒加载精简中随冗余系统一并清理。
 
 ---
 
 ## 3. 性能隐患
 
-### 🟡 B4: header-universe.js 没有性能优化
+### 🟡 B4: header-universe.js 没有性能优化 → ✅ 已修复（2026-05-04）
 
 - **位置**：`themes/butterfly/source/js/header-universe.js`（124 行）
-- **问题**：
-  - 无 FPS 节流（始终 60fps+，universe-optimized.js 限制 30fps）
-  - 无 visibility API 暂停（切标签页仍然渲染）
-  - 无移动端降级（粒子数量 = width × 0.216，不随屏幕缩小）
+- **原问题**：
+  - 无 FPS 节流（始终 60fps+）
+  - 无 visibility API 暂停
+  - 无移动端降级
   - 无 resize 防抖
-  - 流星尾巴 30 点（vs optimized 的 10 点）
-- **影响**：移动端低端机卡顿、标签页后台持续耗电
-- **建议**：移植 universe-optimized.js 的优化模式（30fps 节流 + visibility 暂停 + 移动端减半）
+  - 流星尾巴 30 点
+- **修复内容**（2026-05-04，commit `f84d526`）：
+  - 30fps 节流 + visibility 暂停 + 移动端粒子减半（`0.04×width`）
+  - 桌面端粒子数从 `0.216×width` 降为 `0.08×width`
+  - 流星尾巴从 30 点缩短为 10 点
+  - resize 200ms 防抖 + PJAX 清理
+- **关联文档**：[06-theme-modifications/README.md](../../06-theme-modifications/README.md) #3
 
 ### 🟡 B5: 多套懒加载 3 秒周期扫描
 
@@ -203,51 +200,52 @@ type: project
 
 ---
 
-## 汇总统计（**2026-05-04 更新**）
+## 汇总统计（**2026-05-19 更新**）
 
 | 严重程度 | 数量 | 项 |
 |---|---|---|
 | 🔴 高 | 1 | B11 (hardcoded password) |
-| 🟡 中 | 12 | B4, B5, B6, B8, B9, B10, B12, B13, B14, B16, B17, B20 |
+| 🟡 中 | 11 | B5, B6, B8, B9, B10, B12, B13, B14, B16, B17, B20 |
 | 🟢 低 | 3 | B7, B15, B18, B19 |
-| ⚠️ 已修正（非真实 BUG / 不可删） | 2 | B2 (仍在加载，不可删), B3 (仍在加载，不可删) |
-| 🔍 待重新评估 | 1 | B1 (两份 MD5 不同，需先 diff) |
+| ✅ 已修复 | 5 | B1 (重复文件已删除), B2 (文件已删除), B3 (CSS 保留但对应 JS 已删除), B4 (header-universe 优化已完成), B7 (avatar-ring reduced-motion 已添加) |
 | **总计（原始项数）** | **20** | |
 
 ---
 
-## 建议修复优先级（**2026-05-04 更新**）
+## 建议修复优先级（**2026-05-19 更新**）
 
 ```text
-🟢 已通过 Q1-Q7 快速修复批次处理（详见 04-operations/2026-05-04-quick-fixes/）：
+✅ 已通过 Q1-Q13 + 懒加载精简处理：
   Q1 → B13 (algolia URL)
   Q2 → B7  (avatar-ring 无障碍)
   Q3 → B16 (jquery 去重)
   Q5 → B12 (coffer skip_render)
   Q7 → B19 (typewriter JS 无障碍)
+  Q8 → elemecdn 版本锁定
+  Q9 → observer disconnect
+  Q10 → destroy activation
+  Q11 → typewriter clearInterval
+  Q12 → Font Awesome 去重
+  Q13 → header-universe 优化 (→ B4)
+  懒加载精简 → B1, B2, B3 相关文件删除
 
-第一优先级（安全决策）：
-  1. B11 — 评估 coffer 是否需要服务端验证
+当前剩余待处理：
+  第一优先级（安全决策）：
+    1. B11 — 评估 coffer 是否需要服务端验证
 
-第二优先级（性能 + 稳定性，需中等改动）：
-  2. B4  — header-universe.js 性能优化
-  3. B8  — typewriter PJAX 内存泄漏
-  4. B9  — lazy-loading PJAX 内存泄漏
-  5. B10 — lazy-loading-about PJAX 内存泄漏
-  6. B14 — elemecdn @latest 固定版本（需 npm view 调研）
+  第二优先级（性能 + 稳定性）：
+    2. B5  — 多套 3s 扫描合并（大部分已随脚本删除解决）
+    3. B8  — typewriter PJAX 内存泄漏
+    4. B9  — lazy-loading PJAX 内存泄漏
+    5. B10 — lazy-loading-about PJAX 内存泄漏
+    6. B14 — elemecdn @latest 固定版本
 
-第三优先级（架构改造，需大改）：
-  7. B5  — 多套 3s 扫描合并
-  8. B6  — swiper 70+ 张分页/虚拟滚动
-  9. B17 — Font Awesome 重复（需改主题 pug）
-  10. B20 — swiper Object URL 泄漏
+  第三优先级（架构改造）：
+    7. B6  — swiper 70+ 张分页/虚拟滚动
+    8. B17 — Font Awesome 重复（需改主题 pug）
+    9. B20 — swiper Object URL 泄漏
 
-第四优先级（先调研再行动）：
-  11. B1  — lazy-loading-native 双份 diff（先看差异，再决定）
-  12. B15 — 资源 hash 版本号（build hook 改造）
-  13. B18 — about carousel data-carousel 重复（先读 lazy-loading-about.js）
-
-不在 BUG 列表（已修正）：
-  ❌ B2 — lazy-loading.js 仍在 additional-js.pug 加载，不可删
-  ❌ B3 — lazy-loading.css 仍在 head.pug 加载，不可删
+  第四优先级（低优先级）：
+    10. B15 — 资源 hash 版本号
+    11. B18 — about carousel data-carousel 重复
 ```

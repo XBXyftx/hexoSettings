@@ -483,3 +483,32 @@
 - [x] PowerShell 语法解析通过：`tools/convert-to-webp.ps1`
 - [x] PowerShell 语法解析通过：`tools/update-markdown-images.ps1`
 - [x] 本次未直接执行 `npm.cmd run webp`，避免在未确认源图已纳入 git 前触发源图删除
+
+---
+
+### #14 — 2026-05-19 — 修复 update-markdown-images.sh Markdown 图片引用丢失扩展名
+
+**操作人**：AI 助手（Claude Code）
+
+**涉及文件**：
+- 修改 `tools/update-markdown-images.sh` — 修复 Markdown `![]()` 图片引用替换逻辑的两个 bug
+- 修改 `source/_posts/最优化理论期末复习.md` — 修复被 bug 损坏的图片引用
+
+**操作详情**：
+
+1. **Bug 1 — 扩展名被删除未补充**：Perl 替换逻辑中，正则 `s{\[([^\]]*)\]\(([^)]*?)(\.ext)\)}` 将扩展名单独捕获到 `$3`，路径部分（不含扩展名）捕获到 `$2`。但替换代码对 `$2` 执行 `s/(\.ext)$/.webp/`，此时 `$2` 已不含扩展名，替换为 no-op，导致最终输出缺少扩展名（如 `![2](path/2)` 而非 `![2](path/2.webp)`）。
+   
+   **修复**：改为直接拼接 `.webp` 到 `$2`（与 HTML `src` 替换逻辑一致）。
+
+2. **Bug 2 — 内层正则破坏 `$1` 捕获**：Perl 的 `$1` 变量是动态作用域。替换代码中的 `if ($p =~ /^(https?:|data:|\/\/)/)` 内层正则匹配成功后，`$1` 被覆盖为 `https:`，导致最终输出的 alt 文本变成 `https:` 而非原始 alt。
+   
+   **修复**：在 eval 代码开头立即将 `$1` 保存到 `my $alt`，后续引用 `$alt` 而非 `$1`。
+
+3. 修复 `source/_posts/最优化理论期末复习.md` 中被 Bug 1 损坏的引用：`![2](最优化理论期末复习/2)` → `![2](最优化理论期末复习/2.webp)`
+
+**验证结果**：
+- [x] Perl 正则测试通过（本地路径、远程 URL、排除域名三种场景）
+- [x] bash 语法检查通过
+- [x] 全仓库无其他被 bug 损坏的引用
+
+**Git commit**：待提交

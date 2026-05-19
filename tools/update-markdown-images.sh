@@ -87,13 +87,20 @@ update_file() {
                 }
                 # Markdown image: ![](path.ext)
                 s{\[([^\]]*)\]\(([^)]*?)(\.'"$ext"')\)}{
+                    my $alt = $1;
                     my $p = $2;
-                    if ($p =~ /^(https?:|data:|\/\/)/ && $p !~ /bu\.dusays\.com|raw\.githubusercontent\.com|\.github\.io|\.githubusercontent\.com/i) {
-                        $p =~ s/(\.'"$ext"')$/.webp/;
-                    } elsif ($p !~ /^(https?:|data:|\/\/)/) {
-                        $p =~ s/(\.'"$ext"')$/.webp/;
+                    my $orig_ext = $3;
+                    if ($p =~ /^(https?:|data:|\/\/)/) {
+                        # Remote URL: only convert if not in exclude list
+                        if ($p =~ /bu\.dusays\.com|raw\.githubusercontent\.com|\.github\.io|\.githubusercontent\.com/i) {
+                            $p = $p . $orig_ext;   # Excluded: keep original extension
+                        } else {
+                            $p = $p . ".webp";      # Convert to .webp
+                        }
+                    } else {
+                        $p = $p . ".webp";          # Local path: always use .webp
                     }
-                    "[$1](${p})"
+                    "[${alt}](${p})"
                 }gie;
                 # HTML img src
                 s{(src=["\x27])([^"\x27]+?)(\.'"$ext"')(["\x27])}{

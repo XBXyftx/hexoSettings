@@ -1,7 +1,7 @@
 # 长期记忆索引 — XBXyftx Hexo 博客项目
 
 > **AI 必读**：每次进入新会话，第一步必须阅读本文件。严禁跳过索引直接操作代码。
-> **当前日期**：2026-05-17
+> **当前日期**：2026-05-19
 > **项目状态**：活跃维护中，持续发布新文章
 
 ---
@@ -14,7 +14,7 @@
 | **技术栈** | Hexo 7.3.0 + Butterfly 主题 v5.3.2 |
 | **语言** | zh-CN |
 | **部署** | GitHub Pages + 私有服务器（双部署） |
-| **文章数** | 51 篇（49 篇含 asset 文件夹，2 篇不含） |
+| **文章数** | 53 篇（51 篇含 asset 文件夹，2 篇不含） |
 | **主题** | Butterfly（重度自定义） |
 | **核心特色** | 鸿蒙开发技术博客、AI 编程经验分享、Vibe Coding 实践 |
 
@@ -49,7 +49,7 @@
 
 ## 快捷命令
 
-> ⚠️ 涉及 `webp` 的命令（`dev / opt / pub / webp`）首次运行需先安装 `libwebp`，且会**删除源图原图**。跨平台自动适配（Win: `.ps1`, Mac: `.sh`）。详见 [03-api-practices/webp-conversion.md](03-api-practices/webp-conversion.md) 和项目根 `部署.txt`。
+> ⚠️ 涉及 `webp` 的命令（`dev / opt / pub / webp`）首次运行需先安装 `libwebp`，且会**删除源图原图**。跨平台自动适配（`dispatch-webp.js` 自动检测 OS：Win→pwsh+.ps1, Mac/Linux→bash+.sh）。详见 [03-api-practices/webp-conversion.md](03-api-practices/webp-conversion.md) 和项目根 `部署.txt`。
 
 ```bash
 # 开发
@@ -77,7 +77,7 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 - [WebP 图片转换工作流](03-api-practices/webp-conversion.md) — 首次配置环境 / 跑 webp 报错 / 新增图片前必读
 
 ### 运行时模块
-- [兜底模块全览（Twikoo/MathJax/Mermaid + inject）](03-api-practices/fallback-modules.md) — 评论/公式/图表三大模块 + inject.head/bottom 资源全景图
+- [兜底模块全览（Twikoo/KaTeX/Mermaid + inject）](03-api-practices/fallback-modules.md) — 评论/公式/图表三大模块 + inject.head/bottom 资源全景图
 - [Plotly 函数可视化渲染规范](03-api-practices/plotly-function-visualization.md) — 交互式函数图像模板（1D 曲线 + 3D 曲面）、PJAX 兼容、颜色规范
 - [星空背景动画（Universe）](03-api-practices/universe-background.md) — header-universe.js 实现细节、粒子系统、流星效果
 - [图片懒加载系统](03-api-practices/lazy-loading-system.md) — 多套懒加载方案协同、IntersectionObserver、PJAX 重初始化

@@ -79,8 +79,7 @@ This is a Hexo static site generator blog using the Butterfly theme. The blog is
 - **libwebp** (`cwebp` / `gif2webp`) - Required for WebP image conversion
   - Windows: `scoop install main/libwebp`
   - macOS: `brew install webp`
-- **PowerShell** (`pwsh`) - Required on macOS for cross-platform script compatibility
-  - macOS: `brew install powershell`
+- **WebP 跨平台调度**：`tools/dispatch-webp.js` 自动检测 OS（Windows→pwsh+.ps1, macOS/Linux→bash+.sh），macOS/Linux **不需要**安装 PowerShell
 
 ### Post Front Matter
 When creating posts, use these fields:

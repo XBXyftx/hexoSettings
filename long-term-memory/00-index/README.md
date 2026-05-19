@@ -36,6 +36,8 @@
 | 自动图片列表 | `/scripts/auto-image-list.js` | 扫描 `source/swiper/images/` 生成轮播图索引 |
 | 隐私文章扫描 | `/scripts/private-posts-scanner.js` | 扫描 `source/coffer/private-posts/` 生成索引（MD5优化） |
 | 图片尺寸注入 | `/scripts/image-dimensions.js` | 为 `<img>` 标签注入 width/height 防布局抖动 |
+| 生日页面扫描 | `/scripts/birthday-gift-scanner.js` | 扫描 `source/birthday-gift/events/` 生成事件数据 JSON |
+| KaTeX 公式保护 | `/scripts/math-protect.js` | 在 kramed 渲染前保护 `$...$` 公式语法 |
 
 ### 内容创作技术
 

@@ -20,7 +20,7 @@ type: project
   - **lib.baomitu.com** — 国内加速（pjax、sharejs）
   - **at.alicdn.com** — 图标字体（iconfont）
   - **lf*-cdn-tos.bytecdntp.com** — **已全面弃用**（大面积 404，全部迁移至 cdnjs）
-  - **本地 `/js/`** — 关键依赖（MathJax 1.1MB、Twikoo、Typed）
+  - **本地 `/js/`** — 关键依赖（KaTeX 303KB、Twikoo、Typed）
 - **双 provider 架构**：`internal_provider: local`（主题内置脚本始终本地）+ `third_party_provider: jsdelivr`（第三方库默认走 jsdelivr，但 `option` 节逐项覆盖了具体 URL）
 - **关键事件**：bytecdntp.com（字节跳动 CDN）在某个时间点大面积 404，导致 fancybox、instantpage、lazyload、medium_zoom、snackbar、waline 等多个库全部加载失败。项目逐项替换为 cdnjs.cloudflare.com，并保留了被注释的旧 URL 作为迁移记录。
 
@@ -39,8 +39,8 @@ CDN 决策树（每个第三方资源）：
   ├── 在 CDN.option 中有显式 URL？
   │   └── 使用显式 URL（逐项覆盖 third_party_provider）
   │
-  ├── 是 MathJax / Twikoo / Typed？
-  │   └── 本地 `/js/`（体积大/私有部署/稳定性）
+  ├── 是 KaTeX / Twikoo / Typed？
+  │   └── 本地 `/js/`（体积/私有部署/稳定性）
   │
   └── 其他第三方库
       └── third_party_provider: jsdelivr（默认，但大部分已被 option 覆盖）
@@ -125,7 +125,7 @@ Tianli（张洪 Heo）维护的 CDN 镜像站，主要用于他开发的 js-heo 
 
 | 资源 | 本地路径 | 体积 | 保留原因 |
 |---|---|---|---|
-| **mathjax** | `/js/MathJax-3.2.2/es5/tex-mml-chtml.js` | ~1.1MB | 体积太大，CDN 加载慢；文章页核心功能，不能依赖外部 |
+| **katex** | `/js/katex/katex.min.css` | ~303KB（含 JS+CSS+fonts） | 数学公式核心功能；本地同域加载，避免 CDN 延迟 |
 | **twikoo** | `/js/twikoo.js` | ~200KB | 评论系统，需与服务端版本匹配；私有部署稳定性 |
 | **typed** | `/js/typed.umd.js` | ~15KB | 体积小但使用频繁（首页打字），本地零延迟 |
 
@@ -220,17 +220,17 @@ jQuery 3.6.0 同时出现在两个地方：
 
 ## L5 · 为什么有些资源保留本地
 
-### 5.1 MathJax 3.2.2（1.1MB）— 本地
+### 5.1 KaTeX 0.16.19（303KB）— 本地
 
 ```
-CDN.option.mathjax: /js/MathJax-3.2.2/es5/tex-mml-chtml.js
+CDN.option.katex: /js/katex/katex.min.css
 ```
 
 **理由**：
-- 体积 1.1MB，CDN 首次加载慢（尤其是国内访问 cdnjs 可能 2-3s）
-- MathJax 是文章页核心功能（数学公式渲染），不可降级
+- 于 2026-05-04 从 MathJax 3.2.2（1.1MB）迁移，体积减少 74%
+- 公式渲染是文章页核心功能，不可降级
 - 本地随 `hexo generate` 一起进入 `public/js/`，与博客同域、同 CDN 加速
-- 如果走 CDN 且有版本更新，可能引入渲染行为变化
+- 客户端渲染（auto-render + `scripts/math-protect.js` 防 kramed 破坏公式）
 
 ### 5.2 Twikoo（~200KB）— 本地
 
@@ -267,7 +267,7 @@ CDN.option.typed: /js/typed.umd.js
 | **cdn1.tianli0.top 挂了** | 搜索（algolia）失效、音乐播放器（meting）失效、代码高亮（prismjs）退化、翻译功能失效 | 🟡 中 |
 | **lib.baomitu.com 挂了** | PJAX 无刷新切页失效（退化为整页刷新）、分享按钮消失 | 🟡 中 |
 | **at.alicdn.com 挂了** | tag_plugins 内图标字体变成方块 | 🟢 低 |
-| **本地 /js/ 文件缺失** | 评论失效（Twikoo）、数学公式无法渲染（MathJax）、首页打字不动（Typed）、jQuery 未定义导致 rightmenu/happy-title 等报错 | 🔴 高 |
+| **本地 /js/ 文件缺失** | 评论失效（Twikoo）、数学公式无法渲染（KaTeX）、首页打字不动（Typed）、jQuery 未定义导致 rightmenu/happy-title 等报错 | 🔴 高 |
 
 ### 6.2 单点故障恢复策略
 
@@ -301,7 +301,7 @@ baomitu 故障 → pjax/sharejs 切 cdnjs
 
 | # | 红线 | 后果 | 正确做法 |
 |---|---|---|---|
-| R1 | 把 MathJax 或 Twikoo 从本地改回 CDN | 评论/公式可能因版本不匹配或 CDN 故障而失效 | 保持本地 |
+| R1 | 把 KaTeX 或 Twikoo 从本地改回 CDN | 评论/公式可能因版本不匹配或 CDN 故障而失效 | 保持本地 |
 | R2 | 删除 `inject.bottom` 中的 `<script defer src="/js/jquery-3.6.0.min.js">` | rightmenu.js、happy-title.js、lightbox-enhanced.js 全部报 `$ is not defined` | 保留 |
 | R3 | 把 Font Awesome 从 inject.head 的异步加载改为同步 | 阻塞首屏渲染，LCP 增加 ~300ms | 保持 `media="print" onload` 异步模式 |
 | R4 | 恢复任何被注释的 bytecdntp URL | 资源 404，对应功能静默失效 | 不要恢复 |
@@ -342,7 +342,7 @@ baomitu 故障 → pjax/sharejs 切 cdnjs
 | swiper CDN | `_config.butterfly.yml` 的 `swiper` 节 |
 | envelope CDN | `_config.butterfly.yml` 的 `envelope_comment` 节 |
 | jQuery 本地 | `source/js/jquery-3.6.0.min.js` |
-| MathJax 本地 | `source/js/MathJax-3.2.2/` |
+| KaTeX 本地 | `source/js/katex/` |
 | Twikoo 本地 | `source/js/twikoo.js` |
 | Typed 本地 | `source/js/typed.umd.js` |
 
@@ -362,7 +362,7 @@ cdn-strategy
   ├── tag_plugins.elemecdn ──► 标签插件样式/动画/图标
   ├── swiper.elemecdn ──► 首页轮播图
   ├── envelope.elemecdn ──► 留言板信封动画
-  └── mathjax/twikoo/typed 本地 ──► 文章公式/评论/首页打字
+  └── katex/twikoo/typed 本地 ──► 文章公式/评论/首页打字
 ```
 
 ---

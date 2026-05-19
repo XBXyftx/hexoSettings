@@ -16,7 +16,7 @@
 | **代码高亮** | highlight.js | — | 行号已启用 |
 | **图表** | Mermaid | — | 流程图/时序图支持 |
 | **函数可视化** | Plotly.js | 2.27.0 (CDN) | 交互式函数图像、3D 曲面（详见 [plotly-function-visualization.md](plotly-function-visualization.md)） |
-| **公式** | MathJax | 3.2.2 | 本地完整版（1.1MB） |
+| **公式** | KaTeX | 0.16.19 | 客户端渲染（303KB），已从 MathJax 迁移 |
 | **评论** | Twikoo | — | 通过 Netlify 函数部署 |
 
 ---
@@ -104,7 +104,7 @@
 
 **完整规则、首次环境配置、扫描范围、排除规则、常见报错排查**：见 [webp-conversion.md](webp-conversion.md)。
 
-> 修改这两个 PowerShell 脚本前，请先阅读详细文档，并在 `04-operations/operation-log.md` 记录改动。
+> 修改这些脚本前，请先阅读详细文档，并在 `04-operations/operation-log.md` 记录改动。`.ps1` 和 `.sh` 两套实现需保持功能等价。
 
 ---
 

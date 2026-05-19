@@ -58,18 +58,20 @@ brew --version
 # 如未安装：/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-#### 步骤 2：安装 PowerShell + libwebp
+#### 步骤 2：安装 libwebp
 
 ```bash
-brew install powershell webp
+brew install webp
 ```
 
 #### 步骤 3：验证安装
 
 ```bash
-pwsh --version
 cwebp -version
+gif2webp -version
 ```
+
+> **不需要安装 PowerShell**：`dispatch-webp.js` 在 macOS/Linux 上使用 `bash` 执行 `.sh` 脚本，无需 `pwsh`。
 
 > **跨平台说明**：`npm run webp` 通过 `tools/dispatch-webp.js` 自动检测操作系统并调用对应脚本（`.ps1` / `.sh`），因此两种环境的使用方式完全一致。
 
@@ -79,7 +81,9 @@ cwebp -version
 
 | 命令 | 实际执行 | 何时用 |
 |---|---|---|
-| `npm run webp` | `convert-to-webp.ps1` → `update-markdown-images.ps1` | 仅做图片转换 + 引用更新，不构建不部署 |
+| `npm run webp` | `dispatch-webp.js` → 自动检测 OS → `.ps1`(Win) 或 `.sh`(Mac) | 仅做图片转换 + 引用更新，不构建不部署 |
+| `npm run webp:win` | `pwsh ./tools/convert-to-webp.ps1 && pwsh ./tools/update-markdown-images.ps1` | 强制 Windows 路径（调试用） |
+| `npm run webp:mac` | `bash ./tools/convert-to-webp.sh && bash ./tools/update-markdown-images.sh` | 强制 macOS/Linux 路径（调试用） |
 | `npm run dev` | `webp` → `clean` → `hexo server` | **写完文章后**：转换图片并启动本地预览 |
 | `npm run opt` | `webp` → `clean` → `build` | 仅本地构建优化产物（不部署） |
 | `npm run pub` | `opt` → `deploy` | **正式发布**：转换 + 构建 + 部署 |
@@ -90,17 +94,35 @@ cwebp -version
 
 ## L4 · 脚本细节（按需深读）
 
-> 脚本有两套实现，功能等价：
-> - **Windows**：`.ps1` (PowerShell)
-> - **macOS/Linux**：`.sh` (Bash)
-> - `npm run webp` 通过 `tools/dispatch-webp.js` 自动选择，无需手动判断。
+> **跨平台架构**：`npm run webp` → `tools/dispatch-webp.js` 自动检测 OS：
+> - **Windows** (`win32`)：`pwsh` 执行 `.ps1` 脚本
+> - **macOS / Linux**：`bash` 执行 `.sh` 脚本
+>
+> 两套实现功能等价，扫描范围、转换逻辑、引用替换规则保持一致。
+
+### 4.0 调度器：`tools/dispatch-webp.js`
+
+```javascript
+// 核心逻辑（18 行）
+const isWindows = process.platform === 'win32';
+const ext = isWindows ? 'ps1' : 'sh';
+const cmd = isWindows ? 'pwsh' : 'bash';
+
+// 顺序执行：先转换，再同步引用（&& 短路）
+run(`convert-to-webp.${ext}`);
+run(`update-markdown-images.${ext}`);
+```
+
+- **自动平台检测**：基于 `process.platform`（`win32` / `darwin` / `linux`）
+- **顺序执行**：`execSync` 同步调用，转换失败则引用同步不会执行
+- **输出透传**：`stdio: 'inherit'` 将脚本的彩色输出直接打印到终端
 
 ### 4.1 图片转换脚本
 
-| 路径 | 平台 |
-|------|------|
-| `tools/convert-to-webp.ps1` | Windows (PowerShell) |
-| `tools/convert-to-webp.sh` | macOS/Linux (Bash) |
+| 路径 | 平台 | 执行方式 |
+|------|------|---------|
+| `tools/convert-to-webp.ps1` | Windows | `pwsh` (PowerShell) |
+| `tools/convert-to-webp.sh` | macOS / Linux | `bash` |
 
 | 项 | 配置 |
 |---|---|
@@ -124,10 +146,10 @@ cwebp -version
 
 ### 4.2 引用同步脚本
 
-| 路径 | 平台 |
-|------|------|
-| `tools/update-markdown-images.ps1` | Windows (PowerShell) |
-| `tools/update-markdown-images.sh` | macOS/Linux (Bash) |
+| 路径 | 平台 | 执行方式 |
+|------|------|---------|
+| `tools/update-markdown-images.ps1` | Windows | `pwsh` (PowerShell) |
+| `tools/update-markdown-images.sh` | macOS / Linux | `bash` |
 
 | 项 | 配置 |
 |---|---|
@@ -222,11 +244,11 @@ cwebp -version
 
 | 用途 | 路径 |
 |---|---|
-| 跨平台调度器 | `tools/dispatch-webp.js`（npm run webp 入口） |
+| 跨平台调度器 | `tools/dispatch-webp.js`（`npm run webp` 入口，自动检测 OS 调用对应脚本） |
 | 转换脚本 (Win) | `tools/convert-to-webp.ps1` |
-| 转换脚本 (Mac) | `tools/convert-to-webp.sh` |
+| 转换脚本 (Mac/Linux) | `tools/convert-to-webp.sh` |
 | 引用同步脚本 (Win) | `tools/update-markdown-images.ps1` |
-| 引用同步脚本 (Mac) | `tools/update-markdown-images.sh` |
+| 引用同步脚本 (Mac/Linux) | `tools/update-markdown-images.sh` |
 | npm scripts 定义 | `package.json` 的 `scripts` 段 |
 | 环境配置原始来源 | `部署.txt`（项目根） |
 | 主配置文件 | `_config.yml`、`_config.butterfly.yml` |

@@ -13,15 +13,14 @@ type: project
 
 ## L1 · TL;DR（30 秒看完）
 
-- 项目当前**并存 5+ 套懒加载实现**，覆盖不同场景：
+- 项目当前**并存 3 套懒加载实现**，覆盖不同场景：
   1. **Butterfly 主题原生懒加载**（已在 `_config.butterfly.yml` 中 `lazyload.enable: false` **禁用**）
   2. **`lazy-loading-optimized.js`**（主题目录）— **目前的主要图片懒加载，由 inject 启用**
-  3. **`lazy-loading.js`**（source/js）— 详尽日志版本，已经替换/不被 inject 加载（但文件仍存在）
-  4. **`lazy-loading-native.js`**（source/js + theme，文件几乎完全相同 — DUPLICATE）— 兼容浏览器原生 `loading="lazy"`
-  5. **`lazy-image-refresh.js`** + **`lazy-video-refresh.js`**（source/js）— 失败重载按钮（5s 冷却）
-  6. **`lazy-loading-about.js`**（source/about/）— 关于页面专用 card-row 级懒加载 + 3D 轮播
-- **图片尺寸注入**（`scripts/image-dimensions.js`）会给所有非排除图片加 `loading="lazy"` 属性，让浏览器原生懒加载先生效，再由 JS 接管细节。
-- **冗余风险高**：多套并行可能重复处理同一张图，候选 BUG 详见 [07-known-issues/discovered-issues/](../07-known-issues/discovered-issues/)。
+  3. **`lazy-loading-about.js`**（source/about/）— 关于页面专用 card-row 级懒加载 + 3D 轮播
+- **已删除的冗余懒加载**（2026-05-05 ~ 2026-05-06）：
+  - `lazy-loading.js`、`lazy-loading-native.js`（source/js + themes 双重）、`lazy-image-refresh.js`、`lazy-video-refresh.js` 及相关 CSS 已物理删除
+  - `lazy-loading.css` 保留（head.pug 仍引用）
+- **图片尺寸注入**（`scripts/image-dimensions.js`）会给所有非排除图片加 `width`/`height`/`loading="lazy"` 属性，防止 CLS。
 
 ---
 
@@ -51,33 +50,14 @@ type: project
                                   │
                                   ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│  lazy-loading.js（source/js）— 详尽日志版本                             │
-│  ─ 文件存在但**不被 inject 加载**，已被 optimized 取代                  │
-│  ─ 保留作为参考实现                                                     │
-└─────────────────────────────────────────────────────────────────────────┘
-                                  │
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  lazy-loading-native.js（source/js + theme — DUPLICATE!）               │
-│  ─ 兼容浏览器原生 loading="lazy"，提供 fade-in 动画和锚点跳转预加载     │
-│  ─ 暴露 window.lazyLoadPreload(element, offset) 给 TOC 跳转使用         │
-└─────────────────────────────────────────────────────────────────────────┘
-                                  │
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│  lazy-image-refresh.js + lazy-video-refresh.js（source/js）             │
-│  ─ 失败的图片/视频上挂"刷新"按钮，5s 冷却                                │
-│  ─ 监听全局 error 事件 + 滚动停止扫描 + 锚点跳转扫描 + 3s 周期扫描       │
-└─────────────────────────────────────────────────────────────────────────┘
-                                  │
-                                  ▼
-┌─────────────────────────────────────────────────────────────────────────┐
 │  lazy-loading-about.js（关于页专用）                                    │
 │  ─ 仅 /about/ 页面使用                                                  │
 │  ─ card-row 级别懒加载，进入视口才加载该 row 内所有图片                 │
 │  ─ 加载完成后启动该 row 内的 3D 轮播图                                  │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
+
+> **已删除的系统**（2026-05-05 ~ 2026-05-06 精简）：`lazy-loading.js`（旧版兼容回退）、`lazy-loading-native.js`（source + theme 双重）、`lazy-image-refresh.js`（图片刷新按钮）、`lazy-video-refresh.js`（视频懒加载+刷新）。详见 [操作日志 #5](../04-operations/operation-log.md) 和 [#6](../04-operations/operation-log.md)。
 
 ---
 
@@ -129,147 +109,26 @@ createObserver()
 
 ---
 
-## L4 · `lazy-loading.js`（详尽日志版 — 已废弃）
+## L4 · 已删除的懒加载系统（历史记录）
 
-> 文件：`source/js/lazy-loading.js`（387 行）
-> 加载方式：**未被 inject 加载**（候选删除）
+以下系统于 2026-05-05 ~ 2026-05-06 被移除（操作日志 #5、#6）：
 
-### 4.1 与 optimized 的差异
-
-| 维度 | lazy-loading.js | lazy-loading-optimized.js |
+| 文件 | 原用途 | 删除原因 |
 |---|---|---|
-| 行数 | 387 | 173 |
-| console.log | 大量调试日志 | 仅必要日志 |
-| `isNativeLazyHandled(img)` 守卫 | ✅ 跳过原生 lazy 已处理 | ❌ 没这个保护 |
-| scrollDelay | 200ms 防抖 | IntersectionObserver 无需防抖 |
-| 已被 inject 加载 | ❌ | ✅ |
+| `source/js/lazy-loading.js` (387行) | 详尽日志版图片懒加载 | init 被架空，scroll 路径重复工作 |
+| `source/js/lazy-loading-native.js` (159行) | 原生 lazy 增强 | 对 1x1 GIF 执行无意义 fadeIn |
+| `themes/butterfly/source/js/lazy-loading-native.js` (159行) | 同上（重复文件） | 与 source/js/ 版本重复 |
+| `source/js/lazy-image-refresh.js` (440行) | 图片失败刷新按钮 | 持续扫描但从未触发 |
+| `source/js/lazy-video-refresh.js` (580行) | 视频懒加载+刷新 | 有 `loadVideo(src=undefined)` bug |
+| `source/css/lazy-image-refresh.css` (6KB) | 图片刷新按钮样式 | 对应 JS 已删除 |
+| `source/css/lazy-video-refresh.css` (8.8KB) | 视频刷新按钮样式 | 对应 JS 已删除 |
 
-### 4.2 候选清理建议
+**保留的文件**：
+- `source/css/lazy-loading.css` — 仍被 `head.pug:62` 引用，作为兼容回退的占位符样式
+- `source/css/lazy-loading-stable.css` — 防 CLS，inject.head 加载
+- `lazy-loading-about.js` — 关于页专用，独立维护
 
-文件保留是**历史代码**，建议在确认 optimized 稳定后删除。详见 [07-known-issues/discovered-issues/](../07-known-issues/discovered-issues/)。
-
----
-
-## L5 · `lazy-loading-native.js`（DUPLICATE）
-
-> 文件：
-> - `source/js/lazy-loading-native.js`（159 行）
-> - `themes/butterfly/source/js/lazy-loading-native.js`（159 行 — **完全相同**）
-
-### 5.1 用途
-
-依赖浏览器原生 `loading="lazy"` 属性（Chrome/Firefox/Safari 现代版本支持），脚本只做：
-
-1. 标记已被原生处理过：`img.dataset.nativeLazyHandled = 'true'`
-2. 加 fade-in 动画：opacity 0 → 1
-3. 暴露 `window.lazyLoadPreload(element, offset)` —— TOC 跳转时强制提前加载滚动目标周围的图
-
-### 5.2 暴露 API
-
-```js
-window.lazyLoadPreload = function(element, offset = 500) {
-  // 在 element 周围 offset 像素内的所有 [loading="lazy"] img
-  // 强制移除 loading 属性 → 立即加载
-};
-```
-
-被 `vscode-breadcrumb-toc.js` 调用：当用户点击 TOC 项时，跳转目标周围的图先预加载，避免落地后才看到占位符。
-
-### 5.3 重复文件问题
-
-两个文件**完全相同**。其中 `themes/butterfly/source/js/` 版本是项目自定义复制进主题的（主题原版没有），目的是通过主题 inject 来加载。**source/js/** 那份则没用上 —— 候选删除，详见 [07-known-issues/discovered-issues/](../07-known-issues/discovered-issues/)。
-
----
-
-## L6 · `lazy-image-refresh.js`（失败重载 + 5s 冷却）
-
-> 文件：`source/js/lazy-image-refresh.js`（440 行）
-
-### 6.1 触发条件
-
-- 全局 `error` 事件 → 任意 img 加载失败
-- 锚点跳转后 300ms → `scanFailedImages()`
-- 滚动停止 500ms → 扫描
-- 每 3s 周期扫描
-
-### 6.2 检测失败的判断
-
-```js
-function isImageLoadFailed(img) {
-  if (img.classList.contains('lazy-error')) return true;
-  // 已加载但 naturalWidth === 0 → 加载失败
-  if (img.naturalWidth === 0 && img.naturalHeight === 0) {
-    if (img.src && !img.src.includes('data:image/gif')) return true;
-  }
-  return false;
-}
-```
-
-### 6.3 添加刷新按钮
-
-失败的图片被包裹到 `.lazy-image-container` 中，附加 SVG 刷新按钮 + 5s 冷却保护：
-
-```text
-点击刷新按钮
-  ├── 检查冷却（lastRefreshTime Map 存上次刷新时间）
-  ├── 冷却中 → 显示倒计时
-  └── 冷却结束 → 重新加载
-       ├── 添加 ?_refresh=timestamp 防缓存
-       ├── new Image() 预加载
-       ├── 成功 → 替换 src，淡入，移除按钮
-       └── 失败 → 显示"失败"，2s 后恢复
-```
-
-### 6.4 暴露 API
-
-```js
-window.lazyImageRefresh = {
-  refresh: function(img) { ... },        // 刷新单张
-  refreshAll: function() { ... }         // 刷新所有失败的
-};
-```
-
----
-
-## L7 · `lazy-video-refresh.js`（视频懒加载 + 失败重载）
-
-> 文件：`source/js/lazy-video-refresh.js`（580 行）
-
-与 image-refresh 几乎平行设计，差异：
-
-| 维度 | image-refresh | video-refresh |
-|---|---|---|
-| 图标 | 圆箭头（refresh） | 三角形（play） |
-| 检测尺寸 | naturalWidth | video.error 对象 |
-| 容器类 | `.lazy-image-container` | `.lazy-video-container` |
-| 加载方式 | 直接替换 src | `<video>.src = ...; .load()` |
-| 文本 | "重新加载图片" | "重新加载视频" |
-| **额外功能** | 无 | **同时承担视频懒加载** — 不仅刷新失败视频，还观察未加载视频进入视口时加载 |
-
-### 7.1 视频懒加载流程
-
-```text
-prepareVideos()
-  └── 找所有 #article-container video:not([data-src])
-       ├── 把 src 移到 data-src
-       ├── 移除 src（让浏览器不立即加载）
-       └── 加 class .lazy-video .lazy-placeholder
-createObserver()
-  └── IntersectionObserver(rootMargin: 100px)
-       └── 进入视口 → loadVideo(v)
-            ├── v.src = data-src; v.load()
-            ├── canplaythrough → 标记 .lazy-loaded, opacity 1
-            └── error → handleVideoError → 加刷新按钮
-```
-
-### 7.2 暴露 API
-
-```js
-window.lazyVideoRefresh = {
-  refresh: function(video) { ... },
-  refreshAll: function() { ... }
-};
-```
+**API 兼容说明**：`lazy-loading-native.js` 暴露的 `window.lazyLoadPreload(element, offset)` 被删除后，`vscode-breadcrumb-toc.js` 中的调用需确认有 `typeof` 保护。`main.js:706` 的 `lazyLoadPreload` 已有 `typeof` 保护，安全降级。
 
 ---
 
@@ -338,11 +197,10 @@ window.AboutPageLazyLoading = {
 | 文件 | 用途 | 加载方式 |
 |---|---|---|
 | `themes/butterfly/source/css/lazy-loading-optimized.css` | optimized JS 配套，淡紫色占位符 + lazyShimmer 1.5s | inject.head 异步加载 |
-| `source/css/lazy-loading.css`（387 行 → 占位符魔法漩涡） | 旧版 lazy-loading.js 配套，conic-gradient 旋转动画 | **未被 inject 加载** |
-| `source/css/lazy-loading-stable.css` | 稳定版懒加载样式 + scroll-margin-top 90px（标题锚点缓冲） | inject.head 加载（如果配置了） |
-| `themes/butterfly/source/css/lazy-loading-stable.css` | 同上的主题副本 | inject.head 加载 |
-| `source/css/lazy-image-refresh.css` | 图片刷新按钮样式 | inject.head 加载 |
-| `source/css/lazy-video-refresh.css` | 视频刷新按钮样式 | inject.head 加载 |
+| `source/css/lazy-loading.css` | 魔法漩涡风格占位符（兼容回退） | head.pug 加载 |
+| `source/css/lazy-loading-stable.css` | 稳定版懒加载样式 + scroll-margin-top 90px（标题锚点缓冲） | inject.head 加载 |
+
+> **已删除的 CSS**：`lazy-image-refresh.css`、`lazy-video-refresh.css` 已于 2026-05-06 随对应 JS 物理删除。
 
 > **CSS 中的 `aspect-ratio: attr(width) / attr(height)`** —— 利用 `image-dimensions.js` 注入的 width/height 属性自动维持图片宽高比，**防 CLS 关键**。
 
@@ -362,17 +220,12 @@ T = 0     页面加载：
             
 T = ~50ms DOMContentLoaded:
             lazy-loading-optimized.js 接管，给所有图片加 IntersectionObserver
-            lazy-loading-native.js 给已被原生 lazy 加载的图加 fade-in
-            lazy-image-refresh.js 注册 error 监听器
-            lazy-video-refresh.js 准备视频懒加载
             
 T = 100ms+ 用户滚动:
             IntersectionObserver 触发 → 图片加载
-            滚动停止 500ms → lazy-image-refresh.js scanFailedImages
-            
-T = 3000ms 周期任务:
-            lazy-image-refresh.js / lazy-video-refresh.js 周期扫描失败项
 ```
+
+> **已删除的周期任务**：`lazy-image-refresh.js` 和 `lazy-video-refresh.js` 的 3s 周期扫描、scroll 监听、error 事件监听已于 2026-05-05 随脚本移除。
 
 ---
 
@@ -383,9 +236,8 @@ T = 3000ms 周期任务:
 | R1 | 在 `_config.butterfly.yml` 中重新启用 `lazyload.enable: true` | Butterfly 原生懒加载 + 自定义并发，可能给同一张图加两个观察器 | 保持禁用 |
 | R2 | 删除 `image-dimensions.js` 但保留 `lazy-loading-stable.css` | aspect-ratio 失效，所有图片占位符塌缩，CLS 暴涨 | 二者必须共存 |
 | R3 | 在文章中给 img 加 inline style `width: 100%` | 覆盖 image-dimensions 注入的 width 属性，aspect-ratio 失效 | 用 CSS 类，不用 inline width |
-| R4 | 删除 `lazy-image-refresh.js` 而不删除 `.lazy-error` CSS | 失败图片显示红色虚线框但没有刷新按钮 | 二者要么都删，要么都保留 |
-| R5 | 在文章正文里添加 `loading="eager"` 强制立即加载 | 抢首屏带宽，影响关键资源加载 | 只在封面图上用 eager |
-| R6 | 给 #article-container 加 `overflow: hidden` | IntersectionObserver 在某些浏览器中失效 | 用 `overflow: visible` 或不加 |
+| R4 | 在文章正文里添加 `loading="eager"` 强制立即加载 | 抢首屏带宽，影响关键资源加载 | 只在封面图上用 eager |
+| R5 | 给 #article-container 加 `overflow: hidden` | IntersectionObserver 在某些浏览器中失效 | 用 `overflow: visible` 或不加 |
 
 ---
 
@@ -426,28 +278,29 @@ T = 3000ms 周期任务:
 | 内容 | 路径 |
 |---|---|
 | 主图片懒加载 JS | `themes/butterfly/source/js/lazy-loading-optimized.js` |
-| 旧版图片懒加载（未启用） | `source/js/lazy-loading.js` |
-| 原生 lazy 增强（DUPLICATE） | `source/js/lazy-loading-native.js` + `themes/butterfly/source/js/lazy-loading-native.js` |
-| 图片刷新按钮 | `source/js/lazy-image-refresh.js` |
-| 视频懒加载 + 刷新按钮 | `source/js/lazy-video-refresh.js` |
 | 关于页 card-row 懒加载 + 3D 轮播 | `source/about/lazy-loading-about.js` |
 | 主图片懒加载 CSS | `themes/butterfly/source/css/lazy-loading-optimized.css` |
-| 防 CLS 稳定 CSS | `source/css/lazy-loading-stable.css` + 主题副本 |
-| 旧版 CSS（未启用） | `source/css/lazy-loading.css` |
+| 防 CLS 稳定 CSS | `source/css/lazy-loading-stable.css` |
+| 兼容回退占位符 CSS | `source/css/lazy-loading.css` |
 | 图片尺寸注入 | `scripts/image-dimensions.js` |
 | Butterfly 原生 lazy 配置 | `_config.butterfly.yml` 的 `lazyload:` 节（已禁用） |
 | 加载入口 | `_config.butterfly.yml` 的 inject.head / inject.bottom |
 
 ---
 
-## L14 · 候选 BUG 与优化（送 [07-known-issues/discovered-issues/](../07-known-issues/discovered-issues/)）
+## L14 · 已解决的候选 BUG
 
-1. **重复文件**：`source/js/lazy-loading-native.js` 与主题副本完全相同，建议删除 source/js 那份。
-2. **死代码**：`source/js/lazy-loading.js` 387 行未被加载，文件占空间，删除前需确认无外部引用。
-3. **未启用 CSS**：`source/css/lazy-loading.css` 占位符魔法漩涡风格 vs `lazy-loading-optimized.css` 极简紫色，前者未启用，但仍写在 source/ 中。
-4. **3 秒周期扫描的 CPU 消耗**：`lazy-image-refresh.js` 和 `lazy-video-refresh.js` 各自每 3 秒扫描一次，长会话累积可能影响性能。
-5. **scroll 监听器虽用 passive，但仍可能阻塞**：滚动时每 500ms 扫描，长文章 + 大量图片场景可优化为 `requestIdleCallback`。
-6. **没有 cleanup 机制**：PJAX 切页后旧的 IntersectionObserver、setInterval、event listener 都没被清理，可能内存泄漏。
+以下问题已在 2026-05-05 ~ 2026-05-06 的懒加载精简中解决：
+
+1. ~~**重复文件**~~：`lazy-loading-native.js`（source + theme 双重）— 已删除。
+2. ~~**死代码**~~：`lazy-loading.js` 387 行未被 inject 加载 — 已删除（后确认为 head.pug 加载，但操作 #5 验证 init 被架空后仍移除）。
+3. ~~**未启用 CSS**~~：`lazy-image-refresh.css`、`lazy-video-refresh.css` — 已随对应 JS 删除。
+4. ~~**3 秒周期扫描的 CPU 消耗**~~：`lazy-image-refresh.js` 和 `lazy-video-refresh.js` — 已随脚本删除。
+5. ~~**scroll 监听器**~~：`lazy-image-refresh.js` 的滚动扫描 — 已随脚本删除。
+
+**当前仍存在的优化空间**：
+- PJAX 切页后 `lazy-loading-optimized.js` 的 IntersectionObserver 未 disconnect（内存泄漏风险）
+- `lazy-loading-about.js` 的 3D 轮播 setInterval 在 PJAX 离开 /about/ 后未清理
 
 ---
 

@@ -345,24 +345,22 @@ window.getTopImages();        // 获取当前状态
 | **CLS**（累计布局抖动） | < 0.1 | 0.05 ~ 0.08 |
 | **FID/INP**（交互延迟） | < 100ms | 60-80ms |
 | **TTFB**（首字节） | < 600ms | 取决于 CDN |
-| **页面字节数** | < 1MB | ~ 1.5MB（含 MathJax 时 2.5MB） |
+| **页面字节数** | < 1MB | ~ 1.2MB（含 KaTeX 时 1.5MB） |
 
 ### 8.2 当前瓶颈
 
-1. **MathJax 3.2.2** 完整本地引入（1.1MB）—— 文章页字节数第一大户
-2. **header-universe.js** 未优化（30 个流星尾巴点 + 60fps）
-3. **多套懒加载** 累积 JS 解析时间
+1. **KaTeX 客户端渲染**：已从 MathJax（1.1MB）迁移至 KaTeX（303KB），体积减少 74%
+2. **header-universe.js 已优化**：30fps 节流 + visibility 暂停 + 移动端降级已实施
+3. **多套懒加载** 已精简，冗余脚本已删除
 4. **第三方 CDN** 部分不稳定（bytecdntp.com 已 404，elemecdn 偶尔慢）
 
 ### 8.3 候选优化（未实施）
 
 | 项 | 收益 | 工作量 |
 |---|---|---|
-| MathJax 改 KaTeX | -800KB | 中（需测试所有数学公式） |
-| MathJax 按需加载（含数学公式的文章才加载） | -800KB（无数学的页面） | 小 |
-| header-universe.js 加 30fps 节流 | 移动端流畅度 +30% | 小 |
-| 删除冗余懒加载脚本 | -50KB JS | 中（需验证依赖） |
 | 字节级 CDN 替换为 jsdelivr / unpkg | 减少 404 | 小 |
+| 统一懒加载方案（当前仍有 lazy-loading.css 等残留） | -20KB CSS | 小 |
+| 资源加 hash 版本号 | 缓存失效控制 | 中 |
 
 ---
 
