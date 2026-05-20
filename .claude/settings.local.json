@@ -46,7 +46,9 @@
       "Bash(bash *)",
       "Bash(perl -pe ' *)",
       "Bash(perl -wle ' *)",
-      "Bash(set +H)"
+      "Bash(set +H)",
+      "Bash(grep '\\\\.md$')",
+      "Bash(git checkout *)"
     ],
     "deny": [],
     "ask": []
