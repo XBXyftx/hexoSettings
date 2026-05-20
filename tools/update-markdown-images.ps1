@@ -40,7 +40,7 @@ function Update-FileContent($filePath, $isConfig = $false) {
             
             if ($isConfig) {
                 # 配置文件中的图片路径模式 (img: /path/to/image.png)
-                $configPattern = "(?m)^(\s*(?:img|favicon|default_top_img|index_img|archive_img|tag_img|category_img|footer_img|background|logo|error_img\.flink|error_img\.post_page)):\s*(.+)$escExt"
+                $configPattern = "(?m)^(\s*(?:img|favicon|default_top_img|index_img|archive_img|tag_img|category_img|footer_img|background|logo|load_image|error_img\.flink|error_img\.post_page)):\s*(.+)$escExt"
                 $content = [regex]::Replace($content, $configPattern, { 
                     param($m) 
                     $key = $m.Groups[1].Value

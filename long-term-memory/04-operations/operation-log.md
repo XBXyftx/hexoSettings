@@ -511,4 +511,37 @@
 - [x] bash 语法检查通过
 - [x] 全仓库无其他被 bug 损坏的引用
 
-**Git commit**：待提交
+**Git commit**：`02f2194`
+
+---
+
+### #15 — 2026-05-19 — 修复 update-markdown-images 配置文件正则漏掉 load_image 字段
+
+**操作人**：AI 助手（Claude Code）
+
+**涉及文件**：
+- 修改 `tools/update-markdown-images.sh` — 配置文件正则添加 `load_image`
+- 修改 `tools/update-markdown-images.ps1` — 同上
+- 修改 `_config.butterfly.yml` — `load_image: /img/loadImg.jpg` → `load_image: /img/loadImg.webp`
+
+**操作详情**：
+
+`themes/butterfly/source/img/loadImg.webp` 是自定义头像框背景图（preloader 加载图），webp 转换后源 `.jpg` 已被删除。但 `update-markdown-images` 脚本的两版实现中，**Markdown front matter 正则**包含 `load_image`，**配置文件正则**却漏了它。导致 `_config.butterfly.yml` 的 `load_image: /img/loadImg.jpg` 从未被更新为 `.webp`，preloader 加载时 404。
+
+**修复**：`.sh` 和 `.ps1` 的配置文件正则均添加 `load_image`，与 Markdown front matter 正则保持一致。
+
+**验证结果**：
+- [x] bash 语法检查通过
+- [x] pwsh 语法检查通过
+- [x] `_config.butterfly.yml` 引用已修正为 `.webp`
+
+### #15 附加 — 修复 styles.css 中两处硬编码的图片引用
+
+**涉及文件**：
+- 修改 `themes/butterfly/source/css/styles.css` — 2 处 `url()` 引用 `.jpg` → `.webp`
+
+**操作详情**：
+
+`styles.css` 中 `#aside-content .card-info.card-widget::before`（头像卡片背景）和 `::before`（滚动区域背景）两个伪元素的 `background-image: url()` 分别引用 `loadImg.jpg` 和 `scrollImg.jpg`。CSS 文件不在 webp 脚本扫描范围，两个 `.jpg` 源文件已被删除，引用未更新。
+
+**Git commit**：`35d5522`（合并于 load_image 修复）

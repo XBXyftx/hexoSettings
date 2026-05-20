@@ -815,7 +815,7 @@ preloader:
   enable: true # true|false
   load_color: '#000000' # '#37474f'
   load_style: spincat #nyancat #spincat # default|gear|ironheart|scarecrow|triangles|wizard|image
-  load_image: /img/loadImg.jpg
+  load_image: /img/loadImg.webp
 # Page Transition
 enter_transitions: true
 

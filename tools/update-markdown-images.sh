@@ -59,7 +59,7 @@ update_file() {
             # Config file patterns: img: /path/to/image.png
             perl -pe '
                 BEGIN { $changed = 0; }
-                if (m{^(\s*(?:img|favicon|default_top_img|index_img|archive_img|tag_img|category_img|footer_img|background|logo|error_img\.flink|error_img\.post_page)):\s*(.+?)(\.'"$ext"')(\s*)$}i) {
+                if (m{^(\s*(?:img|favicon|default_top_img|index_img|archive_img|tag_img|category_img|footer_img|background|logo|load_image|error_img\.flink|error_img\.post_page)):\s*(.+?)(\.'"$ext"')(\s*)$}i) {
                     my $val = $2;
                     if ($val !~ /bu\.dusays\.com|raw\.githubusercontent\.com|\.github\.io|\.githubusercontent\.com/i) {
                         $_ = "$1: $val.webp$4\n";
