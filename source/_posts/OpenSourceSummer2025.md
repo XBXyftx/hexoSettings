@@ -1,5 +1,5 @@
 ---
-title: 开源之夏
+title: 开源之夏NowInOpenHarmony
 date: 2025-06-29 14:01:21
 tags:
   - 开源之夏
@@ -66,50 +66,6 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
   </div>
 </div>
 
-![93](OpenSourceSummer2025/93.webp)
-
-![94](OpenSourceSummer2025/94.webp)
-
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin: 20px 0;">
-  <!-- 文章卡片1 -->
-  <div style="background: linear-gradient(135deg, #07C160 0%, #10B981 100%); border-radius: 12px; padding: 20px; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(7, 193, 96, 0.3);" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(7, 193, 96, 0.4)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(7, 193, 96, 0.3)'">
-    <div style="position: relative; z-index: 2;">
-      <div style="display: flex; align-items: center; margin-bottom: 12px;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="margin-right: 10px;">
-          <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.14.045c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 01-.023-.156.49.49 0 01.201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.837-6.656-6.088V8.89c-.135-.01-.27-.027-.407-.032zm-2.53 3.274c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.969-.982z"/>
-        </svg>
-        <div style="font-size: 15px; font-weight: 600;">00后开发者与开源鸿蒙的"双向奔赴"</div>
-      </div>
-      <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 13px; line-height: 1.5;">开放原子开源基金会专访：讲述我从技术学习者到生态贡献者的蜕变故事，以及 NowInOpenHarmony 平台背后的开发历程。</p>
-      <a href="https://mp.weixin.qq.com/s/O4VIz2-txXHqcwW0Q-qgZA" target="_blank" style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="white" style="margin-right: 6px;">
-          <path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7z"/>
-        </svg>
-        阅读原文
-      </a>
-    </div>
-  </div>
-
-  <!-- 文章卡片2 -->
-  <div style="background: linear-gradient(135deg, #3B82F6 0%, #6366F1 100%); border-radius: 12px; padding: 20px; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(59, 130, 246, 0.4)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(59, 130, 246, 0.3)'">
-    <div style="position: relative; z-index: 2;">
-      <div style="display: flex; align-items: center; margin-bottom: 12px;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="margin-right: 10px;">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-        </svg>
-        <div style="font-size: 15px; font-weight: 600;">开源之夏2025 | 华为项目获奖优秀学生系列展播⑥：薛博璇荣获“最快进步奖”</div>
-      </div>
-      <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 13px; line-height: 1.5;">评委评价：展现令人瞩目的成长速度与极强的实践能力，从零基础到独立完成全栈开发的蜕变历程。</p>
-      <a href="https://www.chaspark.com/#/hotspots/1226251692920639488" target="_blank" style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="white" style="margin-right: 6px;">
-          <path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3m-2 16H5V5h7V3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7h-2v7z"/>
-        </svg>
-        阅读原文
-      </a>
-    </div>
-  </div>
-</div>
-
 ## 前言
 
 我初次了解到开源之夏活动是在大一上半学期期间的第二届OpenHarmony技术峰会上，我听到了这个名字，当时的我对于OpenHarmony和OpenAtom都知之甚少，也没有能力去参与开源之夏的项目，所以也没有深入的了解。而真正的对开源之夏有所了解是发生在了大一下半学期的春耕校源行，在校源行的主会场，开放原子的工作人员也是介绍了一下开源之夏活动，我也是加入了活动群，但是并没有真正的报名参加，因为我依旧认为我没有能力承担独立的开发。而随着大二下的到来，我一直在由于大二升大三的这个暑假我是去实习还是在家里做项目，虽然手上有鸿小易这个待完善的项目，但我个人其实对如何继续完善它并没有很好的规划，我也担心我会不会因为这个项目的目标不明确而荒废一个假期。这个时候又是子安学长拯救了我，他推荐我去参与开源之夏，与此同时曾老师和开源协会团队也将开源之夏当做工作重点，我也因此决心要尝试去进行开源之夏的项目计划书的投递。
@@ -120,11 +76,11 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 随后又有几个兼职和老师的的项目机会横插在了我提交项目计划书到中选出结果的这段时间里。我内心也还是担心我无法中选，所以也先都拖着说等开源之夏的结果。就这样我怀着这种忐忑不安、但又充满希望的心境一路等待到了28号。
 
-![https:](https://bu.dusays.com/2025/06/29/686120088cd6b)
+![1751195653463.png](https://bu.dusays.com/2025/06/29/686120088cd6b.png)
 
 邮箱的提示音将我悬着的心放了下来，紧接着，协议的签署、群聊的组建、其他项目安排的善后就接二连三的排了上来，像是梦一样的确认了我的中选，以及接下来三个月我生活的基调。
 
-![https:](https://bu.dusays.com/2025/06/29/686123033e689)
+![1751196415807.png](https://bu.dusays.com/2025/06/29/686123033e689.png)
 
 我也是特意的问了一下老师能否写成博客文章的形式来进行记录，也是获得了老师的同意，要不没准这篇文章就胎死腹中了。
 
@@ -372,11 +328,11 @@ Web({
 
 我首先想到的就是我的Markdown格式，因为我的博客以及鸿小易还有其他一些项目使用的都是Markdown格式，且Markdown支持原生的图片链接格式，但问题在于Markdown格式中没有原生的视频格式。只能使用内挂HTML标签的形式去进行视频的上传。我并不确定在使用OpenHarmony三方库进行md渲染时会不会出现问题，所以暂时作为备案。
 
-![https:](https://bu.dusays.com/2025/07/08/686ccccad10e7)
+![1751960773950.png](https://bu.dusays.com/2025/07/08/686ccccad10e7.png)
 
 随后就是当下最常用的json格式。json格式我可以采用两种形式，一种是将爬取的HTML文件直接作为一整个字段进行传输然后使用web组件进行渲染确实可以。不过这个方案需要注意整体UI界面的一致性，这一点可能需要针对不同的网站获取到的数据进行定制化的处理。因为各个网站的文章内容部分很有可能会插入一些其他的样式，链接标签等，同时又因为鸿蒙中的Web组件并没有提供很多的属性来通过ArkTS直接调整、改变HTML的结构以及样式，所以我们需要在后端就完成对HTML的格式化处理，这样在鸿蒙中直接展示的时候就不会出现样式错乱的问题。
 
-![https:](https://bu.dusays.com/2025/07/08/686cce2e7dcc0)
+![1751961129379.png](https://bu.dusays.com/2025/07/08/686cce2e7dcc0.png)
 
 还有一种方式就是用`type`字段以及`value`字段来进行当前数据类型的区分，可以设置一个枚举类型规定三种数据类型，分别是`text`、`image`、`video`，然后根据不同的类型来决定`value`字段的值该被渲染为什么样的组件，通过这样的对象数组形式，利用循环渲染成文本、视频、图片组件。这样既可以传递文章的内容也可以正确的传递文章的结构。先暂时采用这种方式，并进行可行性验证。
 
@@ -392,15 +348,15 @@ Web({
 
 首先是OpenHarmony的官网，官网提供有很多的相关资讯，大多是以微信公众号的形式展现的，整体格式比较规整，我们先来进行爬取的尝试。
 
-![https:](https://bu.dusays.com/2025/07/08/686d0149b1aa2)
+![1751974181082.png](https://bu.dusays.com/2025/07/08/686d0149b1aa2.png)
 
 我找到了OpenHarmony官网的咨询页面，虽然咨询本身是很容易爬取的，但是要是想要自动爬取整个咨询页面的全部文章，我们就需要先获取到咨询页面的全部文章链接，然后针对每个链接进行爬取，最后将爬取到的数据整合到一起，所以我们需要先获取到咨询页面的全部文章链接。
 
-![https:](https://bu.dusays.com/2025/07/08/686d01d4c0807)
+![1751974351946.png](https://bu.dusays.com/2025/07/08/686d01d4c0807.png)
 
 找到目标点击结构，对其进行分析。但在展开其单个文章卡片的全部结构之后并没有找到`<a>`标签，所以我们不能直接去爬取`<a>`标签中所指向的目标链接，这是典型的SPA（单页应用）架构。
 
-![https:](https://bu.dusays.com/2025/07/08/686d02d5afee0)
+![1751974611565.png](https://bu.dusays.com/2025/07/08/686d02d5afee0.png)
 
 随后我改变了策略，转而模拟用户的点击行为并检测URL的变化以及检测网络请求，从网络请求的API的响应中获取URL。
 
@@ -914,7 +870,7 @@ JavaScript渲染后的页面内容已保存到 debug_page_js.html
 
 这主要是因为URL中的ID并非真实ID为了解决这个问题我再次对浏览器的网络请求进行抓包分析。
 
-![https:](https://bu.dusays.com/2025/07/08/686d0b7d8248c)
+![1751976824948.png](https://bu.dusays.com/2025/07/08/686d0b7d8248c.png)
 
 ```js
 {
@@ -1421,7 +1377,7 @@ OpenHarmony官网新闻爬虫启动...
 
 所以首先要去模仿用户点击全部的ul中的li才能获取全部的，链接，在点击完全部卡片之后再去将链接去重，将去重之后的结果进行逐一访问。
 
-![https:](https://bu.dusays.com/2025/07/09/686e265929f85)
+![1752049237718.png](https://bu.dusays.com/2025/07/09/686e265929f85.png)
 
 在获取内容时也要注意要将img的src字段在其懒加载结束之后也读取到json中将type字段的值写成image，同时value字段填写爬取到的src值。
 
@@ -1513,9 +1469,9 @@ def parse_article_content(self, article_url):
 
 在修改了代码并将上述算法函数进行参数微调以及适配合并进主函数的流程中后再次执行代码，进行测试。
 
-![https:](https://bu.dusays.com/2025/07/09/686e2c9736003)
+![1752050837041.png](https://bu.dusays.com/2025/07/09/686e2c9736003.png)
 
-![https:](https://bu.dusays.com/2025/07/09/686e2bfe7bb88)
+![1752050683416.png](https://bu.dusays.com/2025/07/09/686e2bfe7bb88.png)
 
 可以看到这次正确的爬取了全部的链接并且成功解析了绝大部分的链接，并且将图片以及视频的链接也成功爬取到了json文件中。
 
@@ -1618,11 +1574,11 @@ C:\Users\ASUS>   curl http://localhost:8001/health
 
 首先测试的是提前预留的健康检查接口，可以看到返回了健康检查状态。是正常的。随后我们再去检测一下爬虫数据获取接口。
 
-![https:](https://bu.dusays.com/2025/07/10/686e931fce2d1)
+![1752077085669.png](https://bu.dusays.com/2025/07/10/686e931fce2d1.png)
 
 请求之后没有任何反应，所以我打开后台进行日志的查看，发现日志是正常工作的，所以说明请求正常发送了，仅仅是因为我为了不过高频率的请求而被封禁IP而设置了少量间隔，整体的爬取速度很慢，所以才短时间内没有响应，在五分钟左后后我获得了数据。
 
-![https:](https://bu.dusays.com/2025/07/10/686e96990526d)
+![1752077973683.png](https://bu.dusays.com/2025/07/10/686e96990526d.png)
 
 不过这也提醒我了，需要设置一个缓存机制，每一小时或是其他时长的间隔进行爬取，每次请求直接返回缓存好的数据，这样就不用再额外等待现场爬取数据了，当然也有可能有人就是想要刷新获取最新的数据，所以我们可以在前端的UI界面加一行提示符来提示用户我们的资讯更新间隔，并设计一个按钮专门用来获取现爬取的最新数据。
 
@@ -1634,21 +1590,21 @@ ok今天先测试到这里了。
 
 虽然我的预期如此，但是在首次进行调试的时候还是发现了问题。
 
-![https:](https://bu.dusays.com/2025/07/10/686f6f67d2020)
+![1752133476018.png](https://bu.dusays.com/2025/07/10/686f6f67d2020.png)
 
 在服务器启动后优先执行了数据的爬取并没有直接启动服务，导致长达六七分钟的时间我们的任何API都没办法被请求，这是因为当前代码的执行顺序FastAPI框架必须等待数据爬取结束后才完成服务的启动。不过先不急着停止本次服务，先等待下一次自动数据更新是否成功。
 
-![https:](https://bu.dusays.com/2025/07/10/686f74e27280f)
+![1752134878048.png](https://bu.dusays.com/2025/07/10/686f74e27280f.png)
 
 可以看到在时间到了半小时的间隔之后数据的重新爬取确实是正常的触发了，但问题在于我再次请求服务端状态接口时是迟迟没有响应
 
-![https:](https://bu.dusays.com/2025/07/10/686f7522714eb)
+![1752134942432.png](https://bu.dusays.com/2025/07/10/686f7522714eb.png)
 
 我的推测是整个后端服务为单线程，在爬取数据时就会阻塞当前线程，虽然请求成功发送了，服务端也正常接收了，但只是进入了等待队列，需要等待新的数据获取完成后才会真正的返回响应，所以既没有超时也没有响应，所以我们需要将爬取数据的过程放到一个单独的线程中去执行，这样就可以避免阻塞主线程，从而保证服务端可以正常响应请求。
 
 经过了五分钟的等待，服务端终于返回了响应。
 
-![https:](https://bu.dusays.com/2025/07/10/686f76fcac501)
+![1752135416102.png](https://bu.dusays.com/2025/07/10/686f76fcac501.png)
 
 这也证实了我的猜想，当前的服务端逻辑存在严重问题，急需修正。
 
@@ -1835,7 +1791,7 @@ ok今天先测试到这里了。
 
 这次改进彻底解决了单线程阻塞问题，实现了真正的非阻塞服务架构，同时通过精细状态管理最大化服务可用性。
 
-![https:](https://bu.dusays.com/2025/07/10/686f7f320d774)
+![1752137517924.png](https://bu.dusays.com/2025/07/10/686f7f320d774.png)
 
 此时可以看到在初次启动服务后
 
@@ -1848,7 +1804,7 @@ INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
 
 对于这个问题，首先它在实际生产环境中并不常见，因为它仅会发生在服务器初次启动时，实际的生产环境中肯定**不会经常性的开关服务器**，同时Nginx的{% label **反向代理** orange %}以及{% label **均衡负载** orange %}也会保证在服务端升级维护时是多台服务器循环重启而非全部断联，也就是所谓的{% label **滚动升级** purple %}，来保障其{% label **高可用性原则** purple %}，基本不会发生以上现象。所以我们需要再次测试一下再后续的稳定运行阶段是否能在爬虫运行时保证主线程能正常的处理请求。同时我们也需要在客户端利用数据库来存储上一次加载的数据，以防止在启动时获取的数据为空或者是获取失败，这样可以极大的提高运行的稳定性。
 
-![https:](https://bu.dusays.com/2025/07/10/686f885d1b05c)
+![1752139864861.png](https://bu.dusays.com/2025/07/10/686f885d1b05c.png)
 
 在写上面这段分析时刚好也等到了下一次更新，我在此期间再次请求了新闻列表接口，发现正常获取了数据，说明主子线程已经成功分离。（我才发现之前请求时少了个正斜杠……汗流浃背了）
 
@@ -1858,7 +1814,7 @@ INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
 
 首先还是先去观察CSDN目标网页的网页结构，去观察其是如何进行页面跳转的，这将决定我们用什么手段去获取目标资讯页面的跳转URL。先是确认一下基地址。和OpenHarmony官网不同的点在于OpenHarmony官网是直接就有资讯页面的，而且是按照时间顺序排列的，我们直接自上而下的遍历就可以很自然的按照顺序去获取到我们所需要的资讯链接。但CSDN是一个全技术栈的程序员技术网站，我们只能输入关键词进行搜索，所以我要先将`OpenHarmony`输入搜索框并勾选好最新选项，我们才能按照时间顺序获取到按时间顺序排布的全部的资讯链接。
 
-![https:](https://bu.dusays.com/2025/07/10/686fbc1e064af)
+![1752153112189.png](https://bu.dusays.com/2025/07/10/686fbc1e064af.png)
 
 ```bash
 https://so.csdn.net/so/search?spm=1000.2115.3001.4498&q=openHarmony&t=all&u=&s=new
@@ -1868,11 +1824,11 @@ https://so.csdn.net/so/search?spm=1000.2115.3001.4498&q=openHarmony&t=all&u=&s=n
 
 确认了基地址后就来分析我们的目标资源地址藏在了哪里。
 
-![https:](https://bu.dusays.com/2025/07/10/686fbf6a96048)
+![1752153958404.png](https://bu.dusays.com/2025/07/10/686fbf6a96048.png)
 
 哇这个页面结构是真规整啊，我先展开每一个目标list-item查看其是否包含有我们的目标链接。
 
-![https:](https://bu.dusays.com/2025/07/10/686fc8d8cd004)
+![1752156369968.png](https://bu.dusays.com/2025/07/10/686fc8d8cd004.png)
 
 明文a标签，这可太美好了，我们直接取用其中的herf字段就可以作为资讯链接了，真是太美妙了。
 
@@ -1915,7 +1871,7 @@ https://so.csdn.net/so/search?spm=1000.2115.3001.4498&q=openHarmony&t=all&u=&s=n
 
 首先我考虑到的就是URL错误或失效，毕竟其中还包含了一些我们并不能确定的参数，于是我决定进行跳转进行测试。
 
-![https:](https://bu.dusays.com/2025/07/11/686fed1711bdd)
+![1752165651408.png](https://bu.dusays.com/2025/07/11/686fed1711bdd.png)
 
 跳转之后显示成功，但还不能掉以轻心，我决定用CMD进行请求测试。
 
@@ -2223,13 +2179,13 @@ class CSDNOpenHarmonyCrawler:
 
 首先任一点开两篇文章的链接，对比其结构，统一网站的同一类型子页面内容的格式应该是一致的模板。
 
-![https:](https://bu.dusays.com/2025/07/11/6870b1a461fc5)
+![1752215970486.png](https://bu.dusays.com/2025/07/11/6870b1a461fc5.png)
 
 首先通过第一篇文章直接选择文章正文内容的容器就可以定位到正文然后再逐级向上找到包裹全部文章正文的极小容器，这样我们就可以通过该容器来获取到全部文章内容了。
 
 id是`content_views`，类名可以不唯一，但是id肯定是唯一的，我们再找一篇文章进行一下验证。
 
-![https:](https://bu.dusays.com/2025/07/11/6870b308a30a4)
+![1752216326708.png](https://bu.dusays.com/2025/07/11/6870b308a30a4.png)
 
 ok现在我们就可以确定我们的目标文章内容就是这个容器了。开始编写爬起代码。
 
