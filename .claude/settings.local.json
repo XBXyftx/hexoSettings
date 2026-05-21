@@ -48,7 +48,8 @@
       "Bash(perl -wle ' *)",
       "Bash(set +H)",
       "Bash(grep '\\\\.md$')",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(pwsh -c \"Get-Command 'tools/update-markdown-images.ps1' -Syntax 2>&1\")"
     ],
     "deny": [],
     "ask": []
