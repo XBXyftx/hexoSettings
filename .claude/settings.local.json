@@ -49,7 +49,9 @@
       "Bash(set +H)",
       "Bash(grep '\\\\.md$')",
       "Bash(git checkout *)",
-      "Bash(pwsh -c \"Get-Command 'tools/update-markdown-images.ps1' -Syntax 2>&1\")"
+      "Bash(pwsh -c \"Get-Command 'tools/update-markdown-images.ps1' -Syntax 2>&1\")",
+      "Bash(python3 *)",
+      "Bash(exit 1)"
     ],
     "deny": [],
     "ask": []
