@@ -545,3 +545,35 @@
 `styles.css` 中 `#aside-content .card-info.card-widget::before`（头像卡片背景）和 `::before`（滚动区域背景）两个伪元素的 `background-image: url()` 分别引用 `loadImg.jpg` 和 `scrollImg.jpg`。CSS 文件不在 webp 脚本扫描范围，两个 `.jpg` 源文件已被删除，引用未更新。
 
 **Git commit**：`35d5522`（合并于 load_image 修复）
+
+
+### #23 — 2026-06-01 — Twikoo 前端版本升级 1.6.41 → 1.7.11
+
+**操作人**：AI 助手（Codex）
+**触发原因**：用户将 Twikoo 后端（Netlify Function）升级至 1.7.11，根据官方文档要求同步更新前端 CDN 版本号。
+
+**涉及文件**：
+-  — 从 jsDelivr CDN 下载 1.7.11 版（467KB → 938KB）替换旧版
+-  — Twikoo 版本号： → 
+-  — 行内注释标注版本和 CDN 来源
+-  — 更新版本号和文件路径
+-  — 更新版本号和文件路径
+-  — 技术栈表格标注版本号
+-  — 更新当前日期
+
+**操作详情**：
+1. 从 jsDelivr 下载 
+2. 替换  为更新版本
+3. 同步更新  中 Twikoo registry 版本
+4. 更新  中 CDN option 的版本注释
+5. 将长期记忆文档中的 Twikoo 引用统一更新（版本号 + 路径修正： → ）
+
+**验证结果**：
+- [x] 前端 twikoo.js 文件已替换为 1.7.11 版本
+- [x] 配置文件版本号已同步
+- [x] 长期记忆文档已更新
+- [ ] 需构建部署后验证评论区正常工作
+
+**对使用者的说明**：
+- Twikoo 前后端版本必须保持一致，否则可能发生 API 不兼容
+- 后续升级流程：1) 更新后端 Netlify Function → 2) 下载对应版本前端 JS → 3) 替换本地文件 → 4) 更新 plugins.yml → 5) hexo clean && hexo g && hexo d

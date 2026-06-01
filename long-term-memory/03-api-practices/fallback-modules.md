@@ -17,7 +17,7 @@ type: project
 
 | 模块 | 用途 | 加载方式 | 体积 | 故障影响 |
 |---|---|---|---|---|
-| **Twikoo** | 评论系统 | 本地 `/js/twikoo.js` + Netlify 后端 | ~200KB | 评论区空白 |
+|**Twikoo 1.7.11** | 评论系统 | 本地 `/js/twikoo.js` + Netlify 后端 | v1.7.11, ~938KB | 评论区空白 |
 | **KaTeX 0.16.19** | 数学公式渲染 | 本地 `/js/katex/` + 客户端 auto-render | ~303KB（含 CSS） | 公式显示为 LaTeX 源码 |
 | **Mermaid** | 图表渲染 | `hexo-filter-mermaid-diagrams` 插件 | 插件体积 | 代码块显示为原始 mermaid 语法 |
 

@@ -143,7 +143,7 @@ Tianli（张洪 Heo）维护的 CDN 镜像站，主要用于他开发的 js-heo 
 # medium_zoom:      lf6-cdn-tos.bytecdntp.com → cdnjs ✓
 # snackbar:         lf6-cdn-tos.bytecdntp.com → cdnjs ✓
 # snackbar_css:     lf3-cdn-tos.bytecdntp.com → cdnjs ✓
-# twikoo:           lf6-cdn-tos.bytecdntp.com → 本地 /js/twikoo.js ✓
+# twikoo:           lf6-cdn-tos.bytecdntp.com → 本地 /js/twikoo.js (v1.7.11) ✓
 # waline_js:        lf3-cdn-tos.bytecdntp.com → cdnjs ✓
 # jquery(tag_pl):   lf6-cdn-tos.bytecdntp.com → cdnjs ✓
 ```
@@ -232,7 +232,7 @@ CDN.option.katex: /js/katex/katex.min.css
 - 本地随 `hexo generate` 一起进入 `public/js/`，与博客同域、同 CDN 加速
 - 客户端渲染（auto-render + `scripts/math-protect.js` 防 kramed 破坏公式）
 
-### 5.2 Twikoo（~200KB）— 本地
+### 5.2 Twikoo 1.7.11（~938KB）— 本地
 
 ```
 CDN.option.twikoo: /js/twikoo.js
@@ -343,7 +343,7 @@ baomitu 故障 → pjax/sharejs 切 cdnjs
 | envelope CDN | `_config.butterfly.yml` 的 `envelope_comment` 节 |
 | jQuery 本地 | `source/js/jquery-3.6.0.min.js` |
 | KaTeX 本地 | `source/js/katex/` |
-| Twikoo 本地 | `source/js/twikoo.js` |
+| Twikoo 本地（v1.7.11）| `themes/butterfly/source/js/twikoo.js` |
 | Typed 本地 | `source/js/typed.umd.js` |
 
 ---

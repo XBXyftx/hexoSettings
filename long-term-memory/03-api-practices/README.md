@@ -17,7 +17,7 @@
 | **图表** | Mermaid | — | 流程图/时序图支持 |
 | **函数可视化** | Plotly.js | 2.27.0 (CDN) | 交互式函数图像、3D 曲面（详见 [plotly-function-visualization.md](plotly-function-visualization.md)） |
 | **公式** | KaTeX | 0.16.19 | 客户端渲染（303KB），已从 MathJax 迁移 |
-| **评论** | Twikoo | — | 通过 Netlify 函数部署 |
+| **评论** | Twikoo | 1.7.11 | 通过 Netlify 函数部署 |
 
 ---
 
