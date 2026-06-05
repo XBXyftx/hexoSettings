@@ -54,7 +54,9 @@
       "Bash(exit 1)",
       "Bash(grep *)",
       "Bash(gsed *)",
-      "Bash(echo \"exit: $?\")"
+      "Bash(echo \"exit: $?\")",
+      "Bash(cp \"source/_posts/软件工程期末复习/8.png\" \"/tmp/question8.png\")",
+      "Read(//tmp/**)"
     ],
     "deny": [],
     "ask": []
