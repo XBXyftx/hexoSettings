@@ -584,7 +584,7 @@
 
 **操作人**：AI 助手（ZCode）
 
-**触发原因**：`Long-termMemoryTemplate.md` 中插入仓库卡片时，HTML 主体内部空行导致 `kramed` 将中后段 `<div>` 结构识别为代码块，页面出现灰色源码块和异常空白。
+**触发原因**：`Long-termMemoryTemplate.md` 中插入仓库卡片时，外层 `<div>` 内部的嵌套 `<div>` 之间存在空行断层，导致 `kramed` 将中后段 `<div>` 结构识别为代码块，页面出现灰色源码块和异常空白。
 
 **涉及文件**：
 - 新建 `long-term-memory/03-api-practices/markdown-html-embedding.md` — Markdown 内嵌 HTML 渲染规范
@@ -593,8 +593,8 @@
 - 修改 `long-term-memory/MEMORY.md` — 增加内容渲染专题入口
 
 **操作详情**：
-1. 将 HTML 卡片异常渲染的根因沉淀为长期记忆：`kramed` 对 HTML 块内部空行和缩进较敏感。
-2. 规范化写法：CSS 可独立保留，复杂 HTML 主体建议连续书写，避免空行截断。
+1. 将 HTML 卡片异常渲染的根因沉淀为长期记忆：`kramed` 对外层 HTML 块内部的空行断层和缩进较敏感。
+2. 规范化写法：CSS 可独立保留；HTML 主体可以正常换行，但外层 `<div>` 内部的子元素之间不要留空行；高风险或已异常时再压缩为连续结构。
 3. 补充 class 前缀隔离、深色模式、移动端适配、外链安全属性、排查流程等规则。
 4. 按渐进式索引维护：根索引只放入口，详细规则下沉到 `03-api-practices/markdown-html-embedding.md`。
 

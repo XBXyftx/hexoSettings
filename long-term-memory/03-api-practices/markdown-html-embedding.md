@@ -1,7 +1,7 @@
 # Markdown 内嵌 HTML 渲染规范
 
 > 适用范围：`source/_posts/*.md` 中直接编写 HTML 卡片、按钮、布局容器、内联样式或交互片段的场景。
-> 核心背景：本项目 Markdown 渲染器为 `kramed`，HTML 块内部的空行、缩进和 Markdown 语法混写可能导致 HTML 被提前截断，后续内容被当作代码块或普通文本输出。
+> 核心背景：本项目 Markdown 渲染器为 `kramed`。在文章内嵌复杂 HTML 时，**外层 `<div>` 内部的嵌套 `<div>` 之间不能出现空行断层**；否则 `kramed` 可能提前结束 HTML 块，后续缩进内容会被当作代码块或普通文本输出。
 
 ## 1. 什么时候必须读
 
@@ -13,8 +13,8 @@
 
 | 规则 | 要求 | 原因 |
 | --- | --- | --- |
-| HTML 主体不要空行 | 同一个 HTML 块内部不要插入空白行 | `kramed` 可能把空行视为 HTML 块结束 |
-| 嵌套 HTML 尽量压缩 | 复杂 `<div>` 结构建议写成连续 HTML 或至少不保留空行 | 避免后续缩进 HTML 被识别为代码块 |
+| 外层 div 内部不要空行断层 | 同一个外层 `<div>` 包裹的嵌套 `<div>`、`<p>`、`<a>` 等元素之间不要插入空白行 | `kramed` 可能把空行视为 HTML 块结束 |
+| 嵌套 HTML 可换行但要连续 | 复杂结构可以保留普通换行，但不要在子元素之间留空行；高风险时再压缩为连续 HTML | 避免后续缩进 HTML 被识别为代码块 |
 | 样式使用独立 class 前缀 | 例如 `.memory-repo-*` | 降低全站 CSS 污染风险 |
 | 不在 HTML 块内混写 Markdown | 链接、加粗、代码标记优先使用原生 HTML | 避免 Markdown 二次解析破坏 DOM |
 | 外链必须安全 | `<a target="_blank">` 同时加 `rel="noopener noreferrer"` | 避免新窗口反向控制来源页面 |
@@ -25,7 +25,7 @@
 
 ### 3.1 CSS 可以独立成块
 
-`<style>` 块本身可以保留正常 CSS 换行，便于维护。但不要在 `<style>` 与后续 HTML 主体之间插入多个空段，也不要让 HTML 主体内部出现空行断层。
+`<style>` 块本身可以保留正常 CSS 换行，便于维护。HTML 主体也不是完全不能换行，真正要避免的是：**外层 `<div>` 内部的子元素之间出现空白行**。如果卡片结构已经在预览中异常，再把 HTML 主体压缩为连续结构。
 
 ```html
 <style>
@@ -35,9 +35,19 @@
 <div class="custom-card"><div class="custom-card-title">标题</div><p>正文</p></div>
 ```
 
-### 3.2 HTML 主体建议连续书写
+### 3.2 HTML 主体可换行，但子元素之间不要空行
 
 推荐：
+
+```html
+<div class="custom-card">
+  <div class="custom-card-title">标题</div>
+  <p>正文</p>
+  <a href="https://example.com" target="_blank" rel="noopener noreferrer">查看链接</a>
+</div>
+```
+
+高风险或已出现异常时，可压缩为连续结构：
 
 ```html
 <div class="custom-card"><div class="custom-card-title">标题</div><p>正文</p><a href="https://example.com" target="_blank" rel="noopener noreferrer">查看链接</a></div>
@@ -55,7 +65,7 @@
 </div>
 ```
 
-上述不推荐写法在部分 `kramed` 渲染场景下，空行后的缩进 HTML 可能被当作代码块显示。
+上述不推荐写法的问题不是“有换行”，而是外层 `<div class="custom-card">` 内部的子元素之间有空白行。部分 `kramed` 渲染场景下，空行后的缩进 HTML 可能被当作代码块显示。
 
 ## 4. 仓库卡片类组件规范
 
@@ -81,9 +91,9 @@
 
 当文章预览中 HTML 显示异常时，按以下顺序处理：
 
-1. 检查 HTML 主体内部是否存在空行。
-2. 检查空行后的 HTML 是否带有 2 个以上空格缩进。
-3. 将复杂 HTML 主体压缩为连续一行再预览。
+1. 检查外层 `<div>` 内部的子元素之间是否存在空白行。
+2. 检查空白行后的 HTML 是否带有 2 个以上空格缩进。
+3. 先删除外层 div 内部空行；若仍异常，再将复杂 HTML 主体压缩为连续结构。
 4. 检查是否在 HTML 内混写了 Markdown 链接、列表或代码块。
 5. 检查标签是否闭合，尤其是 `<div>`、`<a>`、`span>`。
 6. 若仍异常，再考虑拆成主题 CSS / JS 文件，不继续在 Markdown 中堆复杂交互。
