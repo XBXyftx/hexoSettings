@@ -11,7 +11,6 @@ tags:
 description: 详细介绍如何在Hexo的Butterfly主题中添加炫酷的打字机效果，包含完整的实现代码和配置方法。
 typewriter: ⌨️ 让你的博客文字"活"起来！本文将手把手教你为Hexo博客添加超酷的打字机效果。从零开始，涵盖JavaScript动画实现、CSS样式设计、响应式适配等核心技术。支持深色模式、移动端完美展示，让每篇文章的开头都充满科技感和视觉冲击力。跟着教程一步步操作，轻松让你的博客在众多网站中脱颖而出！✨ 
 cover: /imgs/ArticleTopImgs/TypeWriteTopImg.webp
-swiper_index: 6
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

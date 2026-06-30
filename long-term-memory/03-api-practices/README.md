@@ -21,6 +21,14 @@
 
 ---
 
+## 内容渲染与文章内嵌规范
+
+| 文档 | 适用场景 | 必读时机 |
+| --- | --- | --- |
+| [Markdown 内嵌 HTML 渲染规范](markdown-html-embedding.md) | 文章中直接插入 HTML 卡片、按钮、复杂 `<div>` 布局、内联样式 | 修改文章正文 HTML 前；预览出现源码块或异常空白时 |
+
+---
+
 ## 自定义脚本 API
 
 ### 1. auto-image-list.js

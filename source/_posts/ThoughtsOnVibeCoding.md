@@ -12,7 +12,6 @@ tags:
 cover: /imgs/ArticleTopImgs/ThoughtsOnVibeCodingTopImg.webp
 description: 对于Vibe Coding以及更泛化的AI使用的一些想法（持续更新中）
 typewriter: 🤖 从被 AI 填满的一天切入，我在 Vibe Coding 的高效与创作者自豪感的流失之间摇摆，既惊叹智能工具重塑影像与代码的能力，也警惕它稀释真实表达；回望靠手敲语法打底的旧日历练，我提醒自己以思考守住表达的内核，让 AI 成为延展记忆与创意的帮手，而非偷走成长的捷径。
-swiper_index: 3
 post_copyright:
 copyright_author: XBXyftx
 copyright_author_href: https://github.com/XBXyftx

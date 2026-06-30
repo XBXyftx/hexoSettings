@@ -12,6 +12,7 @@ tags:
   - 渐进式披露
   - 上下文工程
 cover: /imgs/ArticleTopImgs/VibeTipsTopImg.webp
+swiper_index: 3
 description: Vibe Coding经验分享
 typewriter: 🤖 真正用好 Vibe Coding，不是把一句模糊需求丢给 AI 后坐等奇迹发生！本文结合作者从古法编程到工程级 Agent 开发的实践经验，系统梳理了模型与 Agent 选择、上下文工程、长期记忆、短期记忆、渐进式引导结构以及 Skills 的核心用法。通过鸿蒙开发、国产模型接入、AI 接力文档和开源 skill 案例，详细说明如何减少模型幻觉、降低重复沟通成本、提升代码生成质量。适合正在尝试用 AI 编程却总被“一坨 AI 味代码”折磨的开发者参考，帮助你把 AI 从随缘写代码的工具，真正训练成可靠的工程协作伙伴。
 post_copyright:

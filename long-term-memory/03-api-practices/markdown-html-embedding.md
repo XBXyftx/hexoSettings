@@ -1,0 +1,105 @@
+# Markdown 内嵌 HTML 渲染规范
+
+> 适用范围：`source/_posts/*.md` 中直接编写 HTML 卡片、按钮、布局容器、内联样式或交互片段的场景。
+> 核心背景：本项目 Markdown 渲染器为 `kramed`，HTML 块内部的空行、缩进和 Markdown 语法混写可能导致 HTML 被提前截断，后续内容被当作代码块或普通文本输出。
+
+## 1. 什么时候必须读
+
+- 在文章正文中插入 `<div>`、`<style>`、`<script>`、`<a>` 等 HTML 结构前。
+- 在 Markdown 文章中设计仓库卡片、提示卡片、跳转按钮、数据大字报等复杂内容前。
+- 当预览中出现 HTML 源码、异常灰色代码块、大面积空白或卡片结构断裂时。
+
+## 2. 核心规则
+
+| 规则 | 要求 | 原因 |
+| --- | --- | --- |
+| HTML 主体不要空行 | 同一个 HTML 块内部不要插入空白行 | `kramed` 可能把空行视为 HTML 块结束 |
+| 嵌套 HTML 尽量压缩 | 复杂 `<div>` 结构建议写成连续 HTML 或至少不保留空行 | 避免后续缩进 HTML 被识别为代码块 |
+| 样式使用独立 class 前缀 | 例如 `.memory-repo-*` | 降低全站 CSS 污染风险 |
+| 不在 HTML 块内混写 Markdown | 链接、加粗、代码标记优先使用原生 HTML | 避免 Markdown 二次解析破坏 DOM |
+| 外链必须安全 | `<a target="_blank">` 同时加 `rel="noopener noreferrer"` | 避免新窗口反向控制来源页面 |
+| 移动端必须适配 | 复杂卡片至少提供 `@media (max-width: 768px)` | 防止移动端溢出或布局挤压 |
+| 深色模式要考虑 | 使用 `[data-theme='dark']` 覆盖关键颜色 | Butterfly 主题支持深浅色切换 |
+
+## 3. 推荐写法
+
+### 3.1 CSS 可以独立成块
+
+`<style>` 块本身可以保留正常 CSS 换行，便于维护。但不要在 `<style>` 与后续 HTML 主体之间插入多个空段，也不要让 HTML 主体内部出现空行断层。
+
+```html
+<style>
+.custom-card { margin: 1rem 0; }
+[data-theme='dark'] .custom-card { color: #e2e8f0; }
+</style>
+<div class="custom-card"><div class="custom-card-title">标题</div><p>正文</p></div>
+```
+
+### 3.2 HTML 主体建议连续书写
+
+推荐：
+
+```html
+<div class="custom-card"><div class="custom-card-title">标题</div><p>正文</p><a href="https://example.com" target="_blank" rel="noopener noreferrer">查看链接</a></div>
+```
+
+不推荐：
+
+```html
+<div class="custom-card">
+  <div class="custom-card-title">标题</div>
+
+  <p>正文</p>
+
+  <a href="https://example.com">查看链接</a>
+</div>
+```
+
+上述不推荐写法在部分 `kramed` 渲染场景下，空行后的缩进 HTML 可能被当作代码块显示。
+
+## 4. 仓库卡片类组件规范
+
+设计仓库卡片、项目卡片或工具卡片时，建议包含以下信息：
+
+| 模块 | 建议内容 |
+| --- | --- |
+| 标识 | 项目名、类型标签、图标 |
+| 简介 | 1 段 50-120 字说明 |
+| 指标 | 3-4 个短指标，如入口文件、目录数量、核心原则 |
+| 流程 | 用短 token 展示核心方法链路 |
+| 标签 | 3-6 个关键词 |
+| 动作 | GitHub / 文档 / Demo 跳转按钮 |
+
+样式约束：
+
+- class 使用唯一前缀，如 `.memory-repo-*`、`.project-card-*`。
+- 不直接覆盖 `h1`、`p`、`a`、`code` 等全局标签样式。
+- 使用 `!important` 仅限链接颜色等被主题强覆盖的地方。
+- 卡片外边距控制在组件根节点，避免上下文出现大面积空白。
+
+## 5. 排查流程
+
+当文章预览中 HTML 显示异常时，按以下顺序处理：
+
+1. 检查 HTML 主体内部是否存在空行。
+2. 检查空行后的 HTML 是否带有 2 个以上空格缩进。
+3. 将复杂 HTML 主体压缩为连续一行再预览。
+4. 检查是否在 HTML 内混写了 Markdown 链接、列表或代码块。
+5. 检查标签是否闭合，尤其是 `<div>`、`<a>`、`span>`。
+6. 若仍异常，再考虑拆成主题 CSS / JS 文件，不继续在 Markdown 中堆复杂交互。
+
+## 6. 本次案例
+
+`source/_posts/Long-termMemoryTemplate.md` 中插入仓库卡片时，HTML 主体内多个空行导致 `kramed` 将中后段 `<div>` 结构识别为代码块，页面出现大面积灰色源码块。
+
+最终修复方式：
+
+- 保留 `<style>` 中的可读 CSS。
+- 将卡片 HTML 主体压缩为连续结构。
+- 保持 `.memory-repo-*` 前缀隔离样式。
+- 外链按钮使用 `target="_blank" rel="noopener noreferrer"`。
+
+## 7. 验证状态
+
+- 已确认文件规则沉淀完成。
+- 渲染效果仍需通过本地 `hexo server` 或发布前预览人工确认。

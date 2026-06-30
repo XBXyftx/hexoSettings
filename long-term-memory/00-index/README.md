@@ -44,6 +44,7 @@
 | 技术 | 参考文档 | 用途 |
 |------|----------|------|
 | Plotly.js 函数可视化 | `03-api-practices/plotly-function-visualization.md` | 文章中嵌入交互式函数图像（曲线/3D曲面） |
+| Markdown 内嵌 HTML | `03-api-practices/markdown-html-embedding.md` | 文章中插入 HTML 卡片、按钮、复杂布局；排查源码块/异常空白 |
 | KaTeX 数学公式 | `04-operations/2026-05-04-katex-migration/FORMATTING-GUIDE.md` | 数学公式编写规范与编译验证 |
 
 ### 自定义页面

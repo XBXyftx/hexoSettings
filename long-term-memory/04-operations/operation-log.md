@@ -577,3 +577,28 @@
 **对使用者的说明**：
 - Twikoo 前后端版本必须保持一致，否则可能发生 API 不兼容
 - 后续升级流程：1) 更新后端 Netlify Function → 2) 下载对应版本前端 JS → 3) 替换本地文件 → 4) 更新 plugins.yml → 5) hexo clean && hexo g && hexo d
+
+---
+
+### #24 — 2026-06-30 — 补充 Markdown 内嵌 HTML 渲染规范
+
+**操作人**：AI 助手（ZCode）
+
+**触发原因**：`Long-termMemoryTemplate.md` 中插入仓库卡片时，HTML 主体内部空行导致 `kramed` 将中后段 `<div>` 结构识别为代码块，页面出现灰色源码块和异常空白。
+
+**涉及文件**：
+- 新建 `long-term-memory/03-api-practices/markdown-html-embedding.md` — Markdown 内嵌 HTML 渲染规范
+- 修改 `long-term-memory/03-api-practices/README.md` — 增加内容渲染与文章内嵌规范索引
+- 修改 `long-term-memory/00-index/README.md` — 增加内容创作技术速查入口
+- 修改 `long-term-memory/MEMORY.md` — 增加内容渲染专题入口
+
+**操作详情**：
+1. 将 HTML 卡片异常渲染的根因沉淀为长期记忆：`kramed` 对 HTML 块内部空行和缩进较敏感。
+2. 规范化写法：CSS 可独立保留，复杂 HTML 主体建议连续书写，避免空行截断。
+3. 补充 class 前缀隔离、深色模式、移动端适配、外链安全属性、排查流程等规则。
+4. 按渐进式索引维护：根索引只放入口，详细规则下沉到 `03-api-practices/markdown-html-embedding.md`。
+
+**验证结果**：
+- [x] 新规范文档已创建
+- [x] `MEMORY.md`、`00-index/README.md`、`03-api-practices/README.md` 已同步索引
+- [ ] 需用户本地预览确认 `Long-termMemoryTemplate.md` HTML 卡片渲染效果

@@ -1,5 +1,5 @@
 ---
-title: Long-termMemoryTemplate
+title: 渐进式披露长期记忆文档模板
 date: 2026-06-30 17:30:06
 tags:
   - AI
@@ -9,7 +9,9 @@ tags:
   - Agent
   - 渐进式披露
   - 上下文工程
+top: 20
 cover: /imgs/ArticleTopImgs/LongTermTopImg.webp
+swiper_index: 2
 description: 一套面向AI编程的长期记忆文档模板——从上下文压缩、注意力缺陷到渐进式索引，详解每个目录的设计目标与使用方法
 typewriter: 🧠 大模型的能力不在于它能不能"捞起针"，而在于它能不能在浩瀚的上下文中快速"找到针"。本文从上下文压缩机制、注意力分散效应以及模型幻觉等工程痛点出发，系统介绍一套可迁移的项目长期记忆文档模板——Memory Methodology Template。文章将逐目录拆解 MEMORY.md、规则文件、AI交接区、需求与Bug归档、API规范、操作日志、架构热点等模块的设计理念、使用方法和预期目标。如果你正在用AI编程却总被上下文压缩后乱写、模型遗忘关键约束、多人/多模型接力断层所困扰，这套模板或许能帮你的AI从一个"随缘编码的工具"升级为一个"有案可查的工程师"。
 post_copyright:

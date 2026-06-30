@@ -76,6 +76,9 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 - [CDN 策略与资源加载](03-api-practices/cdn-strategy.md) — 7 个 CDN 源盘点、bytecdntp 迁移历史、本地保留理由
 - [WebP 图片转换工作流](03-api-practices/webp-conversion.md) — 首次配置环境 / 跑 webp 报错 / 新增图片前必读
 
+### 内容渲染
+- [Markdown 内嵌 HTML 渲染规范](03-api-practices/markdown-html-embedding.md) — 文章中插入 HTML 卡片/按钮/复杂布局前必读；排查源码块、异常空白、kramed HTML 截断
+
 ### 运行时模块
 - [兜底模块全览（Twikoo/KaTeX/Mermaid + inject）](03-api-practices/fallback-modules.md) — 评论/公式/图表三大模块 + inject.head/bottom 资源全景图
 - [Plotly 函数可视化渲染规范](03-api-practices/plotly-function-visualization.md) — 交互式函数图像模板（1D 曲线 + 3D 曲面）、PJAX 兼容、颜色规范
