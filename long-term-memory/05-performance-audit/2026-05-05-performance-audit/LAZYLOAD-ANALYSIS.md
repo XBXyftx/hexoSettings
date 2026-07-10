@@ -6,6 +6,8 @@ type: reference
 
 # 懒加载系统深度调研报告
 
+> **历史状态（2026-07-10 核验）**：本文记录 2026-05-05 的旧系统清理前分析。文中 `source/js/lazy-loading*.js`、image/video refresh 和当时的“6 套系统”均不再是当前工作树事实；保留它只用于解释删除原因。当前主力脚本、CSS 占位动画风险和验收路径见 [2026-07-10 渲染性能与长期记忆事实审计](../../2026-07-10-render-performance-audit/README.md)。
+>
 > **调研日期**: 2026-05-05
 > **调研方法**: 源代码静态分析 + 构建输出验证 + 运行时逻辑推演
 > **关联**: [README.md](README.md) · `scripts/image-dimensions.js` · `source/js/lazy-loading*.js`

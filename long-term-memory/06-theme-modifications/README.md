@@ -1,5 +1,7 @@
 # 06-theme-modifications — 主题修改跟踪
 
+> **当前主题状态（2026-07-10 核验）**：本页 #2 的 Font Awesome 异步去重记录已经在 commit `b472183` 回滚，当前实际为主题同步加载 + inject 异步重复加载；附录中 network/topimg/旧 lazy-loading 脚本也已删除。任何主题升级或性能改动前，先读 [2026-07-10 渲染性能与长期记忆事实审计](../05-performance-audit/2026-07-10-render-performance-audit/README.md)。
+
 本目录记录所有对 `themes/butterfly/` 目录下文件的修改。
 
 ---
@@ -43,7 +45,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 ---
 
-### #2 — 2026-05-04 — head.pug Font Awesome 改为异步加载
+### #2 — 2026-05-04 — Font Awesome 异步去重尝试（**已回滚**）
 
 **修改文件**：`themes/butterfly/layout/includes/head.pug`
 **修改原因**：B17 — Font Awesome CSS 被加载两次（主题内置直接加载 + inject.head 异步加载），浪费 ~80KB 带宽
@@ -52,7 +54,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 **相关文件**：`_config.butterfly.yml:1080-1081`（删除 inject.head 中的重复项）
 **可回滚性**：可安全回滚。回滚后行为退回为「Font Awesome 阻塞加载 + inject.head 异步加载 = 两份同时存在」，是已知的旧行为
 **关联文档**：[../04-operations/2026-05-04-tier1-fixes/Q12-font-awesome-dedup.md](../04-operations/2026-05-04-tier1-fixes/Q12-font-awesome-dedup.md)
-**关联 commit**：`539f9d2`
+**当前状态（2026-07-10 核验）**：该改动在 commit `b472183` 中已回滚，因为异步 CSS 会让导航、侧边栏和社交图标在样式完成前消失。现在 `head.pug` 恢复同步 Font Awesome，`_config.butterfly.yml` 也恢复了异步重复链接；这是当前 P3 资源浪费，但不能直接重放本次历史方案。后续应先保留主题同步入口，删除 inject 重复项并做弱网/首屏图标回归。
 
 ---
 
@@ -113,7 +115,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 | 项 | 值 |
 |---|---|
 | **修改内容** | 添加多个自定义 CSS/JS 链接 |
-| **新增代码** | typewriter-effect.css、entrance-popup.css、lazy-loading 系列 CSS、vscode-breadcrumb-toc.css、header-universe.js |
+| **新增代码** | typewriter-effect.css、entrance-popup.css、`lazy-loading.css`、`lazy-loading-stable.css`、vscode-breadcrumb-toc.css、header-universe.js；Font Awesome 与 `/css/index.css` 当前各有主题/inject 重复入口 |
 | **条件加载** | 部分 CSS/JS 仅在文章页面（`globalPageType === 'post'`）或首页加载 |
 | **影响** | 所有页面的 head 部分 |
 
@@ -122,8 +124,8 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 | 项 | 值 |
 |---|---|
 | **修改内容** | 添加多个自定义 JS 加载 |
-| **新增代码** | waterfall.js（首页）、typewriter-effect.js（文章页）、network-monitor.js、topimg-monitor.js、entrance-popup 系列、lazy-loading 系列、vscode-breadcrumb-toc.js（文章页） |
-| **影响** | 所有页面的底部 JS 加载 |
+| **新增代码** | waterfall.js（首页）、typewriter-effect.js（文章页）、entrance-popup 系列、vscode-breadcrumb-toc.js（文章页）；network/topimg 与旧 lazy-loading 系列已删除 |
+| **影响** | 所有页面的底部 JS 加载；首页的 waterfall 当前有移动端高频保护/调试逻辑 |
 
 ### layout/includes/footer.pug
 
@@ -169,7 +171,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 | 文件 | 修改类型 | 风险等级 | 升级时处理建议 |
 |------|---------|---------|--------------|
 | `layout/includes/layout.pug` | 添加 HTML | 中 | 升级后重新注入弹窗结构 |
-| `layout/includes/head.pug` | 添加链接 + 修改 Font Awesome 加载方式 | 高 | 升级后重新添加自定义 CSS/JS 链接 + 恢复异步加载属性 |
+| `layout/includes/head.pug` | 添加链接 + 当前存在资源重复 | 高 | 升级后重新添加自定义 CSS/JS 链接；先解决 `/css/index.css` 与 Font Awesome 重复，**不要**恢复已回滚的“仅异步 Font Awesome”方案 |
 | `layout/includes/additional-js.pug` | 添加加载 | 高 | 升级后所有自定义 JS 需重新添加 |
 | `layout/includes/footer.pug` | 添加脚本 | 低 | 升级后重新添加建站时间统计 |
 | `layout/includes/mixins/indexPostUI.pug` | 修改布局 | 高 | 升级后重新实现 layout 8 逻辑 |

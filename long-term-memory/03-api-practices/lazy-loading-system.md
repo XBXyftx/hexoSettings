@@ -6,6 +6,8 @@ type: project
 
 # 懒加载系统 — 全图谱
 
+> **当前状态（2026-07-10 核验）**：旧 lazy-loading/refresh 脚本已删除，实际运行时为浏览器原生 `loading="lazy"`、文章图片的 `lazy-loading-optimized.js`、about 专用脚本，以及两个仍全站加载的占位 CSS。长图文的 `.lazy-placeholder` 无限 shimmer/blur 是当前性能问题，不应再把本文描述成“多套脚本并存冲突”。完整优先级见 [2026-07-10 渲染性能与长期记忆事实审计](../05-performance-audit/2026-07-10-render-performance-audit/README.md)。
+>
 > **何时阅读**：图片/视频不显示问题排查、CLS 优化、懒加载逻辑调整、拒绝重复加载逻辑时。
 > **关联文档**：[performance-optimization.md](performance-optimization.md)（图片尺寸注入与防 CLS）· [_config.butterfly.yml](../05-reference/project-overview.md)（lazyload.enable / inject.head 注入）
 
@@ -13,14 +15,13 @@ type: project
 
 ## L1 · TL;DR（30 秒看完）
 
-- 项目当前**并存 3 套懒加载实现**，覆盖不同场景：
-  1. **Butterfly 主题原生懒加载**（已在 `_config.butterfly.yml` 中 `lazyload.enable: false` **禁用**）
-  2. **`lazy-loading-optimized.js`**（主题目录）— **目前的主要图片懒加载，由 inject 启用**
-  3. **`lazy-loading-about.js`**（source/about/）— 关于页面专用 card-row 级懒加载 + 3D 轮播
-- **已删除的冗余懒加载**（2026-05-05 ~ 2026-05-06）：
-  - `lazy-loading.js`、`lazy-loading-native.js`（source/js + themes 双重）、`lazy-image-refresh.js`、`lazy-video-refresh.js` 及相关 CSS 已物理删除
-  - `lazy-loading.css` 保留（head.pug 仍引用）
-- **图片尺寸注入**（`scripts/image-dimensions.js`）会给所有非排除图片加 `width`/`height`/`loading="lazy"` 属性，防止 CLS。
+- 项目当前有 **3 个互补层次**，不是三套全站并行脚本：
+  1. **浏览器原生 `loading="lazy"`**（`image-dimensions.js` 构建期注入；主题 `lazyload.enable: false`）
+  2. **`lazy-loading-optimized.js`**（主题目录）— 文章图片的 `IntersectionObserver`
+  3. **`lazy-loading-about.js`**（source/about）— 关于页面 card-row 级图片加载与 3D 轮播
+- 旧 `lazy-loading.js`、native、image/video refresh 系列及其 CSS 已删除；不要恢复或引用它们。
+- `source/css/lazy-loading.css` 和 `source/css/lazy-loading-stable.css` 仍由 `head.pug` 加载。前者的 `.lazy-placeholder` shimmer、旋转 pseudo-element、blur/backdrop-filter 在长图文加载期是当前 P2 性能风险。
+- 图片尺寸注入会给非排除图片加 `width`/`height`/`loading="lazy"`，用于保留布局空间、降低 CLS。
 
 ---
 
@@ -82,8 +83,8 @@ const config = {
 |---|---|
 | `#article-container img[data-src]` | `#page-header` 内 |
 | `.post-content img[data-src]` | `.avatar` 元素 |
-| `#post-content img[data-src]` | `.aside-card` 内 |
-| `.post-body img[data-src]` | （TOC、侧边栏、头像等不参与） |
+| `#article-container img[data-lazy-src]` | `.aside-card` 内 |
+| `.post-content img[data-lazy-src]` | （TOC、侧边栏、头像等不参与） |
 
 ### 3.3 工作流程
 
@@ -124,11 +125,12 @@ createObserver()
 | `source/css/lazy-video-refresh.css` (8.8KB) | 视频刷新按钮样式 | 对应 JS 已删除 |
 
 **保留的文件**：
-- `source/css/lazy-loading.css` — 仍被 `head.pug:62` 引用，作为兼容回退的占位符样式
-- `source/css/lazy-loading-stable.css` — 防 CLS，inject.head 加载
-- `lazy-loading-about.js` — 关于页专用，独立维护
+- `source/css/lazy-loading.css` — 仍被 `head.pug:62` 引用；`.lazy-placeholder` 视觉效果由此提供，长图文优化时要限制其无限动画范围
+- `source/css/lazy-loading-stable.css` — `head.pug:64` 加载，辅助图片尺寸/占位稳定性
+- `themes/butterfly/source/js/lazy-loading-optimized.js` — 当前文章图片主力
+- `source/about/lazy-loading-about.js` — 关于页专用，独立维护
 
-**API 兼容说明**：`lazy-loading-native.js` 暴露的 `window.lazyLoadPreload(element, offset)` 被删除后，`vscode-breadcrumb-toc.js` 中的调用需确认有 `typeof` 保护。`main.js:706` 的 `lazyLoadPreload` 已有 `typeof` 保护，安全降级。
+**API 兼容说明**：`lazy-loading-native.js` 暴露的 `window.lazyLoadPreload(element, offset)` 已删除；涉及旧 API 的调用必须使用 `typeof` 守卫。当前 `main.js` 对该调用已有守卫。
 
 ---
 

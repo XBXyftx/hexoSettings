@@ -1,5 +1,7 @@
 # 03-api-practices — 技术约束与 API 实践
 
+> **当前事实基线（2026-07-10）**：资源注入、Mermaid、Twikoo、双 Canvas 星空、lazy placeholder 和移动 waterfall 的现状已重新核验。任何性能判断前，先读 [2026-07-10 渲染性能与长期记忆事实审计](../05-performance-audit/2026-07-10-render-performance-audit/README.md)。
+
 本目录记录项目中使用的技术栈、框架 API 和自定义脚本的使用规则。
 
 ---
@@ -14,10 +16,10 @@
 | **模板引擎** | Pug | ^3.0.0 | 主题模板语言 |
 | **样式预处理** | Stylus | ^3.0.1 | 主题样式语言 |
 | **代码高亮** | highlight.js | — | 行号已启用 |
-| **图表** | Mermaid | — | 流程图/时序图支持 |
+| **图表** | Mermaid | 配置当前失效，待按需加载修复 | 主题 footer 误请求 `mermaid@undefined`；详见 `fallback-modules.md` |
 | **函数可视化** | Plotly.js | 2.27.0 (CDN) | 交互式函数图像、3D 曲面（详见 [plotly-function-visualization.md](plotly-function-visualization.md)） |
 | **公式** | KaTeX | 0.16.19 | 客户端渲染（303KB），已从 MathJax 迁移 |
-| **评论** | Twikoo | 1.7.11 | 通过 Netlify 函数部署 |
+| **评论** | Twikoo | 1.7.11 | 本地约 938KB 脚本，在评论容器进入视口后动态加载 |
 
 ---
 
@@ -122,17 +124,18 @@
 
 `_config.butterfly.yml` 的 `inject` 部分决定了哪些自定义 CSS/JS 被加载：
 
-**Head 注入**（按加载顺序）：
+**Head 注入**（当前 `_config.butterfly.yml` 注入顺序）：
 1. Dark mode 初始化脚本（强制 `data-theme="dark"`）
-2. `/css/index.css` — 核心自定义样式
+2. `/css/index.css` — 自定义主样式（**主题 `head.pug` 也加载一次，当前重复**）
 3. `/css/universe.css` — 星空背景样式（异步加载）
 4. `/css/transpancy.css` — 透明效果（异步加载）
 5. `/css/styles.css` — 自定义样式（异步加载）
 6. `/css/rightmenu.css` — 右键菜单样式（异步加载）
 7. `/css/twikoo.css` — 评论样式（异步加载）
-8. `/css/lazy-loading-optimized.css` — 懒加载样式（异步加载）
-9. `/css/readmode-enhanced.css` — 阅读模式增强（异步加载）
-10. Font Awesome 6.5.1 CDN
+8. `/css/readmode-enhanced.css` — 阅读模式增强（异步加载）
+9. Font Awesome 6.5.1 CDN（**主题 `head.pug` 也同步加载一次，当前重复**）
+
+> `lazy-loading-optimized.css` 的 inject 行已删除，当前不应再把它列为注入资源。
 
 **Bottom 注入**（按加载顺序）：
 1. `<canvas id="universe"></canvas>` — 星空画布
@@ -146,16 +149,15 @@
 ### 硬编码在主题模板中的加载
 
 **head.pug** 额外加载（非 inject）：
-- 文章页面：`/css/typewriter-effect.css`
-- 所有页面：`/css/entrance-popup.css`, `/css/lazy-loading.css`, `/css/lazy-loading-stable.css`, `/css/lazy-image-refresh.css`, `/css/lazy-video-refresh.css`
-- 文章页面：`/css/vscode-breadcrumb-toc.css`
-- 所有页面：`/js/header-universe.js`
+- 所有页面：主题主 CSS、同步 Font Awesome、`/css/entrance-popup.css`、`/css/lazy-loading.css`、`/css/lazy-loading-stable.css`、`/js/header-universe.js`
+- 文章页面：`/css/typewriter-effect.css`、`/css/vscode-breadcrumb-toc.css`
+- `lazy-image-refresh.css`、`lazy-video-refresh.css` 已删除，不再加载。
 
 **additional-js.pug** 额外加载（非 inject）：
-- 首页：`/js/waterfall.js`
-- 文章页面：`/js/typewriter-effect.js`
-- 所有页面：`/js/network-monitor.js`, `/js/topimg-monitor.js`, `/js/entrance-popup-config.js`, `/js/entrance-popup.js`, `/js/lazy-loading.js`, `/js/lazy-loading-native.js`, `/js/lazy-image-refresh.js`, `/js/lazy-video-refresh.js`
-- 文章页面：`/js/vscode-breadcrumb-toc.js`
+- 首页：`/js/waterfall.js`（移动端当前存在 100ms 轮询和调试监听，见审计 P0）
+- 文章页面：`/js/typewriter-effect.js`、`/js/vscode-breadcrumb-toc.js`
+- 所有页面：`/js/entrance-popup-config.js`、`/js/entrance-popup.js`
+- network/topimg 监控及旧 lazy-loading/refresh 系列均已删除，不再加载。
 
 ---
 

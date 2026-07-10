@@ -1,5 +1,7 @@
 # 自定义功能完整清单
 
+> **当前事实基线（2026-07-10）**：本文原先包含若干已删除脚本和旧加载位置。现存功能与运行时性能风险以 [2026-07-10 渲染性能与长期记忆事实审计](../05-performance-audit/2026-07-10-render-performance-audit/README.md) 为准；历史名称只在需要追溯旧提交时参考。
+
 本项目在标准 Hexo + Butterfly 基础上，拥有大量自定义功能。本文档是所有自定义功能的权威参考。
 
 ---
@@ -199,8 +201,8 @@ swiper/
 | 文件 | 作用 | 加载位置 |
 |------|------|---------|
 | `universe.css` | 星空背景 canvas 样式 | inject head |
-| `entrance-popup.css` | 入场弹窗样式 | head.pug |
-| `lazy-loading-optimized.css` | 优化懒加载样式 | inject head |
+| `entrance-popup.css` | 入场弹窗样式 | `head.pug` 全站 |
+| `lazy-loading-optimized.css` | 优化懒加载样式 | **文件存在但当前未由 inject/head 直接加载**；实际 `.lazy-placeholder` 由 `source/css/lazy-loading.css` 负责 |
 | `readmode-enhanced.css` | 阅读模式增强 | inject head |
 | `rightmenu.css` | 自定义右键菜单 | inject head |
 | `styles.css` | 通用自定义样式 | inject head |
@@ -229,25 +231,22 @@ swiper/
 
 | 文件 | 作用 | 加载位置 |
 |------|------|---------|
-| `universe-optimized.js` | 星空/流星 canvas 动画 | inject bottom |
-| `universe.js` | 原始星空动画 | — |
-| `header-universe.js` | Header 星空效果 | head.pug |
-| `entrance-popup.js` | 入场弹窗逻辑 | additional-js.pug |
-| `entrance-popup-config.js` | 弹窗配置 | additional-js.pug |
-| `typewriter-effect.js` | 文章打字机效果 | additional-js.pug（仅文章页） |
-| `waterfall.js` | 瀑布流 masonry 引擎 | additional-js.pug（仅首页） |
-| `lazy-loading-optimized.js` | 优化懒加载 | inject bottom |
-| `network-monitor.js` | 网络监控 | additional-js.pug |
-| `topimg-monitor.js` | 顶部图片监控 | additional-js.pug |
-| `happy-title.js` | 标题特效 | inject bottom |
+| `universe-optimized.js` | 全屏星空/流星 Canvas 动画 | inject bottom |
+| `header-universe.js` | Header 星空 Canvas | `head.pug` 全站 |
+| `entrance-popup.js` | 入场弹窗逻辑 | `additional-js.pug` 全站 |
+| `entrance-popup-config.js` | 弹窗配置 | `additional-js.pug` 全站 |
+| `typewriter-effect.js` | 文章打字机效果 | `additional-js.pug`（仅文章页） |
+| `waterfall.js` | 瀑布流 masonry 引擎 | `additional-js.pug`（仅首页；移动端 100ms 轮询/调试监听是当前 P0） |
+| `lazy-loading-optimized.js` | 文章图片 IntersectionObserver 懒加载 | inject bottom |
+| `happy-title.js` | 标签页标题特效 | inject bottom |
 | `rightmenu.js` | 自定义右键菜单 | inject bottom |
 | `lightbox-enhanced.js` | 灯箱增强 | inject bottom |
-| `preloader-optimized.js` | 预加载优化 | — |
-| `cache-manager.js` | 缓存管理（已禁用） | — |
-| `nyan.js` | Nyan cat 动画 | — |
-| `router.js` | 路由逻辑 | — |
-| `tw_cn.js` | 简繁转换 | — |
-| `twikoo.js` | Twikoo 本地脚本 | — |
+| `preloader-optimized.js` | 预加载优化 | 文件存在；当前加载路径需以产物验证 |
+| `cache-manager.js` | 缓存管理（已禁用） | 不加载 |
+| `nyan.js` | Nyan cat 动画 | 不加载 |
+| `router.js` | 路由逻辑 | 不加载 |
+| `tw_cn.js` | 简繁转换 | 主题按配置决定 |
+| `twikoo.js` | Twikoo 本地运行时（约 938KB） | 评论容器进入视口后动态加载 |
 
 ---
 
@@ -259,7 +258,7 @@ swiper/
 |---|---|
 | **配置项** | `index_layout: 8` |
 | **实现文件** | `indexPostUI.pug` + `index.pug` + `waterfall.js` + `waterfall-homepage.styl` |
-| **说明** | 首页文章卡片以瀑布流/masonry 方式排列，非 Butterfly 原生支持 |
+| **说明** | 首页文章卡片以瀑布流/masonry 方式排列，非 Butterfly 原生支持；移动端当前通过 CSS 单列，但脚本仍保留高频“保护/调试”逻辑，见 2026-07-10 审计 P0 |
 
 ### 2. 打字机效果
 
@@ -282,9 +281,9 @@ swiper/
 
 | 项 | 值 |
 |---|---|
-| **实现文件** | `universe-optimized.js` + `universe.css` + `<canvas id="universe">` |
-| **加载位置** | canvas 注入在 body 底部，JS 通过 inject bottom 加载 |
-| **效果** | 全站星空背景，带流星动画 |
+| **实现文件** | `universe-optimized.js` + `header-universe.js` + `universe.css` + `<canvas id="universe">` |
+| **加载位置** | 全屏 canvas/JS 由 inject bottom 注入；header Canvas 脚本由 `head.pug` 全站加载 |
+| **效果** | 全站星空背景叠加页头星空，两个独立 30fps Canvas 在前台同时运行；隐藏标签页会暂停 |
 
 ### 5. 入场弹窗
 
@@ -314,9 +313,8 @@ swiper/
 
 | 项 | 值 |
 |---|---|
-| **说明** | 多套懒加载脚本共存，替代主题内置懒加载。已精简（2026-05-05 移除 4 个冗余脚本 + 2026-05-06 物理清理） |
-| **相关文件** | `lazy-loading-optimized.js`（主题目录，主力）、`lazy-loading.js` + `lazy-loading.css`（source/，兼容回退）、`lazy-loading-stable.css`（防 CLS）、`lazy-loading-about.js`（关于页专用） |
-| **主题配置** | `_config.butterfly.yml` 中 `lazyload.enable: false` |
+| **说明** | 主题内置 `lazyload.enable` 当前关闭。主力为 `lazy-loading-optimized.js`（文章图片 IntersectionObserver）；`lazy-loading.css`/`lazy-loading-stable.css` 仍全站加载，about 有专用 `lazy-loading-about.js`。旧 `lazy-loading.js`、native、刷新脚本已物理删除。 |
+| **当前注意** | `lazy-loading.css` 对文章 `.lazy-placeholder` 的 shimmer/旋转/blur 在图多的长文中会产生持续绘制；优化时须保留占位、淡入与 CLS 行为。 |
 
 ### 9. 预加载动画
 

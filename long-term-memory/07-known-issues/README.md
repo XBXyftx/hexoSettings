@@ -1,5 +1,7 @@
 # 07-known-issues — 已知问题与技术债务
 
+> **当前问题基线（2026-07-10）**：本页保留早期技术债务；渲染性能、资源加载与长期记忆事实的最新严重度排序应以 [2026-07-10 渲染性能与长期记忆事实审计](../05-performance-audit/2026-07-10-render-performance-audit/README.md) 为准。
+
 本目录记录博客项目中已知的问题、待修复项和技术债务。
 
 ---
@@ -10,13 +12,13 @@
 
 | 项 | 值 |
 |---|---|
-| **状态** | 待优化 |
-| **严重程度** | 中 |
-| **描述** | 项目中同时存在三套懒加载逻辑：主题内置懒加载、vanilla-lazyload 库、自定义 lazy-loading 系列脚本。逻辑有重叠，可能导致冲突或重复加载 |
-| **影响** | 页面加载性能，偶尔的图片加载异常 |
-| **相关文件** | `source/js/lazy-loading*.js`, `themes/butterfly/source/js/lazy-loading-optimized.js`, `vanilla-lazyload` npm 包 |
-| **临时方案** | 当前通过禁用主题懒加载（`_config.butterfly.yml` 中 `lazyload.enable: false`）使用自定义方案 |
-| **建议修复** | 统一为一套懒加载方案，移除冗余脚本和依赖 |
+| **状态** | 历史项；当前实现已从多套脚本收敛为文章图片 observer + CSS 占位 + about 专用懒加载，详见 2026-07-10 审计 |
+| **严重程度** | 中（需结合长图文占位动画继续优化） |
+| **描述** | 旧 lazy-loading 系列与 vanilla-lazyload 的并行问题已在 2026-05 清理；当前保留的风险是 `lazy-loading.css` 对大量文章占位符的无限动画，而非旧脚本冲突。 |
+| **影响** | 图片很多的文章加载阶段可能持续增加绘制/合成成本。 |
+| **相关文件** | `themes/butterfly/source/js/lazy-loading-optimized.js`、`source/css/lazy-loading.css`、`source/css/lazy-loading-stable.css`、`source/about/lazy-loading-about.js` |
+| **临时方案** | 保持 `_config.butterfly.yml` 的 `lazyload.enable: false`；不要恢复已删除的旧 lazy-loading/refresh 脚本。 |
+| **建议修复** | 保留现有加载和 CLS 行为，将动态 shimmer/blur 限制为视口附近占位符。 |
 
 ---
 
@@ -95,8 +97,8 @@
 |---|---|
 | **状态** | 已知不一致 |
 | **严重程度** | 低 |
-| **描述** | `数组.md`、`HMNodejs.md`、`鸿蒙中文包.md` 三篇文章没有对应的 asset 文件夹，与其他 48 篇文章不一致 |
-| **影响** | 如果后续添加图片，需要手动创建文件夹 |
+| **描述** | `AccountKitTest.md`、`CodeInspiration.md`、`HMNodejs.md`、`MianShiTong2.md`、`数组.md`、`最优化理论.md`、`鸿蒙中文包.md` 共七篇文章没有对应的 asset 文件夹；这是结构差异，不是运行时故障。 |
+| **影响** | 后续为这些文章添加本地相对媒体时，需要先创建对应目录。 |
 | **建议修复** | 如需统一，可手动创建对应的空 asset 文件夹 |
 
 ---

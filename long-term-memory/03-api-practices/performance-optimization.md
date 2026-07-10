@@ -6,6 +6,8 @@ type: project
 
 # 整体性能优化方案
 
+> **状态说明（2026-07-10 核验）**：本文保留早期性能设计与历史决策，但 L1/L6/L8 中的 network-monitor、topimg-monitor、旧 lazy-loading 系列等已删除，且部分“实测/当前瓶颈”结论已过时。当前运行时问题排序、产物证据和验证方法以 [2026-07-10 渲染性能与长期记忆事实审计](../05-performance-audit/2026-07-10-render-performance-audit/README.md) 为准。
+>
 > **何时阅读**：性能问题排查（LCP / CLS / FID 高）、调整 inject 顺序、新增性能监控、移动端卡顿调研、PageSpeed 报告异常时。
 > **关联文档**：[lazy-loading-system.md](lazy-loading-system.md)（懒加载是性能的一部分）· [universe-background.md](universe-background.md)（动画性能）· [cdn-strategy.md](cdn-strategy.md)（待写）
 
@@ -13,14 +15,14 @@ type: project
 
 ## L1 · TL;DR（30 秒看完）
 
-项目采取了 **六个维度** 的性能优化：
+项目目前可确认的性能策略与待治理项：
 
-1. **构建期防 CLS**：`scripts/image-dimensions.js` 在 `after_render:html` 给所有图片注入 `width`/`height`/`loading="lazy"` 属性，配合 `aspect-ratio` CSS 防止懒加载导致的布局抖动。
-2. **关键 CSS 内联 + 非关键 CSS 异步**：`inject.head` 中只有 `index.css` 是同步阻塞，其他都用 `media="print" onload="this.media='all'"` 技巧异步加载。
-3. **JS 全部 defer**：`inject.bottom` 中所有脚本带 `defer`，等 HTML 解析完成后并行下载、按顺序执行。
-4. **运行时降级**：`universe-optimized.js` 30fps 节流 + 移动端粒子减半 + 标签隐藏暂停。
-5. **运行时监控**：`network-monitor.js`（资源请求计数）+ `topimg-monitor.js`（顶部图加载状态）。
-6. **懒加载 + 失败重载**：5+ 套懒加载共存（详见 [lazy-loading-system.md](lazy-loading-system.md)），失败按钮 5s 冷却。
+1. **构建期防 CLS**：`scripts/image-dimensions.js` 为可解析的图片注入 `width`/`height`/`loading="lazy"`，浏览器可据此保留布局空间。
+2. **资源注入**：`inject.head` 保留关键 CSS，其他自定义样式使用 `media="print"` 异步加载；但当前产物有重复的 `index.css` 和 Font Awesome，不能称为完全去重。
+3. **脚本加载**：`inject.bottom` 自定义脚本使用 `defer`，但主题/插件仍有各自加载路径，必须以生成 HTML 核验。
+4. **动画降级**：两个星空脚本各有 30fps、移动端降级和标签隐藏暂停；前台双 Canvas 仍会叠加。
+5. **当前明确热点**：移动首页 waterfall 的 100ms 轮询/调试监听、全站 Mermaid 无效请求、全站 Swiper 注入、长文媒体与占位动画；完整证据见 2026-07-10 审计。
+6. **运行时监控**：旧 `network-monitor.js` 与 `topimg-monitor.js` 已删除，不再存在生产监控模块。
 
 ---
 
@@ -220,147 +222,38 @@ inject:
 
 ---
 
-## L6 · 运行时监控（用户主动触发查看）
+## L6 · 已移除的历史运行时监控
 
-### 6.1 `network-monitor.js`（资源请求计数）
+`network-monitor.js` 与 `topimg-monitor.js` 已在 2026-05 的清理中从当前工作树移除；本文原先关于其 API、周期和“生产环境开销”的内容仅适用于当时的历史版本，不能作为当前实现依据。
 
-> 文件：`source/js/network-monitor.js`（351 行）
-
-#### 监控目标
-
-- 所有 `<img>` 请求（initial DOM + MutationObserver 新增）
-- 所有 `<video>` 请求
-- 所有 `fetch()` 调用（hook `window.fetch`）
-
-#### 数据结构
-
-```js
-{
-  total: 0,
-  loaded: 0,
-  failed: 0,
-  pending: 0,
-  byType: { image: 0, video: 0, fetch: 0 },
-  log: [
-    { url, type, status, timestamp, duration }
-  ]
-}
-```
-
-#### 暴露 API
-
-```js
-window.printNetworkStats();    // 打印分类统计
-window.getNetworkLog();        // 返回完整日志
-window.clearNetworkLog();      // 清空
-```
-
-#### 触发周期
-
-- 每 10 秒打印一次中间状态（console.log）
-- `beforeunload` 时打印最终报告
-
-#### 用途
-
-排查"哪张图加载慢/失败"时，在 F12 console 输入 `printNetworkStats()` 查看汇总。
-
-### 6.2 `topimg-monitor.js`（顶部图加载状态）
-
-> 文件：`source/js/topimg-monitor.js`（263 行）
-
-#### 监控目标
-
-通过选择器探测顶部图：
-
-```js
-const topImageSelectors = [
-  '#page-header',
-  '.top-img', 
-  '.post-bg',
-  '[id*="header"]',
-  '[class*="top-img"]'
-];
-```
-
-每个元素检查三种来源：
-1. CSS `background-image: url(...)` 
-2. 子 `<img>` 元素的 src
-3. 内联 style 中的图片 URL
-
-#### 状态记录
-
-```js
-{
-  selector: '#page-header',
-  type: 'background-image',
-  url: '/imgs/cover-001.webp',
-  loaded: true,
-  loadedAt: timestamp
-}
-```
-
-#### 暴露 API
-
-```js
-window.redetectTopImages();   // 重新探测（PJAX 切页后用）
-window.getTopImages();        // 获取当前状态
-```
-
-#### 用途
-
-文章页顶部封面图加载慢/失败时，可在 console 看到具体哪个元素的哪个来源出问题。
-
-### 6.3 性能开销
-
-两个监控脚本是 **全程运行**，但开销可控：
-
-- `network-monitor.js` 主要消耗：MutationObserver 监听 + 每 10s 打印 → CPU 影响 < 1%
-- `topimg-monitor.js` 仅在初始化和 PJAX 完成时探测，无周期任务
-
-**生产环境建议**：上线后可考虑改为只在 `?debug=1` 参数下加载。
+若以后需要诊断资源问题，优先使用浏览器 DevTools Network/Performance 录制，或设计成**显式的本地开发开关**：不得全站常驻 hook `fetch`、全局 `MutationObserver` 或周期性生产日志。
 
 ---
 
-## L7 · 懒加载
+## L7 · 当前懒加载边界
 
-详见 [lazy-loading-system.md](lazy-loading-system.md)。汇总：
+当前全站主力是 `themes/butterfly/source/js/lazy-loading-optimized.js`：只处理文章内容的图片，使用 `IntersectionObserver`，重新初始化时会断开旧 observer。`source/css/lazy-loading.css` 与 `source/css/lazy-loading-stable.css` 仍由 `head.pug` 全站加载，但前者对 `.lazy-placeholder` 定义了持续 shimmer/旋转/blur 效果；在图片很多的长文中这是当前 P2 风险，而不是“失败重载”系统。
 
-| 系统 | 范围 | 触发 |
+| 机制 | 当前范围 | 触发/注意 |
 |---|---|---|
-| 浏览器原生 `loading="lazy"` | 全站 img（除排除项） | 进入视口附近时浏览器自动 |
-| `lazy-loading-optimized.js` | `#article-container` 内 img | IntersectionObserver |
-| `lazy-image-refresh.js` | 全站失败 img | error 事件 + 周期扫描 |
-| `lazy-video-refresh.js` | 全站 video | IntersectionObserver + 周期扫描 |
-| `lazy-loading-about.js` | `/about/` 页 .card-row | IntersectionObserver（rootMargin 200px） |
+| 浏览器原生 `loading="lazy"` | `image-dimensions.js` 未排除的图片 | 浏览器视口附近加载 |
+| `lazy-loading-optimized.js` | `#article-container` / `.post-content` 内图片 | IntersectionObserver；加载后取消观察 |
+| `lazy-loading-about.js` | `/about/` 的 `.card-row` | 行进入 200px rootMargin 后加载 |
+| `lazy-loading.css` / stable CSS | 全站加载，样式主要命中文章占位符 | 大量占位符时避免同时运行高代价动画 |
 
 ---
 
-## L8 · 综合性能指标（理论 + 经验）
+## L8 · 当前测量纪律与瓶颈
 
-### 8.1 期望值
+不要将旧文档中的“移动端 4G 实测值”“CPU < 1%”或预计百分比当作当前数据；本次只读审计未进行真实浏览器跑分。当前需要在目标设备建立基线的优先顺序：
 
-| 指标 | 期望 | 实测（移动端 4G） |
-|---|---|---|
-| **LCP**（首屏最大内容渲染） | < 2.5s | 1.8s（封面图） |
-| **CLS**（累计布局抖动） | < 0.1 | 0.05 ~ 0.08 |
-| **FID/INP**（交互延迟） | < 100ms | 60-80ms |
-| **TTFB**（首字节） | < 600ms | 取决于 CDN |
-| **页面字节数** | < 1MB | ~ 1.2MB（含 KaTeX 时 1.5MB） |
+1. **移动首页 waterfall**：100ms 轮询、滚动/触摸后的样式重写和调试 observer。
+2. **全站双 Canvas**：两个 30fps 星空 RAF 前台叠加。
+3. **Mermaid**：170 个已生成页面的 `mermaid@undefined` 失败请求及无效按需 URL。
+4. **重媒体文章**：102 个 MP4、约 487MB 总静态媒体；单页最高约 153MB MP4，总计 18–19 段视频的文章存在明显加载/解码风险。
+5. **全站 Swiper 注入、重复 CSS/Font Awesome、页脚 4Hz timer、长文占位动画**。
 
-### 8.2 当前瓶颈
-
-1. **KaTeX 客户端渲染**：已从 MathJax（1.1MB）迁移至 KaTeX（303KB），体积减少 74%
-2. **header-universe.js 已优化**：30fps 节流 + visibility 暂停 + 移动端降级已实施
-3. **多套懒加载** 已精简，冗余脚本已删除
-4. **第三方 CDN** 部分不稳定（bytecdntp.com 已 404，elemecdn 偶尔慢）
-
-### 8.3 候选优化（未实施）
-
-| 项 | 收益 | 工作量 |
-|---|---|---|
-| 字节级 CDN 替换为 jsdelivr / unpkg | 减少 404 | 小 |
-| 统一懒加载方案（当前仍有 lazy-loading.css 等残留） | -20KB CSS | 小 |
-| 资源加 hash 版本号 | 缓存失效控制 | 中 |
+所有优化都要先录制优化前后 trace；完整表格、受影响页面、验收与不可确认的生产网络边界见 [2026-07-10 审计](../05-performance-audit/2026-07-10-render-performance-audit/README.md)。
 
 ---
 
@@ -368,13 +261,13 @@ window.getTopImages();        // 获取当前状态
 
 | # | 红线 | 后果 | 正确做法 |
 |---|---|---|---|
-| R1 | 在 inject.head 加同步 CSS（不带 media="print"） | 阻塞首屏渲染，LCP 飙升 | 仅 index.css 同步，其他都异步 |
-| R2 | 在 inject.head 加同步 script（无 defer/async） | 阻塞 HTML 解析 | head 中的 script 必须 defer 或 async |
-| R3 | 删除 `image-dimensions.js` | 所有图片懒加载导致 CLS 抖动 | 必须保留 |
-| R4 | 修改 `image-dimensions.js` 的排除列表移除 cover | 封面图变成懒加载，LCP 显著恶化 | cover/post-bg 必须排除 |
-| R5 | 给 inject.bottom 的脚本去掉 defer | 改为下载完立即执行，可能在 jQuery 之前执行依赖 jQuery 的脚本 | 全部保持 defer |
-| R6 | 关闭 visibility API 暂停 | 后台标签页持续 GPU 占用 | 必须保留 |
-| R7 | 在文章中插入大量 `<img loading="eager">` | 抢首屏带宽 | 只对 cover/封面用 eager |
+| R1 | 以为 `inject.head` 只有一份关键 CSS | 当前 `head.pug` 与 inject 都有 `/css/index.css`，且 Font Awesome 也重复 | 修改资源前先检查生成 HTML；去重后做首屏图标回归 |
+| R2 | 新增无条件全站第三方脚本 | 普通页面也会解析、执行或失败重试 | 用页面节点检测或特性开关按需加载 |
+| R3 | 删除 `image-dimensions.js` | 图片布局保留空间可能丢失，CLS 增加 | 必须保留或以等价尺寸策略替换 |
+| R4 | 修改排除列表移除 cover | 封面被强制懒加载，LCP 可能恶化 | cover/post-bg 继续排除 |
+| R5 | 让图片占位符对整篇长文无限 blur/shadow 动画 | 多图文章会有大量持续绘制/合成 | 只给可见占位符动态效果，远处静态化 |
+| R6 | 关闭 Canvas 的 visibility 暂停 | 后台仍持续 GPU/CPU 工作 | 两个星空脚本都必须保留该暂停逻辑 |
+| R7 | 在文章中插入大量 `<video>` 且未设预加载策略 | 元数据/解码/网络竞争放大 | 非首屏视频使用 `preload="none"`、poster、视口触发 |
 
 ---
 

@@ -1,8 +1,8 @@
 # 长期记忆索引 — XBXyftx Hexo 博客项目
 
 > **AI 必读**：每次进入新会话，第一步必须阅读本文件。严禁跳过索引直接操作代码。
-> **当前日期**：2026-06-01
-> **项目状态**：活跃维护中，持续发布新文章
+> **当前日期**：2026-07-10
+> **项目状态**：活跃维护中，持续发布新文章；当前运行时性能基线见 2026-07-10 审计。
 
 ---
 
@@ -14,7 +14,7 @@
 | **技术栈** | Hexo 7.3.0 + Butterfly 主题 v5.3.2 |
 | **语言** | zh-CN |
 | **部署** | GitHub Pages + 私有服务器（双部署） |
-| **文章数** | 53 篇（51 篇含 asset 文件夹，2 篇不含） |
+| **文章数** | 57 篇 Markdown 文章（50 个同名 asset 目录；7 篇未建目录） |
 | **主题** | Butterfly（重度自定义） |
 | **核心特色** | 鸿蒙开发技术博客、AI 编程经验分享、Vibe Coding 实践 |
 
@@ -71,6 +71,8 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 ## 专题文档（按需深读）
 
 ### 部署与构建
+
+- [2026-07-10 渲染性能与长期记忆事实审计](05-performance-audit/2026-07-10-render-performance-audit/README.md) — **当前性能基线**；P0–P3 清单、证据、保持视觉与功能的优化路径，排查风扇高转必读
 - [Hexo 8 升级可行性报告](05-performance-audit/2026-05-07-hexo-upgrade-feasibility/README.md) — 🔴 22 依赖逐项分析、3 方案对比、数学渲染链断裂、自定义脚本影响
 - [部署流水线（dev/opt/pub）](03-api-practices/deployment-pipeline.md) — 3 条部署命令的完整流程、参数差异、适用场景
 - [CDN 策略与资源加载](03-api-practices/cdn-strategy.md) — 7 个 CDN 源盘点、bytecdntp 迁移历史、本地保留理由

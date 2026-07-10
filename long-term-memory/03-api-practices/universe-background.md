@@ -6,6 +6,8 @@ type: project
 
 # 星空背景动效 — universe-optimized + header-universe 双层架构
 
+> **当前状态（2026-07-10 核验）**：两套脚本的 30fps 节流、移动端降级和 `visibilitychange` 暂停仍有效；但它们仍是两个独立 RAF/Canvas，会在前台同时绘制，不能再称为“收益有限”或已完成性能治理。当前优先级、证据与保持视觉的合并/暂停方案见 [2026-07-10 渲染性能与长期记忆事实审计](../05-performance-audit/2026-07-10-render-performance-audit/README.md)。
+>
 > **何时阅读**：调整背景动效、性能问题排查（CPU 占用高 / 动画卡顿）、移动端适配、新主题集成时。
 > **关联文档**：[performance-optimization.md](performance-optimization.md)（待写）· [cdn-strategy.md](cdn-strategy.md)（待写）
 
@@ -17,7 +19,7 @@ type: project
   - `universe-optimized.js`：**全站固定背景**（`<canvas id="universe">`，position fixed，z-index -1）
   - `header-universe.js`：**只在页面头部**（`#page-header` 内附加 `<canvas class="universe-header">`）
 - 它们**互不依赖**，渲染各自的 canvas，效果叠加但不共享代码 / 状态。
-- **性能策略差异**：`universe-optimized.js` 有 30fps 节流 + 移动端降级 + visibility 暂停；`header-universe.js` 完全没有节流和降级（始终 60fps）。
+- **性能策略差异**：两者均有 30fps 节流、移动端降级和标签页隐藏暂停；但它们仍各自运行 RAF 并独立绘制，前台成本会叠加。
 - **半透明配合**：`transpancy.css` 把所有内容容器（文章/页面/卡片/footer）的背景设为 `rgba(1,26,69,0.4)`，让背景星空透出来。
 
 ---
@@ -232,25 +234,20 @@ inject:
 
 ## L6 · 性能影响
 
-### 6.1 实测开销（优化后）
+### 6.1 静态审计边界（2026-07-10）
 
-| 场景 | universe-optimized | header-universe（优化后） | 总和 |
-|---|---|---|---|
-| **PC（1920×1080）首页** | ~153 颗 × 30fps ≈ 5k op/s | ~153 颗 × 30fps ≈ 5k op/s | ~10k op/s |
-| **PC 文章页** | ~153 颗 × 30fps | ~153 颗 × 30fps | 类似 |
-| **手机（375×667）首页** | ~15 颗 × 30fps ≈ 450 op/s | ~15 颗 × 30fps ≈ 450 op/s | ~900 op/s |
+两套动画的粒子数量与 30fps 上限可以从代码确认，但不应把“粒子数 × FPS”写成真实 CPU 占用或宣称“总开销减半”：Canvas 的实际成本还受画布面积、GPU、浏览器合成路径和前景滤镜影响。当前已确认的是，两个独立 RAF 在前台会同时执行；应先使用真实目标设备的 Performance trace 建立优化前基线。
 
-> **2026-05-04 更新**：header-universe.js 优化后，两套动画性能特征已基本对齐。总 CPU 开销约为优化前的一半。
-
-### 6.2 候选优化（已全部实施）
+### 6.2 候选优化（当前状态）
 
 | 优化项 | 状态 |
 |---|---|
-| **header-universe.js 加 30fps 节流** | ✅ 已完成（2026-05-04） |
-| **header-universe.js 加 visibility 暂停** | ✅ 已完成（2026-05-04） |
-| **header-universe.js 移动端粒子减半** | ✅ 已完成（2026-05-04） |
-| **统一为单 canvas 复用** | 未实施（重写工作量大，收益有限） |
-| **CSS 替代（@property + animation）** | 未实施（流星轨迹难以表达） |
+| `header-universe.js` 加 30fps 节流 | ✅ 已完成（2026-05-04） |
+| `header-universe.js` 加 visibility 暂停 | ✅ 已完成（2026-05-04） |
+| `header-universe.js` 移动端粒子减半 | ✅ 已完成（2026-05-04） |
+| 页头层离开视口时暂停 | 🔴 未实施；建议优先验证 |
+| 统一为单 RAF / 单 canvas 或共享控制器 | 🔴 未实施；当前 P1 候选 |
+| `prefers-reduced-motion` 静态星空降级 | 🔴 未实施；建议与合并方案一并设计 |
 
 ---
 
@@ -281,10 +278,11 @@ inject:
 - 检查内容容器是否有 `transpancy.css` 的半透明 background。可能 `transpancy.css` 没加载。
 - 检查 `--card-bg` CSS 变量是否被覆盖。
 
-### 现象 3：CPU 占用高，标签页风扇启动
+### 现象 3：CPU 占用高，前台风扇启动
 
-- 是否在标签页隐藏时仍发热？`document.hidden` 时 universe-optimized 应该停止；如果仍发热 → header-universe 没暂停
-- **临时方案**：F12 console 输入 `document.querySelector('.universe-header').remove()` 移除 header canvas
+- `document.hidden` 时两个脚本都应停止；若后台仍发热，应录制实际 trace 排查其他 timer/网络/扩展。
+- **前台长时间阅读时**，两套 canvas 仍同时运行，是当前已确认的持续成本；先在 Performance 面板核实两条 RAF 的占比，再选择合并或页头出视口暂停。
+- 临时诊断可在 DevTools Console 输入 `document.querySelector('.universe-header')?.remove()`，只用于确认页头层影响；刷新会恢复，不能作为正式修复。
 
 ### 现象 4：移动端动画卡
 

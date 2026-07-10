@@ -17,9 +17,9 @@ type: project
 
 | 模块 | 用途 | 加载方式 | 体积 | 故障影响 |
 |---|---|---|---|---|
-|**Twikoo 1.7.11** | 评论系统 | 本地 `/js/twikoo.js` + Netlify 后端 | v1.7.11, ~938KB | 评论区空白 |
+| **Twikoo 1.7.11** | 评论系统 | 本地 `/js/twikoo.js` + Netlify 后端；文章/可评论页的评论容器进入视口后请求 | ~938KB（静态文件） | 评论区空白 |
 | **KaTeX 0.16.19** | 数学公式渲染 | 本地 `/js/katex/` + 客户端 auto-render | ~303KB（含 CSS） | 公式显示为 LaTeX 源码 |
-| **Mermaid** | 图表渲染 | `hexo-filter-mermaid-diagrams` 插件 | 插件体积 | 代码块显示为原始 mermaid 语法 |
+| **Mermaid** | 图表渲染 | 当前加载配置**失效**：footer 全站请求 `mermaid@undefined`；主题按需 loader 还会解析为 `/%5Bobject%20Object%5D` | 未可靠加载 | 有 Mermaid 图时无法保证渲染；普通页产生失败请求 |
 
 ---
 
@@ -41,16 +41,18 @@ twikoo:
   visitor: true        # 用 Twikoo 统计文章访问量
 ```
 
-### 2.2 加载链路
+### 2.2 加载链路（2026-07-10 产物核验）
 
 ```text
-文章页 → 用户滚动到评论区
-  → Butterfly comments.pug 检测 comments.lazyload: true
+文章/可评论页 → 用户滚动到评论区
+  → 生成页面调用 btf.loadComment(#twikoo-wrap, loadTwikoo)
   → IntersectionObserver 监听 #twikoo-wrap 进入视口
   → 动态创建 <script src="/js/twikoo.js">
   → twikoo.init({ envId: 'https://twikooxbx.netlify.app/.netlify/functions/twikoo', el: '#twikoo-wrap' })
   → 向 Netlify Function 发请求获取评论数据
 ```
+
+> **事实边界**：当前配置仍是 `comments.lazyload: true`。本次直接检查了已生成文章的内联评论代码，实际展开为 `btf.loadComment(...)`，故 Twikoo 不会在文章首屏立即下载。它的静态文件约 938KB，仍应保持视口触发而非改回预加载。
 
 ### 2.3 本地化原因
 
@@ -152,16 +154,24 @@ mermaid:
     dark: dark
 ```
 
-### 4.2 加载方式
+### 4.2 当前加载状态（2026-07-10 已核验，待修复）
 
-通过 `hexo-filter-mermaid-diagrams` 插件在构建时处理：
+当前工程同时存在两条错误路径，不能视为可用的 Mermaid 方案：
 
 ```text
-markdown 中的 ````mermaid 代码块
-  → hexo-filter-mermaid-diagrams 插件
-  → 生成 <div class="mermaid"> + <script>mermaid.initialize()</script>
-  → 浏览器端 mermaid.js 渲染 SVG 图表
+所有主题页面
+  → footer.pug 无条件输出 https://unpkg.com/mermaid@undefined/dist/mermaid.min.js
+  → 普通页也产生失败请求
+
+主题动态路径
+  → math/mermaid.pug 仅在发现 .mermaid-wrap 后才尝试动态加载
+  → 但 CDN.option.mermaid 当前被写为 YAML 对象，不是 URL
+  → url_for(...) 展开为 /%5Bobject%20Object%5D
 ```
+
+- 当前 `source/` 下未找到 Mermaid fence，已生成产物中也没有实际 `.mermaid-wrap`。
+- 因此不能用“插件会在构建期注入并正常渲染”描述当前事实。
+- 修复原则：移除 footer 无条件脚本；把 Mermaid 资源配置恢复为固定、有效的 JS URL 或主题默认解析；仅由 `math/mermaid.pug` 在实际图表页面按需请求。具体实施与验收见 [2026-07-10 渲染性能与长期记忆事实审计](../05-performance-audit/2026-07-10-render-performance-audit/README.md)。
 
 ### 4.3 支持的图表类型
 
@@ -171,15 +181,17 @@ markdown 中的 ````mermaid 代码块
 
 | 现象 | 可能原因 | 检查方法 |
 |---|---|---|
-| Mermaid 代码块显示为原始文本 | 插件未启用 | 检查 `mermaid.enable: true` |
-| 图表渲染错误（红色文字） | Mermaid 语法错误 | 检查代码块语法 |
-| 暗色模式下图表看不清 | `dark` 主题未生效 | 检查 `data-theme` 属性 |
+| Mermaid 代码块显示为原始文本或无图 | 当前 Mermaid URL 配置失效 | 先按本节 4.2 修复有效 URL 和按需加载，再用最小 Mermaid 页面验证 |
+| 图表渲染错误（红色文字） | Mermaid 语法错误或版本 API 不兼容 | 在网络请求成功后检查 Mermaid 版本与代码块语法 |
+| 暗色模式下图表看不清 | `dark` 主题未生效 | 检查 `data-theme` 属性与主题配置 |
 
 ---
 
 ## L5 · inject 总图（head + bottom 全景）
 
-### 5.1 inject.head（8 个资源）
+### 5.1 inject.head（当前直接注入的 9 个资源）
+
+> **注意**：这只统计 `_config.butterfly.yml` 的 `inject.head`，不包括 `head.pug` 的主题资源。当前产物另有两个重复：`head.pug` 与 inject 各加载一次 `/css/index.css` 和 Font Awesome；`lazy-loading-optimized.css` 的 inject 行已删除，不应再列为当前资源。
 
 | # | 资源 | 类型 | 同步/异步 | 作用 |
 |---|---|---|---|---|
@@ -190,9 +202,8 @@ markdown 中的 ````mermaid 代码块
 | 5 | `/css/styles.css` | 本地 CSS | 异步 | 业务样式细节 |
 | 6 | `/css/rightmenu.css` | 本地 CSS | 异步 | 右键菜单样式 |
 | 7 | `/css/twikoo.css` | 本地 CSS | 异步 | 评论样式 |
-| 8 | `/css/lazy-loading-optimized.css` | 本地 CSS | 异步 | 图片懒加载占位符 |
-| 9 | `/css/readmode-enhanced.css` | 本地 CSS | 异步 | 阅读模式样式 |
-| 10 | Font Awesome 6.5.1 (cdnjs) | CDN CSS | 异步 | 全站图标（fa-robot 等） |
+| 8 | `/css/readmode-enhanced.css` | 本地 CSS | 异步 | 阅读模式样式 |
+| 9 | Font Awesome 6.5.1 (cdnjs) | CDN CSS | 异步、但与主题同步资源重复 | 全站图标（当前重复加载） |
 
 ### 5.2 inject.bottom（7 个资源）
 

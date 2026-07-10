@@ -1,5 +1,7 @@
 # 项目结构详解 — XBXyftx Hexo 博客
 
+> **当前事实基线（2026-07-10）**：本文文件树中的文章数、媒体、资源注入和部分旧懒加载名称可能随内容演进；运行时性能与资源加载的权威现状见 [2026-07-10 渲染性能与长期记忆事实审计](../05-performance-audit/2026-07-10-render-performance-audit/README.md)。
+
 ## 1. 完整文件树
 
 ```
@@ -30,7 +32,7 @@ d:\hexo\hexoSettings/
 │   └── math-protect.js                  # KaTeX 公式保护
 │
 ├── source/                              # 博客内容源
-│   ├── _posts/                          # 53 篇文章
+│   ├── _posts/                          # 57 篇文章（截至 2026-07-10）
 │   │   ├── [文章名].md                   # 文章正文
 │   │   └── [文章名]/                     # 文章 asset 文件夹（图片等）
 │   │
@@ -66,8 +68,8 @@ d:\hexo\hexoSettings/
 │   │
 │   ├── swiper/                          # 【自定义】轮播图系统
 │   │   ├── README.md
-│   │   ├── images.json                  # 自动生成的图片索引
-│   │   ├── index.md                     # 轮播图页面
+│   │   ├── images.json                  # 手动维护索引
+│   │   ├── images-auto.json             # 自动生成索引
 │   │   └── images/                      # 轮播图图片（200+张 webp）
 │   │
 │   ├── LianlianKan/                     # 【自定义】连连看游戏
@@ -192,7 +194,7 @@ deploy:
 | hexo-butterfly-swiper | ^1.0.12 | 轮播图 |
 | hexo-butterfly-tag-plugins-plus | ^1.0.18 | 增强标签插件 |
 | hexo-filter-gitcalendar | ^1.0.11 | GitHub 贡献日历 |
-| hexo-filter-mermaid-diagrams | ^1.0.5 | Mermaid 图表 |
+| hexo-filter-mermaid-diagrams | ^1.0.5 | Mermaid 图表构建期插件；当前前端 Mermaid URL 配置待修复 |
 | hexo-generator-index-pin-top | ^0.2.2 | 文章置顶 |
 | hexo-wordcount | ^6.0.1 | 字数统计 |
 
@@ -202,7 +204,7 @@ deploy:
 |------|------|------|
 | hexo-filter-webp | — | WebP 图片转换 |
 | image-size | ^2.0.2 | 获取图片尺寸 |
-| vanilla-lazyload | ^19.1.3 | 原生懒加载 |
+| vanilla-lazyload | ^19.1.3 | 依赖仍安装，但主题原生 `lazyload.enable` 当前关闭；不应据此推断它在生产页加载 |
 
 ---
 
