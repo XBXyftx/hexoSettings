@@ -104,7 +104,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 ### layout/includes/layout.pug
 
 | 项 | 值 |
-|---|---|
+| --- | --- |
 | **修改内容** | 在 body 中注入入场弹窗 HTML 结构 |
 | **新增代码** | `#entrance-popup.entrance-popup` 及其子元素 |
 | **关联文件** | `entrance-popup.js`, `entrance-popup.css` |
@@ -113,7 +113,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 ### layout/includes/head.pug
 
 | 项 | 值 |
-|---|---|
+| --- | --- |
 | **修改内容** | 添加多个自定义 CSS/JS 链接 |
 | **新增代码** | typewriter-effect.css、entrance-popup.css、`lazy-loading.css`、`lazy-loading-stable.css`、vscode-breadcrumb-toc.css、header-universe.js；Font Awesome 与 `/css/index.css` 当前各有主题/inject 重复入口 |
 | **条件加载** | 部分 CSS/JS 仅在文章页面（`globalPageType === 'post'`）或首页加载 |
@@ -122,15 +122,15 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 ### layout/includes/additional-js.pug
 
 | 项 | 值 |
-|---|---|
+| --- | --- |
 | **修改内容** | 添加多个自定义 JS 加载 |
 | **新增代码** | waterfall.js（首页）、typewriter-effect.js（文章页）、entrance-popup 系列、vscode-breadcrumb-toc.js（文章页）；network/topimg 与旧 lazy-loading 系列已删除 |
-| **影响** | 所有页面的底部 JS 加载；首页的 waterfall 当前有移动端高频保护/调试逻辑 |
+| **影响** | 所有页面的底部 JS 加载；首页的 waterfall 现为单一响应式 masonry 控制器，无移动端轮询或调试监听 |
 
 ### layout/includes/footer.pug
 
 | 项 | 值 |
-|---|---|
+| --- | --- |
 | **修改内容** | 添加建站时间统计 |
 | **新增代码** | 内联 JavaScript，计算从 2024-04-25 18:30 开始的运行时间 |
 | **影响** | 所有页面的 footer |
@@ -138,7 +138,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 ### layout/includes/mixins/indexPostUI.pug
 
 | 项 | 值 |
-|---|---|
+| --- | --- |
 | **修改内容** | 添加瀑布流布局（layout 8）支持 |
 | **关联文件** | `waterfall.js`, `waterfall-homepage.styl` |
 | **影响** | 首页文章卡片布局 |
@@ -146,21 +146,21 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 ### layout/index.pug
 
 | 项 | 值 |
-|---|---|
+| --- | --- |
 | **修改内容** | 添加瀑布流 masonry 类 |
 | **影响** | 首页容器类名 |
 
 ### layout/includes/head/config_site.pug
 
 | 项 | 值 |
-|---|---|
+| --- | --- |
 | **修改内容** | 将 `page.typewriter` 暴露到 `GLOBAL_CONFIG_SITE` |
 | **影响** | 文章页面的全局配置对象 |
 
 ### source/js/main.js
 
 | 项 | 值 |
-|---|---|
+| --- | --- |
 | **修改内容** | 包含注释掉的 hamburger 菜单修复代码和增强移动端检测 |
 | **影响** | 主题主脚本 |
 
@@ -169,7 +169,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 ## 主题文件修改状态总览
 
 | 文件 | 修改类型 | 风险等级 | 升级时处理建议 |
-|------|---------|---------|--------------|
+| --- | --- | --- | --- |
 | `layout/includes/layout.pug` | 添加 HTML | 中 | 升级后重新注入弹窗结构 |
 | `layout/includes/head.pug` | 添加链接 + 当前存在资源重复 | 高 | 升级后重新添加自定义 CSS/JS 链接；先解决 `/css/index.css` 与 Font Awesome 重复，**不要**恢复已回滚的“仅异步 Font Awesome”方案 |
 | `layout/includes/additional-js.pug` | 添加加载 | 高 | 升级后所有自定义 JS 需重新添加 |
@@ -178,6 +178,37 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 | `layout/index.pug` | 添加类名 | 低 | 升级后重新添加 masonry 类 |
 | `layout/includes/head/config_site.pug` | 添加字段 | 中 | 升级后重新暴露 typewriter 字段 |
 | `source/js/main.js` | 添加注释 | 低 | 影响不大，可忽略 |
+
+---
+
+### #5 — 2026-07-10 — 重写首页响应式瀑布流（P0）
+
+**修改文件**：
+- `themes/butterfly/source/js/waterfall.js`
+- `themes/butterfly/source/css/styles.css`
+
+**修改原因**：2026-07-10 当前渲染性能审计将移动首页瀑布流判为 P0。旧实现用每 100ms 轮询扫描全部卡片，在 click/touch/scroll/resize 后用 `cssText` 重写全部项目样式，并保留生产 `MutationObserver`、console 调试和重复 CSS 兜底；这会持续占用主线程并掩盖真正的布局状态问题。
+
+**修改内容**：
+
+1. 用单一 `WaterfallLayout` 控制器替换旧脚本：桌面按容器实际宽度布局，最大三列；`769–1200px` 为两列；`≤768px` 仅清除桌面坐标并交还 CSS 单列流式布局。容器宽度不足以容纳 220px 卡片时自动降列。
+2. 只通过容器/卡片 `ResizeObserver`、两条媒体查询和封面图片 settle 事件请求重排；重复请求合并到一个 `requestAnimationFrame`。不再等待全量图片、使用固定超时或长期轮询。
+3. 移除 100ms `setInterval`、捕获式 scroll/touch/click 监听、`MutationObserver`、`console` 调试、运行时 `<style>` 注入及批量 `style.cssText` 覆盖。
+4. 只写入/清理此控制器拥有的 `position`、`left`、`top`、`width`、`margin`、`transform`、容器 `height`；保留卡片与子元素的其他内联状态。
+5. 增加可幂等销毁路径：取消 RAF、断开 observer、移除媒体查询和图片监听，并兼容未来 PJAX 的 `pjax:send` / `pjax:complete`。
+6. 删除移动端属性选择器“看门狗”和未再使用的 `fade-in` 动画；保留 CSS 单列规则及既有卡片、轮播、封面、信息、标签和分页视觉样式。
+
+**可回滚性**：可直接回退本次实现提交；在提交前也可恢复至已推送的优化前基线 `69772c847d46b251eafa028394b6f1ebef291b68`。本次开始后没有修改远程仓库。
+
+**验证**：
+
+- `node --check themes/butterfly/source/js/waterfall.js` 通过。
+- `waterfall-homepage.styl` 单独编译通过；`npm run build` 成功（121 个文件）。
+- 使用已生成首页 15 张卡片的 jsdom harness，验证 1440px 三列、1024px 两列、375px 一列，图片 load 合并重排、容器/卡片 observer、无轮询和 PJAX teardown。
+- 本地 `http://localhost:4000/` 冒烟检查：首页、瀑布流脚本与样式均可访问。
+- 真实浏览器视觉/Performance 回归仍待完成，详见 [本次操作记录](../04-operations/2026-07-10-waterfall-rewrite/README.md)。
+
+**关联基线**：`69772c8`（已推送到 `origin/master`）
 
 ---
 

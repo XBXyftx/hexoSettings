@@ -602,3 +602,38 @@
 - [x] 新规范文档已创建
 - [x] `MEMORY.md`、`00-index/README.md`、`03-api-practices/README.md` 已同步索引
 - [ ] 需用户本地预览确认 `Long-termMemoryTemplate.md` HTML 卡片渲染效果
+
+---
+
+### #25 — 2026-07-10 — P0 首页瀑布流响应式重写
+
+**操作人**：AI 助手（Claude Code）
+
+**涉及文件**：
+- `themes/butterfly/source/js/waterfall.js` — 重写桌面 masonry、移动单列、重排及清理逻辑
+- `themes/butterfly/source/css/styles.css` — 删除移动端属性选择器看门狗和已废弃 `fade-in` 动画，保留原有视觉规则
+- `long-term-memory/04-operations/2026-07-10-waterfall-rewrite/README.md` — 记录备份基线、验收矩阵和实际验证
+- `long-term-memory/06-theme-modifications/README.md` — 记录主题定制变更
+- `long-term-memory/MEMORY.md` — 加入操作记录入口
+
+**操作详情**：
+
+1. 在任何源码改动前，提交并推送渲染性能审计基线：`69772c847d46b251eafa028394b6f1ebef291b68`（短哈希 `69772c8`）。已核验 `origin/master` 指向同一哈希；后续实施过程未再修改远程仓库。
+2. 移除旧移动端的 100ms 全量 DOM 轮询、`MutationObserver`、生产日志、捕获式 click/touch/scroll/resize 监听、固定等待/超时、运行时 CSS 注入和批量 `style.cssText` 重写。
+3. 新控制器在桌面端基于容器宽度定位卡片：大屏最多三列，中等屏两列，卡片宽度小于 220px 时自动降低列数；窄屏由 CSS 单列流式布局承担，不进行 masonry 绝对定位。
+4. 通过容器/卡片 `ResizeObserver`、媒体查询变化和封面图片 load/error 触发请求重排；同一帧只运行一次 `requestAnimationFrame` 布局。未来若启用 PJAX，可通过 `pjax:send` 销毁，`pjax:complete` 重建。
+5. 仅写入并在销毁时移除控制器自己的坐标/尺寸样式，避免旧实现清空整个 `style` 属性的副作用。
+
+**验证结果**：
+
+- [x] `node --check themes/butterfly/source/js/waterfall.js` 通过
+- [x] `waterfall-homepage.styl` 独立编译通过
+- [x] `npm run build` 成功，最终输出 121 个文件；未执行 WebP 转换和部署
+- [x] 生成的首页加载 `/js/waterfall.js`，生成 JS/CSS 可访问且脚本语法通过
+- [x] 基于生成首页 15 张卡片的 jsdom harness：验证 1440px 三列、1024px 两列、375px 一列、图片 load 单帧合并重排、容器/卡片 observer、无轮询和 PJAX teardown
+- [x] 本地 `http://localhost:4000/` 返回 HTTP 200，并可提供首页、瀑布流脚本和 CSS
+- [ ] 真实浏览器的人工视觉回归、设备旋转及优化前后 Performance 对比仍待完成
+
+**远程仓库状态**：`origin/master` 仍停留在优化前备份基线 `69772c8`；本次未推送实现改动。
+
+---
