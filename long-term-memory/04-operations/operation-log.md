@@ -637,3 +637,36 @@
 **远程仓库状态**：优化前备份基线 `69772c8` 和最终实现 `9988ac4` 均已存在于 `origin/master` 历史；当前远程分支指向实现提交 `9988ac4`。
 
 ---
+
+### #26 — 2026-07-10 — 首页瀑布流浏览器性能测量与最终 A/B 验证
+
+**操作人**：AI 助手（Claude Code）
+
+**涉及文件**：
+- `tools/benchmark-waterfall.js` — 本地 Chrome DevTools Protocol A/B 自动采集器；仅本地运行，不被网站加载
+- `MEASUREMENT-PLAN.md` — 指标定义、复现实验命令、DevTools 手工复测步骤和结论边界
+- `source/_posts/首页瀑布流性能优化记录.md` — 使用 `hexo new` 创建的更新说明文章；按既有技术文章风格讲解重写、前端知识点、三断点数据与测试边界；构建生成 `/2026/07/11/首页瀑布流性能优化记录/`
+- `long-term-memory/04-operations/2026-07-10-waterfall-rewrite/BROWSER-PERFORMANCE-MEASUREMENTS.md` — 表格化归档静态对照、三断点实测、环境、原始产物策略和验收边界
+- `long-term-memory/04-operations/2026-07-10-waterfall-rewrite/README.md`、`long-term-memory/06-theme-modifications/README.md`、`long-term-memory/MEMORY.md`、性能审计 README — 同步本地三断点完成状态和目标设备待测边界
+
+**操作详情**：
+
+1. 为基线 `69772c8` 和实现 `9988ac4` 分别生成独立 `public/` 静态产物，用两个本地 HTTP 服务器提供；每轮启动独立临时 Chrome profile 并禁用 HTTP 缓存，不访问生产站、不部署、不推送。
+2. 采集器通过 Chrome DevTools Protocol 收集 `TaskDuration`、`ScriptDuration`、`LayoutDuration`、`RecalcStyleDuration`、Long Task、布局断言及只匹配 `waterfall.js` 调用栈的 interval / `cssText` / console / observer 专项计数；原始 trace 和 JSON 写入系统临时目录，不纳入 Git。
+3. 最终使用两个固定提交的独立 worktree 产物完成完整矩阵：375×812 / DPR 2、1024×900 / DPR 1、1440×900 / DPR 1；每个版本 / 断点均运行 3 次、15 秒空闲和 15 秒受控滚动。移动端最终旧实现的中位数为 150 次 interval tick、14,352 次滚动 `cssText` 整体写入、81,643 次调试调用 / 15 秒，而当前对应计数均为 0；最终移动端滚动 `ScriptDuration` 降低 85.3%，整页 `TaskDuration` 基本持平（-1.9%），不能将全页面聚合指标夸大为瀑布流的固定收益。平板保持两列、桌面保持三列，当前版在最终布局核验中均无重叠且分页位于卡片后方。
+4. 在测量和文档记录完成后，按用户要求通过 `npx hexo new "首页瀑布流性能优化记录"` 创建新博文，并使用已有标签 `hexo博客搭建`、`主题美化`、`技术向`、`JS`、`CSS`。文章说明旧轮询模型、CSS/JS 职责拆分、`ResizeObserver`、`requestAnimationFrame` 合并、最小样式所有权、销毁路径及量化边界；Front Matter 与既有标签均已脚本核验。
+
+**验证结果**：
+
+- [x] `node --check tools/benchmark-waterfall.js` 通过；重复运行的临时 Chrome profile 清理路径通过冒烟验证
+- [x] 三断点 A/B：375px 单列、1024px 两列、1440px 三列；当前实现和最终布局核验均无几何重叠、分页位于卡片后方
+- [x] 移动端 A/B：当前测量窗口内旧 10Hz 轮询、滚动 `cssText` 整体覆写、调试输出均为 0
+- [x] 平板与桌面 A/B：旧移动看门狗专项计数在两版均为 0；当前实现保持布局正确，性能结果及边界已归档
+- [ ] 目标设备有头浏览器的真实触摸、旋转、深浅色、GPU / 温度 / 风扇与视觉回归仍待完成
+
+**遗留问题**：
+
+- Headless Chrome 的主线程数据不能替代生产网络、真实触摸、GPU 合成或硬件热量结论；报告只对记录的浏览器、视口、时长和统计方式负责。
+- 首次移动端测量曾使用含未提交公告文字更新的主工作区产物；最终完整矩阵已经改用固定 `69772c8` / `9988ac4` 独立 worktree 产物，故以最终矩阵结果为准。
+
+---

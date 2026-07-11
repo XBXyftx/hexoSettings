@@ -5,8 +5,8 @@ summary: 首页响应式瀑布流 P0 重写的基线、实施边界和验证记�
 
 # 2026-07-10 首页瀑布流 P0 重写
 
-> **状态**：实现、静态验证、构建和远程同步已完成；真实浏览器视觉/Performance 对比仍待在目标设备完成。本文只记录事实；未完成的验证不得写为已通过。
-> **关联审计**：[2026-07-10 渲染性能与长期记忆事实审计](../../05-performance-audit/2026-07-10-render-performance-audit/README.md) 的 P0 项。
+> **状态**：实现、静态验证、构建、远程同步和本地 Chrome A/B 三断点测量已完成；目标设备的有头浏览器视觉 / Performance 回归仍待完成。本文只记录事实；未完成的验证不得写为已通过。
+> **关联审计**：[2026-07-10 渲染性能与长期记忆事实审计](../../05-performance-audit/2026-07-10-render-performance-audit/README.md) 的 P0 项 · **测量归档**：[浏览器性能测量](BROWSER-PERFORMANCE-MEASUREMENTS.md)。
 
 ## 优化前远程备份基线
 
@@ -65,4 +65,5 @@ summary: 首页响应式瀑布流 P0 重写的基线、实施边界和验证记�
 - [x] `npm run build` 已完成：121 个文件生成成功；未执行 WebP 转换或部署。
 - [x] 本地 `http://localhost:4000/` 冒烟检查：首页、`/js/waterfall.js`、响应式 CSS 均以 HTTP 200 提供。
 - [x] 实现提交 `9988ac47bedde1380938f44b82dcde34aec80b6f`（`perf: 重写首页响应式瀑布流`）已推送；已核验 `origin/master` 指向同一完整哈希。
-- [ ] 浏览器人工视觉回归与优化前后 Performance 对比：本环境没有可调用的真实浏览器自动化工具，仍需在目标设备完成。
+- [x] 本地 Chrome A/B 三断点测量：375×812 / DPR 2、1024×900 / DPR 1、1440×900 / DPR 1；每个版本 / 断点三次中位数、15 秒空闲与 15 秒滚动。当前版满足 1 / 2 / 3 列、无重叠和分页位置；移动端旧 10Hz 轮询 / `cssText` 整体覆写 / 调试输出均为 0。详见[浏览器性能测量](BROWSER-PERFORMANCE-MEASUREMENTS.md)。
+- [ ] 目标设备有头浏览器的人工视觉回归、触摸 / 设备旋转、深浅色模式和 Performance 对比仍待完成。

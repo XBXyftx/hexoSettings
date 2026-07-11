@@ -206,7 +206,8 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 - `waterfall-homepage.styl` 单独编译通过；`npm run build` 成功（121 个文件）。
 - 使用已生成首页 15 张卡片的 jsdom harness，验证 1440px 三列、1024px 两列、375px 一列，图片 load 合并重排、容器/卡片 observer、无轮询和 PJAX teardown。
 - 本地 `http://localhost:4000/` 冒烟检查：首页、瀑布流脚本与样式均可访问。
-- 真实浏览器视觉/Performance 回归仍待完成，详见 [本次操作记录](../04-operations/2026-07-10-waterfall-rewrite/README.md)。
+- [x] 本地 Chrome A/B 三断点测量：375×812 / DPR 2、1024×900 / DPR 1、1440×900 / DPR 1；每个版本 / 断点三次中位数、15 秒空闲与滚动。当前版保持 1 / 2 / 3 列、无重叠和正确分页位置；移动端没有旧 10Hz 轮询、`cssText` 整体覆写或调试输出。详见[浏览器性能测量](../04-operations/2026-07-10-waterfall-rewrite/BROWSER-PERFORMANCE-MEASUREMENTS.md)。
+- [ ] 目标设备有头浏览器的视觉、触摸 / 旋转、深浅色模式和 Performance 回归仍待完成。
 
 **关联基线**：`69772c8`（已推送到 `origin/master`）
 
