@@ -83,7 +83,36 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 ---
 
-### #4 — 2026-05-04 — katex.pug 添加客户端渲染支持
+### #4 — 2026-07-11 — P1 分层星空动效实验（已回退并归档）
+
+**修改文件**：
+- `themes/butterfly/source/js/header-universe.js`
+- `themes/butterfly/source/css/universe.css`
+- `themes/butterfly/source/css/styles.css`
+- `themes/butterfly/layout/includes/head.pug`
+- `_config.butterfly.yml`
+
+**修改原因**：2026-07-10 审计中的 P1 项确认全站固定背景与页面头部星空各自运行一条 30fps RAF；页头可见时产生双 canvas、双调度、两套粒子对象与重复清屏。用户要求保留顶部封面星光氛围，将背景中不易感知的小星隐藏以降低开销，并明确顶部应有三类星体。
+
+**修改内容（实验阶段）**：
+
+1. 将 `header-universe.js` 重写为唯一 `StarfieldController`；全局 `#universe` 和 header `.universe-header` 仍保留各自画布/堆叠职责，但只由一条 RAF 调度。
+2. 背景仅保留少量低亮缓慢慢星；顶部封面明确区分稀疏大高亮慢星、较密小低亮慢星、同一时刻最多一个的偶发高速流星。
+3. 建立 375px / 1024px / 1440px 的硬性粒子上限、20/24fps 上限和 capped DPR，避免宽屏和高 DPR 线性放大粒子数或 canvas backing store。
+4. 通过 `IntersectionObserver` 在页头离屏时停止顶部层更新/清屏；通过 `visibilitychange` 停止唯一 RAF；`prefers-reduced-motion` 只绘制静态帧；resize 使用 observer/回退事件和 160ms 防抖。
+5. 保持 `pointer-events:none`、背景 `z-index:-1`、顶部 canvas `z-index:2`、标题信息 `z-index:3` 和主题导航 `z-index:90`，确保文字和输入不受阻挡。
+6. 移除 `_config.butterfly.yml` 对 `universe-optimized.js` 的第二个脚本注入；`head.pug` 以 `defer` 加载唯一控制器。旧文件暂时保留在主题资源目录作为历史文件，但当前产物不加载它。
+
+**实际回退与归档（2026-07-11）**：用户视觉验收后认为实验效果未达预期，决定停止迭代并恢复初始基点。已精确恢复上述 5 个实际运行时文件至 `049f08d60827ca25f13b1ced18802f94076ee626`，因此当前站点再次使用 `universe-optimized.js` + `header-universe.js` 的双 Canvas / 双 RAF 实现。P1 关键 JS、CSS、模板、配置与 benchmark 工具已复制至 [source-snapshots/](../04-operations/2026-07-11-starfield-p1/source-snapshots/README.md)，该目录不参与 Hexo 构建或浏览器加载；没有远程推送或部署。
+
+**实验验证与回退验证**：
+
+- P1 实验阶段的 JS 语法、diff、构建和 Headless A/B 数据见 [P1 记录](../04-operations/2026-07-11-starfield-p1/README.md)，但它们不代表当前运行时。
+- 回退后已确认 5 个实际运行时文件与基线精确一致，`header-universe.js` 语法检查和 `git diff --check` 通过；源码快照及其 SHA-256 完整保留。
+
+---
+
+### #5 — 2026-05-04 — katex.pug 添加客户端渲染支持
 
 **修改文件**：`themes/butterfly/layout/includes/third-party/math/katex.pug`
 **修改原因**：BUG-003 — MathJax 3.2.2 体积过大（1.17MB），迁移至 KaTeX（303KB）减少 74% 体积。Butterfly 原 katex.pug 仅做 CSS 加载和 `.katex` 元素显示，假设公式已在服务端渲染（需 hexo-filter-katex），但项目未安装该插件
@@ -181,7 +210,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 ---
 
-### #5 — 2026-07-10 — 重写首页响应式瀑布流（P0）
+### #6 — 2026-07-10 — 重写首页响应式瀑布流（P0）
 
 **修改文件**：
 - `themes/butterfly/source/js/waterfall.js`

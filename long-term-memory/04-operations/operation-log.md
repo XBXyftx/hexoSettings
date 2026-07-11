@@ -670,3 +670,36 @@
 - 首次移动端测量曾使用含未提交公告文字更新的主工作区产物；最终完整矩阵已经改用固定 `69772c8` / `9988ac4` 独立 worktree 产物，故以最终矩阵结果为准。
 
 ---
+
+### #27 — 2026-07-11 — P1 分层星空动效实验、归档与运行时回退
+
+**操作人**：AI 助手（Claude Code）
+
+**涉及文件**：
+
+- `themes/butterfly/source/js/header-universe.js`、`themes/butterfly/source/css/universe.css`、`themes/butterfly/source/css/styles.css`、`themes/butterfly/layout/includes/head.pug`、`_config.butterfly.yml` — 曾用于 P1 单 RAF 实验，现已恢复为基线运行时版本
+- `long-term-memory/04-operations/2026-07-11-starfield-p1/source-snapshots/` — P1 关键 JS、CSS、模板、配置和本地 benchmark 工具的非执行快照与 SHA-256
+- `long-term-memory/04-operations/2026-07-11-starfield-p1/README.md`、`03-api-practices/universe-background.md`、主题修改/性能审计/问题清单/索引 — 留存实验、测量边界与实际回退事实
+
+**操作详情**：
+
+1. 在开始代码修改前创建并推送 P1 回滚基线 `049f08d60827ca25f13b1ced18802f94076ee626`；该提交为显式空提交锚点，确认后续实验、回退与归档均不推送、重写远程或部署。
+2. 实验阶段将原有独立的 `universe-optimized.js` 背景 RAF 和 `header-universe.js` header RAF 收敛为一个 `StarfieldController`，并迭代了渐变星点、离散平行流星拖尾、三档预算、移动端禁流星、平板 30fps 与桌面 36fps 等方案。
+3. 使用两个独立本地静态产物、独立临时 Chrome profile、禁用 cache，完成 375×812 / DPR 2、1024×900 / DPR 1、1440×900 / DPR 1 的实验 A/B；每版本/视口三次中位数，可见 header、离屏 header、reduced-motion 均观察 10 秒。后续视觉参数有修改，基础 A/B 不应被视为最终参数的性能结论。
+4. 用户视觉验收后明确认为效果不理想，要求回到初始基点，但保留本轮长期记忆和源码。已将 P1 关键源码、配置、模板和 benchmark 复制到 `source-snapshots/`，并记录 SHA-256；快照位于 `long-term-memory/`，不会参与 Hexo 构建或浏览器加载。
+5. 已精确将实际星空运行时的 5 个文件恢复为基线 `049f08d`，恢复旧 `universe-optimized.js` 注入与原 header 脚本；根目录的 `tools/benchmark-starfield.js` 已删除，归档副本仍保留。没有执行 `git reset --hard`、远程推送或部署。
+
+**验证结果**：
+
+- [x] P1 实验阶段：`node --check themes/butterfly/source/js/header-universe.js`、`node --check tools/benchmark-starfield.js`、`git diff --check` 与当时的 `npm run build` 均通过；A/B 数据与边界见详细文档。
+- [x] 已归档 P1 源码、配置、模板和 benchmark 工具；快照包含 SHA-256，且不在 Hexo 可加载资源路径。
+- [x] 回退后：5 个实际星空运行时文件与 `049f08d` 精确一致；根目录 benchmark 已删除、归档副本仍存在。
+- [x] 回退后：`node --check themes/butterfly/source/js/header-universe.js` 与 `git diff --check` 通过。
+- [x] 无远程推送、无部署、无破坏性 `git reset`。
+
+**结论与后续**：
+
+- P1 为已归档但未采纳的实验，不应再把单 RAF、三类新星体、20/30/36fps 或 Headless A/B 写为当前站点实现。
+- 当前站点回到原有双 Canvas / 双 RAF 星空效果；未来如再优化，应基于归档建立新的完整方案和真实视觉验收，不应零散恢复其中某个脚本或配置。
+
+---

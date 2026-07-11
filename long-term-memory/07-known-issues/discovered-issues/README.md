@@ -50,7 +50,7 @@ type: project
 
 ## 3. 性能隐患
 
-### 🟡 B4: header-universe.js 没有性能优化 → ✅ 已修复（2026-05-04）
+### 🟡 B4: 双 Canvas 星空在前台持续绘制（P1 实验已归档、未采纳）
 
 - **位置**：`themes/butterfly/source/js/header-universe.js`（124 行）
 - **原问题**：
@@ -64,7 +64,10 @@ type: project
   - 桌面端粒子数从 `0.216×width` 降为 `0.08×width`
   - 流星尾巴从 30 点缩短为 10 点
   - resize 200ms 防抖 + PJAX 清理
-- **关联文档**：[06-theme-modifications/README.md](../../06-theme-modifications/README.md) #3
+- **当前状态（2026-07-11）**：`header-universe.js` 保留 2026-05-04 的 30fps 节流、visibility 暂停、移动端粒子降级、resize 防抖和 PJAX 清理；但它仍与 `universe-optimized.js` 分别运行 RAF，因此前台持续双 Canvas 绘制仍是性能隐患。
+- **P1 实验结果**：曾将两条 RAF 合并为单控制器、补充页头离屏暂停与 `prefers-reduced-motion` 静态降级，并完成本地 Headless A/B；用户视觉验收后认为效果不理想，已恢复基线运行时代码。实验源码和数据仅归档在 [P1 实验与回退记录](../../04-operations/2026-07-11-starfield-p1/README.md)，不属于当前实现。
+- **后续建议**：若再次处理，先以当前基线在真实目标设备录制性能与视觉基线，再建立独立分支进行完整方案验证；不要孤立恢复任何 P1 脚本、CSS 或注入配置。
+- **关联文档**：[06-theme-modifications/README.md](../../06-theme-modifications/README.md) #3、#4
 
 ### 🟡 B5: 多套懒加载 3 秒周期扫描
 

@@ -1,341 +1,111 @@
 ---
-name: 星空背景动效（universe-optimized + header-universe）完整实现
-description: 全站固定星空 canvas 动画 + 页面头部独立星空动画的双层架构、性能调优、降级策略和透明度协作
-type: project
+name: 星空背景动效（universe-optimized + header-universe）当前实现
+description: 记录当前全站背景与页面头部独立 Canvas 星空的双层架构、已有效的降级策略，以及已归档但未采纳的 P1 实验
+metadata:
+  type: project
 ---
 
-# 星空背景动效 — universe-optimized + header-universe 双层架构
+# 星空背景动效 — 当前双 Canvas / 双 RAF 架构
 
-> **当前状态（2026-07-10 核验）**：两套脚本的 30fps 节流、移动端降级和 `visibilitychange` 暂停仍有效；但它们仍是两个独立 RAF/Canvas，会在前台同时绘制，不能再称为“收益有限”或已完成性能治理。当前优先级、证据与保持视觉的合并/暂停方案见 [2026-07-10 渲染性能与长期记忆事实审计](../05-performance-audit/2026-07-10-render-performance-audit/README.md)。
+> **当前状态（2026-07-11）**：P1 分层星空实验经视觉验收后未被采用。实际运行时已精确恢复到已推送基线 `049f08d60827ca25f13b1ced18802f94076ee626`：`universe-optimized.js` 与 `header-universe.js` 分别维护全站背景和顶部封面，两者各自运行一条 30fps RAF。
 >
-> **何时阅读**：调整背景动效、性能问题排查（CPU 占用高 / 动画卡顿）、移动端适配、新主题集成时。
-> **关联文档**：[performance-optimization.md](performance-optimization.md)（待写）· [cdn-strategy.md](cdn-strategy.md)（待写）
+> **实验留存**：[P1 分层星空动效实验与回退](../04-operations/2026-07-11-starfield-p1/README.md) 记录方案、测量边界、用户验收结论和实际回退；其中 [source-snapshots/](../04-operations/2026-07-11-starfield-p1/source-snapshots/README.md) 保存未采纳方案的关键代码和 SHA-256。二者均不参与 Hexo 或浏览器运行时加载。
+>
+> **何时阅读**：调整背景动效、排查 CPU 占用或动画卡顿、修改移动端适配或主题注入前。
 
 ---
 
-## L1 · TL;DR（30 秒看完）
+## L1 · 当前架构速查
 
-- 项目有**两套独立的 canvas 星空动画**：
-  - `universe-optimized.js`：**全站固定背景**（`<canvas id="universe">`，position fixed，z-index -1）
-  - `header-universe.js`：**只在页面头部**（`#page-header` 内附加 `<canvas class="universe-header">`）
-- 它们**互不依赖**，渲染各自的 canvas，效果叠加但不共享代码 / 状态。
-- **性能策略差异**：两者均有 30fps 节流、移动端降级和标签页隐藏暂停；但它们仍各自运行 RAF 并独立绘制，前台成本会叠加。
-- **半透明配合**：`transpancy.css` 把所有内容容器（文章/页面/卡片/footer）的背景设为 `rgba(1,26,69,0.4)`，让背景星空透出来。
+项目当前有两套相互独立的 Canvas 星空动画：
 
----
+| 层 | 脚本 | Canvas | 位置与职责 | 调度 |
+| --- | --- | --- | --- | --- |
+| 全站背景 | `themes/butterfly/source/js/universe-optimized.js` | `#universe` | 全屏 fixed 背景，位于内容与半透明卡片下方 | 独立 RAF，30fps 节流 |
+| 顶部封面 | `themes/butterfly/source/js/header-universe.js` | `.universe-header` | 动态附加到 `#page-header`，为封面提供大星、小星和流星 | 独立 RAF，30fps 节流 |
 
-## L2 · 两套动画的差异速查
+两层各自维护粒子数组、尺寸更新、`visibilitychange` 和动画生命周期；当页面头部可见时，它们会同时绘制。这是当前效果，也是尚未解决的 P1 性能隐患，不能误写为已经合并成单控制器。
 
-| 维度 | `universe-optimized.js` | `header-universe.js` |
-|---|---|---|
-| Canvas 位置 | `<canvas id="universe">` 全屏 fixed 背景 | `<canvas class="universe-header">` 附加到 `#page-header` 内 |
-| z-index | `-1`（在内容下方） | 默认（在 page-header 内） |
-| 帧率 | 30fps（targetFPS = 30） | 30fps（已于 2026-05-04 优化） |
-| 移动端检测 | `window.innerWidth <= 768` → 星星数量减半 | 已于 2026-05-04 添加（粒子数降为 `0.04×width`） |
-| 星星数量 | 移动端 `width*0.04`，PC `width*0.08` | 移动端 `width*0.04`，PC `width*0.08`（优化后） |
-| 流星密度 | 0.04 | ≈ 0.01（`m(10)`，10/1000） |
-| 流星尾巴 | **10 个点**（已优化） | **10 个点**（已于 2026-05-04 从 30 缩短） |
-| visibility 暂停 | ✅ 标签页隐藏时暂停 | ✅ 已于 2026-05-04 添加 |
-| resize 节流 | ✅ 200ms 防抖 | ✅ 已于 2026-05-04 添加（200ms 防抖 + 重新初始化） |
-| 启动延迟 | 500ms | 0ms（DOMContentLoaded 立即） |
-| PJAX 清理 | 部分 | ✅ 已于 2026-05-04 添加（animationFrame + 事件监听器清理） |
-
-> **2026-05-04 更新**：`header-universe.js` 已移植 `universe-optimized.js` 的优化模式（30fps 节流 + visibility 暂停 + 移动端降级 + resize 防抖 + PJAX 清理）。详见 [06-theme-modifications/README.md](../06-theme-modifications/README.md) #3。
+`transpancy.css` 为正文、卡片与页脚提供半透明深蓝背景，使固定背景星空能透出；不要单独删除 `#universe` 或其脚本注入。
 
 ---
 
-## L3 · `universe-optimized.js` 详解
-
-### 3.1 颜色配置（第 28-30 行）
-
-```js
-const giantColor = "180,184,240";   // 紫罗兰大星
-const cometColor = "255,255,255";   // 白色流星
-const starColor  = "226,225,142";   // 暖黄小星
-```
-
-格式是 RGB 三元组字符串，模板字符串里拼接成 `rgba(${color},${opacity})` 输出。
-
-### 3.2 粒子参数
-
-| 类型 | 概率 | 半径 | 速度 |
-|---|---|---|---|
-| **大星 giant** | `Math.random() < 0.02` | 固定 `2px` | 仅小幅 fade in/out |
-| **流星 comet** | 非 giant 且 `< 0.04` | `1.5px` + 10 点尾巴 | dx/dy 加 `speed*60` 增量 |
-| **小星 star** | 其余 | `1.0 + Math.random()*1.2` | 基础速度 `0.05 + Math.random()*0.25` |
-
-### 3.3 帧率控制（30fps）
-
-第 117-127 行：
-
-```js
-function render(currentTime) {
-  if (!isRunning) return;
-  const elapsed = currentTime - lastFrameTime;
-  if (elapsed < frameInterval) {     // frameInterval = 1000/30 ≈ 33.3ms
-    animationId = requestAnimationFrame(render);
-    return;
-  }
-  lastFrameTime = currentTime - (elapsed % frameInterval);
-  // ... 渲染逻辑
-  animationId = requestAnimationFrame(render);
-}
-```
-
-**节流模式**：每帧仍然调用 `requestAnimationFrame`，但只在累积时间 ≥33.3ms 时才执行渲染。这避免了在 144Hz / 240Hz 显示器上跑过快的问题。
-
-### 3.4 visibility API（标签页隐藏时暂停）
-
-第 154-161 行：
-
-```js
-document.addEventListener('visibilitychange', function() {
-  if (document.hidden) stop();
-  else start();
-});
-```
-
-**省电关键**：用户切到其他标签页时，动画停止；切回来自动恢复。
-
-### 3.5 启动序列
+## L2 · 注入与加载关系
 
 ```text
-Document loading?
-  ├── 是 → DOMContentLoaded 后 setTimeout(dark, 500)
-  └── 否 → 立即 setTimeout(dark, 500)
-       └── dark()
-            ├── 找 #universe canvas（不存在则 return）
-            ├── resize() 计算尺寸 + 粒子数量
-            ├── init() 创建并 reset 所有 Star
-            └── start() → 启动 requestAnimationFrame 循环
-```
+_config.butterfly.yml inject.bottom
+  ├── <canvas id="universe"></canvas>
+  └── <script defer src="/js/universe-optimized.js"></script>
 
-> **依赖**：`<canvas id="universe">` 元素必须已存在。它由 `_config.butterfly.yml` 的 `inject.bottom` 注入：
-> ```yaml
-> inject:
->   bottom:
->     - <canvas id="universe"></canvas>
->     - <script defer src="/js/universe-optimized.js"></script>
-> ```
-> 注入位置在 body 末尾，所以 DOMContentLoaded 后 canvas 一定存在。
-
----
-
-## L4 · `header-universe.js` 详解
-
-### 4.1 行为差异
-
-- **不创建 #universe canvas**，而是 `document.createElement("canvas")` 自己造一个
-- 添加 `class="universe-header"`（无对应 CSS，由 page-header 区域的样式管理）
-- 通过 `document.getElementById("page-header").appendChild(s)` 插入到 page-header 内
-- 渲染区域是 page-header 的 `offsetWidth × offsetHeight`，不是全屏
-
-### 4.2 粒子数量（第 27 行）
-
-```js
-i = 0.216 * n;  // n = page-header.offsetWidth
-```
-
-PC 上 page-header 通常是 1920px，i ≈ 414 颗星 —— **比 universe-optimized.js 的 PC 桌面 153 颗（1920*0.08）多两倍**。这也解释了为什么 header 区域需要更密集的星星（视觉范围小，但要保持可见密度）。
-
-### 4.3 流星尾巴（第 74-78 行）
-
-```js
-for (var t = 0; t < 30; t++) {
-  h.fillStyle = "rgba(" + d + "," + (this.opacity - this.opacity/30*t) + ")";
-  h.rect(this.x - this.dx / 3 * t, this.y - this.dy / 3 * t - 2, 2, 2);
-  h.fill();
-}
-```
-
-30 个尾巴点，渐变透明度。**比 universe-optimized.js 的 10 个点显著更精细**，但也意味着每只流星每帧多 20 次 fillRect 调用。
-
-### 4.4 启动机制（第 126-127 行）
-
-```js
-document.addEventListener('DOMContentLoaded', headerUniverse);
-```
-
-无延迟启动。如果 page-header 元素还没渲染，函数会因为 `getElementById("page-header")` 返回 null 而 return。
-
-### 4.5 动画循环（第 120-123 行）
-
-```js
-(function t() {
-  u();                                  // 渲染
-  window.requestAnimationFrame(t);     // 无条件请求下一帧
-})();
-```
-
-**没有节流**，跟随显示器刷新率。在 60Hz 屏幕上是 60fps，144Hz 屏幕上是 144fps。
-
----
-
-## L5 · CSS 协作
-
-### 5.1 universe.css（全屏背景）
-
-`themes/butterfly/source/css/universe.css`：
-
-```css
-#universe {
-  display: block;
-  position: fixed;        /* 关键：脱离文档流 */
-  margin: 0; padding: 0; border: 0; outline: 0;
-  left: 0; top: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;   /* 关键：不阻挡内容点击 */
-  z-index: -1;            /* 关键：永远在内容下方 */
-}
-```
-
-> ⚠️ `z-index: -1` + 父元素的 `transform/filter` 会让它消失（创建堆叠上下文）。检查 body 是否被设置了 `transform`。
-
-### 5.2 transpancy.css（让背景透出来）
-
-`themes/butterfly/source/css/transpancy.css`：
-
-```css
-.layout_post>#post,
-#aside_content .card-widget,
-#recent-posts>.recent-post-item,
-.layout_page>div:first-child:not(.recent-posts),
-.layout_post>#page,
-.read-mode .layout_post>#post {
-  background: rgba(1, 26, 69, 0.4);   /* 深蓝半透明 */
-}
-
-:root { --card-bg: rgba(1, 26, 69, 0.4); }   /* 侧边卡片 CSS 变量 */
-
-#footer { background: rgba(1, 26, 69, 0.4); }   /* 页脚 */
-```
-
-**配色**：`rgba(1, 26, 69, 0.4)` = 深海军蓝 + 60% 透明 → 内容区域呈现"星空透过的深蓝玻璃"质感。
-
-### 5.3 加载注入
-
-`_config.butterfly.yml`:
-
-```yaml
-inject:
-  head:
-    - <link rel="stylesheet" href="/css/universe.css" media="print" onload="this.media='all'">
-    - <link rel="stylesheet" href="/css/transpancy.css" media="print" onload="this.media='all'">
-  bottom:
-    - <canvas id="universe"></canvas>
-    - <script defer src="/js/universe-optimized.js"></script>
-```
-
-> `media="print" onload="this.media='all'"` 异步加载技巧详见 [performance-optimization.md](performance-optimization.md)。
-
-`header-universe.js` 的加载入口在 `themes/butterfly/layout/includes/head.pug`（项目自定义新增）。
-
----
-
-## L6 · 性能影响
-
-### 6.1 静态审计边界（2026-07-10）
-
-两套动画的粒子数量与 30fps 上限可以从代码确认，但不应把“粒子数 × FPS”写成真实 CPU 占用或宣称“总开销减半”：Canvas 的实际成本还受画布面积、GPU、浏览器合成路径和前景滤镜影响。当前已确认的是，两个独立 RAF 在前台会同时执行；应先使用真实目标设备的 Performance trace 建立优化前基线。
-
-### 6.2 候选优化（当前状态）
-
-| 优化项 | 状态 |
-|---|---|
-| `header-universe.js` 加 30fps 节流 | ✅ 已完成（2026-05-04） |
-| `header-universe.js` 加 visibility 暂停 | ✅ 已完成（2026-05-04） |
-| `header-universe.js` 移动端粒子减半 | ✅ 已完成（2026-05-04） |
-| 页头层离开视口时暂停 | 🔴 未实施；建议优先验证 |
-| 统一为单 RAF / 单 canvas 或共享控制器 | 🔴 未实施；当前 P1 候选 |
-| `prefers-reduced-motion` 静态星空降级 | 🔴 未实施；建议与合并方案一并设计 |
-
----
-
-## L7 · 红线
-
-| # | 红线 | 后果 | 正确做法 |
-|---|---|---|---|
-| R1 | 删除 `#universe` 注入但保留 `transpancy.css` | 页面变成深蓝色一片，看不到星空 | 二者必须共存或共删 |
-| R2 | 给 body 加 `transform: ...` 或 `filter: ...` | `z-index: -1` 失效，星空消失 | 不要在 body 上加 CSS 滤镜/变换 |
-| R3 | 修改 transpancy.css 的颜色但忘记同步 `:root --card-bg` | 文章卡片和侧边卡片颜色不一致 | 改值时同步修改 |
-| R4 | 升级主题后忘了重新注入 universe-optimized.js | 全站背景静态深蓝，无星空 | 检查 `_config.butterfly.yml` 的 inject 节 |
-| R5 | 把 `pointer-events: none` 从 #universe 删了 | 页面所有点击事件被 canvas 拦截 | 必须保留 |
-
----
-
-## L8 · 排查清单
-
-### 现象 1：背景全白 / 没有星空
-
-1. F12 元素面板搜索 `<canvas id="universe">` —— 是否存在？
-   - 不存在 → `_config.butterfly.yml` inject.bottom 配置丢失 / 主题升级丢失
-2. F12 控制台 `document.getElementById('universe').width` —— 是否非 0？
-   - 是 0 → resize() 没执行，可能 `dark()` 没启动
-3. F12 console 检查是否有 JS 错误（universe-optimized.js 解析失败）
-
-### 现象 2：星空显示但被内容遮挡
-
-- 检查内容容器是否有 `transpancy.css` 的半透明 background。可能 `transpancy.css` 没加载。
-- 检查 `--card-bg` CSS 变量是否被覆盖。
-
-### 现象 3：CPU 占用高，前台风扇启动
-
-- `document.hidden` 时两个脚本都应停止；若后台仍发热，应录制实际 trace 排查其他 timer/网络/扩展。
-- **前台长时间阅读时**，两套 canvas 仍同时运行，是当前已确认的持续成本；先在 Performance 面板核实两条 RAF 的占比，再选择合并或页头出视口暂停。
-- 临时诊断可在 DevTools Console 输入 `document.querySelector('.universe-header')?.remove()`，只用于确认页头层影响；刷新会恢复，不能作为正式修复。
-
-### 现象 4：移动端动画卡
-
-- 检查 `header-universe.js` 是否仍在跑（`document.querySelectorAll('canvas').length` 应该是 2）
-- 候选优化：临时把 header-universe.js 在移动端禁用
-
----
-
-## L9 · 文件位置速查
-
-| 内容 | 路径 |
-|---|---|
-| 全屏星空 JS | `themes/butterfly/source/js/universe-optimized.js` |
-| header 星空 JS | `themes/butterfly/source/js/header-universe.js` |
-| 全屏 canvas CSS | `themes/butterfly/source/css/universe.css` |
-| 半透明背景 CSS | `themes/butterfly/source/css/transpancy.css` |
-| 注入入口 | `_config.butterfly.yml` 的 inject.head / inject.bottom |
-| header-universe 加载入口 | `themes/butterfly/layout/includes/head.pug`（项目自定义） |
-| 修改记录 | [06-theme-modifications/README.md](../06-theme-modifications/README.md) |
-
----
-
-## L10 · 与其他模块的耦合
-
-```text
-universe-optimized.js
-  ├── #universe canvas ──► _config.butterfly.yml inject.bottom 注入
-  ├── universe.css ──► _config.butterfly.yml inject.head 异步注入
-  ├── transpancy.css ──► 让所有内容容器透明，露出星空
-  ├── visibility API ──► 标签页隐藏时暂停（省电关键）
-  └── 不依赖任何 jQuery / 第三方库
+themes/butterfly/layout/includes/head.pug
+  └── <script src="/js/header-universe.js"></script>
 
 header-universe.js
-  ├── #page-header DOM ──► Butterfly 主题原生
-  ├── 不依赖 universe-optimized.js
-  └── 加载入口需手动注入到 head.pug
+  └── #page-header 内创建 <canvas class="universe-header">
 ```
 
+相关文件：
+
+| 内容 | 路径 |
+| --- | --- |
+| 全屏背景 JS | `themes/butterfly/source/js/universe-optimized.js` |
+| 顶部封面 JS | `themes/butterfly/source/js/header-universe.js` |
+| 背景 Canvas CSS | `themes/butterfly/source/css/universe.css` |
+| 半透明内容背景 | `themes/butterfly/source/css/transpancy.css` |
+| 背景 Canvas / 背景脚本注入 | `_config.butterfly.yml` 的 `inject.bottom` |
+| 顶部脚本入口 | `themes/butterfly/layout/includes/head.pug` |
+
+`#universe` 必须保持 `pointer-events: none` 和 `z-index: -1`。避免给 `body` 添加 `transform` 或 `filter`，否则可能改变负层 Canvas 的堆叠上下文并使背景消失。
+
 ---
 
-## L11 · 历史与设计动机
+## L3 · 当前性能与响应式行为
 
-- **为什么有两套**：早期只有 header-universe.js（仅 page-header 内有星空），后来希望全站背景都有星空，新写了 universe-optimized.js（全屏 fixed）。两者并存的局面延续至今，未做整合。
-- **为什么 universe-optimized 性能更好**：作者经历过移动端发热问题后，重写了优化版（注释 "性能优化：1.减少粒子数量 2.添加可见性检测..." 见文件头）。但 header-universe.js 因为视觉不可替代（流星尾巴更精细），未做同步优化。
-- **为什么半透明深蓝 `(1,26,69)`**：与星空配色（紫/白/暖黄）形成补色对比，参考 NASA 太空图的"深空蓝"。
+### 全站背景 `universe-optimized.js`
+
+- 按视口宽度创建星体：移动端约 `width × 0.04`，桌面约 `width × 0.08`；
+- 使用 30fps 节流；
+- 标签页隐藏时停止 RAF，重新可见后恢复；
+- resize 会重建 Canvas 尺寸和星体池；
+- 全屏背景包含普通星、大星与流星，流星尾迹为 10 个点。
+
+### 顶部封面 `header-universe.js`
+
+- 只在存在 `#page-header` 时创建 `.universe-header`；
+- 移动端粒子数约 `0.04 × page-header 宽度`，桌面约 `0.08 × page-header 宽度`；
+- 使用 30fps 节流、200ms resize 防抖和 `visibilitychange` 暂停；
+- 通过 `pjax:send`（仅在 PJAX 存在时）取消 RAF 并移除监听；
+- 流星尾迹已从历史版本的 30 点降为 10 点。
+
+这些策略缓解了单个脚本的压力，但无法消除双脚本在前台同时绘制的总开销。真实 CPU、GPU、功耗、温度和各浏览器表现仍需在目标设备录制 Performance trace 后判断。
 
 ---
 
-## L12 · 候选 BUG / 待优化（已解决）
+## L4 · 排查清单
 
-> 以下问题已于 2026-05-04 修复（详见 [06-theme-modifications/README.md](../06-theme-modifications/README.md) #3）：
+| 现象 | 优先检查 |
+| --- | --- |
+| 全站没有背景星空 | `#universe` 是否存在；`universe-optimized.js` 是否仍在 `_config.butterfly.yml` 的 `inject.bottom`；`universe.css` 是否加载。 |
+| 顶部没有星空 | `#page-header` 是否存在；`/js/header-universe.js` 是否可访问；是否存在 `.universe-header`。 |
+| 内容无法点击 | 确认 `#universe` 与 `.universe-header` 没有失去 `pointer-events: none`。 |
+| 背景消失 | 检查 `body` 和上层容器是否新增 `transform` / `filter`；检查 `z-index:-1` 的堆叠上下文。 |
+| 前台动画卡顿或风扇高转 | 先确认两条 RAF 的实际占比；当前双 Canvas 同时绘制是已知因素。不要把 P1 归档 A/B 当成当前版本数据。 |
+| 移动端较卡 | 确认当前 header 脚本仍是 `0.04 × width` 粒子预算和 30fps 节流；再以目标设备 trace 定位原因。 |
 
-1. ~~`header-universe.js` 没有移动端降级~~ → ✅ 已添加
-2. ~~`header-universe.js` 没有 visibility API~~ → ✅ 已添加
-3. ~~`header-universe.js` 没有 resize 防抖~~ → ✅ 已添加
-4. PJAX 切页后两套 canvas 都不重新初始化（如果 page-header 重建可能丢失 universe-header canvas）— 需验证
+---
+
+## L5 · P1 未采纳实验与红线
+
+2026-07-11 曾尝试将两层绘制收敛到单一 `StarfieldController`，添加固定粒子预算、页头离屏暂停、`prefers-reduced-motion` 静态降级、渐变星点和离散流星拖尾。用户视觉验收后认为效果不理想，已恢复当前基线运行时。
+
+- 不要将归档目录中的 `header-universe.js`、CSS 或配置片段单独复制回运行时；它们只在完整实验架构中成立。
+- 不要只恢复或删除一个脚本注入；背景脚本、顶部脚本、Canvas、CSS 和透明背景必须作为一组审查。
+- 如需再次优化，应从当前基线创建独立方案，先做真实视觉验收；可参考归档的思路和测量工具，但不得把归档结果宣称为当前结论。
+
+---
+
+## L6 · 历史记录
+
+- 2026-05-04：顶部脚本获得 30fps 节流、visibility 暂停、移动端降级、resize 防抖和 PJAX 清理（见主题修改记录 #3）。
+- 2026-07-10：静态审计确认两套脚本会在前台叠加绘制，列为 P1 隐患。
+- 2026-07-11：完成 P1 单控制器实验和本地 Headless A/B；视觉验收未通过，实际运行时恢复 `049f08d`，源码与数据已归档。

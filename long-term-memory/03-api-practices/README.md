@@ -1,6 +1,6 @@
 # 03-api-practices — 技术约束与 API 实践
 
-> **当前事实基线（2026-07-10）**：资源注入、Mermaid、Twikoo、双 Canvas 星空、lazy placeholder 和移动 waterfall 的现状已重新核验。任何性能判断前，先读 [2026-07-10 渲染性能与长期记忆事实审计](../05-performance-audit/2026-07-10-render-performance-audit/README.md)。
+> **当前事实基线（2026-07-11）**：资源注入、Mermaid、Twikoo、双 Canvas 星空、lazy placeholder 和移动 waterfall 的现状已重新核验。P1 分层星空实验的源码与记录已归档但未采纳；任何性能判断前，先读 [2026-07-10 渲染性能与长期记忆事实审计](../05-performance-audit/2026-07-10-render-performance-audit/README.md)。
 
 本目录记录项目中使用的技术栈、框架 API 和自定义脚本的使用规则。
 
@@ -138,8 +138,9 @@
 > `lazy-loading-optimized.css` 的 inject 行已删除，当前不应再把它列为注入资源。
 
 **Bottom 注入**（按加载顺序）：
+
 1. `<canvas id="universe"></canvas>` — 星空画布
-2. `/js/universe-optimized.js` — 星空动画（defer）
+2. `/js/universe-optimized.js` — 全站背景星空动画（defer）
 3. `/js/jquery-3.6.0.min.js` — jQuery（defer）
 4. `/js/rightmenu.js` — 右键菜单（defer）
 5. `/js/happy-title.js` — 标题特效（defer）
@@ -149,7 +150,8 @@
 ### 硬编码在主题模板中的加载
 
 **head.pug** 额外加载（非 inject）：
-- 所有页面：主题主 CSS、同步 Font Awesome、`/css/entrance-popup.css`、`/css/lazy-loading.css`、`/css/lazy-loading-stable.css`、`/js/header-universe.js`
+
+- 所有页面：主题主 CSS、同步 Font Awesome、`/css/entrance-popup.css`、`/css/lazy-loading.css`、`/css/lazy-loading-stable.css`、`/js/header-universe.js`（顶部封面星空脚本）
 - 文章页面：`/css/typewriter-effect.css`、`/css/vscode-breadcrumb-toc.css`
 - `lazy-image-refresh.css`、`lazy-video-refresh.css` 已删除，不再加载。
 
