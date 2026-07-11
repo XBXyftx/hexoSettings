@@ -1,6 +1,6 @@
 # 03-api-practices — 技术约束与 API 实践
 
-> **当前事实基线（2026-07-11）**：资源注入、Mermaid、Twikoo、双 Canvas 星空、lazy placeholder 和移动 waterfall 的现状已重新核验。P1 分层星空实验的源码与记录已归档但未采纳；任何性能判断前，先读 [2026-07-10 渲染性能与长期记忆事实审计](../05-performance-audit/2026-07-10-render-performance-audit/README.md)。
+> **当前事实基线（2026-07-11）**：资源注入、Mermaid、Twikoo、双 Canvas 星空、lazy placeholder 和移动 waterfall 的现状已重新核验。P1 分层星空实验的源码与记录已归档但未采纳；P2 已清理可安全修复的失效请求，并将外部原图遗留项单列。任何性能判断前，先读 [2026-07-10 渲染性能与长期记忆事实审计](../05-performance-audit/2026-07-10-render-performance-audit/README.md)。
 
 本目录记录项目中使用的技术栈、框架 API 和自定义脚本的使用规则。
 
@@ -16,7 +16,7 @@
 | **模板引擎** | Pug | ^3.0.0 | 主题模板语言 |
 | **样式预处理** | Stylus | ^3.0.1 | 主题样式语言 |
 | **代码高亮** | highlight.js | — | 行号已启用 |
-| **图表** | Mermaid | 配置当前失效，待按需加载修复 | 主题 footer 误请求 `mermaid@undefined`；详见 `fallback-modules.md` |
+| **图表** | Mermaid | 当前关闭（无站内图表内容） | P2 已移除全站 `mermaid@undefined` 404；新增 Mermaid 图前需恢复固定版本的按需加载链，详见 [fallback-modules.md](fallback-modules.md) |
 | **函数可视化** | Plotly.js | 2.27.0 (CDN) | 交互式函数图像、3D 曲面（详见 [plotly-function-visualization.md](plotly-function-visualization.md)） |
 | **公式** | KaTeX | 0.16.19 | 客户端渲染（303KB），已从 MathJax 迁移 |
 | **评论** | Twikoo | 1.7.11 | 本地约 938KB 脚本，在评论容器进入视口后动态加载 |
@@ -115,6 +115,24 @@
 **完整规则、首次环境配置、扫描范围、排除规则、常见报错排查**：见 [webp-conversion.md](webp-conversion.md)。
 
 > 修改这些脚本前，请先阅读详细文档，并在 `04-operations/operation-log.md` 记录改动。`.ps1` 和 `.sh` 两套实现需保持功能等价。
+
+---
+
+### 5. tools/audit-resource-requests.js + tools/verify-resource-requests.js
+
+**作用**：为生成态资源正确性提供本地、可重复的两层检查：
+
+1. `audit-resource-requests.js` 扫描生成 HTML/CSS 的本地静态资源目标，检查文件是否存在；可选地以受限并发探测直接外部媒体 URL。
+2. `verify-resource-requests.js` 临时启动静态 server 和隔离 Headless Chrome，检查代表页面的 DOM、网络请求与本地 HTTP 错误。
+
+**输出规则**：默认写入系统临时目录，不写入 `public/` 或 Git；可通过 `--output-dir` 指定本地报告目录。
+
+**使用规则**：
+
+- 资源配置、文章资源路径、WebP 转换或外部媒体引用改动后，先 `npm run build`，再运行两项审计。
+- 外部探测只代表当前机器、网络与时刻；HTTP 404 可以确认，连接失败/超时不能直接宣称资源永久失效。
+- 对外部正文原图，只有拿到可信原始文件或已验证替代资源后才可修改文章，禁止用无关图片掩盖缺失。
+- 详细基线、白名单边界、报告路径和 P2 量化见 [2026-07-11 P2 失效请求修复](../04-operations/2026-07-11-invalid-request-p2/README.md)。
 
 ---
 

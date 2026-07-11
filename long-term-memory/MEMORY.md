@@ -2,7 +2,7 @@
 
 > **AI 必读**：每次进入新会话，第一步必须阅读本文件。严禁跳过索引直接操作代码。
 > **当前日期**：2026-07-11
-> **项目状态**：活跃维护中，持续发布新文章；当前运行时性能基线见 2026-07-10 审计及已完成的 P0 瀑布流。P1 分层星空实验已归档但未采纳，实际星空已恢复基线双 Canvas 实现。
+> **项目状态**：活跃维护中，持续发布新文章；当前运行时性能基线见 2026-07-10 审计及已完成的 P0 瀑布流。P1 分层星空实验已归档但未采纳，实际星空已恢复基线双 Canvas 实现；P2 已在本地清理可安全修复的失效资源请求，外部原图遗留项已单列。
 
 ---
 
@@ -75,6 +75,7 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 - [2026-07-10 渲染性能与长期记忆事实审计](05-performance-audit/2026-07-10-render-performance-audit/README.md) — **当前性能基线**；P0–P3 清单、证据、保持视觉与功能的优化路径，排查风扇高转必读
 - [2026-07-10 首页瀑布流 P0 重写](04-operations/2026-07-10-waterfall-rewrite/README.md) — **已完成并推送**：实现 `9988ac4`、优化前基线 `69772c8`；[本地 Chrome A/B 三断点量化结果已归档](04-operations/2026-07-10-waterfall-rewrite/BROWSER-PERFORMANCE-MEASUREMENTS.md)，目标设备有头浏览器回归待补测
 - [2026-07-11 P1 分层星空动效实验与回退](04-operations/2026-07-11-starfield-p1/README.md) — 基线 `049f08d` 已推送；实验源码、三断点本地 Headless A/B 和 SHA-256 快照已归档，视觉验收未通过，实际运行时已恢复基线双层星空。
+- [2026-07-11 P2 失效请求修复](04-operations/2026-07-11-invalid-request-p2/README.md) — 基线 `8863b70` 已推送；本地缺失资源、Mermaid 404、旧 fallback/默认页头图和可确认路径均已本地修复；8 张外部正文图及 1 个不确定头像仍单列遗留。
 - [Hexo 8 升级可行性报告](05-performance-audit/2026-05-07-hexo-upgrade-feasibility/README.md) — 🔴 22 依赖逐项分析、3 方案对比、数学渲染链断裂、自定义脚本影响
 - [部署流水线（dev/opt/pub）](03-api-practices/deployment-pipeline.md) — 3 条部署命令的完整流程、参数差异、适用场景
 - [CDN 策略与资源加载](03-api-practices/cdn-strategy.md) — 7 个 CDN 源盘点、bytecdntp 迁移历史、本地保留理由

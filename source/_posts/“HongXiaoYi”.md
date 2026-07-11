@@ -3249,10 +3249,10 @@ Account Kit（华为账号服务）提供简单、快速、安全的登录功能
   link_list:
     - name: 李昌骏
       link: https://whlcj.github.io/
-      avatar: /JunAv.png
+      avatar: /imgs/JunAv.webp
       descr: iOS大佬
     - name: 孙博辰
       link: https://xbxyftx.top/2025/03/31/%E2%80%9Chongxiaoyi%E2%80%9D/#%E7%89%B9%E5%88%AB%E9%B8%A3%E8%B0%A2
-      avatar: /sbcAv.jpg
+      avatar: /imgs/sbcAv.webp
       descr: 亲妈级好学长
 {% endflink %}

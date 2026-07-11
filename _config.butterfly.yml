@@ -86,7 +86,7 @@ disable_top_img: false
 # default_top_img: https://raw.githubusercontent.com/XBXyftx/hexoimgs/main/3ab3f845b7cb3ba0d297ff616ca8df6.jpg
 # default_top_img: /img/topImg86.jpg
 # default_top_img: https://bu.dusays.com/2025/07/04/686787f462e79.jpg
-default_top_img: /img/bg2.png
+default_top_img: /img/bg2.webp
 
 # The banner image of index page
 # index_img: /img/bg2.png
@@ -134,8 +134,8 @@ cover:
 
 # Replace Broken Images
 error_img:
-  flink: /img/friend_404.gif
-  post_page: /img/404.jpg
+  flink: /img/friend_404.webp
+  post_page: /img/404.webp
 
 # A simple 404 page
 error_404:
@@ -949,14 +949,9 @@ abcjs:
 
 # Mermaid
 # https://github.com/mermaid-js/mermaid
+# 当前站内没有 Mermaid 图表；关闭以避免 footer 输出 mermaid@undefined 的全站 404。
 mermaid:
-  enable: true
-  # Write Mermaid diagrams using code blocks
-  code_write: true
-  # built-in themes: default / forest / dark / neutral
-  theme:
-    light: default
-    dark: dark
+  enable: false
 
 # chartjs
 # see https://www.chartjs.org/docs/latest/

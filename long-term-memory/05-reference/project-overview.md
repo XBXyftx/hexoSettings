@@ -194,7 +194,7 @@ deploy:
 | hexo-butterfly-swiper | ^1.0.12 | 轮播图 |
 | hexo-butterfly-tag-plugins-plus | ^1.0.18 | 增强标签插件 |
 | hexo-filter-gitcalendar | ^1.0.11 | GitHub 贡献日历 |
-| hexo-filter-mermaid-diagrams | ^1.0.5 | Mermaid 图表构建期插件；当前前端 Mermaid URL 配置待修复 |
+| hexo-filter-mermaid-diagrams | ^1.0.5 | Mermaid 图表构建期插件；站内当前无 Mermaid 内容，P2 已关闭前端 Mermaid，新增图表前需恢复固定版本的按需加载链 |
 | hexo-generator-index-pin-top | ^0.2.2 | 文章置顶 |
 | hexo-wordcount | ^6.0.1 | 字数统计 |
 

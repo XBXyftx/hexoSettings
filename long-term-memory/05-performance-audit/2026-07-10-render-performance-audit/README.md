@@ -20,6 +20,8 @@ type: project
 
 审计中的 P1 双 Canvas 星空项曾于 2026-07-11 在基线 `049f08d` 之后实施单 RAF 分层实验，并完成本地 Headless Chrome 的 375px / 1024px / 1440px A/B 及 reduced-motion / 页头离屏断言。用户视觉验收后未采纳该效果；实际运行时代码已恢复为审计所述的双 Canvas / 双 RAF 基线。实验源码、数据和边界仍归档在 [P1 分层星空动效实验与回退](../../04-operations/2026-07-11-starfield-p1/README.md)，不能作为当前实现或当前性能收益的结论。
 
+审计中“Mermaid 全站无条件加载且 URL 失效”的 P1 资源项已在 2026-07-11 的 [P2 失效请求修复](../../04-operations/2026-07-11-invalid-request-p2/README.md) 处理：站内无 Mermaid 内容时关闭该开关，最终生成态中 `mermaid@undefined` 请求为 0；同时修正 WebP 转换后过期的 fallback、默认页头图和可确认的本地资源引用。仍不可安全恢复的 8 张外部正文原图及 1 个探测不确定头像已单列为遗留，不应将 P2 表述成“所有外部资源完全可用”。
+
 ---
 
 ## L1 · 结论摘要
@@ -28,7 +30,7 @@ type: project
 
 1. **移动端首页瀑布流**保留了每 100ms 全量 DOM 扫描、事件触发后的整批内联样式重写，以及调试 `MutationObserver`/日志。这是本次最优先处理的 CPU 热点。
 2. **全站两个独立 30fps Canvas 星空**同时运行；它们虽已具备隐藏标签页暂停等降级，但前台依然持续双份绘制。
-3. **所有 170 个已生成 HTML 页面**都会请求 `mermaid@undefined`，即使站内没有 Mermaid 图；主题正常的按需路径还会形成 `/%5Bobject%20Object%5D` 无效地址。这会造成失败请求、无谓脚本和初始化。
+3. ~~**所有 170 个已生成 HTML 页面**都会请求 `mermaid@undefined`，即使站内没有 Mermaid 图。~~ **已于 P2 处理**：站内无 Mermaid 内容时已关闭该功能，生成态中不再出现该请求；重新启用前仍须修复 YAML 对象型 `CDN.option.mermaid`，不可只改开关。
 4. 若干带大量图片或视频的长文，在当前懒加载/媒体标记下有很高的解码、合成和网络压力：最大的一篇含 **115 张文章图片、18 段视频、约 1.47MB HTML**；视频文章中单页静态 MP4 总量最高约 **153MB**，而 `<video>` 未声明 `preload="none"`。
 5. 旧长期记忆在 2026-05 的“已修复/当前事实”与 2026-07 的实际代码明显漂移；尤其是 Twikoo、Mermaid、Font Awesome、星空和已删除文件。已在本次文档更新中更正索引和关键专题记录。
 
@@ -51,7 +53,7 @@ type: project
 |---|---|---|---|---|
 | **P0** | **移动首页瀑布流永久轮询与调试监听**。手机/平板首页。 | [_config.butterfly.yml:215](../../../_config.butterfly.yml#L215) 启用 layout 8；[additional-js.pug:20-22](../../../themes/butterfly/layout/includes/additional-js.pug#L20-L22) 首页加载脚本。移动分支每 100ms 查询全部 `.waterfall-item`，并在异常时整批写 `cssText`：[waterfall.js:514-596](../../../themes/butterfly/source/js/waterfall.js#L514-L596)。额外捕获 click/touch/scroll/resize 并延后重写样式；[662-709](../../../themes/butterfly/source/js/waterfall.js#L662-L709) 再注册调试事件和 `MutationObserver`，还输出调用栈。 | 移动端已存在 CSS 单列规则（[646-658](../../../themes/butterfly/source/js/waterfall.js#L646-L658)）。把“看门狗”改成初始化一次的单列样式；删除生产调试 observer/日志。若确有外部脚本改写样式的历史问题，只保留**一个**有范围、有销毁路径的 observer，使用 RAF 合并一次修复。离开首页、断点切换时清除 timer/observer/listener。 | 首页卡片顺序、单列布局、间距、图片加载和分页不变；移动滚动不再出现 10Hz DOM 查询与无尽日志。 |
 | **P1** | **双 Canvas 星空同时前台绘制**。所有带 `#page-header` 的主题页面。 | `header-universe.js` 由 [head.pug:97](../../../themes/butterfly/layout/includes/head.pug#L97) 全站加载；全屏 canvas 与 `universe-optimized.js` 由 [配置:1067-1093](../../../_config.butterfly.yml#L1067-L1093) 注入。二者都各有一个 30fps RAF：前者 [header-universe.js:116-128](../../../themes/butterfly/source/js/header-universe.js#L116-L128)，后者 [universe-optimized.js:117-137](../../../themes/butterfly/source/js/universe-optimized.js#L117-L137)。 | 优先做**同一控制器**：一个 RAF 管理两个视觉层，或合并到一个 canvas 的背景/页头裁剪绘制；保留现有色彩、粒子密度与流星效果。最低风险方案是在页头离开视口时暂停 header 层，并补上 `prefers-reduced-motion` 的静态背景降级。 | 视觉仍为全屏星空 + 页头星空；前台仅一个调度循环或页头不可见时不绘制；切后台、resize、页面切换仍正确恢复。 |
-| **P1** | **Mermaid 被全站无条件加载，且 URL 配置失效**。所有生成页面。 | Mermaid 全局开启：[配置:950-959](../../../_config.butterfly.yml#L950-L959)。footer 无条件输出 `https://unpkg.com/mermaid@undefined/...`：[footer.pug:19-25](../../../themes/butterfly/layout/includes/footer.pug#L19-L25)。现有 `public/` 中 **170/171** 个 `index.html` 都有该 URL；站内当前未找到 Mermaid fence 或实际 `.mermaid-wrap`。`theme.asset.mermaid` 又被配置成 YAML 对象：[配置:1194-1198](../../../_config.butterfly.yml#L1194-L1198)，使主题按需加载器生成 `/%5Bobject%20Object%5D`（已在生成文章产物中核验）。 | 删除 footer 的无条件 loader；仅在页面实际有 Mermaid 节点时，调用主题已有的按需加载逻辑 [mermaid.pug:39-50](../../../themes/butterfly/layout/includes/third-party/math/mermaid.pug#L39-L50)。将资源配置改为固定、有效的 JS URL 或恢复主题默认解析方式，并显式设置与调用 API 兼容的版本。 | 普通页面 0 Mermaid 请求；未来含 Mermaid 的页面仍能在浅色/深色模式生成 SVG。要新增至少一篇最小 Mermaid 测试页后再发布。 |
+| **P1（已于 P2 关闭）** | **Mermaid 曾被全站无条件加载且 URL 失效**。 | 2026-07-10 静态审计确认 Mermaid 开启、footer 拼接出 `mermaid@undefined`，站内无 Mermaid 内容。 | 当前保持 `mermaid.enable: false`，使普通页面不再请求 Mermaid；新增图表时以固定 URL + 页面按需加载单独实施。 | P2 生成态审计中 `mermaid@undefined` 为 0；新增 Mermaid 页面需单独验证浅/深色 SVG。 |
 | **P1** | **重媒体长文未限制视频预加载，且 DOM/解码规模很大**。尤其是 `yiDuo`、`“HongXiaoYi”`、`OpenSourceSummer2025` 等。 | 共 102 段 MP4，源文件合计约 **487MB**，其中 23 段 ≥5MiB。最大三篇单页静态视频总量约 **153MB / 140MB / 65MB**。所有视频都是 `<video width="100%" controls>`，未设 `preload`（如 [OpenSourceSummer2025.md:3416-3417](../../../source/_posts/OpenSourceSummer2025.md#L3416-L3417)）。最大示例文章生成 HTML 约 1.47MB、约 49,580 个 HTML 起始标签、115 张内容图片、18 段视频。 | 文章语义和播放器保留：为非首屏视频统一加入 `preload="none"` 与 poster（用现有首帧/缩略图）；通过 `IntersectionObserver` 在接近视口时才设置 source/src 并调用 `load()`。对超长文章采用章节折叠、按需挂载远离首屏的媒体节点，或拆为系列文章——内容不删、URL 可保持。 | 首屏及用户点击的视频可正常播放；滚动到视频前仍可见 poster；Network 不会在首屏同时拉取大量视频元数据/数据；原文章链接和内容完整性不变。 |
 | **P1** | **Swiper 文章轮播插件将 CSS/JS/注入器发到所有页面**。非首页也会加载。 | 配置 `enable_page: all`：[配置:1266-1281](../../../_config.butterfly.yml#L1266-L1281)。插件无条件注册两 CSS 和两 JS 到全站：[node_modules/.../index.js:53-108](../../../node_modules/hexo-butterfly-swiper/index.js#L53-L108)，生成页面还含约 **4.7KB** 轮播 HTML 注入器。已在首页、普通文章、about、swiper 自定义页均核验到四个外部资源引用。 | 若视觉意图是“首页文章轮播”，将插件作用域收紧为 `/`，并让资源随首页条件注入；如确需所有页轮播，至少把 HTML 注入器改成先检测挂载容器存在再构造内容，避免非首页反复查找/注入失败。 | 首页轮播内容、动画与顺序不变；普通文章、about、独立 swiper 页面不再下载/执行无用 Swiper 资源。 |
 | **P2** | **文章面包屑导航的 scroll 热路径未合帧**。标题较多的文章。 | 每个 scroll 事件遍历标题并读取 `offsetTop`，再计算文档高度和写入进度条：[vscode-breadcrumb-toc.js:140-177](../../../source/js/vscode-breadcrumb-toc.js#L140-L177)，监听器直接绑定：[229-230](../../../source/js/vscode-breadcrumb-toc.js#L229-L230)。 | 用 RAF 合并连续 scroll；在 init/resize/内容变化时缓存 heading 位置，滚动时二分查找；只有当前标题或进度确实变化时才写 DOM。 | 面包屑切换时机、进度条、移动/桌面 UI 完全不变；快速触控板滚动中每帧最多一次处理。 |
@@ -141,7 +143,7 @@ type: project
 |---|---|---|
 | 旧性能审计将已删除文件、已完成清理与当前待办混在同一表中。 | `network-monitor.js`、`topimg-monitor.js`、`universe.js`、旧 lazy-loading 系列、旧 MathJax 文件均已不存在；不应再作为当前代码问题。 | 将旧报告明确标为历史快照，并建立本报告作为当前基线。 |
 | 旧记录称 Twikoo 的 `lazyload: true` 语义错误或“立即加载”。 | 当前生成文章代码为 `btf.loadComment(document.getElementById('twikoo-wrap'), loadTwikoo)`，即视口触发。 | 更新兜底模块与性能文档。 |
-| Mermaid 被描述为插件自行注入、可正常按需使用。 | 当前主题 footer 无条件请求 `mermaid@undefined`，动态 loader 还会生成 `/%5Bobject%20Object%5D`；站内未找到实际 Mermaid 页面。 | 更新兜底模块，并列为 P1。 |
+| Mermaid 被描述为插件自行注入、可正常按需使用。 | 审计时主题 footer 无条件请求 `mermaid@undefined`，动态 loader 还会生成 `/%5Bobject%20Object%5D`；站内未找到实际 Mermaid 页面。 | P2 已关闭未使用 Mermaid，生成态请求为 0；未来需固定 URL 后按需恢复。 |
 | Font Awesome 去重已完成。 | 2026-05-04 的去重改动已因首屏图标消失被回滚；现在是两份 CSS。 | 记录回滚历史和稳妥处理路径。 |
 | 星空文档将双动画描述为基本对齐且“收益有限”。 | 两套 30fps 仍同时前台运行，应作为真实持续成本治理；原优化（visibility/FPS）仍有效。 | 更新星空专题和性能文档。 |
 | 自定义功能清单仍列出已删除脚本、错误加载位置。 | 以现存文件和模板重新标注。 | 更新功能清单。 |

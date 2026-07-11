@@ -3,7 +3,7 @@
   link_list:
     - name: XBXyftx
       link: https://xbxyftx.top/
-      avatar: /img/logo.png
+      avatar: /img/logo.webp
       descr: 爱鸿蒙，爱编程，更爱生活
     - name: 唐志远
       link: https://fe32.top/
@@ -11,11 +11,11 @@
       descr: 技术佬
     - name: 赖总
       link: https://andy-lucky2005.github.io/
-      avatar: /img/LaiAv.jpg
+      avatar: /img/LaiAv.webp
       descr: 赖总最强
     - name: 骏哥
       link: https://whlcj.github.io/
-      avatar: /imgs/JunAv.png
+      avatar: /imgs/JunAv.webp
       descr: 超级技术佬
     - name: 黄豫新
       link: https://baiyb.top/
@@ -23,22 +23,22 @@
       descr: 动手能力极强的后起之秀
     - name: 王鹏程
       link: http://neuronx.top/
-      avatar: /imgs/WangPengChengAv.png
+      avatar: /imgs/WangPengChengAv.webp
       descr: 尘土功名，风轻云淡
     - name: 胡紫珩
       link: https://ziheng27-3.github.io/
-      avatar: /imgs/huZiAv.png
+      avatar: /imgs/huZiAv.webp
       descr: 一只皱皮
     - name: 李佳澎
       link: http://blog.lijiapeng365.cn/
-      avatar: /imgs/LiJiaPengAv.png
+      avatar: /imgs/LiJiaPengAv.webp
       descr: 做游戏的佬
 - class_name: hexo搭建教程推荐
   class_desc: 搭建博客的教程
   link_list:
     - name: 我自己的搭建教程博客
       link: https://xbxyftx.github.io/2025/01/26/butterfly%E4%B8%BB%E9%A2%98%E7%BE%8E%E5%8C%96/
-      avatar: /img/avatar.jpg
+      avatar: /img/avatar.webp
       descr: 去看看吧
     - name: 大佬的教程博客
       link: https://blog.csdn.net/weixin_44414930/article/details/137079132

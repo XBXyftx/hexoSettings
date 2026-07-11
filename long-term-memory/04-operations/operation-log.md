@@ -703,3 +703,45 @@
 - 当前站点回到原有双 Canvas / 双 RAF 星空效果；未来如再优化，应基于归档建立新的完整方案和真实视觉验收，不应零散恢复其中某个脚本或配置。
 
 ---
+
+### #28 — 2026-07-11 — P2 失效请求修复、资源审计与本地量化
+
+**操作人**：AI 助手（Claude Code）
+
+**回滚基点**：`8863b704ab99f792cd10bd97fcb5651aa68cecec`（开始 P2 代码修改前已推送至 `origin/master`）。基点推送后，本轮未再推送、部署、强推或进行远程写操作。
+
+**涉及文件**：
+
+- `_config.butterfly.yml` — 关闭未使用 Mermaid，修正全局 fallback 和默认页头图的 WebP 路径
+- `source/_data/link.yml`、`source/_posts/“HongXiaoYi”.md` — 修正已存在同名 WebP 的友链/文章友链头像
+- `source/_posts/yiDuo.md`、`source/_posts/OpenSourceSummer2025.md` — 修正全角 Markdown 感叹号与已存在 post asset 的图像/视频引用
+- `source/MarkdownPreview/index.md`、`source/MarkdownPreview/index-backup-original.md` — 修正已验证 404 的演示图 URL
+- `tools/audit-resource-requests.js` — 新增生成态本地/外部资源审计工具，默认报告写入系统临时目录
+- `tools/verify-resource-requests.js` — 新增临时本地 server + Headless Chrome 代表页网络/DOM 验证工具，默认报告写入系统临时目录
+- `long-term-memory/04-operations/2026-07-11-invalid-request-p2/README.md` 及相关索引/审计/问题文档 — 记录事实、范围、指标、遗留项和回滚边界
+
+**操作详情**：
+
+1. 在 182 个现有生成 HTML 页中审计根相对与直接外部媒体请求，基线发现 Mermaid `mermaid@undefined` 出现在 178 页；旧 GIF/JPG fallback 声明共 1,836 次；同时发现默认页头 `bg2.png`、友链头像、文章友链头像、Markdown 语法和 post asset 引用等可安全修复的问题。
+2. 当前源码没有 Mermaid fence 或 `{% mermaid %}` 内容，因此关闭 Mermaid 不会删除实际图表；未来引入 Mermaid 时必须使用固定有效版本并按页面内容加载。
+3. 仅修改已存在同源资源的扩展名/路径，或修复能从现有 post asset folder 确认的引用；没有猜测替换 7 张 GitHub Raw 正文图、1 张 LeetCode 正文图，也没有改写外部 `img.picui.cn` 头像。
+4. 由于 post asset folder 对 Markdown 图片和裸 HTML `source src` 的处理不同，保留实际已验证可解析的文章相对 `22.mp4`，并将错误的 `22.webp` 改为同一真实 MP4 的视频元素。
+5. 构建后以同一工具重新扫描，并使用临时 server + 隔离 Headless Chrome profile 检查首页、友链、yiDuo、HongXiaoYi、OpenSourceSummer2025、MarkdownPreview；测试产物全部写入 `/tmp`，不纳入仓库。
+
+**验证结果**：
+
+- [x] `npm run build` 成功，生成 182 个文件；允许更新的 `source/coffer/private-posts.json` 没有产生工作区差异
+- [x] `node --check tools/audit-resource-requests.js`、`node --check tools/verify-resource-requests.js`、YAML parser 与 `git diff --check` 均通过
+- [x] 生成态本地缺失资源：16 个唯一目标 / 1,850 次引用 → **0 / 0**
+- [x] Mermaid `@undefined`：178 页请求 → **0**
+- [x] 外部失败/不可达媒体：12 个目标 / 369 次引用 → **9 / 9**；减少的 3 个目标为 Mermaid 和 MarkdownPreview `.webp`，剩余 9 个明确记录为外部原图遗留项
+- [x] 最终 Headless Chrome 代表页：禁止旧 URL DOM 0、禁止旧 URL 请求 0、浏览器 HTTP ≥400 0、本地加载失败 0
+- [x] 不部署，不推送 P2 实现，不修改远程
+
+**遗留问题**：
+
+- 7 张 GitHub Raw 正文图和 1 张 LeetCode 正文图仍返回 HTTP 404，当前仓库及历史没有原文件；需日后从可信原始备份恢复或由作者提供替代图。
+- `img.picui.cn` 友链头像探测时连接失败；这不足以断言永久失效，未做猜测性替换。
+- 外部网络结果只对当前设备、网络和测试时刻负责；详情、报告路径和严格口径见 [P2 记录](2026-07-11-invalid-request-p2/README.md)。
+
+---

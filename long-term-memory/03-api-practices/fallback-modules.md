@@ -19,7 +19,7 @@ type: project
 |---|---|---|---|---|
 | **Twikoo 1.7.11** | 评论系统 | 本地 `/js/twikoo.js` + Netlify 后端；文章/可评论页的评论容器进入视口后请求 | ~938KB（静态文件） | 评论区空白 |
 | **KaTeX 0.16.19** | 数学公式渲染 | 本地 `/js/katex/` + 客户端 auto-render | ~303KB（含 CSS） | 公式显示为 LaTeX 源码 |
-| **Mermaid** | 图表渲染 | 当前加载配置**失效**：footer 全站请求 `mermaid@undefined`；主题按需 loader 还会解析为 `/%5Bobject%20Object%5D` | 未可靠加载 | 有 Mermaid 图时无法保证渲染；普通页产生失败请求 |
+| **Mermaid** | 图表渲染 | 当前关闭；站内无 Mermaid 内容，不加载脚本 | 0（当前） | 新增 Mermaid 图前需先恢复固定版本、按页面按需加载方案 |
 
 ---
 
@@ -154,34 +154,35 @@ mermaid:
     dark: dark
 ```
 
-### 4.2 当前加载状态（2026-07-10 已核验，待修复）
+### 4.2 当前加载状态（2026-07-11 P2 已处理）
 
-当前工程同时存在两条错误路径，不能视为可用的 Mermaid 方案：
+P2 审计确认 `source/` 与生成产物中没有 Mermaid fence、`{% mermaid %}` 或 `.mermaid-wrap` 内容；此前开启该配置只会让页脚在所有主题页面请求 `https://unpkg.com/mermaid@undefined/dist/mermaid.min.js`。因此当前配置为：
 
-```text
-所有主题页面
-  → footer.pug 无条件输出 https://unpkg.com/mermaid@undefined/dist/mermaid.min.js
-  → 普通页也产生失败请求
-
-主题动态路径
-  → math/mermaid.pug 仅在发现 .mermaid-wrap 后才尝试动态加载
-  → 但 CDN.option.mermaid 当前被写为 YAML 对象，不是 URL
-  → url_for(...) 展开为 /%5Bobject%20Object%5D
+```yaml
+mermaid:
+  enable: false
 ```
 
-- 当前 `source/` 下未找到 Mermaid fence，已生成产物中也没有实际 `.mermaid-wrap`。
-- 因此不能用“插件会在构建期注入并正常渲染”描述当前事实。
-- 修复原则：移除 footer 无条件脚本；把 Mermaid 资源配置恢复为固定、有效的 JS URL 或主题默认解析；仅由 `math/mermaid.pug` 在实际图表页面按需请求。具体实施与验收见 [2026-07-10 渲染性能与长期记忆事实审计](../05-performance-audit/2026-07-10-render-performance-audit/README.md)。
+这会同时跳过 footer 的旧全局脚本和主题 Mermaid bootstrap，最终 182 个生成 HTML 页面中不再出现 `mermaid@undefined`。详情和量化结果见 [P2 失效请求修复](../04-operations/2026-07-11-invalid-request-p2/README.md)。
 
-### 4.3 支持的图表类型
+### 4.3 重新启用前的要求
+
+不得只把 `enable` 改回 `true`：`CDN.option.mermaid` 当前仍是 YAML 对象而不是可供 `url_for()` 使用的 URL，主题动态路径会展开为 `/%5Bobject%20Object%5D`。首次新增 Mermaid 图时，必须在独立变更中完成：
+
+1. 为 Mermaid 配置固定、有效且与主题调用 API 兼容的 JS URL；
+2. 恢复/核验仅在存在 `.mermaid-wrap` 时加载的 [主题按需路径](../../themes/butterfly/layout/includes/third-party/math/mermaid.pug)；
+3. 增加一页最小 Mermaid 示例，测试浅色、深色、构建产物和浏览器 Network；
+4. 在操作日志记录版本、来源和回滚方法。
+
+### 4.4 支持的图表类型
 
 流程图（flowchart）、时序图（sequenceDiagram）、类图（classDiagram）、状态图（stateDiagram）、甘特图（gantt）、饼图（pie）等。
 
-### 4.4 故障排查
+### 4.5 故障排查
 
 | 现象 | 可能原因 | 检查方法 |
 |---|---|---|
-| Mermaid 代码块显示为原始文本或无图 | 当前 Mermaid URL 配置失效 | 先按本节 4.2 修复有效 URL 和按需加载，再用最小 Mermaid 页面验证 |
+| Mermaid 代码块显示为原始文本或无图 | Mermaid 当前按 P2 关闭，或重新启用时 URL/按需加载链未完成 | 先完成本节 4.3 的固定版本与最小示例验证，再启用 |
 | 图表渲染错误（红色文字） | Mermaid 语法错误或版本 API 不兼容 | 在网络请求成功后检查 Mermaid 版本与代码块语法 |
 | 暗色模式下图表看不清 | `dark` 主题未生效 | 检查 `data-theme` 属性与主题配置 |
 

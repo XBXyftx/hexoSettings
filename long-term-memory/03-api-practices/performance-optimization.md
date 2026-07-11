@@ -249,7 +249,7 @@ inject:
 
 1. **移动首页 waterfall**：100ms 轮询、滚动/触摸后的样式重写和调试 observer。
 2. **全站双 Canvas**：两个 30fps 星空 RAF 前台叠加。
-3. **Mermaid**：170 个已生成页面的 `mermaid@undefined` 失败请求及无效按需 URL。
+3. ~~**Mermaid**：170 个已生成页面的 `mermaid@undefined` 失败请求及无效按需 URL。~~ **已由 P2 处理**：站内当前无 Mermaid 图，已关闭并在生成态验证请求为 0；未来新增图表时再以固定版本按需加载。
 4. **重媒体文章**：102 个 MP4、约 487MB 总静态媒体；单页最高约 153MB MP4，总计 18–19 段视频的文章存在明显加载/解码风险。
 5. **全站 Swiper 注入、重复 CSS/Font Awesome、页脚 4Hz timer、长文占位动画**。
 

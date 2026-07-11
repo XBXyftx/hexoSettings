@@ -3075,7 +3075,7 @@ okay，回归正题，写这段的时候我们的爬虫也完成了工作让我�
 
 首先还是观察一下404页面。
 
-！[11](OpenSourceSummer2025/11.webp)
+![11](OpenSourceSummer2025/11.webp)
 
 可以看到404页面都会存在一个new_404的侧边栏，我们只需要检测在跳转后的目标页面是否存在这个侧边栏就可以判断是否是404页面了。
 
@@ -4679,7 +4679,10 @@ export const newsListApi = new NewsListAPI()
 
 这一段异步编程我感觉可能会有执行顺序问题，我们先测试一下看看。
 
-![22](OpenSourceSummer2025/22.webp)
+<video width="100%" controls>
+  <source src="22.mp4" type="video/mp4">
+  您的浏览器不支持视频标签。
+</video>
 
 后端请求超时？？？后端日志也确实没显示有请求访问。
 
