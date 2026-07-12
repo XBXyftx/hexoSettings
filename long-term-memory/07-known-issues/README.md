@@ -20,17 +20,17 @@
 
 ## 已知问题清单
 
-### BUG-001 — 懒加载系统冗余
+### BUG-001 — 文章懒加载的外部尺寸边界
 
 | 项 | 值 |
 |---|---|
-| **状态** | 历史项；当前实现已从多套脚本收敛为文章图片 observer + CSS 占位 + about 专用懒加载，详见 2026-07-10 审计 |
-| **严重程度** | 中（需结合长图文占位动画继续优化） |
-| **描述** | 旧 lazy-loading 系列与 vanilla-lazyload 的并行问题已在 2026-05 清理；当前保留的风险是 `lazy-loading.css` 对大量文章占位符的无限动画，而非旧脚本冲突。 |
-| **影响** | 图片很多的文章加载阶段可能持续增加绘制/合成成本。 |
-| **相关文件** | `themes/butterfly/source/js/lazy-loading-optimized.js`、`source/css/lazy-loading.css`、`source/css/lazy-loading-stable.css`、`source/about/lazy-loading-about.js` |
-| **临时方案** | 保持 `_config.butterfly.yml` 的 `lazyload.enable: false`；不要恢复已删除的旧 lazy-loading/refresh 脚本。 |
-| **建议修复** | 保留现有加载和 CLS 行为，将动态 shimmer/blur 限制为视口附近占位符。 |
+| **状态** | 已完成本地治理；仍保留外部媒体的不可自动恢复边界 |
+| **严重程度** | 低（目录跳转已具备运行时校正；外部图片本身仍可能引起普通阅读过程的布局变化） |
+| **描述** | 原有 `lazy-loading.css`/`lazy-loading-stable.css` 曾让全篇待加载图片同时运行持续动画。2026-07-11 已改为文章页原生 `loading="lazy"` + 仅近视口轻量占位，并以可取消的 TOC 重锚定修复晚到媒体造成的目录偏移。生成态有 1,596 张正文图，1,494 张具备完整尺寸；剩余 97 张外部图和 5 个 data URI 无法由本地构建安全推断比例。 |
+| **影响** | 超慢外部图在正常阅读中仍可能改变周边排版；目录点击会在有限窗口内校正，但不无限等待资源。 |
+| **相关文件** | `themes/butterfly/source/js/lazy-loading-optimized.js`、`themes/butterfly/source/js/main.js`、`themes/butterfly/source/css/lazy-loading-optimized.css`、`scripts/image-dimensions.js` |
+| **验证** | `OpenSourceSummer2025`、`ToTheApril2025` 在 1440×900 与 375×812、每张本地图 400ms 延迟下的远距离目录跳转误差均 ≤0.219px。 |
+| **后续** | 如获得可信原图备份或作者给出的尺寸，优先补内容源；禁止自动网络抓取或猜测性写入比例。 |
 
 ---
 

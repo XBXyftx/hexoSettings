@@ -192,8 +192,8 @@ swiper/
 
 | 文件 | 作用 | 加载位置 |
 |------|------|---------|
-| `lazy-loading-stable.css` | 稳定懒加载样式（防 CLS） | head.pug |
-| `lazy-loading.css` | 基础懒加载样式 | head.pug |
+| `lazy-loading-stable.css` | 历史防 CLS 样式文件 | 当前不加载；内在尺寸由 HTML `width`/`height` 属性保留 |
+| `lazy-loading.css` | 历史基础占位样式文件 | 当前不加载；不得恢复全文高代价 placeholder 动画 |
 | `vscode-breadcrumb-toc.css` | VS Code 面包屑导航样式 | head.pug（仅文章页） |
 
 ### themes/butterfly/source/css/ 中的自定义样式
@@ -202,7 +202,7 @@ swiper/
 |------|------|---------|
 | `universe.css` | 星空背景 canvas 样式 | inject head |
 | `entrance-popup.css` | 入场弹窗样式 | `head.pug` 全站 |
-| `lazy-loading-optimized.css` | 优化懒加载样式 | **文件存在但当前未由 inject/head 直接加载**；实际 `.lazy-placeholder` 由 `source/css/lazy-loading.css` 负责 |
+| `lazy-loading-optimized.css` | 文章图片原生 lazy 协调器的静态/近视口占位状态 | `head.pug`（仅文章页） |
 | `readmode-enhanced.css` | 阅读模式增强 | inject head |
 | `rightmenu.css` | 自定义右键菜单 | inject head |
 | `styles.css` | 通用自定义样式 | inject head |
@@ -236,8 +236,8 @@ swiper/
 | `entrance-popup.js` | 入场弹窗逻辑 | `additional-js.pug` 全站 |
 | `entrance-popup-config.js` | 弹窗配置 | `additional-js.pug` 全站 |
 | `typewriter-effect.js` | 文章打字机效果 | `additional-js.pug`（仅文章页） |
-| `waterfall.js` | 瀑布流 masonry 引擎 | `additional-js.pug`（仅首页；移动端 100ms 轮询/调试监听是当前 P0） |
-| `lazy-loading-optimized.js` | 文章图片 IntersectionObserver 懒加载 | inject bottom |
+| `waterfall.js` | 瀑布流 masonry 引擎 | `additional-js.pug`（仅首页；已改为按需响应式布局，无移动端 100ms 轮询/调试监听） |
+| `lazy-loading-optimized.js` | 文章原生 lazy 协调、近视口占位和目录重锚定用媒体结算事件 | inject bottom |
 | `happy-title.js` | 标签页标题特效 | inject bottom |
 | `rightmenu.js` | 自定义右键菜单 | inject bottom |
 | `lightbox-enhanced.js` | 灯箱增强 | inject bottom |
@@ -313,8 +313,8 @@ swiper/
 
 | 项 | 值 |
 |---|---|
-| **说明** | 主题内置 `lazyload.enable` 当前关闭。主力为 `lazy-loading-optimized.js`（文章图片 IntersectionObserver）；`lazy-loading.css`/`lazy-loading-stable.css` 仍全站加载，about 有专用 `lazy-loading-about.js`。旧 `lazy-loading.js`、native、刷新脚本已物理删除。 |
-| **当前注意** | `lazy-loading.css` 对文章 `.lazy-placeholder` 的 shimmer/旋转/blur 在图多的长文中会产生持续绘制；优化时须保留占位、淡入与 CLS 行为。 |
+| **说明** | 主题内置 `lazyload.enable` 当前关闭。文章采用浏览器原生 `loading="lazy"`，由 `lazy-loading-optimized.js` 仅跟踪近视口媒体结算和 placeholder 状态；目录跳转在晚到媒体结算后有限重锚定。about 有独立 `lazy-loading-about.js`；旧 `lazy-loading.js`、native、刷新脚本已物理删除。 |
+| **当前注意** | 本地图片有 build-time `width`/`height`，外部图片和 data URI 没有可信可自动写入的尺寸；目录最终定位已校正，普通阅读 CLS 仍需可信原图尺寸/备份才能进一步收敛。 |
 
 ### 9. 预加载动画
 

@@ -21,7 +21,7 @@ type: project
 2. **资源注入**：`inject.head` 保留关键 CSS，其他自定义样式使用 `media="print"` 异步加载；但当前产物有重复的 `index.css` 和 Font Awesome，不能称为完全去重。
 3. **脚本加载**：`inject.bottom` 自定义脚本使用 `defer`，但主题/插件仍有各自加载路径，必须以生成 HTML 核验。
 4. **动画降级**：两个星空脚本各有 30fps、移动端降级和标签隐藏暂停；前台双 Canvas 仍会叠加。
-5. **当前明确热点**：移动首页 waterfall 的 100ms 轮询/调试监听、全站 Mermaid 无效请求、全站 Swiper 注入、长文媒体与占位动画；完整证据见 2026-07-10 审计。
+5. **当前明确热点**：全站 Swiper 注入、重媒体文章、页脚 timer、重复 CSS/Font Awesome，以及仍缺可信尺寸的外部正文图；文章 placeholder 动画和目录跳转媒体偏移已于 2026-07-11 在本地治理并验证。
 6. **运行时监控**：旧 `network-monitor.js` 与 `topimg-monitor.js` 已删除，不再存在生产监控模块。
 
 ---
@@ -146,7 +146,6 @@ inject:
     - <link rel="stylesheet" href="/css/styles.css" media="print" onload="this.media='all'">
     - <link rel="stylesheet" href="/css/rightmenu.css" media="print" onload="this.media='all'">
     - <link rel="stylesheet" href="/css/twikoo.css" media="print" onload="this.media='all'">
-    - <link rel="stylesheet" href="/css/lazy-loading-optimized.css" media="print" onload="this.media='all'">
     - <link rel="stylesheet" href="/css/readmode-enhanced.css" media="print" onload="this.media='all'">
     
     # 异步：第三方字体
@@ -164,7 +163,7 @@ inject:
 | `styles.css` | 异步 | 业务样式细节 |
 | `rightmenu.css` | 异步 | 右键菜单只在用户右键时才需要 |
 | `twikoo.css` | 异步 | 评论区在文章末尾，远离首屏 |
-| `lazy-loading-optimized.css` | 异步 | 懒加载占位符样式，首屏内图片占位前已能用 image-dimensions 的 aspect-ratio |
+| `lazy-loading-optimized.css` | 文章页同步 | 仅文章图片的静态占位与近视口状态；由 `head.pug` 按 post 条件加载，避免全站样式和占位闪烁 |
 | `readmode-enhanced.css` | 异步 | 阅读模式按钮触发后才显效 |
 | Font Awesome | 异步 | 图标可以在加载完成后再显示 |
 
@@ -232,14 +231,16 @@ inject:
 
 ## L7 · 当前懒加载边界
 
-当前全站主力是 `themes/butterfly/source/js/lazy-loading-optimized.js`：只处理文章内容的图片，使用 `IntersectionObserver`，重新初始化时会断开旧 observer。`source/css/lazy-loading.css` 与 `source/css/lazy-loading-stable.css` 仍由 `head.pug` 全站加载，但前者对 `.lazy-placeholder` 定义了持续 shimmer/旋转/blur 效果；在图片很多的长文中这是当前 P2 风险，而不是“失败重载”系统。
+当前文章图片由浏览器原生 `loading="lazy"` 负责请求时机；`themes/butterfly/source/js/lazy-loading-optimized.js` 仅在图片接近视口时追踪结算状态、限制动态占位视觉，并向 TOC 事务发送媒体结算事件。`head.pug` 只为文章页加载对应的 `lazy-loading-optimized.css`；旧的 `source/css/lazy-loading.css` 与 `source/css/lazy-loading-stable.css` 已不再由当前主题加载。
 
 | 机制 | 当前范围 | 触发/注意 |
 |---|---|---|
-| 浏览器原生 `loading="lazy"` | `image-dimensions.js` 未排除的图片 | 浏览器视口附近加载 |
-| `lazy-loading-optimized.js` | `#article-container` / `.post-content` 内图片 | IntersectionObserver；加载后取消观察 |
-| `lazy-loading-about.js` | `/about/` 的 `.card-row` | 行进入 200px rootMargin 后加载 |
-| `lazy-loading.css` / stable CSS | 全站加载，样式主要命中文章占位符 | 大量占位符时避免同时运行高代价动画 |
+| 浏览器原生 `loading="lazy"` | `image-dimensions.js` 未排除的图片 | 浏览器视口附近加载；本地图片有 width/height 时可预留准确比例 |
+| `lazy-loading-optimized.js` | `#article-container` / `.post-content` 内图片 | 观察近视口加载结算；动态 shimmer 只限近视口 placeholder；有销毁路径 |
+| TOC 重锚定 | 桌面侧栏与移动目录 | 图片结算/文章尺寸变化后 RAF 校正；用户输入或 3.5 秒上限即取消 |
+| `lazy-loading-about.js` | `/about/` 的 `.card-row` | 行进入 200px rootMargin 后加载；独立于文章页机制 |
+
+外部图片和 data URI 无法在构建期安全读取尺寸，仍是普通阅读 CLS 的边界；目录点击会有限校正最终标题位置，但不伪造外部比例。详见 [lazy-loading-system.md](lazy-loading-system.md)。
 
 ---
 

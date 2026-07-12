@@ -328,7 +328,7 @@ aside:
     enable: true
   card_announcement:
     enable: true
-    content: '欢迎来到这里！<br/><img src="/imgs/gifs/1.webp" title="1.gif" class="announcementImg"/><br/>本站近期完成首页瀑布流性能优化：移除高频轮询和冗余调试逻辑，改为响应式 3/2/1 列布局，并按需重新排版。<br/>希望能带来更稳定、轻快的浏览体验！'
+    content: '欢迎来到这里！<br/><img src="/imgs/gifs/1.webp" title="1.gif" class="announcementImg"/><br/><b>近期优化已完成：</b><br/>① 首页瀑布流升级为按需响应式 3/2/1 列布局，移除高频轮询与冗余调试；<br/>② 清理失效资源请求，修正本地图片兜底与历史路径；<br/>③ 文章图片保留原生懒加载，仅近视口显示轻量占位效果；<br/>④ 目录跳转会在图片晚到时自动校正标题位置，桌面与移动端均已适配。<br/><br/>愿你在这里阅读顺畅、探索愉快，收获每一份灵感！✨'
   card_recent_post:
     enable: true
     # If set 0 will show all

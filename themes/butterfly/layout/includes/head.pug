@@ -55,13 +55,14 @@ link(rel='stylesheet', href=url_for(theme.asset.fontawesome))
 if globalPageType === 'post'
   link(rel='stylesheet', href=url_for('/css/typewriter-effect.css'))
 
+//- 文章图片懒加载状态样式
+if globalPageType === 'post'
+  link(rel='stylesheet', href=url_for('/css/lazy-loading-optimized.css'))
+
 //- 入场弹窗样式
 link(rel='stylesheet', href=url_for('/css/entrance-popup.css'))
 
-//- 基础懒加载样式（兼容旧版）
-link(rel='stylesheet', href=url_for('/css/lazy-loading.css'))
-//- 稳定的图片懒加载样式 - 解决布局偏移问题
-link(rel='stylesheet', href=url_for('/css/lazy-loading-stable.css'))
+//- 旧全站懒加载占位样式已由文章页的 lazy-loading-optimized.css 取代
 
 //- 已移除: lazy-image-refresh.css, lazy-video-refresh.css（对应脚本已删除）
 

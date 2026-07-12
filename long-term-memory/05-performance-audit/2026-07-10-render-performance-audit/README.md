@@ -58,7 +58,7 @@ type: project
 | **P1** | **Swiper 文章轮播插件将 CSS/JS/注入器发到所有页面**。非首页也会加载。 | 配置 `enable_page: all`：[配置:1266-1281](../../../_config.butterfly.yml#L1266-L1281)。插件无条件注册两 CSS 和两 JS 到全站：[node_modules/.../index.js:53-108](../../../node_modules/hexo-butterfly-swiper/index.js#L53-L108)，生成页面还含约 **4.7KB** 轮播 HTML 注入器。已在首页、普通文章、about、swiper 自定义页均核验到四个外部资源引用。 | 若视觉意图是“首页文章轮播”，将插件作用域收紧为 `/`，并让资源随首页条件注入；如确需所有页轮播，至少把 HTML 注入器改成先检测挂载容器存在再构造内容，避免非首页反复查找/注入失败。 | 首页轮播内容、动画与顺序不变；普通文章、about、独立 swiper 页面不再下载/执行无用 Swiper 资源。 |
 | **P2** | **文章面包屑导航的 scroll 热路径未合帧**。标题较多的文章。 | 每个 scroll 事件遍历标题并读取 `offsetTop`，再计算文档高度和写入进度条：[vscode-breadcrumb-toc.js:140-177](../../../source/js/vscode-breadcrumb-toc.js#L140-L177)，监听器直接绑定：[229-230](../../../source/js/vscode-breadcrumb-toc.js#L229-L230)。 | 用 RAF 合并连续 scroll；在 init/resize/内容变化时缓存 heading 位置，滚动时二分查找；只有当前标题或进度确实变化时才写 DOM。 | 面包屑切换时机、进度条、移动/桌面 UI 完全不变；快速触控板滚动中每帧最多一次处理。 |
 | **P2** | **页脚计时器以 4Hz 重写 DOM，且没有可见性暂停**。所有主题页面。 | [footer.pug:27-48](../../../themes/butterfly/layout/includes/footer.pug#L27-L48) 每 250ms 计算并 `innerHTML` 写两次；展示实际只精确到秒。 | 改为对齐下一秒边界的 `setTimeout` 链（1Hz），使用 `textContent`；`visibilitychange` 隐藏时停止，可见时立即补刷。 | 显示格式、建站时间和秒级更新效果不变。 |
-| **P2** | **文章懒加载占位符在长图文中同时触发高代价无限动画**。主要是大量图片文章的加载阶段。 | 主脚本给每张待加载文章图加入 `.lazy-placeholder`：[lazy-loading-optimized.js:123-150](../../../themes/butterfly/source/js/lazy-loading-optimized.js#L123-L150)。全站加载的 [source/css/lazy-loading.css:16-96](../../../source/css/lazy-loading.css#L16-L96) 对其使用持续 background-position、box-shadow 动画、旋转 pseudo-element、`backdrop-filter`；例如有 198 张内容图的文章会同时具备大量占位层。该 CSS 与 stable CSS 均由 [head.pug:61-64](../../../themes/butterfly/layout/includes/head.pug#L61-L64) 同步加载。 | 保留加载中的“梦幻”视觉：只对视口附近的少量 placeholder 添加动态 class；其余使用静态渐变。将 `backdrop-filter` 和 `box-shadow` 动画替换为预渲染轻量背景或仅 transform/opacity 动画；图片完成/失败后彻底移除动画类。 | 占位色彩、淡入、失败提示不变；长文滚到远处时不保留数百个无限合成/绘制任务。 |
+| **P2（已于 2026-07-11 本地治理）** | **文章懒加载占位符曾在长图文中同时触发高代价无限动画，且目录跳转会受晚到媒体影响偏移。** | 原脚本曾给每张待加载文章图加入 `.lazy-placeholder`，全站加载的旧占位 CSS 又对其使用持续背景位移、旋转伪元素、`box-shadow` 与 `backdrop-filter`。TOC click 还依赖已删除的 `lazyLoadPreload`，只做一次位置计算。 | 当前改为保留真实 `src` 与原生 `loading="lazy"`，仅近视口 placeholder 有轻量 shimmer；目录使用图片结算事件、文章 `ResizeObserver`、RAF 合帧和可取消的有限重锚定。详情见 [2026-07-11 文章懒加载与目录锚点稳定性治理](../../04-operations/2026-07-11-article-layout-stability/README.md)。 | 受控 400ms 图片延迟及 240px 延迟布局变化下，`OpenSourceSummer2025` 桌面/移动远距离目录最终误差均 ≤0.5px；不再保留全文高代价占位动画。 |
 | **P2** | **关于页多层 backdrop-filter、模糊 3D 自动轮播**。访问 `/about/`。 | 10 个 card-row、42 张图片；卡片使用 `backdrop-filter: blur(20px)` [about/index.html:143-153](../../../source/about/index.html#L143-L153)，轮播图有持续 filter blur 与 `will-change: filter` [250-328](../../../source/about/index.html#L250-L328)，每个已加载轮播会启动 3.5–5 秒 interval [lazy-loading-about.js:278-292](../../../source/about/lazy-loading-about.js#L278-L292)。 | 视觉保持玻璃卡片/3D 轮播：只给可见卡片启用 backdrop blur，离开视口切为预混合半透明底色；只让当前、前一、后一张使用短暂 blur；轮播离开视口或标签隐藏时暂停，回来继续。 | 卡片玻璃感、轮播速度和操作不变；不可见区域不持续滤镜合成/计时。 |
 | **P2** | **图片画廊保留多个生产调试/状态轮询**。`/swiper/`。 | `updateCacheStatus` 每 10 秒运行：[source/swiper/index.md:1646-1650](../../../source/swiper/index.md#L1646-L1650)；`startLoadingMonitor()` 每 5 秒查询/记录 DOM 状态，完成后才清除：[1690-1783](../../../source/swiper/index.md#L1690-L1783)，并在初始化后启动：[1808-1827](../../../source/swiper/index.md#L1808-L1827)。 | 将监控改为开发开关或仅在故障状态短时启动；状态 UI 由 IndexedDB 操作、图片完成事件驱动，不作固定轮询。 | 图片瀑布流、批量加载、缓存状态与清缓存功能不变；生产控制台无周期日志。 |
 | **P3** | **Font Awesome 与主样式表重复插入**。全站。 | 主题 head 先同步加载 Font Awesome 与主 CSS：[head.pug:50-53](../../../themes/butterfly/layout/includes/head.pug#L50-L53)；`inject.head` 又插入相同 Font Awesome 和第二次 `/css/index.css`：[配置:1067-1082](../../../_config.butterfly.yml#L1067-L1082)。已生成页面有两份同 URL Font Awesome 和两份 `index.css`。注意：2026-05-04 曾尝试“仅保留异步 Font Awesome”，因图标首屏消失而回滚（commit `b472183`），所以不能简单重做旧方案。 | 首先移除重复的 `/css/index.css`（两份均同步/同源，视觉不应依赖第二份）。Font Awesome 保留主题那份同步入口以避免既往闪烁，再删除 inject 的异步重复 `<link>`；在旧浏览器、弱网和常用页面回归图标。 | 所有图标首帧正常、无闪烁；最终每页仅一份 `index.css`、一份 Font Awesome。 |
@@ -72,7 +72,6 @@ type: project
 
 - 两个星空 animation loop：各自限到 30fps、都能在 `document.hidden` 时暂停，因此不是后台风扇问题的主要嫌疑；但**前台双份绘制**确实持续存在。
 - 所有主题页的 250ms 页脚 timer。
-- 所有主题页无条件 Mermaid 失败请求。已存在的 `public/` 代表产物中，170 个页面都包含该无效 URL。
 - Swiper 插件为所有页面注册两 CSS、两 JS 和挂载脚本；`enable_page: all` 与其实际主页挂载意图冲突。
 
 ### 3.2 长内容的放大因素
@@ -86,14 +85,14 @@ type: project
 | `2025/03/16/yiDuo` | 35 | 11 | ~209KB | ~153MB |
 | `2025/04/30/ToTheApril2025` | 198 | 3 | ~244KB | ~11MB |
 
-静态文件总量并不等于首次下载量，实际取决于浏览器预加载策略、服务器 Range 支持与 CDN 缓存；但上述 DOM、解码候选和占位动画规模，足以使低性能设备更容易出现掉帧与风扇升速。
+静态文件总量并不等于首次下载量，实际取决于浏览器预加载策略、服务器 Range 支持与 CDN 缓存；但上述 DOM 和解码候选规模，足以使低性能设备更容易出现掉帧与风扇升速。文章图片占位动画已在后续本地治理中收敛为近视口状态，不应再把“全文占位动画”当作当前事实。
 
 ### 3.3 未判为问题的组件
 
 以下代码已具备合理的节流/清理，或未显示出当前可达的持续热路径：
 
 - 生日礼物页流星：22fps 上限、粒子上限、页面隐藏暂停、RAF 取消路径可见于 [birthday-gift.js:635-728](../../../source/js/birthday-gift.js#L635-L728)。
-- 主文章懒加载使用 `IntersectionObserver`，重初始化前断开旧 observer，并在图片加载后 `unobserve`：[lazy-loading-optimized.js:30-41](../../../themes/butterfly/source/js/lazy-loading-optimized.js#L30-L41)。
+- 主文章懒加载当前保留浏览器原生 `loading="lazy"`；文章协调器仅观察近视口、限制动画，并在媒体结算后为 TOC 提供校正事件。受控延迟/布局变化验证见 [2026-07-11 记录](../../04-operations/2026-07-11-article-layout-stability/README.md)。
 - 打字机效果已有 timer 清理与 PJAX 清理路径。
 - 关于页本地开发环境的 3 秒日志受 `localhost`/`127.0.0.1` 条件保护，非生产问题：[about/index.html:1259-1275](../../../source/about/index.html#L1259-L1275)。
 - Twikoo **当前生成产物实际为视口触发加载**，不是旧文档所称的立即加载：生成文章中 `lazyload: true` 展开为 `btf.loadComment(...)`。它仍是约 938KB 的运行时资源，但只在评论容器进入视口后请求；本报告不把它列为本轮 P1。

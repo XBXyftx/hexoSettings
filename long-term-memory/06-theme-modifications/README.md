@@ -144,7 +144,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 | 项 | 值 |
 | --- | --- |
 | **修改内容** | 添加多个自定义 CSS/JS 链接 |
-| **新增代码** | typewriter-effect.css、entrance-popup.css、`lazy-loading.css`、`lazy-loading-stable.css`、vscode-breadcrumb-toc.css、header-universe.js；Font Awesome 与 `/css/index.css` 当前各有主题/inject 重复入口 |
+| **新增代码** | typewriter-effect.css、entrance-popup.css、文章页 `lazy-loading-optimized.css`、vscode-breadcrumb-toc.css、header-universe.js；旧 `lazy-loading.css`/`lazy-loading-stable.css` 已停止从 head 加载；Font Awesome 与 `/css/index.css` 当前各有主题/inject 重复入口 |
 | **条件加载** | 部分 CSS/JS 仅在文章页面（`globalPageType === 'post'`）或首页加载 |
 | **影响** | 所有页面的 head 部分 |
 
@@ -190,7 +190,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 | 项 | 值 |
 | --- | --- |
-| **修改内容** | 包含注释掉的 hamburger 菜单修复代码和增强移动端检测 |
+| **修改内容** | 包含注释掉的 hamburger 菜单修复代码和增强移动端检测；2026-07-11 将失效的目录预加载调用替换为可取消的媒体结算/ResizeObserver 重锚定事务 |
 | **影响** | 主题主脚本 |
 
 ---
@@ -200,13 +200,15 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 | 文件 | 修改类型 | 风险等级 | 升级时处理建议 |
 | --- | --- | --- | --- |
 | `layout/includes/layout.pug` | 添加 HTML | 中 | 升级后重新注入弹窗结构 |
-| `layout/includes/head.pug` | 添加链接 + 当前存在资源重复 | 高 | 升级后重新添加自定义 CSS/JS 链接；先解决 `/css/index.css` 与 Font Awesome 重复，**不要**恢复已回滚的“仅异步 Font Awesome”方案 |
+| `layout/includes/head.pug` | 添加条件 CSS、停止旧全站占位样式加载 + 当前存在资源重复 | 高 | 升级后重新添加文章页懒加载状态样式；先解决 `/css/index.css` 与 Font Awesome 重复，**不要**恢复已回滚的“仅异步 Font Awesome”方案或旧全篇占位动画 |
+| `source/js/lazy-loading-optimized.js` | 原生 lazy 协调、近视口占位与媒体结算事件 | 中 | 迁移时保留原生 `src`/`loading`，不能恢复 1×1 GIF 交换逻辑 |
+| `source/css/lazy-loading-optimized.css` | 文章页静态/近视口占位状态 | 低 | 保持 reduced-motion 和仅近视口动态视觉 |
 | `layout/includes/additional-js.pug` | 添加加载 | 高 | 升级后所有自定义 JS 需重新添加 |
 | `layout/includes/footer.pug` | 添加脚本 | 低 | 升级后重新添加建站时间统计 |
 | `layout/includes/mixins/indexPostUI.pug` | 修改布局 | 高 | 升级后重新实现 layout 8 逻辑 |
 | `layout/index.pug` | 添加类名 | 低 | 升级后重新添加 masonry 类 |
 | `layout/includes/head/config_site.pug` | 添加字段 | 中 | 升级后重新暴露 typewriter 字段 |
-| `source/js/main.js` | 添加注释 | 低 | 影响不大，可忽略 |
+| `source/js/main.js` | 移动端增强逻辑与目录媒体重锚定 | 中 | 升级后保留用户输入取消、RAF 合帧、ResizeObserver 和有限时限；不得恢复依赖已删除 `lazyLoadPreload` 的一次性定位 |
 
 ---
 

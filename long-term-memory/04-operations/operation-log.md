@@ -745,3 +745,65 @@
 - 外部网络结果只对当前设备、网络和测试时刻负责；详情、报告路径和严格口径见 [P2 记录](2026-07-11-invalid-request-p2/README.md)。
 
 ---
+
+### #29 — 2026-07-11 — 文章懒加载降载与目录媒体重锚定（仅本地实施）
+
+**操作人**：AI 助手（Claude Code）
+
+**远程备份基线**：`bb93da827265b25bf3af05e342b9793419452b88`（`feat: 归档失效请求优化与复盘`）。该提交已推送到 `origin/master`，并在实施前确认本地/远程均为同一 SHA、双向提交差 `0 / 0`。此后本轮严格不推送、不部署、不强推、不修改远程。
+
+**涉及文件**：
+
+- `themes/butterfly/source/js/lazy-loading-optimized.js` — 由 1×1 GIF 替换/独立预加载改为原生 lazy 协调、近视口状态与媒体结算事件
+- `themes/butterfly/source/css/lazy-loading-optimized.css` — 静态占位与近视口 shimmer，移除全篇高代价动画路径
+- `themes/butterfly/source/js/main.js` — 桌面/移动 TOC 共用可取消的媒体结算/ResizeObserver 重锚定事务
+- `themes/butterfly/layout/includes/head.pug` — 仅文章页加载新状态样式，停止加载旧全站占位 CSS
+- `tools/audit-article-layout-stability.js`、`tools/verify-toc-navigation.js` — 新增生成态尺寸审计和延迟图片目录导航验证
+- `long-term-memory/04-operations/2026-07-11-article-layout-stability/README.md`、懒加载/性能/主题修改/已知问题索引 — 更新当前事实和验证边界
+
+**操作详情**：
+
+1. 审计确认：构建期 `image-dimensions.js` 能为本地文章资源提供 `width`/`height`，但外部图片没有可验证内在尺寸；原有自定义脚本随后把图片 `src` 改为 1×1 GIF，且旧 CSS 对全文 placeholder 施加无限动画。
+2. 原 TOC click handler 保留了对已删除 `window.lazyLoadPreload` 的 `typeof` 守卫，实际运行直接在下一帧只定位一次；图片在目标之前晚到后，标题绝对位置改变，桌面和移动目录均会发生最终偏移。
+3. 新实现保留真实 `src` 与浏览器原生 `loading="lazy"`，运行时仅观察近视口图片并追踪 `load/error`；动态 shimmer 只在近视口 placeholder 生效，移动和 reduced-motion 下禁用。
+4. TOC 点击初次滚动后会监听文章图片结算与容器尺寸变化，用 RAF 合并重算目标位置；新点击、用户滚轮/触摸/滚动键或 3.5 秒时限都会停止事务，避免抢占用户滚动或无限等待外部资源。
+5. 未为 97 张外部图和 5 个 data URI 猜测比例；这类媒体仍是普通阅读 CLS 的诚实边界，但其对目录最终落点的影响已通过有限重锚定收敛。
+
+**验证结果**：
+
+- [x] `node --check`：修改/新增的文章懒加载、主题主脚本和两项验证工具均通过
+- [x] `npm run build` 成功，生成 186 个 HTML、17 个 CSS
+- [x] `git diff --check` 通过
+- [x] 生成态资源审计：本地缺失目标 / 引用仍为 **0 / 0**
+- [x] 文章尺寸审计：59 个文章页、1,596 张正文图；1,494 张有完整内在尺寸，缺少尺寸的 102 张均为 97 个外部图或 5 个 data URI
+- [x] `OpenSourceSummer2025` 在 1440×900 / 375×812、每张本地图 400ms 延迟下，远距离 TOC 目标最终误差分别为 **0.500px / 0.344px**
+- [x] `ToTheApril2025` 同条件下最终误差分别为 **0.219px / 0.125px**
+- [x] 另向 `OpenSourceSummer2025` 目标前注入 240px、700ms 后发生的受控布局变化：桌面 / 移动最终误差为 **0.500px / 0.156px**
+- [x] 4 组均低于 ≤3px 验收阈值；无远程写入、无部署
+
+**遗留问题**：
+
+- 外部图片和 data URI 无法在构建期安全获取尺寸，普通滚动阅读仍可能出现其自身导致的布局变化；应等待可信原图备份或作者提供尺寸，禁止自动抓取/猜测。
+- 浏览器验证使用本地 loopback 静态服务与 Headless Chrome 的受控延迟；真实外部 CDN、弱网和有头实机仍建议在后续发布前回归。
+
+---
+
+### #30 — 2026-07-11 — 更新侧栏公告：同步近期性能、资源与阅读稳定性优化
+
+**操作人**：AI 助手（Claude Code）
+
+**涉及文件**：
+
+- `_config.butterfly.yml` — 更新 `aside.card_announcement.content`
+
+**操作详情**：
+
+将侧栏公告从仅说明首页瀑布流重写，更新为近期优化摘要：响应式瀑布流、失效资源请求治理、文章原生懒加载/近视口占位，以及媒体晚到时的目录重锚定；保留原有公告 GIF，并添加祝愿读者阅读顺畅、探索愉快的结语。
+
+**验证结果**：
+
+- [x] YAML 字符串保持单行 HTML 内容，未引入新资源 URL
+- [x] 后续本地 `npm run build` 与生成态本地资源审计通过
+- [x] 无远程写入、无部署
+
+---
