@@ -807,3 +807,38 @@
 - [x] 无远程写入、无部署
 
 ---
+
+### #31 — 2026-07-12 — 修复文章图片比例拉伸回归（仅本地实施）
+
+**操作人**：AI 助手（Claude Code）
+
+**远程约束**：沿用 `bb93da8` 远程备份后的约束；本次不提交、不推送、不部署，也不执行任何远程写操作。
+
+**涉及文件**：
+
+- `themes/butterfly/source/css/lazy-loading-optimized.css` — 恢复文章图片 `height: auto`，并仅为无 `width`/`height` 的未知比例图片保留最小占位高度
+- `tools/verify-toc-navigation.js` — 增加已加载且具备尺寸属性的正文图比例断言，作为 TOC 延迟媒体回归验证的一部分
+- `long-term-memory/03-api-practices/lazy-loading-system.md`、`long-term-memory/04-operations/2026-07-11-article-layout-stability/README.md`、`long-term-memory/06-theme-modifications/README.md`、`long-term-memory/07-known-issues/README.md` — 同步根因、修复边界与验证口径
+
+**操作详情**：
+
+1. 用户反馈多张文章图片被异常拉伸；以 `OpenSourceSummer2025/78.webp` 复现：源图和生成属性为 `2559×1454`，在 1600px 宽度浏览器中宽度被 `max-width:100%` 缩至约 `781.80px`，高度却仍按 HTML `height` 属性显示为 `1454px`。
+2. 根因不是运行时 lazy 协调器改写尺寸，而是 2026-07-11 停止加载旧 `lazy-loading-stable.css` 时，同时移除了其中隐含的文章图片 `height:auto` 保障；主题基础文章样式只保留 `max-width`。构建期写入尺寸属性后，受限宽度和未受限高度组合造成纵向拉伸。
+3. 在当前文章专属样式入口恢复 `#article-container img { max-width:100%; height:auto; }`，保留构建期 `width`/`height`，因此不会牺牲原生 lazy 的预留空间或目录重锚定机制。
+4. 占位/错误最小高度改为仅适用于同时缺少 `width` 与 `height` 的未知比例图片，避免窄小但已具备可信尺寸的图片被 `min-height` 二次拉伸。
+
+**验证结果**：
+
+- [x] 真实截图资源在浏览器中从约 `781.80×1454px` 恢复为约 `781.80×444.20px`，与 `2559:1454` 原始比例一致
+- [x] `npm run build` 成功（未执行会删除生成态的 `npm run clean`）
+- [x] 文章尺寸审计保持：59 个文章页、1,596 张正文图、1,494 张完整本地尺寸；无可信尺寸的 97 个外部图和 5 个 data URI 边界不变
+- [x] 生成态本地资源审计：**0** 个缺失目标、**0** 次缺失引用
+- [x] `OpenSourceSummer2025` 注入 240px 延迟布局变化并延迟图片 400ms：桌面最终目录偏移 **0.125px**、移动端 **0.297px**；两端已加载带尺寸正文图比例错误均为 **0**
+- [x] JS 语法检查与 `git diff --check` 通过；无远程写入、无部署
+
+**遗留问题**：
+
+- 没有可信内在尺寸的外部图片和 data URI 仍可能在普通阅读中改变布局；本次不猜测或伪造比例。
+- Headless 验证覆盖本地 loopback、受控延迟与桌面/移动断点；上线前仍宜在有头浏览器、弱网和真实外部 CDN 条件下人工回归。
+
+---

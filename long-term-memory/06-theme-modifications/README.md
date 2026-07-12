@@ -202,7 +202,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 | `layout/includes/layout.pug` | 添加 HTML | 中 | 升级后重新注入弹窗结构 |
 | `layout/includes/head.pug` | 添加条件 CSS、停止旧全站占位样式加载 + 当前存在资源重复 | 高 | 升级后重新添加文章页懒加载状态样式；先解决 `/css/index.css` 与 Font Awesome 重复，**不要**恢复已回滚的“仅异步 Font Awesome”方案或旧全篇占位动画 |
 | `source/js/lazy-loading-optimized.js` | 原生 lazy 协调、近视口占位与媒体结算事件 | 中 | 迁移时保留原生 `src`/`loading`，不能恢复 1×1 GIF 交换逻辑 |
-| `source/css/lazy-loading-optimized.css` | 文章页静态/近视口占位状态 | 低 | 保持 reduced-motion 和仅近视口动态视觉 |
+| `source/css/lazy-loading-optimized.css` | 文章页图片比例保护、静态/近视口占位状态 | 低 | 保持 `max-width:100%` 与 `height:auto` 成对存在；仅无尺寸图片使用最小高度，保留 reduced-motion 和仅近视口动态视觉 |
 | `layout/includes/additional-js.pug` | 添加加载 | 高 | 升级后所有自定义 JS 需重新添加 |
 | `layout/includes/footer.pug` | 添加脚本 | 低 | 升级后重新添加建站时间统计 |
 | `layout/includes/mixins/indexPostUI.pug` | 修改布局 | 高 | 升级后重新实现 layout 8 逻辑 |
@@ -241,6 +241,24 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 - [ ] 目标设备有头浏览器的视觉、触摸 / 旋转、深浅色模式和 Performance 回归仍待完成。
 
 **关联基线**：`69772c8`（已推送到 `origin/master`）
+
+---
+
+### #7 — 2026-07-12 — 补正文章图片比例保护回归
+
+**修改文件**：`themes/butterfly/source/css/lazy-loading-optimized.css`
+
+**修改原因**：2026-07-11 将文章懒加载样式由旧全站 CSS 收敛到当前文章级 CSS 时，旧文件中隐含的 `height:auto` 没有同步迁移。构建期为本地图注入 `width`/`height` 后，`max-width:100%` 只会收窄宽度，未受约束的高度仍可能采用原始属性像素，导致多张正文图片纵向拉伸。
+
+**修改内容**：
+
+1. 为 `#article-container img` 明确添加 `max-width:100%` 和 `height:auto`，让显示尺寸始终沿用构建期属性表达的比例。
+2. 将 placeholder 与 error 的最小高度收窄到同时缺少 `width` 和 `height` 的图片，避免对具备可信内在尺寸的窄小图片施加额外高度。
+3. 保持原生 lazy 协调、近视口 shimmer 和 TOC 重锚定不变；未恢复旧全篇动画、1×1 GIF 源交换或 `attr()` CSS 比例规则。
+
+**验证**：用户反馈的 `OpenSourceSummer2025/78.webp` 在 1600px 宽度浏览器中由错误的约 `781.80×1454px` 恢复为约 `781.80×444.20px`。受控延迟媒体的桌面/移动 TOC 验证继续通过，且已加载带尺寸正文图比例错误均为 0。
+
+**可回滚性**：可安全回滚，但会重新引入宽度受限时高度未按比例缩放的已知视觉故障；主题升级时必须保留该成对规则。
 
 ---
 

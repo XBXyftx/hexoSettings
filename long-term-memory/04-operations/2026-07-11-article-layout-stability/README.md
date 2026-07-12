@@ -54,15 +54,24 @@
 
 新的 [lazy-loading-optimized.css](../../../themes/butterfly/source/css/lazy-loading-optimized.css) 仅在文章页加载：
 
+- 所有文章图显式使用 `max-width:100%` + `height:auto`：构建期 `width`/`height` 既用于预留布局空间，也必须在窄阅读栏中按同一比例缩放；
 - `.lazy-placeholder` 是静态渐变；
 - `.lazy-placeholder-active` 才运行 shimmer；
 - 取消 `backdrop-filter`、旋转伪元素和 `box-shadow` 无限动画；
 - 移动端和 `prefers-reduced-motion` 下完全禁用 shimmer；
-- 无尺寸图片保留 160px 最小高度作为保守占位，但不把它伪称为真实比例。
+- **仅**同时缺少 `width` 与 `height` 的未知比例图片保留 160px 最小高度；带有可信尺寸的图片绝不能被 placeholder 的最小高度覆盖。
 
 这样仍保留加载中的视觉反馈，却不会让远离视口的图片继续消耗绘制预算。
 
-### 3.3 可取消的目录导航事务
+### 3.3 2026-07-12 比例拉伸回归与补正
+
+治理初版停止加载旧 `lazy-loading-stable.css` 时，也移除了其中隐含的 `#article-container img { height:auto; }`。主题基础文章样式只有 `max-width:100%`；这会使构建期注入了 `width`/`height` 的图片在窄栏中出现“宽度缩小、高度仍取属性原始像素”的纵向拉伸。
+
+以用户反馈中的 `OpenSourceSummer2025/78.webp` 为例，源图与生成属性均为 `2559×1454`：宽度压至约 `781.80px` 后，高度错误保持 `1454px`；恢复 `height:auto` 后立即成为约 `781.80×444.20px`，重新符合原始比例。
+
+补正只在当前文章级样式中恢复 `height:auto`，没有恢复旧全篇动画、1×1 GIF 交换或不可靠的 `attr()` CSS 比例规则。同时，最小高度规则缩窄到无尺寸媒体，避免它对可信尺寸的小图造成二次失真。
+
+### 3.4 可取消的目录导航事务
 
 目录点击不再依赖失效的 `lazyLoadPreload`。新流程如下：
 
@@ -90,7 +99,7 @@
 | 工具 | 作用 |
 | --- | --- |
 | [audit-article-layout-stability.js](../../../tools/audit-article-layout-stability.js) | 扫描生成文章正文，统计图片数、`width`+`height` 覆盖率、外部/本地来源和 lazy 属性。 |
-| [verify-toc-navigation.js](../../../tools/verify-toc-navigation.js) | 临时启动仅 loopback 的静态服务和隔离 Headless Chrome，延迟本地图片响应，点击远距离 TOC 标题，测量最终标题偏移。 |
+| [verify-toc-navigation.js](../../../tools/verify-toc-navigation.js) | 临时启动仅 loopback 的静态服务和隔离 Headless Chrome，延迟本地图片响应，点击远距离 TOC 标题，测量最终标题偏移，并断言已加载、具有 `width`/`height` 的正文图仍按属性比例渲染。 |
 
 两者默认输出到系统临时目录。它们是本地验证工具，不会部署到博客页面。
 
@@ -135,7 +144,7 @@ git diff --check
 | `OpenSourceSummer2025`（注入 240px 延迟布局变化） | 1440×900 | `项目简介` | 0.500px |
 | `OpenSourceSummer2025`（注入 240px 延迟布局变化） | 375×812 | `项目简介` | 0.156px |
 
-验收阈值为 ≤3px，四组均通过。这里验证的是浏览器在延迟媒体结算期间最终仍将目标标题留在统一导航偏移处；它不等同于所有外部 CDN、实机网络和未来异步组件的永久保证。
+验收阈值为目录目标误差 ≤3px，且已加载、带 `width`/`height` 的正文图片必须没有比例错误。此前列出的目录验证均通过；2026-07-12 在相同的受控 240px 延迟布局变化、每图 400ms 延迟条件下，`OpenSourceSummer2025` 的桌面/移动最终误差为 `0.125px / 0.297px`，比例错误均为 0。这里验证的是浏览器在延迟媒体结算期间最终仍将目标标题留在统一导航偏移处；它不等同于所有外部 CDN、实机网络和未来异步组件的永久保证。
 
 ## 6. 已知边界与后续
 

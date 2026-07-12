@@ -257,6 +257,22 @@ function pageProbe(targetId) {
     const heading = document.getElementById(${JSON.stringify(targetId)});
     const header = document.getElementById('page-header');
     const expectedOffset = Math.max(header?.classList.contains('nav-fixed') ? 70 : 0, window.innerWidth <= 768 ? 70 : 90);
+    const ratioTolerance = 2;
+    const ratioMismatches = [...document.querySelectorAll('#article-container img[width][height]')]
+      .filter(image => image.complete && image.naturalWidth > 0)
+      .map(image => {
+        const width = Number(image.getAttribute('width'));
+        const height = Number(image.getAttribute('height'));
+        const rect = image.getBoundingClientRect();
+        const expectedHeight = rect.width * height / width;
+        return {
+          source: image.getAttribute('src'),
+          expectedHeight,
+          renderedHeight: rect.height,
+          error: Math.abs(rect.height - expectedHeight),
+        };
+      })
+      .filter(image => image.error > ratioTolerance);
     return {
       headingExists: Boolean(heading),
       targetTop: heading ? heading.getBoundingClientRect().top : null,
@@ -266,6 +282,9 @@ function pageProbe(targetId) {
       lazyState: window.articleImageLazyLoad?.getState?.() || null,
       dynamicPlaceholders: document.querySelectorAll('#article-container .lazy-placeholder-active').length,
       totalPlaceholders: document.querySelectorAll('#article-container .lazy-placeholder').length,
+      ratioTolerance,
+      ratioMismatchCount: ratioMismatches.length,
+      ratioMismatches: ratioMismatches.slice(0, 10),
     };
   })()`;
 }
@@ -330,7 +349,14 @@ async function runVerification(options, server, chrome) {
     clearInterval(fetchHandler);
     await page.command('Fetch.disable').catch(() => {});
     const after = await evaluate(page, pageProbe(targetId));
-    return { targetId, injectedShift, before, after, absoluteError: Math.abs(after.error) };
+    return {
+      targetId,
+      injectedShift,
+      before,
+      after,
+      absoluteError: Math.abs(after.error),
+      ratioPass: after.ratioMismatchCount === 0,
+    };
   } finally {
     await page.close();
   }
@@ -349,14 +375,14 @@ async function main() {
     const result = await runVerification(options, server, chrome);
     const report = {
       options: { ...options, publicDir: options.publicDir },
-      pass: result.absoluteError <= 3,
+      pass: result.absoluteError <= 3 && result.ratioPass,
       result,
     };
     const jsonPath = path.join(outputDir, 'toc-navigation.json');
     const markdownPath = path.join(outputDir, 'toc-navigation.md');
     await Promise.all([
       fsp.writeFile(jsonPath, `${JSON.stringify(report, null, 2)}\n`),
-      fsp.writeFile(markdownPath, `# TOC Navigation Verification\n\n- Target: \`${result.targetId}\`\n- Final offset error: ${result.absoluteError.toFixed(2)} px\n- Pass (≤3 px): ${report.pass ? 'yes' : 'no'}\n`),
+      fsp.writeFile(markdownPath, `# TOC Navigation Verification\n\n- Target: \`${result.targetId}\`\n- Final offset error: ${result.absoluteError.toFixed(2)} px\n- Loaded intrinsic-size image ratio mismatches: ${result.after.ratioMismatchCount}\n- Pass (offset ≤3 px and no ratio mismatch): ${report.pass ? 'yes' : 'no'}\n`),
     ]);
     console.log(JSON.stringify({ pass: report.pass, result, reportDirectory: outputDir, jsonReport: jsonPath, markdownReport: markdownPath }, null, 2));
     if (!report.pass) process.exitCode = 1;

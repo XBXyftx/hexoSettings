@@ -38,12 +38,14 @@ Hexo 构建期
 | 本地图片尺寸注入 | `scripts/image-dimensions.js` | 构建期读取本地文件，注入尺寸与原生 lazy 属性 |
 | 文章图片协调器 | `themes/butterfly/source/js/lazy-loading-optimized.js` | 近视口占位、媒体结算事件、TOC 附近图片优先级 |
 | 目录导航 | `themes/butterfly/source/js/main.js` | 桌面/移动 TOC 共用的可取消重锚定事务 |
-| 文章占位样式 | `themes/butterfly/source/css/lazy-loading-optimized.css` | 静态 placeholder；只有 `-active` 近视口状态有轻量 shimmer |
+| 文章占位样式 | `themes/butterfly/source/css/lazy-loading-optimized.css` | 文章图 `max-width:100%` + `height:auto` 比例保护；静态 placeholder；只有 `-active` 近视口状态有轻量 shimmer |
 | 样式加载入口 | `themes/butterfly/layout/includes/head.pug` | 仅 post 页面加载文章占位样式 |
 | 生成态尺寸审计 | `tools/audit-article-layout-stability.js` | 统计正文图片尺寸覆盖与来源 |
 | TOC 浏览器验证 | `tools/verify-toc-navigation.js` | 延迟图片后验证目录点击最终偏移 |
 
 `source/css/lazy-loading.css` 与 `source/css/lazy-loading-stable.css` 是历史样式文件，当前不再由主题 head 加载。不要重新引入它们的全篇 shimmer、旋转、blur、`backdrop-filter` 或无效 `attr(width)/attr(height)` 比例规则。
+
+构建期为可解析的本地图片写入 `width`、`height` 和 `loading="lazy"`；文章页 CSS 必须同时保持 `max-width: 100%` 与 `height: auto`。前者将图片限制在阅读栏内，后者确保受限宽度时高度仍按属性所表达的原始比例缩放。不要只保留 `max-width`，否则浏览器会将宽度压缩而继续使用 HTML `height` 属性的原始像素值，造成图片纵向拉伸。
 
 ## 3. 为什么目录会偏移
 
@@ -97,7 +99,7 @@ node tools/verify-toc-navigation.js \
   --width 375 --height 812 --image-delay-ms 400 --settle-ms 4300
 ```
 
-工具默认启动仅 loopback 的临时静态服务，并将报告写进系统临时目录。验证阈值为目标标题最终偏移绝对值 ≤3px。
+工具默认启动仅 loopback 的临时静态服务，并将报告写进系统临时目录。验证阈值为目标标题最终偏移绝对值 ≤3px，且已加载并具备 `width`/`height` 的正文图片不得出现比例错误。
 
 ## 7. 红线
 
@@ -108,4 +110,5 @@ node tools/verify-toc-navigation.js \
 | 目录点击预加载全文图片 | 消耗带宽、拖慢跳转，慢外部资源会阻塞交互 | 只提升目标附近图片优先级，运行时有限重锚定 |
 | 用户滚动后继续自动校正 | 和用户争夺滚动位置 | 任意主动滚动输入立刻取消导航事务 |
 | 为外部图猜测/爬取比例后直接写回文章 | 不可复核，可能导致内容错误或隐私/网络副作用 | 仅用可信原图备份或作者提供的尺寸更新内容 |
+| 移除文章图 `height:auto`，只保留 `max-width` | 宽度缩小时高度仍采用 HTML 属性的原始像素，导致纵向拉伸 | 对文章图始终同时保留 `max-width:100%` 与 `height:auto`；只有同时缺少两项尺寸的图片可使用最小占位高度 |
 | 重新启用 Butterfly `lazyload.enable` | 与当前协调器重复工作 | 保持关闭，新增方案先做全链路审计 |
