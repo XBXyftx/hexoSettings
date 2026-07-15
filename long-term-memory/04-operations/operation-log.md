@@ -889,7 +889,7 @@
 
 **涉及文件**：
 
-- `source/_data/announcements.yml` — 公告正文和历史的唯一日常编辑入口，从本地 Git 恢复 16 期公告
+- `source/_data/announcements.yml` — 公告正文和历史的唯一日常编辑入口，从本地 Git 恢复 16 期公告，并在后续追加第 17 期上线公告
 - `_config.butterfly.yml` — 保留公告总开关、初始展示数、日期格式和旧 HTML 兜底
 - `scripts/announcement-history-validator.js` — 构建期校验 ID、时间、倒序、正文和本地图片尺寸
 - `themes/butterfly/layout/includes/widget/card_announcement.pug` — 结构化渲染当前公告、发布时间、历史 `<details>` 和时间轴
@@ -911,9 +911,9 @@
 
 - [x] `node --check`：校验脚本和交互脚本均通过
 - [x] `git diff --check` 通过
-- [x] `npm run clean && npm run build` 成功，日志确认 16 期公告通过校验
-- [x] 首页、归档页和代表文章页均生成 1 张公告卡、16 期公告
-- [x] 当前公告 1 期、历史 `<details>` 15 期、初始隐藏 13 期；时间、当前正文、图片尺寸和原生 lazy 属性断言通过
+- [x] `npm run clean && npm run build` 成功，日志确认 17 期公告通过校验
+- [x] 首页、归档页和代表文章页均生成 1 张公告卡、17 期公告
+- [x] 当前公告 1 期、历史 `<details>` 16 期、初始隐藏 14 期；时间、当前正文、图片尺寸和原生 lazy 属性断言通过
 - [x] `TZ=UTC` clean build 中仍按每条 ISO 时间自带的 `+08:00` 显示墙钟时间；无效日期、未知字段、外部图片、路径越界和非法交互配置均被校验器拒绝
 - [x] 公告 CSS/JS 与 3 张本地历史图片均生成，公告输出没有 `bu.dusays.com` 图片请求
 - [x] 系统 Chrome/CDP：1440px 与 375px 时间轴均形成卡内纵向滚动且无横向溢出；“查看全部”将隐藏项由 13 降到 0、同步更新 `aria-expanded`，历史 `<details>` 可打开；1024px 首页保持既有整侧栏隐藏
@@ -925,5 +925,34 @@
 - 首页 769–1024px 隐藏整个侧栏是现有瀑布流/移动覆盖规则的既有行为，本功能不擅自改变页面整体响应式设计。
 - CSS reduced-motion 已停止喇叭摇动和过渡，但当前动画 WebP 自身不能由 CSS 停帧；需等可信静态 poster 后再用 `<picture>` 提供同画面替代。所有公告图已改为原生 lazy，避免侧栏离屏时无条件下载。
 - WebP 引用更新工具不扫描 `source/_data/*.yml`，新增公告图必须直接填写最终 `.webp` 路径。
+
+---
+
+### #34 — 2026-07-15 — 记录公告时间轴上线公告（仅本地实施）
+
+**操作人**：AI 助手（Claude Code）
+
+**远程约束**：公告时间轴实现已按用户授权提交并推送为 `d48549b`。本条新公告及本次长期记忆更新只在本地修改，之后不再执行远程操作或部署。
+
+**涉及文件**：
+
+- `source/_data/announcements.yml` — 顶部新增 2026-07-15 公告，继续复用 `/imgs/gifs/1.webp`
+- `long-term-memory/03-api-practices/announcement-history.md` — 更新当前状态、历史数量和验证记录
+- `long-term-memory/04-operations/README.md`、本操作日志 — 记录推送边界和新增公告
+
+**操作详情**：
+
+1. 在时间轴实现已提交并推送后，新增一版公告，说明公告历史时间轴已经上线。
+2. 公告包括纵向时间轴、发布时间、Git 恢复能力和 YAML 顶部维护入口等更新内容。
+3. 继续使用已有本地动画 WebP，不引入新的远程资源；`source_commit` 记录为实现提交 `d48549b`。
+
+**验证结果**：
+
+- [x] 本地 clean build 与新增公告生成态断言通过
+- [x] 未再次执行远程操作；未部署
+
+**遗留问题**：
+
+- 新公告已完成本地生成态验证；如果要让本次公告进入远程分支，需要用户另行明确授权一次提交/推送。
 
 ---

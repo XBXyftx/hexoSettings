@@ -9,6 +9,22 @@
 # 正文只使用结构化字段，不要嵌入 HTML：
 # lead -> image -> title -> items -> paragraphs -> closing
 
+- id: 2026-07-15-164916-announcement-timeline
+  published_at: '2026-07-15T16:49:16+08:00'
+  source_commit: 'd48549b'
+  lead: 公告历史时间轴已上线！
+  image:
+    src: /imgs/gifs/1.webp
+    alt: 挥手奔跑的卡通人物
+    width: 560
+    height: 315
+  title: 本次更新：
+  items:
+    - 公告栏已支持纵向时间轴，可继续查看每一版历史公告；
+    - 每一版公告都会标记发布时间，历史内容可以通过 Git 记录追溯恢复；
+    - 新公告统一维护在 source/_data/announcements.yml，后续新增只需在文件顶部添加一条记录。
+  closing: 感谢你的测试与反馈，欢迎继续探索这个会不断成长的小站！✨
+
 - id: 2026-07-12-103336-reading-stability
   published_at: '2026-07-12T10:33:36+08:00'
   source_commit: '5c8d00a'

@@ -1,6 +1,6 @@
 # 侧栏公告历史时间轴
 
-> **当前状态（2026-07-15）**：已在本地实现并通过 clean build；实施前状态已一次性备份到远程分支 `feat/announcement-timeline`，commit 为 `13c3f5f`。备份完成后未再执行任何远程操作，也未部署。
+> **当前状态（2026-07-15）**：已在本地实现并通过 clean build；实施前状态已一次性备份到远程分支 `feat/announcement-timeline`，commit 为 `13c3f5f`。公告时间轴实现已提交并推送为 `d48549b`；随后新增的 2026-07-15 公告记录仅保留在本地，尚未再次推送或部署。
 
 ## 目标与最终设计
 
@@ -121,7 +121,7 @@ card_announcement:
 
 ## 历史数据恢复
 
-首批 16 期公告来自本地 `_config.butterfly.yml` 的 Git 历史：
+首批从本地 `_config.butterfly.yml` Git 历史恢复 16 期公告；当前档案已在顶部追加第 17 期、2026-07-15 的时间轴上线公告：
 
 - 范围：`cf106d3`（2025-01-25）至 `5c8d00a`（2026-07-12）；
 - 同日真实文案修订分别保留，用精确提交时间排序；
@@ -135,9 +135,9 @@ card_announcement:
 - [x] `node --check themes/butterfly/source/js/announcement-history.js`
 - [x] `git diff --check`
 - [x] `npm run clean && npm run build` 成功
-- [x] 构建日志：`[Announcement History] 已校验 16 期公告`
-- [x] 首页、归档页、文章页生成结果均为 1 张公告卡、16 期公告
-- [x] 当前公告 1 期、历史 `<details>` 15 期、初始隐藏 13 期
+- [x] 构建日志：`[Announcement History] 已校验 17 期公告`
+- [x] 首页、归档页、文章页生成结果均为 1 张公告卡、17 期公告
+- [x] 当前公告 1 期、历史 `<details>` 16 期、初始隐藏 14 期
 - [x] 当前时间、正文、图片 `560×315` 和原生 lazy 状态正确
 - [x] 在 `TZ=UTC` 构建时仍显示公告原始 `+08:00` 墙钟时间，不受构建机时区影响
 - [x] 校验失败用例：无效日历日期、未知字段、外部图片、source 路径越界、非法交互配置均被拒绝
@@ -146,6 +146,7 @@ card_announcement:
 - [x] 系统 Chrome + CDP 真实页面回归：1440px 桌面时间轴 `620/928px`、375px 移动时间轴 `552/834px`，均确认纵向可滚动且无横向溢出
 - [x] Chrome 点击回归：“查看全部”将隐藏项从 13 降到 0，`aria-expanded` 由 `false` 变为 `true`，历史 `<details>` 可正常打开
 - [x] 1024px 首页确认沿用既有规则隐藏整个 aside，本功能没有产生单卡异常显示
+- [x] 2026-07-15 新公告已追加到 YAML 顶部，复用 `/imgs/gifs/1.webp` 并记录功能提交 `d48549b`
 
 ## 发布前仍需人工检查
 
