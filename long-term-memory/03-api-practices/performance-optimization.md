@@ -20,7 +20,7 @@ type: project
 1. **构建期防 CLS**：`scripts/image-dimensions.js` 为可解析的图片注入 `width`/`height`/`loading="lazy"`，浏览器可据此保留布局空间。
 2. **资源注入**：`inject.head` 保留关键 CSS，其他自定义样式使用 `media="print"` 异步加载；但当前产物有重复的 `index.css` 和 Font Awesome，不能称为完全去重。
 3. **脚本加载**：`inject.bottom` 自定义脚本使用 `defer`，但主题/插件仍有各自加载路径，必须以生成 HTML 核验。
-4. **动画降级**：两个星空脚本各有 30fps、移动端降级和标签隐藏暂停；前台双 Canvas 仍会叠加。
+4. **动画范围收敛**：两个星空脚本仍各有 30fps、移动端降级和标签隐藏暂停，但 Canvas 与脚本入口仅保留在首页；非首页不再创建双 Canvas 或持续 RAF。
 5. **当前明确热点**：全站 Swiper 注入、重媒体文章、页脚 timer、重复 CSS/Font Awesome，以及仍缺可信尺寸的外部正文图；文章 placeholder 动画和目录跳转媒体偏移已于 2026-07-11 在本地治理并验证。
 6. **运行时监控**：旧 `network-monitor.js` 与 `topimg-monitor.js` 已删除，不再存在生产监控模块。
 
@@ -173,18 +173,22 @@ inject:
 
 ## L4 · JavaScript 全部 defer
 
-### 4.1 inject.bottom 全 defer
+### 4.1 通用 inject.bottom 与首页星空的 defer
 
 ```yaml
+# _config.butterfly.yml：所有页面的通用 defer 脚本
 inject:
   bottom:
-    - <canvas id="universe"></canvas>
-    - <script defer src="/js/universe-optimized.js"></script>
     - <script defer src="/js/jquery-3.6.0.min.js"></script>
     - <script defer src="/js/rightmenu.js"></script>
     - <script defer src="/js/happy-title.js"></script>
     - <script defer src="/js/lazy-loading-optimized.js"></script>
     - <script defer src="/js/lightbox-enhanced.js"></script>
+
+# additional-js.pug / head.pug：仅 globalPageType === 'home'
+# <canvas id="universe" aria-hidden="true">
+# <script defer src="/js/universe-optimized.js">
+# <script defer src="/js/header-universe.js">
 ```
 
 ### 4.2 defer vs async 的选择
@@ -196,10 +200,10 @@ inject:
 | 执行顺序 | 严格按声明顺序 | 不保证 |
 | 适合 | 依赖 DOM 的脚本（jQuery、懒加载、bg 动画） | 独立的统计脚本 |
 
-项目全部用 `defer` 是因为脚本之间有依赖：
+项目通用脚本仍使用 `defer`，因为脚本之间有依赖：
 - `rightmenu.js` 用到 jQuery → 必须在 jquery-3.6.0.min.js 之后
 - `lightbox-enhanced.js` 可能用到 jQuery
-- `universe-optimized.js` 操作 DOM（querySelector #universe）
+- `universe-optimized.js` 仅首页以 `defer` 加载并操作 `#universe`；非首页不输出该 Canvas 或脚本。
 
 ### 4.3 第三方脚本（CDN）
 
@@ -214,10 +218,11 @@ inject:
 | 优化点 | 实现 |
 |---|---|
 | 帧率限制 | `targetFPS = 30`，每帧检查 `elapsed < frameInterval` 跳过 |
+| 首页范围 | Canvas 与 `universe-optimized.js` / `header-universe.js` 只在首页输出，其他路由无星空 RAF |
 | 移动端粒子减半 | `isMobile ? width*0.04 : width*0.08` |
 | 标签页隐藏暂停 | `visibilitychange` → cancelAnimationFrame |
 | Resize 防抖 | 200ms debounce 触发 init() |
-| Reduced motion | `prefers-reduced-motion: reduce` 禁用 shimmer |
+| Reduced motion | `prefers-reduced-motion: reduce` 禁用 shimmer；星空仍保留既有运行时视觉，若再次优化需单独视觉验收 |
 
 ---
 
@@ -248,8 +253,8 @@ inject:
 
 不要将旧文档中的“移动端 4G 实测值”“CPU < 1%”或预计百分比当作当前数据；本次只读审计未进行真实浏览器跑分。当前需要在目标设备建立基线的优先顺序：
 
-1. **移动首页 waterfall**：100ms 轮询、滚动/触摸后的样式重写和调试 observer。
-2. **全站双 Canvas**：两个 30fps 星空 RAF 前台叠加。
+1. **移动首页 waterfall**：已于 2026-07-10 重写并完成本地三断点 A/B；目标设备有头浏览器回归仍待补测。
+2. **首页双 Canvas**：两个 30fps 星空 RAF 仅在首页前台叠加；文章、归档、标签、About 等非首页路由已不再注入 Canvas 或动画脚本。
 3. ~~**Mermaid**：170 个已生成页面的 `mermaid@undefined` 失败请求及无效按需 URL。~~ **已由 P2 处理**：站内当前无 Mermaid 图，已关闭并在生成态验证请求为 0；未来新增图表时再以固定版本按需加载。
 4. **重媒体文章**：102 个 MP4、约 487MB 总静态媒体；单页最高约 153MB MP4，总计 18–19 段视频的文章存在明显加载/解码风险。
 5. **全站 Swiper 注入、重复 CSS/Font Awesome、页脚 4Hz timer、长文占位动画**。
@@ -267,7 +272,7 @@ inject:
 | R3 | 删除 `image-dimensions.js` | 图片布局保留空间可能丢失，CLS 增加 | 必须保留或以等价尺寸策略替换 |
 | R4 | 修改排除列表移除 cover | 封面被强制懒加载，LCP 可能恶化 | cover/post-bg 继续排除 |
 | R5 | 让图片占位符对整篇长文无限 blur/shadow 动画 | 多图文章会有大量持续绘制/合成 | 只给可见占位符动态效果，远处静态化 |
-| R6 | 关闭 Canvas 的 visibility 暂停 | 后台仍持续 GPU/CPU 工作 | 两个星空脚本都必须保留该暂停逻辑 |
+| R6 | 关闭首页 Canvas 的 visibility 暂停，或将星空恢复为无条件全站注入 | 后台仍持续 GPU/CPU 工作，或非首页重新承担双 RAF 成本 | 两个星空脚本都必须保留 visibility 暂停，且仅在首页模板条件内加载 |
 | R7 | 在文章中插入大量 `<video>` 且未设预加载策略 | 元数据/解码/网络竞争放大 | 非首屏视频使用 `preload="none"`、poster、视口触发 |
 
 ---
@@ -293,9 +298,9 @@ inject:
 
 ### 现象 4：移动端发烫
 
-1. 切到桌面端 —— 是否仍发热？
-2. 是否 universe-optimized.js 的 visibility 暂停失效？
-3. F12 性能面板录制 30s → 看 main thread 占用
+1. 确认当前路由是否首页 —— 非首页不应存在 `#universe`、`.universe-header`、`universe-optimized.js` 或 `header-universe.js`。
+2. 若是首页，确认 `universe-optimized.js` 与 `header-universe.js` 的 visibility 暂停仍有效。
+3. F12 性能面板录制 30 秒，检查首页双 Canvas 的实际 Main thread 占用。
 
 ---
 
@@ -305,10 +310,11 @@ inject:
 |---|---|
 | 图片尺寸注入 | `scripts/image-dimensions.js` |
 | 异步 CSS 注入入口 | `_config.butterfly.yml` 的 inject.head |
-| Defer JS 注入入口 | `_config.butterfly.yml` 的 inject.bottom |
-| 网络监控 | `source/js/network-monitor.js` |
-| 顶部图监控 | `source/js/topimg-monitor.js` |
-| 防 CLS CSS | `source/css/lazy-loading-stable.css` 主题副本 |
+| Defer JS 注入入口 | `_config.butterfly.yml` 的 `inject.bottom`（通用脚本）；首页星空入口在 `additional-js.pug` / `head.pug` |
+| 网络监控 | 已删除；不得作为当前文件引用 |
+| 顶部图监控 | 已删除；不得作为当前文件引用 |
+| 防 CLS CSS | `themes/butterfly/source/css/lazy-loading-optimized.css`（当前文章页样式入口） |
+| 首页星空入口 | `themes/butterfly/layout/includes/additional-js.pug` 与 `themes/butterfly/layout/includes/head.pug` |
 | 暗黑模式初始化 | inject.head 第一行 |
 | 主样式（同步） | `source/css/index.css`（首屏关键） |
 
@@ -317,14 +323,18 @@ inject:
 ## L12 · 与其他模块的耦合
 
 ```text
-performance-optimization
-  ├── image-dimensions.js  ──►  懒加载系统（提供 width/height + loading=lazy）
-  ├── inject.head 异步 CSS  ──►  universe.css / transpancy.css / lazy-loading-optimized.css 
-  ├── inject.bottom defer JS  ──►  universe-optimized.js / jquery / rightmenu.js / lazy-loading-optimized.js
-  ├── visibility API  ──►  universe-optimized.js (省电)
-  ├── prefers-reduced-motion  ──►  universe.css / typewriter-effect.css / lazy-loading-stable.css
-  ├── network-monitor.js  ──►  独立监控（不影响其他模块）
-  └── topimg-monitor.js  ──►  独立监控
+仅首页：
+  themes/butterfly/layout/includes/additional-js.pug
+    ├── <canvas id="universe"></canvas>
+    └── <script defer src="/js/universe-optimized.js"></script>
+
+  themes/butterfly/layout/includes/head.pug
+    └── <script defer src="/js/header-universe.js"></script>
+
+全站：
+  _config.butterfly.yml inject.bottom
+    ├── jquery / rightmenu / happy-title
+    └── lazy-loading-optimized.js / lightbox-enhanced.js
 ```
 
 ---

@@ -842,3 +842,117 @@
 - Headless 验证覆盖本地 loopback、受控延迟与桌面/移动断点；上线前仍宜在有头浏览器、弱网和真实外部 CDN 条件下人工回归。
 
 ---
+
+### #32 — 2026-07-12 — DOM 就绪退出全屏预加载器，并将双层星空限于首页（仅本地实施）
+
+**操作人**：AI 助手（Claude Code）
+
+**远程约束**：沿用 `bb93da8` 远程备份后的约束；本次不提交、不推送、不部署，也不执行任何远程写操作。
+
+**涉及文件**：
+
+- `themes/butterfly/layout/includes/loading/load_style/spincat.pug` — 初次预加载由 `DOMContentLoaded` 触发退出，并使退出/隐藏定时器幂等
+- `themes/butterfly/layout/includes/head.pug` — `header-universe.js` 改为首页条件且 `defer` 加载
+- `themes/butterfly/layout/includes/additional-js.pug` — 仅首页输出背景 `#universe` Canvas 和 `universe-optimized.js`
+- `_config.butterfly.yml` — 移除全局 `inject.bottom` 中的背景 Canvas 与背景星空脚本
+- `long-term-memory/03-api-practices/universe-background.md`、`long-term-memory/03-api-practices/performance-optimization.md`、`long-term-memory/06-theme-modifications/README.md`、`long-term-memory/MEMORY.md` — 同步当前架构、升级注意项与索引状态
+
+**操作详情**：
+
+1. 原 `spincat` 在初次访问时锁定 `body` 滚动，直到 `window.load` 或 10 秒兜底才退出；远程图片、视频和第三方资源都可延后可交互时间。本次改为 DOM 解析完成后在下一动画帧执行原有 `.loaded` 退场，保留 800ms 分屏/猫动画、未来 PJAX 钩子和隐藏页定时器。
+2. `endLoading()` 现以 `isLoading` 防重，`initLoading()` 会取消旧隐藏定时器，避免重复 DOM ready、未来 PJAX 回调或重初始化造成多次退场/错误显示状态。
+3. 原全站背景 Canvas/脚本来自 YAML `inject.bottom`，页头脚本来自无条件 `head.pug`，因此每个非首页路由也会初始化两套 30fps 星空。按用户要求保留现有双层视觉，但将两条入口同时限制到 `globalPageType === 'home'`：首页仍有全屏背景和页头封面星空；文章、About、归档、标签等路由不再输出 Canvas、加载脚本或产生星体/RAF。
+4. 没有合并两条 RAF、修改粒子参数或恢复 2026-07-11 视觉未采纳的单控制器实验；`visibilitychange` 暂停、移动端降级、透明内容背景和首页瀑布流均保留。文章原生懒加载、图片比例保护和 TOC 重锚定完全未改动。
+
+**验证结果**：
+
+- [x] `node --check themes/butterfly/source/js/header-universe.js`、`node --check themes/butterfly/source/js/universe-optimized.js` 和 `git diff --check` 通过
+- [x] `npm run build` 成功（未执行会删除生成态的 `npm run clean`）
+- [x] 生成态 HTML 断言：首页各有 1 个 `#universe`、`universe-optimized.js`、`header-universe.js` 和 `waterfall.js`；代表文章、About、归档页面四项星空资源均为 0
+- [x] 延迟本地 WebP 3 秒的隔离 Headless Chrome 验证：在页面仍为 `interactive`、`load` 尚未触发、已有 28 个延迟图片请求时，首页预加载器已进入 `.loaded`、滚动锁已释放；首页两层 Canvas 均初始化，代表文章不存在 Canvas/星空脚本
+- [x] 本地资源审计：186 个 HTML、17 个 CSS、11,232 个本地引用、0 个缺失唯一目标、0 次缺失引用
+- [x] `OpenSourceSummer2025` 保持 400ms 图片延迟与 240px 人工布局变化：桌面 TOC 最终误差 **0.46875px**、移动端 **0.296875px**；两端已加载带尺寸正文图比例错误均为 **0**
+- [x] 无远程写入、无部署
+
+**遗留问题**：
+
+- 首页仍保留两条独立 30fps RAF；本次只消除非首页无效运行成本，未声称首页 CPU/GPU 成本已合并或在所有设备上量化下降。若后续再次尝试单控制器，必须建立独立视觉方案，不得直接复用已归档且未采纳的 P1 实验。
+- `spincat` 的 800ms 退场视觉和外部猫精灵图仍保留；其真正网络外观需在有头浏览器、弱网及真实 CDN 条件下补充人工回归。
+
+---
+
+### #33 — 2026-07-15 — 将侧栏单期公告升级为可滚动历史时间轴（仅本地实施）
+
+**操作人**：AI 助手（Claude Code）
+
+**远程约束**：按用户本次明确授权，先创建 `feat/announcement-timeline` 并将修改前全部状态提交为 `13c3f5f`，仅执行一次 `git push -u origin feat/announcement-timeline`。该备份完成后不再执行 fetch、pull、push、远程删除、PR、部署或其他远程操作。
+
+**涉及文件**：
+
+- `source/_data/announcements.yml` — 公告正文和历史的唯一日常编辑入口，从本地 Git 恢复 16 期公告，并在后续追加第 17 期上线公告
+- `_config.butterfly.yml` — 保留公告总开关、初始展示数、日期格式和旧 HTML 兜底
+- `scripts/announcement-history-validator.js` — 构建期校验 ID、时间、倒序、正文和本地图片尺寸
+- `themes/butterfly/layout/includes/widget/card_announcement.pug` — 结构化渲染当前公告、发布时间、历史 `<details>` 和时间轴
+- `themes/butterfly/source/css/announcement-history.css`、`themes/butterfly/source/js/announcement-history.js` — 卡内纵向滚动样式及查看全部/收起交互
+- `themes/butterfly/layout/includes/head.pug`、`themes/butterfly/layout/includes/additional-js.pug` — 加载公告专属 CSS/JS
+- `themes/butterfly/source/css/styles.css` — 移除被新专属样式替代的旧公告图片规则
+- `long-term-memory/03-api-practices/announcement-history.md` 及长期记忆/操作/主题索引 — 记录编写、架构、恢复、验证和升级边界
+
+**操作详情**：
+
+1. 调查确认 Butterfly 原实现直接以 `!=` 输出 `_config.butterfly.yml` 的单行 HTML，没有日期、历史或结构化数据；公告 partial 为全局缓存，适合站点级静态档案。
+2. 从本地 Git 的 `_config.butterfly.yml` 恢复 `cf106d3` 至 `5c8d00a` 的 16 期真实公告和精确提交时间，过滤明显 `sshtest` 部署调试内容；同日真实文案修订分别保存。
+3. 将现存 JPG/PNG/GIF 历史路径映射到本地 WebP；旧 `bu.dusays.com` URL 只保存在不渲染的 `archived_image_url`，未联网抓取，也不会让页面请求旧远程图。
+4. 新模板以转义文本、`<time>`、`<ol>` 和 `<details>` 静态渲染。当前公告直接展开，其余历史按原生控件逐期打开；卡内时间轴设最大高度并纵向滚动。
+5. 默认显示 3 期，其余 13 期由轻量脚本查看全部/收起；脚本支持 DOM ready、PJAX 幂等初始化。即使脚本失败，公告仍在 HTML 中且逐期 `<details>` 可读。
+6. 校验器在 `before_generate` 一次性报告所有结构错误，并核对本地图真实宽高。日常新增只需将一个 YAML 条目插入文件顶部。
+
+**验证结果**：
+
+- [x] `node --check`：校验脚本和交互脚本均通过
+- [x] `git diff --check` 通过
+- [x] `npm run clean && npm run build` 成功，日志确认 17 期公告通过校验
+- [x] 首页、归档页和代表文章页均生成 1 张公告卡、17 期公告
+- [x] 当前公告 1 期、历史 `<details>` 16 期、初始隐藏 14 期；时间、当前正文、图片尺寸和原生 lazy 属性断言通过
+- [x] `TZ=UTC` clean build 中仍按每条 ISO 时间自带的 `+08:00` 显示墙钟时间；无效日期、未知字段、外部图片、路径越界和非法交互配置均被校验器拒绝
+- [x] 公告 CSS/JS 与 3 张本地历史图片均生成，公告输出没有 `bu.dusays.com` 图片请求
+- [x] 系统 Chrome/CDP：1440px 与 375px 时间轴均形成卡内纵向滚动且无横向溢出；“查看全部”将隐藏项由 13 降到 0、同步更新 `aria-expanded`，历史 `<details>` 可打开；1024px 首页保持既有整侧栏隐藏
+- [x] 未部署；一次性备份后没有任何远程操作
+
+**遗留问题**：
+
+- 项目未新增 Playwright/Puppeteer/jsdom 依赖；虽已用系统 Chrome/CDP 完成桌面/移动截图和鼠标点击验证，发布前仍需人工补充临界断点、仅键盘、暗色/阅读模式、真实 PJAX 与触摸实机回归。
+- 首页 769–1024px 隐藏整个侧栏是现有瀑布流/移动覆盖规则的既有行为，本功能不擅自改变页面整体响应式设计。
+- CSS reduced-motion 已停止喇叭摇动和过渡，但当前动画 WebP 自身不能由 CSS 停帧；需等可信静态 poster 后再用 `<picture>` 提供同画面替代。所有公告图已改为原生 lazy，避免侧栏离屏时无条件下载。
+- WebP 引用更新工具不扫描 `source/_data/*.yml`，新增公告图必须直接填写最终 `.webp` 路径。
+
+---
+
+### #34 — 2026-07-15 — 记录公告时间轴上线公告（仅本地实施）
+
+**操作人**：AI 助手（Claude Code）
+
+**远程约束**：公告时间轴实现已按用户授权提交并推送为 `d48549b`。本条新公告及本次长期记忆更新只在本地修改，之后不再执行远程操作或部署。
+
+**涉及文件**：
+
+- `source/_data/announcements.yml` — 顶部新增 2026-07-15 公告，继续复用 `/imgs/gifs/1.webp`
+- `long-term-memory/03-api-practices/announcement-history.md` — 更新当前状态、历史数量和验证记录
+- `long-term-memory/04-operations/README.md`、本操作日志 — 记录推送边界和新增公告
+
+**操作详情**：
+
+1. 在时间轴实现已提交并推送后，新增一版公告，说明公告历史时间轴已经上线。
+2. 公告包括纵向时间轴、发布时间、Git 恢复能力和 YAML 顶部维护入口等更新内容。
+3. 继续使用已有本地动画 WebP，不引入新的远程资源；`source_commit` 记录为实现提交 `d48549b`。
+
+**验证结果**：
+
+- [x] 本地 clean build 与新增公告生成态断言通过
+- [x] 未再次执行远程操作；未部署
+
+**遗留问题**：
+
+- 新公告已完成本地生成态验证；如果要让本次公告进入远程分支，需要用户另行明确授权一次提交/推送。
+
+---

@@ -1,0 +1,174 @@
+# 公告历史（最新一期必须放在最上方）
+#
+# 新增公告时：
+# 1. 复制最上方的一整个条目并粘贴到文件顶部；
+# 2. 修改 id、published_at 与正文；
+# 3. 图片可选，但使用时必须填写 src、alt、width、height；
+# 4. source_commit 可在提交后补记，不影响构建。
+#
+# 正文只使用结构化字段，不要嵌入 HTML：
+# lead -> image -> title -> items -> paragraphs -> closing
+
+- id: 2026-07-15-164916-announcement-timeline
+  published_at: '2026-07-15T16:49:16+08:00'
+  source_commit: 'd48549b'
+  lead: 公告历史时间轴已上线！
+  image:
+    src: /imgs/gifs/1.webp
+    alt: 挥手奔跑的卡通人物
+    width: 560
+    height: 315
+  title: 本次更新：
+  items:
+    - 公告栏已支持纵向时间轴，可继续查看每一版历史公告；
+    - 每一版公告都会标记发布时间，历史内容可以通过 Git 记录追溯恢复；
+    - 新公告统一维护在 source/_data/announcements.yml，后续新增只需在文件顶部添加一条记录。
+  closing: 感谢你的测试与反馈，欢迎继续探索这个会不断成长的小站！✨
+
+- id: 2026-07-12-103336-reading-stability
+  published_at: '2026-07-12T10:33:36+08:00'
+  source_commit: '5c8d00a'
+  lead: 欢迎来到神秘的小破站！
+  image:
+    src: /imgs/gifs/1.webp
+    alt: 挥手奔跑的卡通人物
+    width: 560
+    height: 315
+  title: 近期优化已完成：
+  items:
+    - 首页瀑布流升级为按需响应式 3/2/1 列布局，移除高频轮询与冗余调试；
+    - 清理失效资源请求，修正本地图片兜底与历史路径；
+    - 文章图片保留原生懒加载，仅近视口显示轻量占位效果；
+    - 目录跳转会在图片晚到时自动校正标题位置，桌面与移动端均已适配。
+  closing: 愿你在这里阅读顺畅、探索愉快，收获每一份灵感！✨
+
+- id: 2026-07-12-083937-reading-stability
+  published_at: '2026-07-12T08:39:37+08:00'
+  source_commit: '0b42321'
+  lead: 欢迎来到这里！
+  image:
+    src: /imgs/gifs/1.webp
+    alt: 挥手奔跑的卡通人物
+    width: 560
+    height: 315
+  title: 近期优化已完成：
+  items:
+    - 首页瀑布流升级为按需响应式 3/2/1 列布局，移除高频轮询与冗余调试；
+    - 清理失效资源请求，修正本地图片兜底与历史路径；
+    - 文章图片保留原生懒加载，仅近视口显示轻量占位效果；
+    - 目录跳转会在图片晚到时自动校正标题位置，桌面与移动端均已适配。
+  closing: 愿你在这里阅读顺畅、探索愉快，收获每一份灵感！✨
+
+- id: 2026-07-11-150516-waterfall
+  published_at: '2026-07-11T15:05:16+08:00'
+  source_commit: '5d64ef3'
+  lead: 欢迎来到这里！
+  image:
+    src: /imgs/gifs/1.webp
+    alt: 挥手奔跑的卡通人物
+    width: 560
+    height: 315
+  paragraphs:
+    - 本站近期完成首页瀑布流性能优化：移除高频轮询和冗余调试逻辑，改为响应式 3/2/1 列布局，并按需重新排版。
+    - 希望能带来更稳定、轻快的浏览体验！
+
+- id: 2026-03-27-125639-back-to-work
+  published_at: '2026-03-27T12:56:39+08:00'
+  source_commit: '002d71b'
+  lead: welcome！
+  image:
+    src: /imgs/gifs/1.webp
+    alt: 挥手奔跑的卡通人物
+    width: 560
+    height: 315
+  paragraphs:
+    - 近期进行了不少的优化，也不知道大家感受出来没，加载速度啊、目录跳转稳定性啊巴拉巴拉的。
+    - 总之祝大家2026新春快乐！！！
+    - （也是开始上班了呢]
+
+- id: 2026-02-22-173233-spring-festival
+  published_at: '2026-02-22T17:32:33+08:00'
+  source_commit: '99fc844'
+  lead: welcome！
+  image:
+    src: /imgs/gifs/1.webp
+    alt: 挥手奔跑的卡通人物
+    width: 560
+    height: 315
+  paragraphs:
+    - 近期进行了不少的优化，也不知道大家感受出来没，加载速度啊、目录跳转稳定性啊巴拉巴拉的。
+    - 总之祝大家2026新春快乐！！！
+
+- id: 2025-12-02-173217-welcome-gif
+  published_at: '2025-12-02T17:32:17+08:00'
+  source_commit: 'bc67582'
+  lead: welcome！
+  image:
+    src: /imgs/gifs/1.webp
+    alt: 挥手奔跑的卡通人物
+    width: 560
+    height: 315
+
+- id: 2025-10-09-140606-welcome-claude-code
+  published_at: '2025-10-09T14:06:06+08:00'
+  source_commit: '584ad33'
+  lead: welcome！
+  image:
+    src: /imgs/ClaudeCode.webp
+    alt: Claude Code 图标
+    width: 142
+    height: 145
+
+- id: 2025-09-29-152017-harmony-devices
+  published_at: '2025-09-29T15:20:17+08:00'
+  source_commit: '551dacc'
+  lead: 热烈庆祝鸿蒙五终端数量突破两千万！！！
+  image:
+    src: /imgs/HM5.webp
+    alt: 鸿蒙五终端纪念图片
+    width: 1080
+    height: 1920
+
+- id: 2025-09-16-143404-harmony-ecosystem
+  published_at: '2025-09-16T14:34:04+08:00'
+  source_commit: '571ffe1'
+  lead: 鸿蒙生态，星河璀璨！
+  archived_image_url: https://bu.dusays.com/2025/09/10/68c18a5b2710f.jpg
+
+- id: 2025-09-10-222559-lazy-loading
+  published_at: '2025-09-10T22:25:59+08:00'
+  source_commit: '92cdf5b'
+  lead: 本站由于服务器带宽有限，设置了文章图片懒加载，滚动停止后才会开始加载图片，遇到加载中的图片请静止等待
+  archived_image_url: https://bu.dusays.com/2025/09/10/68c18a5b2710f.jpg
+
+- id: 2025-07-30-231336-new-project
+  published_at: '2025-07-30T23:13:36+08:00'
+  source_commit: 'f5ca6c9'
+  lead: 笑死还说假期填坑呢，倒是给自己新开了个无底巨坑
+  archived_image_url: https://bu.dusays.com/2025/07/30/688a364c948c2.png
+
+- id: 2025-06-03-182418-summer-plan
+  published_at: '2025-06-03T18:24:18+08:00'
+  source_commit: '1c83c3c'
+  lead: 最近也是给自己挖了挺多坑还没填上的等暑假慢慢填吧，争取暑假把自己想写的都写上。
+  archived_image_url: https://bu.dusays.com/2025/06/03/683ec52fd0dbc.jpg
+
+- id: 2025-05-29-171136-homepage-redesign
+  published_at: '2025-05-29T17:11:36+08:00'
+  source_commit: '835e290'
+  lead: 主页大翻新啦！！！快来看快开看啊！！！
+
+- id: 2025-05-21-140802-icp-restored
+  published_at: '2025-05-21T14:08:02+08:00'
+  source_commit: 'f0d0e18'
+  lead: ICP备案完成！xbxyftx.top正式恢复运营！！！
+
+- id: 2025-03-22-000051-year-plan
+  published_at: '2025-03-22T00:00:51+08:00'
+  source_commit: 'd6e2ef2'
+  lead: 25年的计划开始执行了吗？
+
+- id: 2025-01-25-010315-first-announcement
+  published_at: '2025-01-25T01:03:15+08:00'
+  source_commit: 'cf106d3'
+  lead: This is my Blog

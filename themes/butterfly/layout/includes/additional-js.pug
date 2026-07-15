@@ -17,13 +17,19 @@ div
   if theme.snackbar.enable
     script(src=url_for(theme.asset.snackbar))
 
-  // 瀑布流JavaScript - 只在首页加载
+  // 首页星空与瀑布流 - 仅首页加载
   if globalPageType === 'home'
+    canvas#universe(aria-hidden='true')
+    script(defer src=url_for('/js/universe-optimized.js'))
     script(src=url_for('/js/waterfall.js'))
 
   // 文章打字机效果 - 只在文章页面加载
   if globalPageType === 'post'
     script(src=url_for('/js/typewriter-effect.js'))
+
+  // 公告历史展开/收起
+  if theme.aside.enable && theme.aside.card_announcement.enable
+    script(src=url_for('/js/announcement-history.js'))
 
   // 入场弹窗功能
   script(src=url_for('/js/entrance-popup-config.js'))

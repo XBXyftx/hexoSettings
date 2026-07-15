@@ -1,8 +1,8 @@
 # 长期记忆索引 — XBXyftx Hexo 博客项目
 
 > **AI 必读**：每次进入新会话，第一步必须阅读本文件。严禁跳过索引直接操作代码。
-> **当前日期**：2026-07-11
-> **项目状态**：活跃维护中，持续发布新文章；当前运行时性能基线见 2026-07-10 审计及已完成的 P0 瀑布流。P1 分层星空实验已归档但未采纳，实际星空已恢复基线双 Canvas 实现；P2 已清理可安全修复的失效资源请求，外部原图遗留项已单列。文章懒加载和目录锚点稳定性治理已在本地实施、验证，远程仅保留实施前备份基线。
+> **当前日期**：2026-07-15
+> **项目状态**：活跃维护中，持续发布新文章；当前运行时性能基线见 2026-07-10 审计及已完成的 P0 瀑布流。P1 单控制器分层星空实验已归档但未采纳；当前保留原有双 Canvas 视觉，仅首页加载，非首页不再创建星空 Canvas 或 RAF。P2 已清理可安全修复的失效资源请求，外部原图遗留项已单列。文章懒加载和目录锚点稳定性治理已在本地实施、验证。侧栏公告历史时间轴已于 2026-07-15 完成并推送实现 `d48549b`；当前第 17 期公告记录及构建验证已在本地完成，尚未再次推送或部署。
 
 ---
 
@@ -76,6 +76,7 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 - [2026-07-10 首页瀑布流 P0 重写](04-operations/2026-07-10-waterfall-rewrite/README.md) — **已完成并推送**：实现 `9988ac4`、优化前基线 `69772c8`；[本地 Chrome A/B 三断点量化结果已归档](04-operations/2026-07-10-waterfall-rewrite/BROWSER-PERFORMANCE-MEASUREMENTS.md)，目标设备有头浏览器回归待补测
 - [2026-07-11 P1 分层星空动效实验与回退](04-operations/2026-07-11-starfield-p1/README.md) — 基线 `049f08d` 已推送；实验源码、三断点本地 Headless A/B 和 SHA-256 快照已归档，视觉验收未通过，实际运行时已恢复基线双层星空。
 - [2026-07-11 P2 失效请求修复](04-operations/2026-07-11-invalid-request-p2/README.md) — 基线 `8863b70` 已推送；本地缺失资源、Mermaid 404、旧 fallback/默认页头图和可确认路径均已本地修复；8 张外部正文图及 1 个不确定头像仍单列遗留。
+- [2026-07-12 DOM 就绪预加载器与首页星空收敛](04-operations/operation-log.md#32) — `spincat` 不再等待 `window.load`；原有双层星空仅首页加载，非首页无 Canvas/RAF，且未重启未采纳的单控制器实验。
 - [2026-07-11 文章懒加载与目录锚点稳定性治理](04-operations/2026-07-11-article-layout-stability/README.md) — 远程备份 `bb93da8` 已推送，实施后严禁远程写入；文章仅近视口动态占位、目录晚到媒体重锚定、生成态尺寸审计与桌面/移动延迟图片验证均已记录。
 - [Hexo 8 升级可行性报告](05-performance-audit/2026-05-07-hexo-upgrade-feasibility/README.md) — 🔴 22 依赖逐项分析、3 方案对比、数学渲染链断裂、自定义脚本影响
 - [部署流水线（dev/opt/pub）](03-api-practices/deployment-pipeline.md) — 3 条部署命令的完整流程、参数差异、适用场景
@@ -90,6 +91,7 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 - [Plotly 函数可视化渲染规范](03-api-practices/plotly-function-visualization.md) — 交互式函数图像模板（1D 曲线 + 3D 曲面）、PJAX 兼容、颜色规范
 - [星空背景动画（Universe）](03-api-practices/universe-background.md) — header-universe.js 实现细节、粒子系统、流星效果
 - [图片懒加载系统](03-api-practices/lazy-loading-system.md) — 多套懒加载方案协同、IntersectionObserver、PJAX 重初始化
+- [侧栏公告历史时间轴](03-api-practices/announcement-history.md) — `source/_data/announcements.yml` 编写入口、Git 历史恢复、构建校验、Pug/CSS/JS 交互与升级说明
 - [性能优化策略](03-api-practices/performance-optimization.md) — FPS 节流、visibility 暂停、移动端降级、异步 CSS
 
 ### 自定义页面
