@@ -17,8 +17,10 @@ div
   if theme.snackbar.enable
     script(src=url_for(theme.asset.snackbar))
 
-  // 瀑布流JavaScript - 只在首页加载
+  // 首页星空与瀑布流 - 仅首页加载
   if globalPageType === 'home'
+    canvas#universe(aria-hidden='true')
+    script(defer src=url_for('/js/universe-optimized.js'))
     script(src=url_for('/js/waterfall.js'))
 
   // 文章打字机效果 - 只在文章页面加载

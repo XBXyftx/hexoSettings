@@ -1077,10 +1077,7 @@ inject:
     - <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
 
   bottom:
-    # 1. 结构性元素
-    - <canvas id="universe"></canvas>
-    # 2. 核心逻辑脚本（全部 defer）
-    - <script defer src="/js/universe-optimized.js"></script>
+    # 核心逻辑脚本（全部 defer）
     - <script defer src="/js/jquery-3.6.0.min.js"></script>
     - <script defer src="/js/rightmenu.js"></script>
     - <script defer src="/js/happy-title.js"></script>

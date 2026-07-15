@@ -95,6 +95,7 @@ include ./head/config_site.pug
 
 !=fragment_cache('injectHead', function(){return injectHtml(theme.inject.head)})
 
-script(src='/js/header-universe.js')
+if globalPageType === 'home'
+  script(defer src='/js/header-universe.js')
 // 新增缓存管理脚本 - 已禁用Service Worker
 //- script(src='/js/cache-manager.js')

@@ -200,10 +200,10 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 | 文件 | 修改类型 | 风险等级 | 升级时处理建议 |
 | --- | --- | --- | --- |
 | `layout/includes/layout.pug` | 添加 HTML | 中 | 升级后重新注入弹窗结构 |
-| `layout/includes/head.pug` | 添加条件 CSS、停止旧全站占位样式加载 + 当前存在资源重复 | 高 | 升级后重新添加文章页懒加载状态样式；先解决 `/css/index.css` 与 Font Awesome 重复，**不要**恢复已回滚的“仅异步 Font Awesome”方案或旧全篇占位动画 |
+| `layout/includes/head.pug` | 添加条件 CSS、停止旧全站占位样式加载 + 当前存在资源重复；`header-universe.js` 仅首页 deferred 加载 | 高 | 升级后重新添加文章页懒加载状态样式、首页 header 星空条件入口；先解决 `/css/index.css` 与 Font Awesome 重复，**不要**恢复已回滚的“仅异步 Font Awesome”方案或旧全篇占位动画 |
 | `source/js/lazy-loading-optimized.js` | 原生 lazy 协调、近视口占位与媒体结算事件 | 中 | 迁移时保留原生 `src`/`loading`，不能恢复 1×1 GIF 交换逻辑 |
 | `source/css/lazy-loading-optimized.css` | 文章页图片比例保护、静态/近视口占位状态 | 低 | 保持 `max-width:100%` 与 `height:auto` 成对存在；仅无尺寸图片使用最小高度，保留 reduced-motion 和仅近视口动态视觉 |
-| `layout/includes/additional-js.pug` | 添加加载 | 高 | 升级后所有自定义 JS 需重新添加 |
+| `layout/includes/additional-js.pug` | 添加加载；首页条件输出背景 Canvas、背景星空和瀑布流 | 高 | 升级后重新添加所有自定义 JS，保持首页星空脚本与 `#universe` Canvas 不扩散到非首页路由 |
 | `layout/includes/footer.pug` | 添加脚本 | 低 | 升级后重新添加建站时间统计 |
 | `layout/includes/mixins/indexPostUI.pug` | 修改布局 | 高 | 升级后重新实现 layout 8 逻辑 |
 | `layout/index.pug` | 添加类名 | 低 | 升级后重新添加 masonry 类 |
@@ -259,6 +259,30 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 **验证**：用户反馈的 `OpenSourceSummer2025/78.webp` 在 1600px 宽度浏览器中由错误的约 `781.80×1454px` 恢复为约 `781.80×444.20px`。受控延迟媒体的桌面/移动 TOC 验证继续通过，且已加载带尺寸正文图比例错误均为 0。
 
 **可回滚性**：可安全回滚，但会重新引入宽度受限时高度未按比例缩放的已知视觉故障；主题升级时必须保留该成对规则。
+
+---
+
+### #8 — 2026-07-12 — 预加载器改为 DOM 就绪退出，并将双层星空限于首页
+
+**修改文件**：
+
+- `themes/butterfly/layout/includes/loading/load_style/spincat.pug`
+- `themes/butterfly/layout/includes/head.pug`
+- `themes/butterfly/layout/includes/additional-js.pug`
+- `_config.butterfly.yml`
+
+**修改原因**：全屏 `spincat` 曾等待 `window.load`，会被远程图片、视频或第三方资源拖延，即使文章主结构已可读仍锁定滚动。现有背景与页头星空分别维持 30fps RAF；用户明确要求保留原有视觉实现但仅在首页启用，避免文章和普通页面承担无关的 Canvas 创建、粒子初始化与持续绘制。
+
+**修改内容**：
+
+1. `spincat` 初次导航改为在 `DOMContentLoaded` 后的下一动画帧开始退出，不再等待 `window.load` 或使用 10 秒兜底；退出函数改为幂等，并保留未来 PJAX 的初始化/完成钩子与既有 800ms 视觉退场。
+2. `header-universe.js` 改为仅 `globalPageType === 'home'` 时以 `defer` 加载，移除非首页 head 阻塞脚本。
+3. 将全局 `inject.bottom` 中的 `#universe` 与 `universe-optimized.js` 移至 `additional-js.pug` 的首页条件块；背景 Canvas 仍先于背景脚本输出，并增加 `aria-hidden="true"`。
+4. 保持双 Canvas 的当前视觉基线、30fps 节流、移动端降级和 `visibilitychange` 暂停；未恢复归档且视觉未采纳的单控制器 P1 实验，未修改 `universe.css`、透明卡片、文章懒加载或 TOC 重锚定。
+
+**可回滚性**：可回滚，但会恢复“预加载器受全部子资源阻塞”以及非首页页面也创建并运行双星空的已知成本。主题升级时需重建首页条件注入，不应只恢复一个 Canvas 或一个脚本入口。
+
+**验证**：`npm run build` 成功；生成首页各有 1 个背景 Canvas、背景/页头星空脚本和瀑布流脚本，代表文章、About、归档均为 0 个星空 Canvas/脚本。延迟本地 WebP 的 Headless Chrome 在 `interactive` 且 `load` 未触发时确认预加载器已 `.loaded` 且滚动锁已释放；文章 TOC 桌面/移动回归和本地资源审计均通过。
 
 ---
 

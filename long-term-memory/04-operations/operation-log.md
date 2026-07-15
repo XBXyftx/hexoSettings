@@ -842,3 +842,41 @@
 - Headless 验证覆盖本地 loopback、受控延迟与桌面/移动断点；上线前仍宜在有头浏览器、弱网和真实外部 CDN 条件下人工回归。
 
 ---
+
+### #32 — 2026-07-12 — DOM 就绪退出全屏预加载器，并将双层星空限于首页（仅本地实施）
+
+**操作人**：AI 助手（Claude Code）
+
+**远程约束**：沿用 `bb93da8` 远程备份后的约束；本次不提交、不推送、不部署，也不执行任何远程写操作。
+
+**涉及文件**：
+
+- `themes/butterfly/layout/includes/loading/load_style/spincat.pug` — 初次预加载由 `DOMContentLoaded` 触发退出，并使退出/隐藏定时器幂等
+- `themes/butterfly/layout/includes/head.pug` — `header-universe.js` 改为首页条件且 `defer` 加载
+- `themes/butterfly/layout/includes/additional-js.pug` — 仅首页输出背景 `#universe` Canvas 和 `universe-optimized.js`
+- `_config.butterfly.yml` — 移除全局 `inject.bottom` 中的背景 Canvas 与背景星空脚本
+- `long-term-memory/03-api-practices/universe-background.md`、`long-term-memory/03-api-practices/performance-optimization.md`、`long-term-memory/06-theme-modifications/README.md`、`long-term-memory/MEMORY.md` — 同步当前架构、升级注意项与索引状态
+
+**操作详情**：
+
+1. 原 `spincat` 在初次访问时锁定 `body` 滚动，直到 `window.load` 或 10 秒兜底才退出；远程图片、视频和第三方资源都可延后可交互时间。本次改为 DOM 解析完成后在下一动画帧执行原有 `.loaded` 退场，保留 800ms 分屏/猫动画、未来 PJAX 钩子和隐藏页定时器。
+2. `endLoading()` 现以 `isLoading` 防重，`initLoading()` 会取消旧隐藏定时器，避免重复 DOM ready、未来 PJAX 回调或重初始化造成多次退场/错误显示状态。
+3. 原全站背景 Canvas/脚本来自 YAML `inject.bottom`，页头脚本来自无条件 `head.pug`，因此每个非首页路由也会初始化两套 30fps 星空。按用户要求保留现有双层视觉，但将两条入口同时限制到 `globalPageType === 'home'`：首页仍有全屏背景和页头封面星空；文章、About、归档、标签等路由不再输出 Canvas、加载脚本或产生星体/RAF。
+4. 没有合并两条 RAF、修改粒子参数或恢复 2026-07-11 视觉未采纳的单控制器实验；`visibilitychange` 暂停、移动端降级、透明内容背景和首页瀑布流均保留。文章原生懒加载、图片比例保护和 TOC 重锚定完全未改动。
+
+**验证结果**：
+
+- [x] `node --check themes/butterfly/source/js/header-universe.js`、`node --check themes/butterfly/source/js/universe-optimized.js` 和 `git diff --check` 通过
+- [x] `npm run build` 成功（未执行会删除生成态的 `npm run clean`）
+- [x] 生成态 HTML 断言：首页各有 1 个 `#universe`、`universe-optimized.js`、`header-universe.js` 和 `waterfall.js`；代表文章、About、归档页面四项星空资源均为 0
+- [x] 延迟本地 WebP 3 秒的隔离 Headless Chrome 验证：在页面仍为 `interactive`、`load` 尚未触发、已有 28 个延迟图片请求时，首页预加载器已进入 `.loaded`、滚动锁已释放；首页两层 Canvas 均初始化，代表文章不存在 Canvas/星空脚本
+- [x] 本地资源审计：186 个 HTML、17 个 CSS、11,232 个本地引用、0 个缺失唯一目标、0 次缺失引用
+- [x] `OpenSourceSummer2025` 保持 400ms 图片延迟与 240px 人工布局变化：桌面 TOC 最终误差 **0.46875px**、移动端 **0.296875px**；两端已加载带尺寸正文图比例错误均为 **0**
+- [x] 无远程写入、无部署
+
+**遗留问题**：
+
+- 首页仍保留两条独立 30fps RAF；本次只消除非首页无效运行成本，未声称首页 CPU/GPU 成本已合并或在所有设备上量化下降。若后续再次尝试单控制器，必须建立独立视觉方案，不得直接复用已归档且未采纳的 P1 实验。
+- `spincat` 的 800ms 退场视觉和外部猫精灵图仍保留；其真正网络外观需在有头浏览器、弱网及真实 CDN 条件下补充人工回归。
+
+---
