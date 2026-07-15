@@ -199,6 +199,9 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 | 文件 | 修改类型 | 风险等级 | 升级时处理建议 |
 | --- | --- | --- | --- |
+| `layout/includes/widget/card_announcement.pug` | 结构化公告历史时间轴 | 中 | 升级后恢复 `site.data.announcements`、语义化时间/详情结构和旧 content 兜底；编写入口见 `source/_data/announcements.yml` |
+| `source/css/announcement-history.css` | 公告时间轴、卡内滚动、响应式与 reduced-motion | 低 | 升级后保留并确保 `head.pug` 同步加载 |
+| `source/js/announcement-history.js` | 查看全部/收起、PJAX 幂等初始化 | 低 | 升级后保留并确保 `additional-js.pug` 在公告启用时加载 |
 | `layout/includes/layout.pug` | 添加 HTML | 中 | 升级后重新注入弹窗结构 |
 | `layout/includes/head.pug` | 添加条件 CSS、停止旧全站占位样式加载 + 当前存在资源重复；`header-universe.js` 仅首页 deferred 加载 | 高 | 升级后重新添加文章页懒加载状态样式、首页 header 星空条件入口；先解决 `/css/index.css` 与 Font Awesome 重复，**不要**恢复已回滚的“仅异步 Font Awesome”方案或旧全篇占位动画 |
 | `source/js/lazy-loading-optimized.js` | 原生 lazy 协调、近视口占位与媒体结算事件 | 中 | 迁移时保留原生 `src`/`loading`，不能恢复 1×1 GIF 交换逻辑 |
@@ -283,6 +286,34 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 **可回滚性**：可回滚，但会恢复“预加载器受全部子资源阻塞”以及非首页页面也创建并运行双星空的已知成本。主题升级时需重建首页条件注入，不应只恢复一个 Canvas 或一个脚本入口。
 
 **验证**：`npm run build` 成功；生成首页各有 1 个背景 Canvas、背景/页头星空脚本和瀑布流脚本，代表文章、About、归档均为 0 个星空 Canvas/脚本。延迟本地 WebP 的 Headless Chrome 在 `interactive` 且 `load` 未触发时确认预加载器已 `.loaded` 且滚动锁已释放；文章 TOC 桌面/移动回归和本地资源审计均通过。
+
+---
+
+### #9 — 2026-07-15 — 侧栏公告历史时间轴
+
+**修改文件**：
+- `themes/butterfly/layout/includes/widget/card_announcement.pug`
+- `themes/butterfly/layout/includes/head.pug`
+- `themes/butterfly/layout/includes/additional-js.pug`
+- `themes/butterfly/source/css/announcement-history.css`
+- `themes/butterfly/source/js/announcement-history.js`
+- `themes/butterfly/source/css/styles.css`
+
+**修改原因**：Butterfly 原公告卡只能从 `_config.butterfly.yml` 读取一期未转义 HTML，没有发布时间和历史浏览能力；用户要求以纵向滚动时间轴阅读每版公告，并提供便于持续编辑、可由 Git 恢复的独立配置入口。
+
+**修改内容**：
+
+1. `card_announcement.pug` 改读 `site.data.announcements`，静态输出当前公告、发布时间和历史原生 `<details>`；数据缺失时仍使用旧 `content`。
+2. `announcement-history.css` 提供带最大高度的纵向滚动时间轴、节点、当前徽标、历史摘要、图片比例、移动端与 reduced-motion 样式；`head.pug` 同步加载该样式。
+3. `announcement-history.js` 仅控制超过配置期数条目的“查看全部/收起”，支持 DOM ready 和 PJAX 幂等初始化；`additional-js.pug` 仅在侧栏公告启用时加载。
+4. 删除 `styles.css` 中被专属样式替代的旧 `.announcementImg` 规则，消除无效 flex 属性和 `transition: all`。
+5. 站点侧配套为 `source/_data/announcements.yml` 与 `scripts/announcement-history-validator.js`；完整编写和恢复说明见 [公告历史时间轴文档](../03-api-practices/announcement-history.md)。
+
+**相关文件**：`source/_data/announcements.yml`、`scripts/announcement-history-validator.js`、`_config.butterfly.yml`
+
+**可回滚性**：可恢复旧 `card_announcement.pug` 并移除 CSS/JS 两个加载入口；YAML 可作为不参与渲染的历史档案保留。实施前全部状态已一次性备份到远程分支 `feat/announcement-timeline` 的 `13c3f5f`，之后未再进行远程操作。
+
+**验证**：`node --check`、`git diff --check`、`TZ=UTC npm run clean && TZ=UTC npm run build` 通过；16 期公告在首页、归档和文章生成态均存在，本地图片与外部 URL 隔离断言通过。系统 Chrome/CDP 已验证 1440px/375px 卡内滚动、“查看全部”、历史 `<details>` 和 1024px 既有整侧栏隐藏；临界断点、仅键盘、暗色/阅读模式和真实 PJAX 仍待发布前人工回归。
 
 ---
 

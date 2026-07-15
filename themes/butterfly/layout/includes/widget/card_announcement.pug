@@ -1,6 +1,55 @@
-if theme.aside.card_announcement.enable
+mixin announcementBody(entry)
+  .announcement-entry__body
+    if entry.lead
+      p.announcement-entry__lead= entry.lead
+    if entry.image && entry.image.src
+      img.announcementImg(src=url_for(entry.image.src) alt=entry.image.alt || '' width=entry.image.width height=entry.image.height loading='lazy' decoding='async')
+    if entry.title
+      p.announcement-entry__title= entry.title
+    if entry.items && entry.items.length
+      ol.announcement-entry__list
+        each item in entry.items
+          li= item
+    if entry.paragraphs && entry.paragraphs.length
+      each paragraph in entry.paragraphs
+        p= paragraph
+    if entry.closing
+      p.announcement-entry__closing= entry.closing
+
+- const announcementConfig = theme.aside.card_announcement
+- const announcementHistoryConfig = announcementConfig.history || {}
+- const announcementDateFormat = announcementHistoryConfig.date_format || 'YYYY年MM月DD日 HH:mm'
+- const initialVisibleValue = Number(announcementHistoryConfig.initial_visible)
+- const initialVisible = Number.isInteger(initialVisibleValue) && initialVisibleValue > 0 ? initialVisibleValue : 3
+- const announcements = site.data.announcements
+- const hasAnnouncementHistory = Array.isArray(announcements) && announcements.length > 0
+
+if announcementConfig.enable && (hasAnnouncementHistory || announcementConfig.content)
   .card-widget.card-announcement
     .item-headline
-      i.fas.fa-bullhorn.fa-shake
+      i.fas.fa-bullhorn.fa-shake(aria-hidden='true')
       span= _p('aside.card_announcement')
-    .announcement_content!= theme.aside.card_announcement.content
+    if hasAnnouncementHistory
+      .announcement-timeline#announcement-timeline
+        each entry, index in announcements
+          - const publishedAt = entry.published_at
+          - const dateText = announcement_date(publishedAt, announcementDateFormat)
+          - const isInitiallyHidden = index >= initialVisible
+          article.announcement-entry(class=[index === 0 ? 'is-current' : '', isInitiallyHidden ? 'is-collapsed-history' : ''])
+            if index === 0
+              .announcement-entry__current 当前公告
+              time.announcement-entry__time(datetime=publishedAt)= dateText
+              +announcementBody(entry)
+            else
+              details.announcement-entry__details
+                summary.announcement-entry__summary
+                  span.announcement-entry__summary-title= entry.title || entry.lead || '历史公告'
+                  time.announcement-entry__time(datetime=publishedAt)= dateText
+                +announcementBody(entry)
+      if announcements.length > initialVisible
+        button.announcement-history-toggle(type='button' aria-expanded='false' aria-controls='announcement-timeline')
+          span.announcement-history-toggle__show 查看全部 #{announcements.length} 期公告
+          span.announcement-history-toggle__hide 收起历史公告
+          i.fas.fa-chevron-down(aria-hidden='true')
+    else
+      .announcement_content!= announcementConfig.content

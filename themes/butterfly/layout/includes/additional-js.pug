@@ -27,6 +27,10 @@ div
   if globalPageType === 'post'
     script(src=url_for('/js/typewriter-effect.js'))
 
+  // 公告历史展开/收起
+  if theme.aside.enable && theme.aside.card_announcement.enable
+    script(src=url_for('/js/announcement-history.js'))
+
   // 入场弹窗功能
   script(src=url_for('/js/entrance-popup-config.js'))
   script(src=url_for('/js/entrance-popup.js'))

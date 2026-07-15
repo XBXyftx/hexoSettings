@@ -1,8 +1,8 @@
 # 长期记忆索引 — XBXyftx Hexo 博客项目
 
 > **AI 必读**：每次进入新会话，第一步必须阅读本文件。严禁跳过索引直接操作代码。
-> **当前日期**：2026-07-12
-> **项目状态**：活跃维护中，持续发布新文章；当前运行时性能基线见 2026-07-10 审计及已完成的 P0 瀑布流。P1 单控制器分层星空实验已归档但未采纳；当前保留原有双 Canvas 视觉，仅首页加载，非首页不再创建星空 Canvas 或 RAF。P2 已清理可安全修复的失效资源请求，外部原图遗留项已单列。文章懒加载和目录锚点稳定性治理已在本地实施、验证，远程仅保留实施前备份基线。
+> **当前日期**：2026-07-15
+> **项目状态**：活跃维护中，持续发布新文章；当前运行时性能基线见 2026-07-10 审计及已完成的 P0 瀑布流。P1 单控制器分层星空实验已归档但未采纳；当前保留原有双 Canvas 视觉，仅首页加载，非首页不再创建星空 Canvas 或 RAF。P2 已清理可安全修复的失效资源请求，外部原图遗留项已单列。文章懒加载和目录锚点稳定性治理已在本地实施、验证。侧栏公告历史时间轴已于 2026-07-15 在本地实施并 clean build 通过；远程仅有实施前备份分支 `feat/announcement-timeline`（`13c3f5f`），备份后禁止远程操作。
 
 ---
 
@@ -91,6 +91,7 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 - [Plotly 函数可视化渲染规范](03-api-practices/plotly-function-visualization.md) — 交互式函数图像模板（1D 曲线 + 3D 曲面）、PJAX 兼容、颜色规范
 - [星空背景动画（Universe）](03-api-practices/universe-background.md) — header-universe.js 实现细节、粒子系统、流星效果
 - [图片懒加载系统](03-api-practices/lazy-loading-system.md) — 多套懒加载方案协同、IntersectionObserver、PJAX 重初始化
+- [侧栏公告历史时间轴](03-api-practices/announcement-history.md) — `source/_data/announcements.yml` 编写入口、Git 历史恢复、构建校验、Pug/CSS/JS 交互与升级说明
 - [性能优化策略](03-api-practices/performance-optimization.md) — FPS 节流、visibility 暂停、移动端降级、异步 CSS
 
 ### 自定义页面

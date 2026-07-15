@@ -880,3 +880,50 @@
 - `spincat` 的 800ms 退场视觉和外部猫精灵图仍保留；其真正网络外观需在有头浏览器、弱网及真实 CDN 条件下补充人工回归。
 
 ---
+
+### #33 — 2026-07-15 — 将侧栏单期公告升级为可滚动历史时间轴（仅本地实施）
+
+**操作人**：AI 助手（Claude Code）
+
+**远程约束**：按用户本次明确授权，先创建 `feat/announcement-timeline` 并将修改前全部状态提交为 `13c3f5f`，仅执行一次 `git push -u origin feat/announcement-timeline`。该备份完成后不再执行 fetch、pull、push、远程删除、PR、部署或其他远程操作。
+
+**涉及文件**：
+
+- `source/_data/announcements.yml` — 公告正文和历史的唯一日常编辑入口，从本地 Git 恢复 16 期公告
+- `_config.butterfly.yml` — 保留公告总开关、初始展示数、日期格式和旧 HTML 兜底
+- `scripts/announcement-history-validator.js` — 构建期校验 ID、时间、倒序、正文和本地图片尺寸
+- `themes/butterfly/layout/includes/widget/card_announcement.pug` — 结构化渲染当前公告、发布时间、历史 `<details>` 和时间轴
+- `themes/butterfly/source/css/announcement-history.css`、`themes/butterfly/source/js/announcement-history.js` — 卡内纵向滚动样式及查看全部/收起交互
+- `themes/butterfly/layout/includes/head.pug`、`themes/butterfly/layout/includes/additional-js.pug` — 加载公告专属 CSS/JS
+- `themes/butterfly/source/css/styles.css` — 移除被新专属样式替代的旧公告图片规则
+- `long-term-memory/03-api-practices/announcement-history.md` 及长期记忆/操作/主题索引 — 记录编写、架构、恢复、验证和升级边界
+
+**操作详情**：
+
+1. 调查确认 Butterfly 原实现直接以 `!=` 输出 `_config.butterfly.yml` 的单行 HTML，没有日期、历史或结构化数据；公告 partial 为全局缓存，适合站点级静态档案。
+2. 从本地 Git 的 `_config.butterfly.yml` 恢复 `cf106d3` 至 `5c8d00a` 的 16 期真实公告和精确提交时间，过滤明显 `sshtest` 部署调试内容；同日真实文案修订分别保存。
+3. 将现存 JPG/PNG/GIF 历史路径映射到本地 WebP；旧 `bu.dusays.com` URL 只保存在不渲染的 `archived_image_url`，未联网抓取，也不会让页面请求旧远程图。
+4. 新模板以转义文本、`<time>`、`<ol>` 和 `<details>` 静态渲染。当前公告直接展开，其余历史按原生控件逐期打开；卡内时间轴设最大高度并纵向滚动。
+5. 默认显示 3 期，其余 13 期由轻量脚本查看全部/收起；脚本支持 DOM ready、PJAX 幂等初始化。即使脚本失败，公告仍在 HTML 中且逐期 `<details>` 可读。
+6. 校验器在 `before_generate` 一次性报告所有结构错误，并核对本地图真实宽高。日常新增只需将一个 YAML 条目插入文件顶部。
+
+**验证结果**：
+
+- [x] `node --check`：校验脚本和交互脚本均通过
+- [x] `git diff --check` 通过
+- [x] `npm run clean && npm run build` 成功，日志确认 16 期公告通过校验
+- [x] 首页、归档页和代表文章页均生成 1 张公告卡、16 期公告
+- [x] 当前公告 1 期、历史 `<details>` 15 期、初始隐藏 13 期；时间、当前正文、图片尺寸和原生 lazy 属性断言通过
+- [x] `TZ=UTC` clean build 中仍按每条 ISO 时间自带的 `+08:00` 显示墙钟时间；无效日期、未知字段、外部图片、路径越界和非法交互配置均被校验器拒绝
+- [x] 公告 CSS/JS 与 3 张本地历史图片均生成，公告输出没有 `bu.dusays.com` 图片请求
+- [x] 系统 Chrome/CDP：1440px 与 375px 时间轴均形成卡内纵向滚动且无横向溢出；“查看全部”将隐藏项由 13 降到 0、同步更新 `aria-expanded`，历史 `<details>` 可打开；1024px 首页保持既有整侧栏隐藏
+- [x] 未部署；一次性备份后没有任何远程操作
+
+**遗留问题**：
+
+- 项目未新增 Playwright/Puppeteer/jsdom 依赖；虽已用系统 Chrome/CDP 完成桌面/移动截图和鼠标点击验证，发布前仍需人工补充临界断点、仅键盘、暗色/阅读模式、真实 PJAX 与触摸实机回归。
+- 首页 769–1024px 隐藏整个侧栏是现有瀑布流/移动覆盖规则的既有行为，本功能不擅自改变页面整体响应式设计。
+- CSS reduced-motion 已停止喇叭摇动和过渡，但当前动画 WebP 自身不能由 CSS 停帧；需等可信静态 poster 后再用 `<picture>` 提供同画面替代。所有公告图已改为原生 lazy，避免侧栏离屏时无条件下载。
+- WebP 引用更新工具不扫描 `source/_data/*.yml`，新增公告图必须直接填写最终 `.webp` 路径。
+
+---
