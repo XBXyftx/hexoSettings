@@ -304,7 +304,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 **修改内容**：
 
 1. `card_announcement.pug` 改读 `site.data.announcements`，静态输出当前公告、发布时间和历史原生 `<details>`；数据缺失时仍使用旧 `content`。
-2. `announcement-history.css` 提供带最大高度的纵向滚动时间轴、节点、当前徽标、历史摘要、图片比例、移动端与 reduced-motion 样式；`head.pug` 同步加载该样式。
+2. `announcement-history.css` 提供带最大高度的纵向滚动时间轴、节点、当前徽标、历史摘要、图片比例、移动端与 reduced-motion 样式；历史摘要隐藏原生小三角并在右侧绘制自定义箭头，`head.pug` 同步加载该样式。
 3. `announcement-history.js` 仅控制超过配置期数条目的“查看全部/收起”，支持 DOM ready 和 PJAX 幂等初始化；`additional-js.pug` 仅在侧栏公告启用时加载。
 4. 删除 `styles.css` 中被专属样式替代的旧 `.announcementImg` 规则，消除无效 flex 属性和 `transition: all`。
 5. 站点侧配套为 `source/_data/announcements.yml` 与 `scripts/announcement-history-validator.js`；完整编写和恢复说明见 [公告历史时间轴文档](../03-api-practices/announcement-history.md)。
@@ -313,7 +313,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 **可回滚性**：可恢复旧 `card_announcement.pug` 并移除 CSS/JS 两个加载入口；YAML 可作为不参与渲染的历史档案保留。实施前全部状态已一次性备份到远程分支 `feat/announcement-timeline` 的 `13c3f5f`，之后未再进行远程操作。
 
-**验证**：`node --check`、`git diff --check`、`TZ=UTC npm run clean && TZ=UTC npm run build` 通过；16 期公告在首页、归档和文章生成态均存在，本地图片与外部 URL 隔离断言通过。系统 Chrome/CDP 已验证 1440px/375px 卡内滚动、“查看全部”、历史 `<details>` 和 1024px 既有整侧栏隐藏；临界断点、仅键盘、暗色/阅读模式和真实 PJAX 仍待发布前人工回归。
+**验证**：`node --check`、`git diff --check`、`TZ=UTC npm run clean && TZ=UTC npm run build` 通过；17 期公告在首页、归档和文章生成态均存在，本地图片与外部 URL 隔离断言通过。系统 Chrome/CDP 已验证 1440px/375px 卡内滚动、“查看全部”、历史 `<details>`、原生 marker 隐藏后的右侧箭头和 1024px 既有整侧栏隐藏；临界断点、仅键盘、暗色/阅读模式和真实 PJAX 仍待发布前人工回归。
 
 ---
 

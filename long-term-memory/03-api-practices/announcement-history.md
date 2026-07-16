@@ -88,6 +88,7 @@ card_announcement:
 
 - 纵向轴线、节点、当前公告徽标；
 - `max-height: min(70vh, 620px)` 的卡内纵向滚动区域；
+- 历史摘要隐藏浏览器原生小三角，在摘要右侧显示自定义箭头，避免与时间轴圆点重叠；
 - 移动端高度和缩进适配；
 - 展开按钮、历史折叠项、图片比例和焦点样式；
 - `prefers-reduced-motion` 下停止喇叭摇动及新增过渡。
@@ -145,6 +146,7 @@ card_announcement:
 - [x] 生成公告图片中没有 `bu.dusays.com` 请求
 - [x] 系统 Chrome + CDP 真实页面回归：1440px 桌面时间轴 `620/928px`、375px 移动时间轴 `552/834px`，均确认纵向可滚动且无横向溢出
 - [x] Chrome 点击回归：“查看全部”将隐藏项从 13 降到 0，`aria-expanded` 由 `false` 变为 `true`，历史 `<details>` 可正常打开
+- [x] Chrome 移动端确认原生 summary marker 不再绘制，箭头位于摘要右侧且与时间轴圆点分离
 - [x] 1024px 首页确认沿用既有规则隐藏整个 aside，本功能没有产生单卡异常显示
 - [x] 2026-07-15 新公告已追加到 YAML 顶部，复用 `/imgs/gifs/1.webp` 并记录功能提交 `d48549b`
 

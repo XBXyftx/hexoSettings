@@ -928,6 +928,36 @@
 
 ---
 
+### #35 — 2026-07-15 — 分离公告时间轴节点与历史展开箭头（仅本地实施）
+
+**操作人**：AI 助手（Claude Code）
+
+**远程约束**：当前 `master` 已与远程同步于合并提交 `5b91a60`。本次仅修改本地 CSS 和记忆文档，不提交、不推送、不部署。
+
+**涉及文件**：
+
+- `themes/butterfly/source/css/announcement-history.css` — 隐藏原生 `<summary>` 小三角，在摘要右侧绘制自定义箭头
+- `long-term-memory/03-api-practices/announcement-history.md` — 记录视觉修复与验证
+- `long-term-memory/06-theme-modifications/README.md` — 更新主题修改说明
+- `long-term-memory/04-operations/operation-log.md` — 记录本次本地修复
+
+**操作详情**：
+
+用户反馈时间轴圆点和历史公告展开小三角过近。原生 `<summary>` marker 位于时间轴节点附近，造成视觉拥挤。本次通过 `list-style: none !important`、`::marker` 和 `::-webkit-details-marker` 规则隐藏原生标记，并为摘要右侧增加独立的 CSS 折叠箭头；摘要保留原生 `<details>` 语义和键盘交互。
+
+**验证结果**：
+
+- [x] `npm run clean && npm run build` 成功，17 期公告校验通过
+- [x] 生成 HTML 结构、资源入口和 `git diff --check` 通过
+- [x] Chrome 移动端确认时间轴圆点与右侧箭头分离，历史 `<details>` 仍可打开
+- [x] 未执行远程操作；未部署
+
+**遗留问题**：
+
+- 768、769、900、1025px 临界断点和真实设备触摸回归仍待后续人工检查。
+
+---
+
 ### #34 — 2026-07-15 — 记录公告时间轴上线公告（仅本地实施）
 
 **操作人**：AI 助手（Claude Code）
