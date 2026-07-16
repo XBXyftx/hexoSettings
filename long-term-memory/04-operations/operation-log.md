@@ -928,6 +928,89 @@
 
 ---
 
+### #36 — 2026-07-16 — 修复入场随机文字弹窗拦截页面输入（仅本地实施）
+
+**操作人**：AI 助手（Claude Code）
+
+**远程约束**：本次任务开始前，既有差异已按用户明确授权提交并推送为 `3eab004`。此后用户明确要求绝对禁止远程操作；本次修复仅在本地进行，不提交、不推送、不部署。
+
+**涉及文件**：
+
+- `themes/butterfly/source/css/entrance-popup.css` — 保持显示态全屏容器穿透，仅让弹窗卡片接收输入
+- `long-term-memory/06-theme-modifications/README.md` — 记录主题级修改、成因和回滚影响
+- `long-term-memory/04-operations/operation-log.md` — 记录本次本地操作和验证
+
+**操作详情**：
+
+1. 定位随机文案入场弹窗：全局 DOM 在 `layout/includes/layout.pug`，随机文本、自动关闭和关闭按钮逻辑在 `source/js/entrance-popup.js`，内容及显示配置在 `source/js/entrance-popup-config.js`。
+2. 确认根因：`.entrance-popup` 是 `z-index: 10001` 的固定全视口容器；显示态将其由默认的 `pointer-events: none` 改为 `pointer-events: auto`，透明遮罩虽然不可命中，父容器仍会覆盖并拦截页面输入。
+3. 将 `.entrance-popup.show` 的 `pointer-events` 保持为 `none`。已有 `.popup-content { pointer-events: auto; }` 继续使弹窗卡片和关闭按钮可点击，卡片外的区域会将鼠标、触摸和滚动交给下方页面。
+
+**验证结果**：
+
+- [x] `git diff --check` 通过；CSS 断言确认显示态根容器为 `pointer-events: none`，弹窗卡片为 `pointer-events: auto`
+- [x] `npm run build` 成功，公告历史校验通过并生成 125 个文件
+- [x] 本地 Chrome/CDP 回归：弹窗显示时，卡片外命中下层页面，卡片与关闭按钮仍可接收指针输入
+- [ ] 真实移动设备的触摸滚动回归待后续人工确认
+- [x] 不执行远程操作；不部署
+
+**遗留问题**：
+
+- 关闭控件当前为 `span`，不是原生 `button`；本次仅修复输入穿透，不改变既有 DOM 或可访问性语义，后续可独立评估键盘焦点与无障碍改造。
+
+---
+
+### #37 — 2026-07-16 — 重构“昨日重现”图库懒加载与双向浮现（仅本地实施）
+
+**操作人**：AI 助手（Claude Code）
+
+**远程约束**：继续遵守用户在 `3eab004` 推送后的绝对禁止远程操作要求；本次没有 fetch、pull、push、deploy 或其他远程交互。
+
+**涉及文件**：
+
+- `source/swiper/index.md`、`source/swiper/README.md` — 精简页面语义结构并重写维护说明
+- `scripts/auto-image-list.js` — 生成包含尺寸、字节和内容版本的 v2 manifest
+- `themes/butterfly/source/css/yesterday-gallery.css`、`themes/butterfly/source/js/yesterday-gallery.js` — 独立图库视觉、瀑布流、双 observer、随机顺序和统一加载队列
+- `themes/butterfly/source/js/lazy-loading-optimized.js` — 排除图库托管图片
+- `themes/butterfly/source/js/lightbox-enhanced.js` — managed gallery、窗口化数字缩略导航和 overflow 恢复
+- `themes/butterfly/layout/includes/head.pug`、`themes/butterfly/layout/includes/additional-js.pug` — 目标页面条件资源入口
+- `tools/optimize-gallery-images.js`、`package.json`、`.gitignore` — 可配置且默认非破坏的 WebP 压缩工具
+- `long-term-memory/06-theme-modifications/README.md`、本日志 — 记录架构、验证、升级和远程边界
+
+**操作详情**：
+
+1. 删除 `source/swiper/index.md` 中约 1900 行内联实现：不再全量递归下载 292 张图片，不再执行前 10 张/下一批独立预加载，不再使用 IndexedDB Blob 双缓存、10 秒缓存统计、批次超时、5 秒 observer 自检或焦点恢复重绑。
+2. 构建器读取每张图片的宽高、字节数和 SHA-256 前 16 位，输出稳定 `catalogRevision`。客户端以普通同源 URL 加内容版本查询参数，依赖 HTTP 缓存而不是网页无法准确清除的浏览器缓存。
+3. 初始只创建有固定尺寸的空卡片。JS masonry 在任何图片请求前计算两列位置和总高度，ResizeObserver 只在容器宽度变化时重排；小于 360px 降为单列。
+4. 近视口 observer 上下对称触发统一队列；当前移动/触屏默认并发 2，快速桌面 3，Save-Data/2G 1。离开预取区且未启动的任务回到 idle；已开始请求不因滚动取消，避免重复下载。
+5. 严格视口 observer 不使用定时器：正面积交叠即浮现，完全离开即隐藏，回到视口再次浮现；从顶部和底部进入采用相反初始位移。reduced-motion 保留显隐但取消位移和持续动画。
+6. 使用当前标签页 `sessionStorage` 保持一次无偏随机顺序；重排按钮明确只重置本次顺序和加载状态，不再称为“清除图片缓存”，也不刷新页面。
+7. 灯箱接收图库随机序列，当前图请求也通过统一队列，只渲染 5 个无图片数字导航项；避免旧实现打开灯箱时一次请求全部 292 个缩略图。文章全局懒加载明确排除图库托管图片。
+8. 新压缩工具支持 quality、max-edge、method、WebP 重编码、dry-run 和显式 in-place；默认输出到被 Git 忽略且不参与 manifest 的 `.gallery-optimization-preview/`。原地写入会拒绝同 basename 目标碰撞，尺寸缩放优先满足 max-edge。
+
+**验证结果**：
+
+- [x] `node --check`：manifest 生成器、图库控制器、灯箱、文章懒加载和压缩工具通过
+- [x] `npm run gallery:compress -- --reencode-webp --dry-run` 扫描 292 张图片且不写文件
+- [x] 压缩工具受控同名冲突测试：拒绝覆盖，JPG 与 WebP 均保留
+- [x] `npm run build` 成功；生成 v2 manifest 含 292 张、39.4 MB，revision `6356dfbb2e3770d7`
+- [x] manifest 与源目录数量一致，ID 唯一；每项宽高、字节数和内容哈希逐文件验证通过
+- [x] 生成 `/swiper/` 包含专属 CSS/JS，且不再包含旧 `clearCacheBtn` 或 IndexedDB 页面逻辑
+- [x] 系统 Chrome/CDP：首屏仅近视口卡片有 `src`，末项无 `src`；稳定移动策略实测最大并发 2
+- [x] 中部第 100 项向下滚入后可见并加载，滚回顶部完全离开后隐藏，再向下返回后重新浮现
+- [x] 当前标签页刷新顺序稳定；按钮重排顺序改变且不导航/刷新
+- [x] 灯箱按 292 项序列打开，只创建 5 个数字导航项，缩略区不创建 `<img>` 批量请求
+- [x] `git diff --check` 通过；构建导致的无关 `source/coffer/private-posts.json` 时间戳变化已恢复
+- [x] 不执行任何远程操作；不部署；不提交
+
+**遗留问题**：
+
+- 真实手机的触摸滚动、低带宽私服上的加载节奏和最终梦幻视觉仍需用户本地体验验收。
+- 当前 PJAX 配置关闭；若未来开启，从其他页面首次 PJAX 进入 `/swiper/` 时，页面条件 CSS/JS 不会自动注入。启用 PJAX 前必须改为全局 no-op 资源入口或显式加入 PJAX 资源管理。
+- 本次只 dry-run 压缩，没有改动任何图片；原地压缩会修改 292 个二进制资源，必须由用户另行明确决定并建议先备份。
+
+---
+
 ### #35 — 2026-07-15 — 分离公告时间轴节点与历史展开箭头（仅本地实施）
 
 **操作人**：AI 助手（Claude Code）

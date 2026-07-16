@@ -1,85 +1,81 @@
-# 图片瀑布流使用说明
+# 昨日重现图库维护说明
 
-## 🚀 **全自动图片扫描**（推荐）
+`/swiper/` 是一个 manifest 驱动的随机照片墙。图库采用两列瀑布流（极窄屏为一列），照片在接近视口时才开始请求，并在进入或离开可视范围时反复浮现、隐藏。
 
-**现在只需要将图片放入文件夹，系统会自动扫描！**
+## 添加照片
 
-### 使用步骤：
-1. 将图片文件放入 `source/swiper/images/` 文件夹
-2. 运行 `hexo generate` 重新生成站点
-3. 访问 `/swiper/` 页面查看效果
+1. 将图片放入 `source/swiper/images/`。
+2. 推荐先执行 `npm run webp`，把 JPG、PNG、GIF 转换成 WebP。
+3. 执行 `npm run build`。
+4. Hexo 插件 `scripts/auto-image-list.js` 会生成 `public/swiper/images-auto.json`。
 
-**就这么简单！** 系统会自动：
-- 扫描 `images` 文件夹中的所有图片文件
-- 按文件名排序
-- 生成图片列表
-- 在页面中展示
+manifest 会记录每张图片的：
 
-## 📁 支持的图片格式
+- 文件名和稳定 ID；
+- 宽度、高度与文件字节数；
+- 图片内容哈希 `revision`；
+- 整个图库的 `catalogRevision`。
 
-- **JPG/JPEG** - 最常用的图片格式
-- **PNG** - 支持透明背景
-- **GIF** - 支持动画
-- **WebP** - 现代高效格式
-- **BMP** - 位图格式
-- **SVG** - 矢量图格式
+页面在图片加载前就能依据宽高预留位置；同名图片内容变化后，版本化 URL 也会更新，避免继续命中旧内容。
 
-## 🔧 高级配置（可选）
+## 随机顺序
 
-### 方法一：手动配置 images.json
+- 首次进入页面时使用无偏 Fisher–Yates 洗牌。
+- 顺序只保存在当前标签页的 `sessionStorage`。
+- 当前标签页刷新后保持顺序，新的浏览会话重新随机。
+- manifest 内容变化时旧顺序自动失效。
+- 页面上的“重新随机排列”只重建本次顺序和加载状态，**不会也无法清除浏览器 HTTP 图片缓存**。
 
-如果你想精确控制显示的图片顺序，可以创建 `source/swiper/images.json` 文件：
+旧的 `source/swiper/images.json` 不再参与运行时加载；唯一数据来源是构建生成的 manifest。
 
-```json
-[
-  "重要图片1.jpg",
-  "重要图片2.png",
-  "其他图片.webp"
-]
+## 懒加载与低带宽策略
+
+- 初始只创建带尺寸的空占位，不设置图片 `src`。
+- 上下两个方向均使用对称的近视口范围；只有接近视口的图片才会进入统一队列。
+- 桌面快速网络最多并发 3 张，移动端或 3G 最多 2 张，Save-Data/2G 最多 1 张。
+- 图片使用普通同源 URL 和浏览器 HTTP 缓存，不再复制 Blob 到 IndexedDB。
+- 离开视口只隐藏视觉内容，不删除已加载图片，避免反复下载。
+- 增强灯箱只显示当前图片附近的 5 个序号，不批量下载全部缩略图。
+
+## 可见性动画
+
+严格视口观察器持续观察每一个卡片：
+
+- 有正面积进入视口时添加 `is-visible`；
+- 完全离开视口时立即移除 `is-visible`；
+- 从上方回来时向下浮现，从下方进入时向上浮现；
+- 不使用延迟定时器，因此不会产生旧进入/离开回调覆盖新状态的问题；
+- `prefers-reduced-motion` 用户仍有正确显隐状态，但不执行位移和持续动画。
+
+## 图片压缩
+
+项目提供安全默认的检查/压缩命令：
+
+```bash
+# 先检查现有图库会如何处理，不改文件
+npm run gallery:compress -- --reencode-webp --dry-run
+
+# 显式原地压缩：最长边 2560px、质量 76、method 6
+npm run gallery:compress -- --reencode-webp --in-place
+
+# 自定义参数
+npm run gallery:compress -- --reencode-webp --in-place --quality 72 --max-edge 2200 --method 6
 ```
 
-**注意**：手动配置会覆盖自动扫描结果。
+注意：
 
-### 方法二：在线上传
+- 必须安装 `cwebp`；macOS 可使用 `brew install webp`。
+- 默认不重编码已有 WebP，也不会覆盖源文件；非原地结果写入仓库外层的 `.gallery-optimization-preview/`，不会被 manifest 当作正式照片。
+- 原地替换属于破坏性操作，必须显式提供 `--reencode-webp --in-place`。
+- 建议先运行 `--dry-run`，备份图片后再原地压缩。
+- 压缩后重新运行 `npm run build`，让 manifest 更新尺寸和内容版本。
 
-如果没有找到本地图片，页面会显示上传区域：
-- 点击上传区域选择图片文件
-- 直接拖拽图片文件到上传区域
-- 支持多选，一次上传多张图片
+## 相关文件
 
-## 📱 功能特性
-
-- ✅ **全自动扫描** - 无需手动配置
-- ✅ 响应式瀑布流布局
-- ✅ 滚动浮现动画
-- ✅ 图片懒加载
-- ✅ 全屏预览模态框
-- ✅ 拖拽上传支持
-- ✅ 移动端触摸优化
-- ✅ 键盘导航支持
-
-## 🎯 智能加载顺序
-
-系统会按以下优先级加载图片：
-
-1. **自动扫描列表** - 优先使用自动扫描的结果
-2. **手动配置列表** - 如果存在 `images.json` 文件
-3. **常见文件名** - 尝试 `1.jpg`, `2.jpg` 等常见命名
-4. **上传功能** - 如果都没找到，显示上传区域
-
-## 💡 使用技巧
-
-- **文件命名**：建议使用有意义的文件名，会显示在图片遮罩层
-- **图片大小**：建议控制在 2MB 以内，获得更好的加载性能
-- **文件夹整理**：可以使用子文件夹组织图片（暂不支持递归扫描）
-- **批量操作**：可以一次性复制多张图片到文件夹
-
-## 🔄 更新图片
-
-当你添加、删除或重命名图片文件后：
-
-1. 运行 `hexo generate` 重新生成
-2. 系统会自动更新图片列表
-3. 刷新页面即可看到最新内容
-
-**不需要手动编辑任何配置文件！** 
+- 页面语义结构：`source/swiper/index.md`
+- manifest 生成器：`scripts/auto-image-list.js`
+- 页面控制器：`themes/butterfly/source/js/yesterday-gallery.js`
+- 页面样式：`themes/butterfly/source/css/yesterday-gallery.css`
+- 增强图片预览：`themes/butterfly/source/js/lightbox-enhanced.js`
+- 文章懒加载隔离：`themes/butterfly/source/js/lazy-loading-optimized.js`
+- 压缩工具：`tools/optimize-gallery-images.js`

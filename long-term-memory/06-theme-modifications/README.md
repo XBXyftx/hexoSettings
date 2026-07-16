@@ -289,6 +289,53 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 ---
 
+### #10 — 2026-07-16 — 入场弹窗显示时保持页面可交互
+
+**修改文件**：`themes/butterfly/source/css/entrance-popup.css`
+
+**修改原因**：入场随机文字弹窗显示时，`.entrance-popup.show` 为覆盖整个视口的固定层启用了 `pointer-events: auto`。尽管遮罩透明，父层仍会成为所有指针、触摸手势和滚轮命中的最上层目标，导致弹窗自动隐藏前页面无法点击或正常滑动。
+
+**修改内容**：将显示态容器保持为 `pointer-events: none`；既有 `.popup-content { pointer-events: auto; }` 不变。因此弹窗卡片与关闭按钮仍可操作，卡片以外的页面区域则可正常接收点击、触摸与滚动。
+
+**相关文件**：`themes/butterfly/layout/includes/layout.pug`（全局弹窗 DOM）、`themes/butterfly/source/js/entrance-popup.js`（随机文案、自动关闭与关闭按钮逻辑）、`themes/butterfly/source/js/entrance-popup-config.js`（当前关闭与显示配置）。
+
+**可回滚性**：可安全回滚。回滚后恢复为「弹窗显示期间全视口拦截输入」的旧行为；不建议保留该行为。
+
+**验证**：`git diff --check`、显示态/卡片 `pointer-events` CSS 断言及 `npm run build` 均通过；本地 Chrome/CDP 确认显示时卡片外命中下层页面、弹窗卡片和关闭按钮仍接收指针输入。真实移动设备触摸滚动仍待人工回归；不执行任何远程操作或部署。
+
+---
+
+### #11 — 2026-07-16 — 重构“昨日重现”低带宽随机照片墙
+
+**修改文件**：
+- `themes/butterfly/layout/includes/head.pug`
+- `themes/butterfly/layout/includes/additional-js.pug`
+- `themes/butterfly/source/css/yesterday-gallery.css`
+- `themes/butterfly/source/js/yesterday-gallery.js`
+- `themes/butterfly/source/js/lazy-loading-optimized.js`
+- `themes/butterfly/source/js/lightbox-enhanced.js`
+
+**修改原因**：旧页面把 292 张照片自动分批下载完，预加载绕过并发队列，并使用 IndexedDB 复制全部图片；浮现/隐藏依赖未取消的延迟回调与周期性自检，快速双向滚动时会出现视口内图片被旧回调隐藏。所谓“清除缓存”只能删除 IndexedDB，不能清除浏览器 HTTP 缓存，文案与实际能力不一致。
+
+**修改内容**：
+
+1. 页面改为构建 manifest 驱动：图片加载前依宽高完成稳定双列瀑布流占位，极窄屏为单列；不依赖图片下载完成后测量或反复重排。
+2. 新控制器在接近视口时才设置真实 `src`，所有卡片和灯箱请求共用统一调度器；快速桌面最多 3、移动/3G 最多 2、Save-Data/2G 最多 1 个在途请求。
+3. 严格视口 observer 在正面积进入时显示、完全离开时立即隐藏，并根据从上/下方向进入设置相反位移；不再用显示/隐藏定时器、批次超时、5 秒轮询或焦点恢复重绑。
+4. 当前会话以 `sessionStorage` 保存一次 Fisher–Yates 随机排列；manifest 内容变化自动失效。“重新随机排列”不刷新页面、不冒充清除 HTTP 缓存。
+5. `lightbox-enhanced.js` 增加 managed gallery：遵循随机顺序、主图请求走同一队列，只显示当前附近 5 个数字导航项，不再为 292 张照片同时创建真实缩略图请求，并恢复打开前的 body overflow。
+6. 全局文章懒加载排除 `data-gallery-managed`，避免两套调度器竞争；Pug 仅在当前 PJAX 关闭前提下为 `/swiper/` 条件加载图库 CSS/JS。
+
+**相关站点文件**：`source/swiper/index.md`、`scripts/auto-image-list.js`、`tools/optimize-gallery-images.js`、`source/swiper/README.md`。
+
+**可回滚性**：可整体恢复旧 `source/swiper/index.md` 内联实现并移除新增 CSS/JS；但会重新引入全量下载、伪缓存清理、并发绕过和 observer 竞态，不建议局部混用新旧加载系统。
+
+**验证**：292 张 manifest 条目的数量、尺寸、字节数和 SHA-256 内容版本断言通过；`node --check`、压缩 dry-run、`git diff --check` 和 `npm run build` 通过。系统 Chrome/CDP 验证远处卡片无 `src`、稳定移动策略最大并发 2、滚到中部向下进入可见且加载、离开后隐藏、向上返回再次浮现、当前标签页刷新顺序不变、重排不导航、灯箱只含 5 个数字项且无批量缩略图图片。真实手机和慢服务器环境仍待人工体验；PJAX 当前禁用，未来开启前需把图库资源改为全局 no-op 注入或加入 PJAX 资源交换。
+
+**远程约束**：仅本地实施；自 `3eab004` 后没有执行 fetch、pull、push、deploy 或其他远程操作。
+
+---
+
 ### #9 — 2026-07-15 — 侧栏公告历史时间轴
 
 **修改文件**：

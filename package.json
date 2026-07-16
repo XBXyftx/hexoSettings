@@ -8,6 +8,7 @@
     "deploy": "hexo deploy",
     "server": "hexo server",
     "webp": "node ./tools/dispatch-webp.js",
+    "gallery:compress": "node ./tools/optimize-gallery-images.js",
     "webp:win": "pwsh ./tools/convert-to-webp.ps1 && pwsh ./tools/update-markdown-images.ps1",
     "webp:mac": "bash ./tools/convert-to-webp.sh && bash ./tools/update-markdown-images.sh",
     "opt": "npm run webp && npm run clean && npm run build",

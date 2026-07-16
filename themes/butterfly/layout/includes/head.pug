@@ -73,6 +73,10 @@ link(rel='stylesheet', href=url_for('/css/entrance-popup.css'))
 if globalPageType === 'post'
   link(rel='stylesheet', href=url_for('/css/vscode-breadcrumb-toc.css'))
 
+//- 昨日重现图库样式 - 仅目标页面加载
+if page.path === 'swiper/index.html'
+  link(rel='stylesheet', href=url_for('/css/yesterday-gallery.css'))
+
 if (theme.snackbar && theme.snackbar.enable)
   link(rel='stylesheet', href=url_for(theme.asset.snackbar_css) media="print" onload="this.media='all'")
 

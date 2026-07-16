@@ -27,6 +27,10 @@ div
   if globalPageType === 'post'
     script(src=url_for('/js/typewriter-effect.js'))
 
+  // 昨日重现图库 - 仅目标页面加载
+  if page.path === 'swiper/index.html'
+    script(defer src=url_for('/js/yesterday-gallery.js'))
+
   // 公告历史展开/收起
   if theme.aside.enable && theme.aside.card_announcement.enable
     script(src=url_for('/js/announcement-history.js'))
