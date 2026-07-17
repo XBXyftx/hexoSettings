@@ -19,7 +19,10 @@ keywords: 连连看, 小游戏, JavaScript, 响应式
 ## 🎲 开始游戏
 
 <div id="lianliankan-game">
-  <button id="restart">🎮 新游戏</button>
+  <div class="game-controls">
+    <button id="restart" type="button">🎮 新游戏</button>
+    <button id="fullscreen-toggle" type="button" aria-pressed="false">⛶ 全屏游玩</button>
+  </div>
   <div id="message"></div>
   <div id="game-container"></div>
 </div>
@@ -79,7 +82,15 @@ keywords: 连连看, 小游戏, JavaScript, 响应式
   border-color: #00ff88;
 }
 
-#restart {
+.game-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+#restart,
+#fullscreen-toggle {
   padding: 10px 20px;
   font-size: 14px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -87,17 +98,19 @@ keywords: 连连看, 小游戏, JavaScript, 响应式
   border: none;
   border-radius: 25px;
   cursor: pointer;
-  margin: 10px;
+  margin: 10px 0;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
-#restart:hover {
+#restart:hover,
+#fullscreen-toggle:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
 }
 
-#restart:active {
+#restart:active,
+#fullscreen-toggle:active {
   transform: translateY(0);
 }
 
@@ -109,6 +122,34 @@ keywords: 连连看, 小游戏, JavaScript, 响应式
   text-align: center;
   font-weight: bold;
   text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+#lianliankan-game:fullscreen,
+#lianliankan-game:-webkit-full-screen {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: clamp(12px, 2vw, 24px);
+  overflow: auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at top, #2d1b69 0%, #101026 48%, #050509 100%);
+}
+
+#lianliankan-game:fullscreen .game-controls,
+#lianliankan-game:-webkit-full-screen .game-controls {
+  flex: 0 0 auto;
+}
+
+#lianliankan-game:fullscreen #game-container,
+#lianliankan-game:-webkit-full-screen #game-container {
+  max-width: none;
+  max-height: none;
+  margin: 8px auto 0;
 }
 
 /* 响应式布局调整 */
@@ -125,7 +166,8 @@ keywords: 连连看, 小游戏, JavaScript, 响应式
     --gap: 4px;
   }
   
-  #restart {
+  #restart,
+  #fullscreen-toggle {
     font-size: 12px;
     padding: 8px 16px;
   }
@@ -141,7 +183,8 @@ keywords: 连连看, 小游戏, JavaScript, 响应式
     --gap: 3px;
   }
   
-  #restart {
+  #restart,
+  #fullscreen-toggle {
     font-size: 11px;
     padding: 6px 12px;
   }
@@ -169,21 +212,32 @@ keywords: 连连看, 小游戏, JavaScript, 响应式
 document.addEventListener('DOMContentLoaded', function() {
   // 动态计算游戏板大小
   function calculateBoardSize() {
-    // 获取Hexo主题的页面容器宽度
-    const pageContainer = document.getElementById('page') || document.querySelector('.page') || document.querySelector('main') || document.querySelector('article');
-    const containerWidth = pageContainer ? pageContainer.clientWidth : window.innerWidth * 0.8;
+    const game = document.getElementById('lianliankan-game');
+    const isFullscreen = document.fullscreenElement === game || document.webkitFullscreenElement === game;
+    const gameStyles = getComputedStyle(game);
+    const blockSize = parseInt(gameStyles.getPropertyValue('--block-size'));
+    const gap = parseInt(gameStyles.getPropertyValue('--gap'));
+    const containerWidth = isFullscreen ? window.innerWidth : (() => {
+      const pageContainer = document.getElementById('page') || document.querySelector('.page') || document.querySelector('main') || document.querySelector('article');
+      return pageContainer ? pageContainer.clientWidth : window.innerWidth * 0.8;
+    })();
     const containerHeight = window.innerHeight;
-    
-    const blockSize = parseInt(getComputedStyle(document.querySelector('#lianliankan-game')).getPropertyValue('--block-size'));
-    const gap = parseInt(getComputedStyle(document.querySelector('#lianliankan-game')).getPropertyValue('--gap'));
-    
-    // 计算可容纳的列数和行数（基于页面容器宽度）
-    const availableWidth = containerWidth - 80; // 减去页面内边距
-    const availableHeight = Math.min(containerHeight * 0.8, 800); // 增加到80%高度，最大800px
-    
+    const controlsHeight = isFullscreen ? 92 : 100;
+    const fullscreenPadding = Math.min(48, Math.max(24, window.innerWidth * 0.04));
+    const horizontalPadding = isFullscreen ? fullscreenPadding : 80;
+    const verticalPadding = isFullscreen ? fullscreenPadding : 100;
+    const availableWidth = Math.max(blockSize + gap, containerWidth - horizontalPadding);
+    const availableHeight = Math.max(blockSize + gap, (isFullscreen ? containerHeight : Math.min(containerHeight * 0.8, 800)) - verticalPadding - controlsHeight);
     const availableCols = Math.floor(availableWidth / (blockSize + gap));
-    const availableRows = Math.floor((availableHeight - 100) / (blockSize + gap));
-    
+    const availableRows = Math.floor(availableHeight / (blockSize + gap));
+
+    if (isFullscreen) {
+      const cols = Math.max(6, availableCols - (availableCols % 2));
+      const rows = Math.max(8, availableRows - (availableRows % 2));
+
+      return { cols, rows };
+    }
+
     // 根据容器宽度调整最大列数和行数
     const maxCols = containerWidth >= 1000 ? 16 : // 大容器
                   containerWidth >= 800 ? 14 : // 中等容器
@@ -209,16 +263,6 @@ document.addEventListener('DOMContentLoaded', function() {
       finalRows = Math.max(finalRows, minRows - (minRows % 2));
     }
     
-    console.log('容器信息:', {
-      pageContainerWidth: containerWidth,
-      availableWidth: availableWidth,
-      blockSize: blockSize,
-      gap: gap,
-      calculatedCols: availableCols,
-      finalCols: finalCols,
-      finalRows: finalRows
-    });
-    
     // 确保总方块数是偶数
     return {
       cols: finalCols,
@@ -236,23 +280,24 @@ document.addEventListener('DOMContentLoaded', function() {
   let gameData = [];
   let selectedBlocks = [];
   let isProcessing = false;
+  let fullscreenTransitionInProgress = false;
+  let fullscreenResizeTimer = null;
 
   // 初始化游戏
   function initGame() {
-    // 延迟一下确保页面完全加载
-    setTimeout(() => {
-      const size = calculateBoardSize();
-      ROWS = size.rows;
-      COLS = size.cols;
-      BLOCK_SIZE = parseInt(getComputedStyle(document.querySelector('#lianliankan-game')).getPropertyValue('--block-size'));
-      
-      generateMatrix();
-      drawBoard();
-    }, 100);
+    const size = calculateBoardSize();
+    ROWS = size.rows;
+    COLS = size.cols;
+    BLOCK_SIZE = parseInt(getComputedStyle(document.querySelector('#lianliankan-game')).getPropertyValue('--block-size'));
+
+    generateMatrix();
+    drawBoard();
   }
 
   // 监听窗口大小变化
   window.addEventListener('resize', () => {
+    if (isGameFullscreen() || fullscreenTransitionInProgress || fullscreenResizeTimer) return;
+
     setTimeout(() => {
       const size = calculateBoardSize();
       if (size.rows !== ROWS || size.cols !== COLS) {
@@ -260,6 +305,25 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }, 100);
   });
+
+  function finishFullscreenTransition() {
+    clearTimeout(fullscreenResizeTimer);
+    fullscreenResizeTimer = setTimeout(() => {
+      fullscreenTransitionInProgress = false;
+      fullscreenResizeTimer = null;
+    }, 200);
+  }
+
+  function redrawBoardForFullscreen() {
+    const size = calculateBoardSize();
+    ROWS = size.rows;
+    COLS = size.cols;
+    BLOCK_SIZE = parseInt(getComputedStyle(document.querySelector('#lianliankan-game')).getPropertyValue('--block-size'));
+    generateMatrix();
+    selectedBlocks = [];
+    isProcessing = false;
+    drawBoard();
+  }
 
   // 开始新游戏，生成游戏数据
   function generateMatrix() {
@@ -278,14 +342,17 @@ document.addEventListener('DOMContentLoaded', function() {
   // 绘制游戏面板
   function drawBoard() {
     const container = document.getElementById('game-container');
+    const gap = parseInt(getComputedStyle(document.querySelector('#lianliankan-game')).getPropertyValue('--gap'));
     container.style.gridTemplateColumns = `repeat(${COLS}, ${BLOCK_SIZE}px)`;
+    container.style.width = `${COLS * BLOCK_SIZE + Math.max(0, COLS - 1) * gap + gap * 2}px`;
+    container.style.height = `${ROWS * BLOCK_SIZE + Math.max(0, ROWS - 1) * gap + gap * 2}px`;
     
     container.innerHTML = '';
     gameData.forEach((row, i) => {
       row.forEach((picNum, j) => {
         const block = document.createElement('div');
         block.className = 'block';
-        block.style.backgroundImage = `url(/LianlianKan/imgs/${picNum}.webp)`;
+        block.style.backgroundImage = `url(/LianlianKan/imgs/${picNum}.jpg)`;
         block.dataset.row = i;
         block.dataset.col = j;
         block.addEventListener('click', handleBlockClick);
@@ -442,8 +509,50 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(() => msg.textContent = '', 2000);
   }
 
+  // 全屏模式
+  const game = document.getElementById('lianliankan-game');
+  const fullscreenToggle = document.getElementById('fullscreen-toggle');
+
+  function isGameFullscreen() {
+    return document.fullscreenElement === game || document.webkitFullscreenElement === game;
+  }
+
+  function syncFullscreenButton() {
+    const isFullscreen = isGameFullscreen();
+    fullscreenToggle.textContent = isFullscreen ? '⛶ 退出全屏' : '⛶ 全屏游玩';
+    fullscreenToggle.setAttribute('aria-pressed', String(isFullscreen));
+    redrawBoardForFullscreen();
+    finishFullscreenTransition();
+  }
+
+  async function toggleFullscreen() {
+    fullscreenTransitionInProgress = true;
+
+    try {
+      if (isGameFullscreen()) {
+        const exitFullscreen = document.exitFullscreen || document.webkitExitFullscreen;
+        if (exitFullscreen) await exitFullscreen.call(document);
+      } else {
+        const requestFullscreen = game.requestFullscreen || game.webkitRequestFullscreen;
+        if (!requestFullscreen) {
+          showMessage('当前浏览器不支持全屏模式');
+          finishFullscreenTransition();
+          return;
+        }
+        await requestFullscreen.call(game);
+      }
+    } catch (error) {
+      console.warn('无法切换全屏模式：', error);
+      showMessage('无法切换全屏模式');
+      finishFullscreenTransition();
+    }
+  }
+
   // 初始化
   document.getElementById('restart').addEventListener('click', initGame);
+  fullscreenToggle.addEventListener('click', toggleFullscreen);
+  document.addEventListener('fullscreenchange', syncFullscreenButton);
+  document.addEventListener('webkitfullscreenchange', syncFullscreenButton);
   initGame();
 });
 </script>

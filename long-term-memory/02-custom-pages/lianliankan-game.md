@@ -14,9 +14,9 @@ type: project
 ## L1 · TL;DR
 
 - `/LianlianKan/` 是一个**纯前端连连看消除游戏**，使用原生 JS + CSS 自定义属性实现响应式。
-- **动态棋盘**：根据页面容器宽度和屏幕高度自动计算行列数（6-16 列 × 8-16 行）。
+- **动态棋盘**：普通页面按页面容器计算；全屏模式按完整视口计算偶数行列，并将棋盘尺寸填满可用区域。
 - **连接检测**：支持直线、单折线（1 个拐角）、双折线（2 个拐角）三种匹配路径。
-- **8 种图片**（`1.webp` ~ `8.webp`），CSS 背景图渲染。
+- **8 种本地 JPEG 图片**（`1.jpg` ~ `8.jpg`），CSS 背景图渲染；运行时扩展名必须与 `source/LianlianKan/imgs/` 中受版本控制的素材一致。
 
 ---
 
@@ -100,6 +100,7 @@ gameData.flat().every(cell => cell === 0)
 | 选第二个方块 | 自动检测匹配 → 消除或取消选择 |
 | `isProcessing` 锁 | 消除动画期间阻止新点击 |
 | "新游戏" 按钮 | 重新计算尺寸 → 重洗牌 → 重绘棋盘 |
+| "全屏游玩" 按钮 | 使用 Fullscreen API 让整个游戏区域进入沉浸模式；Esc 或按钮可退出，按钮文字和 `aria-pressed` 会同步；进入/退出时按目标区域重新洗牌和绘制，以全屏视口填满棋盘 |
 | 窗口 resize | 延迟 100ms → 尺寸变化则重新初始化 |
 
 ---
@@ -110,7 +111,8 @@ gameData.flat().every(cell => cell === 0)
 |---|---|---|
 | R1 | 删除 `source/LianlianKan/imgs/` 中的图片 | 对应编号的方块显示空白 |
 | R2 | 把图片数量改少但不同步修改 `IMGS_COUNT` | 多出的编号 404 |
-| R3 | 给游戏容器设置 `overflow: hidden` | 棋盘可能被裁剪 |
+| R3 | 改变图片引用扩展名却没有生成并提交对应素材 | 背景图全数 404；黑色棋盘会看起来像黑屏 |
+| R4 | 给游戏容器设置 `overflow: hidden` | 棋盘可能被裁剪 |
 
 ---
 
@@ -119,4 +121,5 @@ gameData.flat().every(cell => cell === 0)
 | 内容 | 路径 |
 |---|---|
 | 游戏页面 | `source/LianlianKan/index.md` |
-| 图片素材 | `source/LianlianKan/imgs/1.webp` ~ `8.webp` |
+| 全屏实现 | `source/LianlianKan/index.md` 内联 `toggleFullscreen()`、`fullscreenchange` 同步与 `:fullscreen` 样式 |
+| 图片素材 | `source/LianlianKan/imgs/1.jpg` ~ `8.jpg` |

@@ -2,108 +2,54 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
+## Project
 
-This is a Hexo static site generator blog using the Butterfly theme. The blog is deployed to both GitHub Pages and a private server. It features a typewriter effect for posts, private post management, and automatic image list generation.
+This is a Chinese (`zh-CN`) Hexo 7 static blog using a maintained, checked-in Butterfly theme fork. The active theme is `butterfly`; root site settings are in `_config.yml` and theme behavior/settings are in `_config.butterfly.yml`.
 
-## Common Commands
+The site deploys generated output to both GitHub Pages and a private Git remote. Do not run deploy commands unless explicitly requested.
 
-### Development
-- `npm run server` - Start local development server
-- `hexo server` - Alternative way to start server
-- `hexo new "Post Title"` - Create a new blog post
-- `hexo new page "page-name"` - Create a new page
+## Commands
 
-### Build & Deploy
-- `npm run dev` - Full pipeline (webp convert + clean + local server)
-- `npm run opt` - Optimize build (webp convert + clean + generate)
-- `npm run pub` - Full publish (opt + deploy to both targets)
-- `npm run webp` - Image to WebP conversion only (auto-detects OS, runs .ps1 on Win / .sh on Mac)
-- `npm run clean` - Clean generated files and cache
-- `npm run build` or `hexo generate` - Generate static files
-- `npm run deploy` or `hexo deploy` - Deploy to configured git repositories
+- `npm install` installs project dependencies.
+- `npm run server` starts the local Hexo server.
+- `npm run build` generates the site into `public/`; this is the primary validation command and runs the registered generation-time checks.
+- `npm run clean` removes Hexo output and cache. Use `npm run clean && npm run build` for a clean validation build.
+- `npm run dev` converts eligible images to WebP, cleans, then starts the server.
+- `npm run opt` converts WebP assets, cleans, and builds.
+- `npm run webp` dispatches to the platform-specific WebP conversion and Markdown-reference update scripts. It requires `cwebp`/`gif2webp` from libwebp (`brew install webp` on macOS).
+- `npm run gallery:compress` optimizes source images for the Yesterday Gallery.
+- `npm run pub` runs `opt` and deploys to both configured remotes; `npm run deploy` deploys existing output.
+- `hexo new "Post Title"` creates a post; `hexo new page "page-name"` creates a page.
 
-### Maintenance
-- `hexo clean && hexo generate` - Full rebuild (recommended before deploy)
-- `npm run opt` - Optimized local build with WebP conversion
-- `npm run pub` - Full publish pipeline to both GitHub Pages and private server
-- `npm run dev` - Start local dev server with WebP conversion
+There is no unit-test or single-test runner. For generated-site audits, build first, then run:
 
-## Architecture & Key Features
+- `node tools/audit-article-layout-stability.js` checks generated post image dimensions and lazy-load markup.
+- `node tools/audit-resource-requests.js --no-external` checks generated local resource references without network probes. Omit `--no-external` to also probe external media.
+- `node tools/verify-resource-requests.js` and `node tools/verify-toc-navigation.js` are targeted generated-site verification tools; use `--help` for their available options.
 
-### Theme Configuration
-- **Main theme**: Butterfly (located in `themes/butterfly/`)
-- **Primary config**: `_config.yml` (main Hexo config)
-- **Theme config**: `_config.butterfly.yml` (Butterfly theme settings)
+## Content And Build Architecture
 
-### Custom Features
+- `source/_posts/` holds normal Markdown posts. `post_asset_folder: true` means a post can have a sibling asset directory; preserve local asset paths when editing posts.
+- `source/` also holds standalone pages and interactive experiences. `LianlianKan`, `MarkdownPreview`, `birthday-gift`, and `swiper` keep their page code and related assets together. Shared client assets live in `source/css/`, `source/js/`, and `source/imgs/`.
+- `themes/butterfly/` is customized directly, not merely an untouched dependency. Theme Pug layouts decide which custom scripts load for home, post, and gallery pages; inspect `themes/butterfly/layout/includes/additional-js.pug` before changing page-specific client behavior.
+- Root `scripts/` files are Hexo lifecycle plugins and load automatically. They transform rendered output or generate source/output data during `hexo generate`; do not treat them as standalone commands.
+- `scripts/math-protect.js` preserves math markup before Kramed renders Markdown. `scripts/image-dimensions.js` adds intrinsic dimensions and lazy-loading metadata to eligible local images after HTML rendering; its exclusions protect theme, GIF, cover, and birthday-page behavior.
 
-#### Typewriter Effect
-- Custom typewriter animation for blog posts
-- Implemented via theme modifications (see `README_typewriter.md`)
-- Uses `typewriter` field in post front matter
-- Only displays on posts that have the `typewriter` field
+## Generated Data Contracts
 
-#### Private Posts System
-- Custom script: `scripts/private-posts-scanner.js`
-- Scans `source/coffer/private-posts/` directory
-- Generates `source/coffer/private-posts.json` for secure access
-- Uses MD5 hashing to detect changes and optimize performance
+- `scripts/private-posts-scanner.js` scans `source/coffer/private-posts/*.md` before generation and rewrites the tracked `source/coffer/private-posts.json` manifest. A build can therefore modify this file.
+- `scripts/birthday-gift-scanner.js` scans event folders under `source/birthday-gift/events/`, generates event data, and rewrites the tracked `source/birthday-gift/events-data.json` manifest.
+- `scripts/auto-image-list.js` generates `swiper/images-auto.json` in Hexo output from `source/swiper/images/`. It includes dimensions, byte size, and revision hashes; `source/swiper/images.json` is a separate tracked file.
+- `scripts/announcement-history-validator.js` validates `source/_data/announcements.yml` before generation. Announcement IDs must be unique lowercase slug-like strings, entries must be in strict reverse chronological order with timezone-bearing ISO timestamps, and declared local image dimensions/paths must match files under `source/`. A failed validation intentionally stops the build.
+- `public/`, `db.json`, deploy directories, and gallery optimization previews are ignored generated/local artifacts. Do not edit `public/` as source.
 
-#### Auto Image Gallery
-- Custom script: `scripts/auto-image-list.js`
-- Automatically generates image list from `source/swiper/images/`
-- Creates `swiper/images-auto.json` for gallery functionality
-- Supports: jpg, jpeg, png, gif, webp, bmp, svg
+## Configuration And Front Matter
 
-### Deployment Configuration
-- **Dual deployment**: GitHub Pages + Private server
-- **GitHub**: `git@github.com:XBXyftx/XBXyftx.github.io.git` (main branch)
-- **Private server**: `git@113.47.8.204:/home/git/blog.git` (main branch)
+- `_config.yml` configures Hexo, Markdown rendering, WebP/filter optimization, Mermaid, and the two deployment targets.
+- `_config.butterfly.yml` configures navigation, layouts, assets, announcements, and enabled theme features. Announcement content is primarily data-driven through `source/_data/announcements.yml`; the theme `content` field is fallback compatibility content.
+- Use post front matter appropriate to the content, typically `title`, `description`, `tags`, and `categories`; `typewriter` opts a post into the custom typewriter effect. Mermaid is supported.
 
-### Content Structure
-- **Posts**: `source/_posts/` - Main blog content
-- **Pages**: `source/[page-name]/` - Static pages (about, links, etc.)
-- **Assets**: `source/imgs/` - Images and media files
-- **Private content**: `source/coffer/` - Protected content area
-- **Interactive features**: `source/LianlianKan/`, `source/MarkdownPreview/`
+## Reference Material
 
-### Key Dependencies
-- `hexo-asset-image` - Enhanced image processing
-- `hexo-deployer-git` - Git deployment
-- `hexo-butterfly-*` - Theme enhancements and plugins
-- `hexo-filter-mermaid-diagrams` - Diagram support
-- `hexo-wordcount` - Reading time and word count
-
-### External Tool Dependencies
-- **libwebp** (`cwebp` / `gif2webp`) - Required for WebP image conversion
-  - Windows: `scoop install main/libwebp`
-  - macOS: `brew install webp`
-- **WebP 跨平台调度**：`tools/dispatch-webp.js` 自动检测 OS（Windows→pwsh+.ps1, macOS/Linux→bash+.sh），macOS/Linux **不需要**安装 PowerShell
-
-### Post Front Matter
-When creating posts, use these fields:
-```yaml
----
-title: Post Title
-description: SEO description
-typewriter: Text for typewriter effect (optional)
-tags: [tag1, tag2]
-categories: [category]
----
-```
-
-### Development Notes
-- Blog uses Chinese language (`zh-CN`)
-- Post asset folders are enabled (`post_asset_folder: true`)
-- Mermaid diagrams are supported
-- Custom CSS/JS can be added to `source/css/` and `source/js/`
-- Scripts in `/scripts` directory are auto-loaded by Hexo
-- WebP conversion tools in `/tools` directory (`.ps1` for Windows, `.sh` for macOS, `dispatch-webp.js` for auto-detection)
-- Environment setup guide: `部署.txt` (project root)
-- Detailed documentation: `long-term-memory/03-api-practices/`
-
-### Performance Optimizations
-- Private posts scanner uses file hashing to avoid unnecessary rescans
-- Auto image list generator only processes supported formats
-- Theme uses lazy loading for images
+- `部署.txt` documents local environment/deployment setup.
+- `long-term-memory/` contains design decisions and historical operational notes. Consult the relevant topic before changing complex custom features such as the gallery, announcement timeline, article loading/TOC behavior, or interactive pages.
