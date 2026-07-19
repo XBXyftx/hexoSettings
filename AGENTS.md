@@ -1,6 +1,28 @@
-# AGENTS.md - Hexo Blog Project Guide
+# AGENTS.md - Hexo Blog Agent Entry
 
-This file provides comprehensive guidance for AI coding agents working with this Hexo blog project.
+This file is the workspace bootstrap entry for AI agents working with this Hexo blog. The detailed project memory, task routing, evidence labels, and authorization boundaries live under `long-term-memory/`.
+
+## Startup Protocol
+
+Before any development, bug investigation, review, documentation maintenance, or build-related change:
+
+1. Read `long-term-memory/MEMORY.md` for current project facts and task indexes.
+2. Read `long-term-memory/rules.md` for content, theme, build, deployment, Git, and security boundaries.
+3. Read `long-term-memory/agent.md` when the task requires modification, investigation, validation planning, or sub-agent routing.
+4. Read only the relevant section README and topic document; do not scan the entire memory tree by default.
+
+Task routing:
+
+- Articles: `long-term-memory/02-requirements/` and the relevant rendering guide.
+- Custom pages: `long-term-memory/02-custom-pages/`.
+- Scripts, theme, build, resources, or performance: `long-term-memory/03-api-practices/` and the matching operation/reference entry.
+- Theme changes: also read and update `long-term-memory/06-theme-modifications/`.
+- Bugs and known issues: `long-term-memory/07-known-issues/` and the relevant operation evidence.
+- Memory maintenance: `long-term-memory/document-authoring-rules.md`.
+
+Sub-agents are optional read-only context tools. Do not start a default bundle; choose the smallest role justified by a concrete uncertainty, evidence type, workspace risk, or impact surface.
+
+Do not commit, push, deploy, delete, restore, or run destructive image conversion without explicit user authorization. Preserve existing worktree differences, including generated-data changes.
 
 ## Project Overview
 
@@ -333,7 +355,7 @@ The blog deploys to two destinations simultaneously:
 - This is a Chinese-language blog; maintain Chinese in user-facing content
 - The project uses Windows PowerShell scripts; avoid bash-specific commands
 - Asset folders are enabled; always place post images in the companion folder
-- WebP optimization is mandatory; run `npm run webp` after adding images
+- Prefer WebP for new images, but do not run `npm run webp` automatically: the conversion pipeline may delete source images and requires explicit authorization
 - Custom scripts in `/scripts` are auto-loaded by Hexo during build
 - The typewriter feature requires both JS and CSS modifications
-- Test changes locally with `npm run dev` before deploying
+- Validate changes with the least destructive applicable check; `npm run dev`/`npm run opt` include WebP conversion and require explicit authorization. Never deploy without explicit authorization.

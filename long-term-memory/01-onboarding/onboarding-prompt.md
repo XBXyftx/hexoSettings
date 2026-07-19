@@ -1,6 +1,6 @@
 # 项目交接文档 — XBXyftx Hexo 博客
 
-> **AI 必读**：这是本项目的"入职手册"。阅读本文件后，你才能对项目有正确的全局认知，避免基于局部信息做出错误判断。
+> **AI 必读**：这是本项目的"入职手册"。完整生命周期、任务路由和证据协议见上级 [`agent.md`](../agent.md)；不要因为读取本文件就默认启动 sub agent。
 
 ---
 
@@ -36,14 +36,14 @@ d:\hexo\hexoSettings/
 ├── _config.butterfly.yml          # Butterfly 主题配置（**核心配置**）
 ├── package.json                   # npm 依赖和 scripts
 ├── CLAUDE.md                      # 给 Claude Code 的项目说明
-├── scripts/                       # 自定义 Hexo 脚本（5个）
+├── scripts/                       # 自定义 Hexo 脚本（以当前目录为准）
 │   ├── auto-image-list.js         # 轮播图自动生成
 │   ├── private-posts-scanner.js   # 隐私文章扫描（MD5优化）
 │   ├── image-dimensions.js        # 图片尺寸注入防 CLS
 │   ├── birthday-gift-scanner.js   # 生日页面事件扫描
 │   └── math-protect.js            # KaTeX 公式保护（防 kramed 破坏）
 ├── source/                        # 博客内容源
-│   ├── _posts/                    # 53 篇文章 + asset 文件夹
+│   ├── _posts/                    # 当前文章与同名 asset 文件夹，以工作树扫描为准
 │   ├── _data/link.yml             # 友情链接配置
 │   ├── about/                     # 自定义关于页面（HTML）
 │   ├── categories/                # 分类索引页
@@ -72,6 +72,8 @@ d:\hexo\hexoSettings/
 ## 3. 核心约束与规则
 
 ### 3.1 必遵守的规则
+
+开始修改前先阅读 [`../rules.md`](../rules.md)。本文只保留博客交接事实，不重复承载全部项目边界。
 
 1. **运行 build 前必 clean**
    - 任何 `hexo generate` 或 `npm run build` 之前，必须先执行 `hexo clean`

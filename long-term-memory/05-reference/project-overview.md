@@ -32,7 +32,7 @@ d:\hexo\hexoSettings/
 │   └── math-protect.js                  # KaTeX 公式保护
 │
 ├── source/                              # 博客内容源
-│   ├── _posts/                          # 57 篇文章（截至 2026-07-10）
+│   ├── _posts/                          # 当前文章源（数量以工作树扫描为准）
 │   │   ├── [文章名].md                   # 文章正文
 │   │   └── [文章名]/                     # 文章 asset 文件夹（图片等）
 │   │

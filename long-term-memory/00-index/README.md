@@ -16,6 +16,14 @@
 | [`06-theme-modifications/`](../06-theme-modifications/) | 主题文件修改跟踪 | 修改主题文件前 |
 | [`07-known-issues/`](../07-known-issues/) | 已知问题和待修复项 | 遇到异常时 |
 
+## Agent 与文档规则
+
+| 文档 | 作用 | 何时查阅 |
+|------|------|---------|
+| [`agent.md`](../agent.md) | 任务分类、渐进式读取、按需 sub agent、证据标签和停止条件 | 每个调查/修改任务 |
+| [`rules.md`](../rules.md) | 博客项目的内容、主题、构建、部署和授权边界 | 每个写入任务 |
+| [`document-authoring-rules.md`](../document-authoring-rules.md) | 记忆文档的分层、索引、事实和脱敏规则 | 维护记忆文档时 |
+
 ---
 
 ## 关键文件定位
@@ -87,4 +95,6 @@
 └── 上下文压缩后恢复
     └── 读 04-operations/ 的最后几条记录
     └── 再读 01-onboarding/ 的项目概览
+
+补充原则：不默认启动 sub agent；先用 `agent.md` 判断问题信号、最小角色和停止条件。
 ```

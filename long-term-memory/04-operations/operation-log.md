@@ -2,6 +2,37 @@
 
 ---
 
+### #41 — 2026-07-19 — 适配博客项目的 Agent 长期记忆协议（仅本地实施）
+
+**操作人**：Codex
+
+**涉及文件**：
+
+- `AGENTS.md` — 增加精简启动协议、长期记忆路由和授权边界，保留历史 Hexo 参考内容
+- `long-term-memory/agent.md` — 新增博客专属 Agent 生命周期、任务路由、证据标签、验证边界和停止条件
+- `long-term-memory/rules.md` — 新增博客内容、Hexo 生成、主题、构建、部署和 Git 规则
+- `long-term-memory/document-authoring-rules.md` — 新增长期记忆职责分层、索引、事实和脱敏规范
+- `long-term-memory/MEMORY.md` — 接入 Agent 文档入口，更新当前工作树状态和数量事实
+- `long-term-memory/00-index/README.md` — 增加 Agent/规则入口和按需读取原则
+- `long-term-memory/01-onboarding/onboarding-prompt.md` — 指向共享规则，修正易过时的数量描述
+- `long-term-memory/03-api-practices/README.md` — 增加脚本/构建任务的 Agent 和授权入口
+- `long-term-memory/04-operations/README.md` — 增加操作记录的证据标签要求
+- `long-term-memory/05-reference/project-overview.md` — 移除过时的固定文章数量描述
+- `long-term-memory/06-theme-modifications/README.md` — 增加主题修改前的协议和验证边界入口
+
+**操作详情**：
+
+参照独立的 portable long-term memory 模式，将博客原有“功能目录索引”升级为“博客专属 Agent 协议 + 分区文档”的三层结构。保留现有内容、主题、脚本、构建和部署文档，不引入 HarmonyOS 项目的需求编号或 DevEco 专属规则。针对本博客新增 WebP 删除源图、生成 JSON 会被重写、主题定制升级风险、客户端隐私文章限制和双部署授权边界。
+
+**验证结果**：
+
+- [x] 新增 Agent、项目规则和文档编写规则文件
+- [x] `MEMORY.md`、`00-index`、onboarding 和相关分区入口已同步
+- [x] 当前工作树文章数与 asset 目录数已重新扫描并更新为 59 / 51
+- [x] 保留用户已有 `source/coffer/private-posts.json` 工作区差异，未恢复或覆盖
+- [ ] 尚未运行 Hexo build；本次变更只涉及 Agent/长期记忆文档和启动说明
+- [ ] 未提交、未推送、未部署
+
 ### #1 — 2026-05-03 — 创建博客项目长期记忆目录
 
 **操作人**：AI 助手（Claude Code）
