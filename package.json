@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "build:markdown-preview": "node ./tools/build-markdown-preview.js",
+    "prebuild": "npm run build:markdown-preview",
     "build": "hexo generate",
     "clean": "hexo clean",
     "deploy": "hexo deploy",
@@ -19,6 +21,15 @@
     "version": "7.3.0"
   },
   "dependencies": {
+    "@codemirror/commands": "6.8.1",
+    "@codemirror/lang-markdown": "6.3.3",
+    "@codemirror/language": "6.11.0",
+    "@codemirror/search": "6.5.10",
+    "@codemirror/state": "6.5.2",
+    "@codemirror/view": "6.36.5",
+    "@lezer/highlight": "1.2.1",
+    "dompurify": "3.2.6",
+    "esbuild": "0.25.2",
     "hexo": "^7.3.0",
     "hexo-asset-image": "github:CodeFalling/hexo-asset-image",
     "hexo-butterfly-envelope": "^1.0.15",
