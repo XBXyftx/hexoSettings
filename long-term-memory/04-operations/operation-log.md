@@ -1381,3 +1381,52 @@
 **远程约束**：未提交、未推送、未部署。
 
 ---
+
+### #47 — 2026-07-21 — 修复 Butterfly flat note 浅底浅字（仅本地实施）
+
+**操作人**：Codex
+
+**触发反馈**：文章夜空背景上线后，`{% note info flat %}`、`warning flat`、`danger flat` 等提示块内部文字接近浅蓝白，在 Butterfly 自带的浅色提示背景上对比度不足。
+
+**根因与实现**：Butterfly `_tags/note.styl` 已为 `.note.flat` 设置 `$font-black`，但新增文章主题直接为 `#article-container p/li/td` 指定浅色，其选择器优先级高于 note 的继承色。现于文章主题末尾增加 `.note.flat` 专属覆盖，将段落、列表、表格、标题、强调、行内代码和普通链接设为 `#111827`；链接悬浮为纯黑。提示图标、左侧边框、info/warning/danger 背景和阅读模式保持原样。
+
+**验证结果**：
+
+- [x] `git diff --check` 通过
+- [x] `npm run clean` 后 `npm run build` 成功，生成 2,360 个文件
+- [x] `public/css/styles.css` 与主题源文件一致，包含 `.note.flat` 后置覆盖及 `#111827 !important`
+- [x] 生成文章 `2025/03/31/“HongXiaoYi”/index.html` 同时包含 info、warning、danger flat note，截图对应的段落、行内代码和 strong 结构均被覆盖
+- [x] 以三类 Butterfly 浅色背景近似值计算，黑色正文对比度为 info 14.60:1、warning 15.02:1、danger 13.74:1
+- [x] 保留并未手工编辑用户已有的 `source/coffer/private-posts.json` 差异；构建后该扫描器数据仍处于修改状态
+
+**远程约束**：未提交、未推送、未部署；保留用户已有的 `source/coffer/private-posts.json` 差异。
+
+---
+
+### #48 — 2026-07-21 — 首页卡片默认配色分化与静态星光（仅本地实施）
+
+**操作人**：Codex
+
+**目标**：提高瀑布流卡片封面下方信息区的常驻视觉差异，并加入随机分布感的固定小白点；不改变悬浮时的青绿白水波。
+
+**实现事实**：
+
+1. 六组 `nth-child` 变量分别使用黑青、钴蓝、酒红、赤褐、紫罗兰和深海绿蓝色域，渐变方向、三段底色、环境光与强调色均有明显差异。
+2. 每组定义六个不同的星点坐标；常驻背景以六层微小径向渐变绘制白色星光，尺寸约 0.6–0.9px，亮度为 0.40–0.76。
+3. 星点没有 DOM 节点、监听器或动画；鼠标水波的伪元素、动态层、生成频率、颜色、半径与销毁逻辑均未改动。
+4. 后续按用户反馈将每张卡片的星点数从 6 增至 10，核心半径从 0.6–0.9px 缩至 0.3–0.5px，完整柔边范围缩至 0.8–1.15px，并为六组卡片各补充四个独立坐标。
+
+**验证结果**：
+
+- [x] 星点细化后的 Stylus 独立编译成功，输出 20,942 字节 CSS
+- [x] `npm run clean` 后 `npm run build` 成功，生成 2,360 个文件
+- [x] 生成 CSS 含六组唯一配色映射和六组唯一十星坐标映射，每张卡片默认背景均包含十层静态白点
+- [x] `themes/butterfly/source/js/waterfall.js` 相对上一提交无差异，且生成 JS 与源码一致，悬浮水波逻辑未改
+- [x] 星点由 CSS 背景层绘制，无新增 DOM、事件监听器、RAF 或关键帧
+- [x] `git diff --check` 通过
+- [ ] 内置浏览器拒绝访问当前 `localhost:4000`；六组配色的主观分化程度、星点密度和移动端观感待用户刷新首页确认
+- [x] 保留扫描器维护的 `source/coffer/private-posts.json` 现有差异，未手工编辑
+
+**远程约束**：未提交、未推送、未部署；保留用户已有的 `source/coffer/private-posts.json` 差异和本轮 flat note 修复。
+
+---
