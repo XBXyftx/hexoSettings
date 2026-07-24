@@ -19,7 +19,7 @@
       descr: 超级技术佬
     - name: 黄豫新
       link: https://baiyb.top/
-      avatar: https://img.picui.cn/free/2025/03/11/67d0382a077d0.jpg
+      avatar: https://img.baiyb.top/file/blog/1771123844150_%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_2026-02-15_103638_552.jpg
       descr: 动手能力极强的后起之秀
     - name: 王鹏程
       link: http://neuronx.top/
@@ -30,9 +30,13 @@
       avatar: /imgs/huZiAv.webp
       descr: 一只皱皮
     - name: 李佳澎
-      link: http://blog.lijiapeng365.cn/
+      link: https://pixelsama.github.io/pixelsama-blog/
       avatar: /imgs/LiJiaPengAv.webp
       descr: 做游戏的佬
+    - name: 咩博-Blog
+      link: https://www.yangmiebo.com/
+      avatar: /imgs/miebooo.webp
+      descr: 我的学弟，分享前端开发、大模型训练与开源实践的个人博客
 - class_name: hexo搭建教程推荐
   class_desc: 搭建博客的教程
   link_list:
