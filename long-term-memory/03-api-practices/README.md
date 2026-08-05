@@ -31,6 +31,13 @@
 | --- | --- | --- |
 | [Markdown 内嵌 HTML 渲染规范](markdown-html-embedding.md) | 文章中直接插入 HTML 卡片、按钮、复杂 `<div>` 布局、内联样式 | 修改文章正文 HTML 前；预览出现源码块或异常空白时 |
 
+## 已回退的页面动效尝试
+
+| 文档 | 状态 | 用途 |
+| --- | --- | --- |
+| [星空背景动画](universe-background.md#l7--2026-07-29-liquid-尝试已回退) | Liquid 已完整回退 | 保留首页封面 WebGL2 Liquid 的参数、设备门槛、验证结果与视觉未采纳结论 |
+| [Bend 页面边缘折叠尝试](bend-effect.md) | Bend 已完整回退 | 保留兼容性调查、CSS 3D 替代方案、验证结果与视觉未采纳结论 |
+
 ---
 
 ## 自定义脚本 API

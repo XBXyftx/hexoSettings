@@ -1,8 +1,8 @@
 # 长期记忆索引 — XBXyftx Hexo 博客项目
 
 > **AI 必读**：每次进入新会话，第一步必须阅读本文件。严禁跳过索引直接操作代码。
-> **当前日期**：2026-07-19
-> **项目状态**：活跃维护中，持续发布新文章和自定义页面；当前最新博客提交为 `db1039c`，完成连连看图片引用修复和全屏模式。性能基线、懒加载、首页瀑布流和公告时间轴均已有操作记录；私密文章索引存在用户工作区差异，处理其他任务时不得覆盖。
+> **当前日期**：2026-07-30
+> **项目状态**：活跃维护中；远程备份基点为 `7c77314`。2026-07-29/30 的首页 Liquid 与非文章页 Bend 均因最终视觉验收未通过而完整回退，当前运行时不包含这两个效果；仅长期记忆保留尝试方案与验证证据，未提交、推送或部署。
 
 ---
 
@@ -87,6 +87,8 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 - [2026-07-11 P1 分层星空动效实验与回退](04-operations/2026-07-11-starfield-p1/README.md) — 基线 `049f08d` 已推送；实验源码、三断点本地 Headless A/B 和 SHA-256 快照已归档，视觉验收未通过，实际运行时已恢复基线双层星空。
 - [2026-07-11 P2 失效请求修复](04-operations/2026-07-11-invalid-request-p2/README.md) — 基线 `8863b70` 已推送；本地缺失资源、Mermaid 404、旧 fallback/默认页头图和可确认路径均已本地修复；8 张外部正文图及 1 个不确定头像仍单列遗留。
 - [2026-07-12 DOM 就绪预加载器与首页星空收敛](04-operations/operation-log.md#32) — `spincat` 不再等待 `window.load`；原有双层星空仅首页加载，非首页无 Canvas/RAF，且未重启未采纳的单控制器实验。
+- [2026-07-29 首页封面桌面 Liquid 尝试与回退](04-operations/operation-log.md#50--2026-07-29--首页封面桌面-liquid-叠层尝试已回退) — 曾实现桌面细指针 WebGL2 流体叠层并完成多断点验证；最终视觉未通过，代码、样式与入口已全部回退，仅保留文档。
+- [2026-07-30 非文章页 Bend 尝试与回退](04-operations/operation-log.md#51--2026-07-30--非文章页-bend-兼容折叠与持久化开关尝试已回退) — 曾实现非文章页 CSS 3D 兼容折叠和持久化开关；最终视觉未通过，所有运行时与页面接入已回退，仅保留文档。
 - [2026-07-11 文章懒加载与目录锚点稳定性治理](04-operations/2026-07-11-article-layout-stability/README.md) — 远程备份 `bb93da8` 已推送，实施后严禁远程写入；文章仅近视口动态占位、目录晚到媒体重锚定、生成态尺寸审计与桌面/移动延迟图片验证均已记录。
 - [Hexo 8 升级可行性报告](05-performance-audit/2026-05-07-hexo-upgrade-feasibility/README.md) — 🔴 22 依赖逐项分析、3 方案对比、数学渲染链断裂、自定义脚本影响
 - [部署流水线（dev/opt/pub）](03-api-practices/deployment-pipeline.md) — 3 条部署命令的完整流程、参数差异、适用场景
@@ -100,6 +102,7 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 - [兜底模块全览（Twikoo/KaTeX/Mermaid + inject）](03-api-practices/fallback-modules.md) — 评论/公式/图表三大模块 + inject.head/bottom 资源全景图
 - [Plotly 函数可视化渲染规范](03-api-practices/plotly-function-visualization.md) — 交互式函数图像模板（1D 曲线 + 3D 曲面）、PJAX 兼容、颜色规范
 - [星空背景动画（Universe）](03-api-practices/universe-background.md) — header-universe.js 实现细节、粒子系统、流星效果
+- [Bend 页面边缘折叠尝试（已回退）](03-api-practices/bend-effect.md) — 兼容性调查、CSS 3D 替代方案、验证证据与视觉未采纳结论
 - [图片懒加载系统](03-api-practices/lazy-loading-system.md) — 多套懒加载方案协同、IntersectionObserver、PJAX 重初始化
 - [侧栏公告历史时间轴](03-api-practices/announcement-history.md) — `source/_data/announcements.yml` 编写入口、Git 历史恢复、构建校验、Pug/CSS/JS 交互与升级说明
 - [性能优化策略](03-api-practices/performance-optimization.md) — FPS 节流、visibility 暂停、移动端降级、异步 CSS

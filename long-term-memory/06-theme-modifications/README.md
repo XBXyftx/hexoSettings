@@ -482,6 +482,62 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 **远程约束**：仅本地实施；未提交、未推送、未部署。
 
+---
+
+### #16 — 2026-07-29 — 首页封面 Liquid WebGL2 叠层尝试（已回退）
+
+**最终状态（2026-07-30）**：视觉验收未通过，以下主题改动已全部恢复；当前主题不存在 Liquid JS/CSS 或加载入口。本条只作为尝试记录，不是升级主题时需要重放的现役修改。
+
+**修改文件**：
+
+- `themes/butterfly/source/js/header-liquid.js`
+- `themes/butterfly/source/css/header-liquid.css`
+- `themes/butterfly/layout/includes/head.pug`
+
+**修改原因**：在不替换现有封面图、不影响双层星空、不扩大到正文或非首页路由的前提下，将 Canvas UI Liquid 的鼠标驱动流体色迹用于首页顶部封面；手机和平板必须维持原有纯星空性能边界。
+
+**修改内容**：
+
+1. 原生移植 WebGL2 流体求解器，使用固定蓝色透明色迹；不引入 React/shadcn，不捕获 HTML 内容纹理，因此不执行实验性 HTML-in-Canvas 或封面图扭曲。
+2. 仅在 `>1024px + hover:hover + pointer:fine` 且非 reduced-motion 时创建 `.header-liquid-canvas`；其他设备完全不创建 WebGL 上下文、Canvas、求解器资源或指针监听。
+3. Canvas 固定在 `#page-header.full_page` 内部，层级 1；顶部星空保持 2，标题和滚动提示保持 3，导航不改。Canvas 不接收指针，封面裁剪防止流体进入正文。
+4. 轨迹耗散后自动停止 RAF，封面离屏或文档隐藏时停止；尺寸、交叉可见性、断点变化、context lost、PJAX 和公开控制器调用均有幂等销毁/恢复路径。
+5. WebGL2、浮点 framebuffer、着色器或程序失败时静默回退到现有封面与星空；不新增 fallback 动画。
+6. 2026-07-30 根据视觉反馈将最终显示透明度上限从 `0.82` 调整为 `0.492`（原值的 60%）；流体求解参数、蓝色色值、设备门槛、层级与生命周期均未改变。
+
+**相关文件**：`themes/butterfly/source/js/header-universe.js`、`themes/butterfly/source/css/styles.css` 与 `themes/butterfly/source/js/universe-optimized.js` 保持原实现；本次没有修改星体参数、Canvas 数量、粒子预算或帧率。
+
+**回退结果**：以实施前已远程备份的 `7c773140323aef8e40f1114bd5ba9dcf4870b439` 为基点，已移除 Liquid JS/CSS 并恢复 `head.pug` 的首页加载入口；现有双层星空未回滚。
+
+**验证**：JS 语法、diff 检查、clean build、生成资源隔离及私密索引哈希通过；Codex 内置浏览器完成 390/1024/1440 三断点、鼠标视觉轨迹、断点销毁重建、reduced-motion、空闲停止、封面离屏、交互命中、控制器销毁和归档/文章隔离验证。2026-07-30 透明度调整后再次完成 clean build，并在 1440×900 确认较浅轨迹、封面边界、层级、两层星空与零 Liquid/WebGL 错误，在 1024×900 确认 Liquid 仍为 0。标签页隐藏触发受内置浏览器后端限制，真实设备与其他浏览器仍待发布前回归。完整证据见操作日志 #50。
+
+**远程约束**：回滚基点确认后未执行远程操作；实验实现未提交、未推送、未部署，回退后只保留长期记忆。
+
+---
+
+### #17 — 2026-07-30 — 非文章页 Bend 兼容折叠尝试（已回退）
+
+**最终状态（2026-07-30）**：视觉验收未通过，以下主题、右键菜单和独立页面改动已全部恢复；当前主题不存在 Bend 资源、控制器或开关。本条只作为尝试记录，不是升级主题时需要重放的现役修改。
+
+**修改文件**：`bend-effect.js`、`bend-effect.css`、`head.pug`、`rightmenu.pug`、`rightmenu.js`、`rightmenu.css`
+
+**修改原因**：在文章阅读区域保持完全原生的前提下，为其他主题页面增加 Canvas UI Bend 的页面边缘折叠语义，并允许用户从右键菜单长期关闭或重新开启。
+
+**修改内容**：
+
+1. 上游依赖当前浏览器不支持的 `drawElementImage` / `requestPaint`，因此采用固定、不可命中的 CSS 3D 顶底折叠层；不复制、隐藏、搬运或捕获页面 DOM，也不宣称为上游逐像素重映射。
+2. 保留 `zone=240`、`angle=80`、`rounding=150`、`perspective=700`、`ease=240`、`smoothing=0.1`、`tumble=0.5`、`tilt=0.5`、`direction=in` 等配置语义。
+3. `head.pug` 仅在非文章页加载 Bend；运行时另以 pageType 和 `#body-wrap.post` 双重排除。文章页右键按钮禁用并显示“文章页关闭”。
+4. `rightmenu.js` 改为无 jQuery 依赖的原生实现，增加 `blog:bend-enabled` 持久化开关和独立页面容错，同时保留既有菜单功能。
+5. RAF 收敛即停，页面隐藏暂停；resize、Observer、scroll、wheel、pointer、storage、reduced-motion 与 PJAX 均有清理路径。
+6. `window.__bendController` 提供幂等管理接口；效果层 `pointer-events:none`、`aria-hidden=true`，不拦截页面交互。
+
+**相关文件**：`source/birthday-gift/index.html` 作为 `layout:false` 页面显式复用资源；首页 Liquid 和双层星空不属于 Bend 回滚范围。
+
+**回退结果**：以已远程备份的 `7c77314` 为基点，已恢复 Bend/右键/入口差异及生日页接入，未使用 `git reset --hard`。
+
+**实验验证边界**：JS/diff、clean build、全部 176 个生成路由资源审计，以及内置浏览器的默认效果、开关持久化、文章页硬隔离、reduced-motion、生日页滚动、连连看/Markdown/Swiper/Coffer/About/留言页代表交互和控制器生命周期均通过；完整证据见操作日志 #51。上述结果只描述已删除的实验版本；实现未提交、未推送、未部署。
+
 ## 升级主题时的检查清单
 
 当 Butterfly 主题发布新版本时，按以下步骤操作：

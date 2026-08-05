@@ -1455,3 +1455,93 @@
 **远程约束**：仅更新本地公告与长期记忆；未提交、未推送、未部署。
 
 ---
+
+### #50 — 2026-07-29 — 首页封面桌面 Liquid 叠层尝试（已回退）
+
+**操作人**：Codex
+
+**最终状态（2026-07-30）**：用户最终视觉验收认为效果很差。Liquid JS/CSS 与 `head.pug` 加载入口已全部删除或恢复，扫描器生成差异也已恢复；当前站点不存在 Liquid 资源、Canvas 或控制器，仅保留本条历史记录及相关长期记忆。
+
+**回滚与远程边界**：实施前工作树干净，`HEAD` 与 `origin/master` 均为 `7c773140323aef8e40f1114bd5ba9dcf4870b439`；执行 `git push origin master` 返回 `Everything up-to-date`，该提交固定为回滚基点。确认后未再执行 fetch、pull、push、deploy 或其他远程操作。
+
+**实验时涉及文件**：
+
+- `themes/butterfly/source/js/header-liquid.js` — 原生 WebGL2 流体求解器、设备门控、按需调度和完整销毁
+- `themes/butterfly/source/css/header-liquid.css` — 首页封面内裁剪、层级和降级保险
+- `themes/butterfly/layout/includes/head.pug` — Liquid CSS/JS 仅首页加载
+- 星空运行时指南、主题修改登记、功能目录、操作索引与根记忆索引 — 同步当前事实和证据
+
+**实验代码事实**：
+
+1. 从用户提供的 Canvas UI Liquid 源码移植原生 WebGL2 流体求解器，不引入 React、shadcn、npm 依赖或外部 CDN。透明叠层仅绘制蓝色流体色迹，不捕获、替换或扭曲封面 HTML。
+2. Liquid 只在 `#page-header.full_page`、`min-width:1025px`、`hover:hover`、`pointer:fine` 且未请求 reduced-motion 时创建；手机、平板、大屏粗指针和 reduced-motion 只保留原有两层星空。
+3. Canvas 为封面直接子元素，`z-index:1`、`pointer-events:none`；顶部星空保持 2，标题/滚动提示保持 3，导航层级不改。封面 `overflow:hidden` 限制所有 Liquid 像素。
+4. 指针事件只绑定封面并只接收鼠标。求解器在轨迹耗散后停止 RAF，封面离屏或文档隐藏时停止；ResizeObserver、IntersectionObserver、媒体查询变化、WebGL context lost、PJAX 与手工控制器调用均有清理路径。
+5. `window.__headerLiquidController` 提供 `init()`、`destroy()` 和只读 `getState()`；重复 `init()` 保持单 Canvas，`destroy()` 同时移除实例资源与控制器级媒体/PJAX监听，后续 `init()` 可幂等恢复。
+6. WebGL2、浮点 framebuffer、Shader 或 Program 失败时静默移除 Liquid，不影响封面图、标题、导航和两层星空。
+7. 2026-07-30 根据用户视觉反馈，将显示着色器的透明度上限由 `0.82` 降为 `0.492`（当前值的 60%）；该调整只减弱最终蓝色合成浓度，不改变求解器参数、轨迹范围、耗散、设备门控或作用区域。
+
+**已验证**：
+
+- `node --check themes/butterfly/source/js/header-liquid.js` 与 `git diff --check` 通过。
+- `npm run clean` 后 `npm run build` 成功，生成 2,363 个文件；主题 Liquid JS/CSS 与生成文件逐字一致。
+- 构建前后 `source/coffer/private-posts.json` SHA-256 均为 `10a0102dd19dd766fe61879be71870a81ed4f456eb12f01400c0fe1b89e9b874`，没有扫描器生成差异。
+- 生成首页各有 1 个 Liquid CSS/JS、顶部星空脚本、背景星空 Canvas/脚本；归档和代表性文章 HTML 中这些首页资源均为 0。
+- Codex 内置浏览器：390×844 与 1024×900 均为 Liquid 0、顶部/背景星空各 1；1440×900 为 Liquid 1、两层星空各 1，WebGL failure 为 null。
+- 桌面 Canvas 与页头边界一致，`pointer-events:none`、`z-index:1`；标题、导航站点标题和滚动按钮的点击命中均不是 Canvas。
+- 内置浏览器真实鼠标轨迹截图可见蓝色流体色迹，且星点、标题和导航继续显示；Liquid/WebGL 过滤日志均无错误。
+- 轨迹耗散约 7.2 秒后 `running:false`；封面滚出视口后 `headerVisible:false / running:false`。
+- 1440→1024→1440 动态切换得到 Canvas `1→0→1`；重复两次 `init()` 仍为 1；`destroy()` 后 Canvas 0 且 `lifecycleBound:false`，再 `init()` 恢复 1。
+- 桌面模拟 reduced-motion 时 Liquid 为 0，顶部/背景星空仍各 1；恢复 motion 后 Liquid 恢复为 1。
+- 归档页和代表性文章页 Liquid CSS、JS、Canvas 均为 0。日志中的既有 `butterfly_swiper_injector_config` 非首页错误来自 Swiper 插件注入，与 Liquid 资源无关。
+- 2026-07-30 透明度调整后再次执行 `npm run clean` 与 `npm run build`，成功生成 2,363 个文件；生成态 Liquid JS/CSS 与主题源文件逐字一致，私密索引 SHA-256 仍为 `10a0102dd19dd766fe61879be71870a81ed4f456eb12f01400c0fe1b89e9b874`。
+- 2026-07-30 内置浏览器桌面 1440×900 复核：鼠标轨迹保持清晰且封面图、标题与星点透出更明显；Liquid/顶部星空/背景星空均各 1，Canvas 边界与页头一致，`pointer-events:none`、`z-index:1`，Liquid/WebGL 警告或错误为 0。1024×900 复核为 Liquid 0、两层星空各 1。
+
+**待确认**：当前内置浏览器的独立标签页不会改变被测页 `document.hidden`，且其 CDP 不支持 `Emulation.setPageVisibilityState`，因此 `visibilitychange` 暂停只完成代码路径审查，未获得该后端的运行时触发证据；真实 Safari/Firefox、真实触摸电脑、GPU/功耗和发布网络仍待目标设备验证。
+
+**回退事实**：以 `7c77314` 为工作树基线逐文件受控恢复，未使用 `git reset --hard`。回退后只保留 `long-term-memory/` 文档差异；未执行 commit、fetch、pull、push、deploy，也未运行 `webp/dev/opt/pub`。
+
+**回退验证**：执行 `npm run clean` 后 `npm run build` 成功生成 2,361 个文件；生成目录中 `header-liquid` 文件、资源引用和控制器标识均为 0。构建扫描器改写的 `source/coffer/private-posts.json` 已恢复到 `HEAD`，所有非长期记忆文件均无 Git 差异。
+
+---
+
+### #51 — 2026-07-30 — 非文章页 Bend 兼容折叠与持久化开关尝试（已回退）
+
+**操作人**：Codex
+
+**最终状态（2026-07-30）**：用户最终视觉验收认为效果很差。Bend JS/CSS、主题入口、右键菜单开关和独立生日页接入已全部删除或恢复；当前站点不存在 Bend 资源、控制器、效果 DOM 或持久化业务入口，仅保留本条历史记录及相关长期记忆。
+
+**实验时涉及文件**：Bend JS/CSS、`head.pug`、右键菜单 JS/CSS/Pug、独立生日页，以及相应长期记忆入口。
+
+**实验代码事实**：
+
+1. Canvas UI Bend 上游依赖实验性 `drawElementImage` 和 `requestPaint`；内置浏览器能力探测均为 false。实验采用 CSS 3D 顶底折叠层，保留参数语义但不捕获或重映射页面 DOM。
+2. Butterfly 模板只对非文章页加载 Bend；运行时再以 pageType/文章 body 双重排除。文章页按钮 disabled，不加载 Bend CSS/JS，不创建控制器或效果 DOM。
+3. 非文章页默认开启；右键开关写入 `blog:bend-enabled`，刷新和跨页保持。reduced-motion 时不创建效果但保留偏好。
+4. 效果层固定、`pointer-events:none`、`aria-hidden=true`；RAF 收敛停止，隐藏暂停，Observer、监听器、RAF 和 DOM 均可销毁并幂等恢复。
+5. `layout:false` 的生日页显式加载相同 Bend/右键资源；其整屏滚动、触摸、相册、视频、流星 Canvas 和加载层仍由原实现负责。
+6. 实验期间首页 Liquid 与 Bend 相互独立；Liquid 最终显示透明度上限曾为 `0.492`，即初版 `0.82` 的 60%。
+
+**验证结果**：
+
+- [x] 三个 JS 文件 `node --check` 与 `git diff --check` 通过
+- [x] `npm run clean` 后 `npm run build` 成功，生成 2,365 个文件
+- [x] 生成首页、归档、About、Coffer、生日页各含一份 Bend CSS/JS；代表性文章 Bend CSS/JS 为 0
+- [x] 内置浏览器 1440×900：默认 Bend 根节点 1、`pointer-events:none`、右键状态“开”；关闭后根节点 0、存储值 `false`，刷新仍关闭，再开启恢复单实例
+- [x] 归档页继承 Bend 与开关偏好；代表文章 CSS/JS/控制器/根节点均为 0，按钮 disabled 且显示“文章页关闭”，文章正文、TOC 与阅读模式仍可用
+- [x] 独立生日页 Bend/右键菜单存在，滚轮可由第 1 幕切换至第 2 幕；关闭 Bend 后当前幕和交互不变
+- [x] 模拟 reduced-motion 时根节点 0、按钮显示“系统关闭”，恢复后单实例重建；重复 `init()`、`destroy()`、再 `init()` 分别保持 1→0→1，RAF 收敛后 `running:false`
+- [x] Coffer 与 MarkdownPreview 代表页均创建单一 Bend 根节点，Coffer 输入与按钮仍存在；Bend 过滤日志为 0
+- [x] 首页 390×844 与 1024×900 均为 Liquid 0、双层星空各 1；1440×900 Liquid 恢复 1，浅色迹截图可见，Canvas 与封面边界一致且 Liquid/WebGL 警告错误为 0
+- [x] 完成全部生成路由审计：176 个 `index.html` 中，59 个带 `#body-wrap.post` 的文章页 Bend CSS/JS 均为 0；其余 117 个非文章路由均且仅加载 1 份 Bend CSS、1 份 Bend JS，并包含右键开关
+- [x] 扩大内置浏览器功能回归：连连看 112 个方块可重新开局；Markdown 工作台可输入并实时预览；Swiper 292 项画廊可重新随机；Coffer 密码框可输入并保持焦点；About 的 10 张卡片/外链与留言页评论容器均正常存在
+- [x] 再次逐项对照用户提供的 Bend 上游源码：当前参数与上游文档配置一致；上游在缺少 `drawElementImage` / `requestPaint` 时同样保留原生内容并关闭 HTML-in-Canvas 捕获，当前兼容层不接管页面 DOM
+- [x] 构建前后私密索引 SHA-256 均为 `ca73fafede4146e4216314c5e4a734394faed6652bfb28316ecade29debc5064`，保留扫描器维护的既有差异
+
+**回退事实**：回滚基点仍为 `7c77314`；已逐文件恢复所有非记忆差异，未使用 `git reset --hard`，未执行 commit、push、fetch、pull、deploy，也未运行 `webp/dev/opt/pub`。
+
+**回退验证**：同一次 clean build 成功生成 2,361 个文件；生成目录中 `bend-effect` 文件、资源引用、控制器标识和持久化键均为 0。构建后所有非长期记忆文件均已恢复到 `HEAD`。
+
+**既有异常**：归档和代表文章控制台仍有 `butterfly_swiper_injector_config` 对缺失容器调用 `insertAdjacentHTML` 的旧错误；它在此前 Liquid 验证中已记录，与 Bend/Liquid 资源无关，本次未扩大范围修复。
+
+---

@@ -112,3 +112,17 @@ header-universe.js
 - 2026-07-10：静态审计确认两套脚本会在前台叠加绘制，列为 P1 隐患。
 - 2026-07-11：完成 P1 单控制器实验和本地 Headless A/B；视觉验收未通过，实际运行时恢复 `049f08d`，源码与数据已归档。
 - 2026-07-12：不重启未采纳的单控制器实验，仅将两套既有星空的 Canvas 与脚本入口收敛到首页；非首页不再创建动画或调度循环。
+
+---
+
+## L7 · 2026-07-29 Liquid 尝试（已回退）
+
+> **当前结论（2026-07-30）**：该尝试虽通过静态、clean build 和内置浏览器多断点检查，但用户最终视觉验收认为效果很差，已完整删除 Liquid JS/CSS 并恢复 `head.pug`。当前运行时只有本文件前述双层星空，不存在 Liquid 资源、Canvas 或控制器。
+
+尝试内容：将 Canvas UI Liquid 的 WebGL2 流体求解器改写为无 React 依赖的原生脚本，仅覆盖首页 `#page-header.full_page`。门槛为 `min-width:1025px + hover:hover + pointer:fine` 且非 reduced-motion；手机、平板和粗指针设备不创建。Canvas 使用 `pointer-events:none`、`z-index:1` 并由封面裁剪，顶部星空位于其上。
+
+参数基线为 `simResolution=128`、`dyeResolution=512`、`force=1.1`、`radius=0.3`、`curl=1.9`、`pressureIterations=4`、`pressure=0.8`、`intensity=2`、`densityDissipation=0.96`、`velocityDissipation=1`、固定蓝色 `[0.2588,0.3569,1]`。初版显示透明度上限为 `0.82`，后按反馈降低到 `0.492`（60%），仍未达到视觉预期。
+
+尝试实现包含空闲停止、封面离屏/标签页隐藏暂停、ResizeObserver、断点变化销毁重建、WebGL 失败静默回退，以及 `window.__headerLiquidController` 幂等接口。内置浏览器曾验证 390×844 和 1024×900 不创建 Liquid，1440×900 创建单实例且不拦截点击；这些只证明当时实验版本的行为，不代表当前功能仍存在。
+
+回滚基点为已远程备份的 `7c773140323aef8e40f1114bd5ba9dcf4870b439`。本次回退未操作远程仓库，详细时间线与当时证据见操作日志 #50，主题文件尝试登记见主题修改 #16。
