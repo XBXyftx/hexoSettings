@@ -146,7 +146,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 | 项 | 值 |
 | --- | --- |
 | **修改内容** | 添加多个自定义 CSS/JS 链接 |
-| **新增代码** | typewriter-effect.css、entrance-popup.css、文章页 `lazy-loading-optimized.css`、vscode-breadcrumb-toc.css、header-universe.js；旧 `lazy-loading.css`/`lazy-loading-stable.css` 已停止从 head 加载；Font Awesome 与 `/css/index.css` 当前各有主题/inject 重复入口 |
+| **新增代码** | typewriter-effect.css、entrance-popup.css、文章页 `lazy-loading-optimized.css`、vscode-breadcrumb-toc.css、文章页 toc-toggle-group.css、header-universe.js；旧 `lazy-loading.css`/`lazy-loading-stable.css` 已停止从 head 加载；Font Awesome 与 `/css/index.css` 当前各有主题/inject 重复入口 |
 | **条件加载** | 部分 CSS/JS 仅在文章页面（`globalPageType === 'post'`）或首页加载 |
 | **影响** | 所有页面的 head 部分 |
 
@@ -155,7 +155,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 | 项 | 值 |
 | --- | --- |
 | **修改内容** | 添加多个自定义 JS 加载 |
-| **新增代码** | waterfall.js（首页）、typewriter-effect.js（文章页）、entrance-popup 系列、vscode-breadcrumb-toc.js（文章页）；network/topimg 与旧 lazy-loading 系列已删除 |
+| **新增代码** | waterfall.js（首页）、typewriter-effect.js（文章页）、entrance-popup 系列、vscode-breadcrumb-toc.js（文章页）、toc-toggle-group.js（文章页）；network/topimg 与旧 lazy-loading 系列已删除 |
 | **影响** | 所有页面的底部 JS 加载；首页的 waterfall 现为单一响应式 masonry 控制器，无移动端轮询或调试监听 |
 
 ### layout/includes/footer.pug
@@ -205,10 +205,10 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 | `source/css/announcement-history.css` | 公告时间轴、卡内滚动、响应式与 reduced-motion | 低 | 升级后保留并确保 `head.pug` 同步加载 |
 | `source/js/announcement-history.js` | 查看全部/收起、PJAX 幂等初始化 | 低 | 升级后保留并确保 `additional-js.pug` 在公告启用时加载 |
 | `layout/includes/layout.pug` | 添加 HTML | 中 | 升级后重新注入弹窗结构 |
-| `layout/includes/head.pug` | 添加条件 CSS、停止旧全站占位样式加载 + 当前存在资源重复；`header-universe.js` 仅首页 deferred 加载 | 高 | 升级后重新添加文章页懒加载状态样式、首页 header 星空条件入口；先解决 `/css/index.css` 与 Font Awesome 重复，**不要**恢复已回滚的“仅异步 Font Awesome”方案或旧全篇占位动画 |
+| `layout/includes/head.pug` | 添加条件 CSS、停止旧全站占位样式加载 + 当前存在资源重复；`header-universe.js` 仅首页 deferred 加载；文章页目录折叠项样式入口 | 高 | 升级后重新添加文章页懒加载状态样式、文章页目录折叠项样式、首页 header 星空条件入口；先解决 `/css/index.css` 与 Font Awesome 重复，**不要**恢复已回滚的“仅异步 Font Awesome”方案或旧全篇占位动画 |
 | `source/js/lazy-loading-optimized.js` | 原生 lazy 协调、近视口占位与媒体结算事件 | 中 | 迁移时保留原生 `src`/`loading`，不能恢复 1×1 GIF 交换逻辑 |
 | `source/css/lazy-loading-optimized.css` | 文章页图片比例保护、静态/近视口占位状态 | 低 | 保持 `max-width:100%` 与 `height:auto` 成对存在；仅无尺寸图片使用最小高度，保留 reduced-motion 和仅近视口动态视觉 |
-| `layout/includes/additional-js.pug` | 添加加载；首页条件输出背景 Canvas、背景星空和瀑布流 | 高 | 升级后重新添加所有自定义 JS，保持首页星空脚本与 `#universe` Canvas 不扩散到非首页路由 |
+| `layout/includes/additional-js.pug` | 添加加载；首页条件输出背景 Canvas、背景星空和瀑布流；文章页目录折叠联动脚本入口 | 高 | 升级后重新添加所有自定义 JS（含文章页目录折叠联动），保持首页星空脚本与 `#universe` Canvas 不扩散到非首页路由 |
 | `layout/includes/footer.pug` | 添加脚本 | 低 | 升级后重新添加建站时间统计 |
 | `layout/includes/mixins/indexPostUI.pug` | 修改布局 | 高 | 升级后重新实现 layout 8 逻辑 |
 | `layout/index.pug` | 添加类名 | 低 | 升级后重新添加 masonry 类 |
@@ -537,6 +537,33 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 **回退结果**：以已远程备份的 `7c77314` 为基点，已恢复 Bend/右键/入口差异及生日页接入，未使用 `git reset --hard`。
 
 **实验验证边界**：JS/diff、clean build、全部 176 个生成路由资源审计，以及内置浏览器的默认效果、开关持久化、文章页硬隔离、reduced-motion、生日页滚动、连连看/Markdown/Swiper/Coffer/About/留言页代表交互和控制器生命周期均通过；完整证据见操作日志 #51。上述结果只描述已删除的实验版本；实现未提交、未推送、未部署。
+
+---
+
+### #18 — 2026-08-06 — 文章目录 hideToggle 折叠分组
+
+**修改文件**：
+
+- `themes/butterfly/layout/includes/head.pug`（文章页条件加载 `/css/toc-toggle-group.css`）
+- `themes/butterfly/layout/includes/additional-js.pug`（文章页条件加载 `/js/toc-toggle-group.js`）
+
+**修改原因**：`{% hideToggle %}` 折叠块内的标题照常出现在文章目录中，点击跳转后内容处于折叠状态不可见；需要在目录中以 hideToggle 标题文字命名的折叠项收纳块内标题，并保持主题滚动高亮索引不被破坏。
+
+**修改内容**：
+
+1. 目录结构由新增 `scripts/toc-toggle-group.js` 覆盖内置 `toc` 助手生成：hideToggle（`<details class="toggle">`）块内标题归入 `<details class="toc-toggle">` 折叠项，名称取 `summary.toggle-button` 文字；分组 summary 不使用 `.toc-link`，编号、层级和 class 与内置输出一致；无 hideToggle 的页面输出逐字不变，解析失败回退内置助手。
+2. 新增 `source/js/toc-toggle-group.js`：document 捕获阶段先把目标标题的闭合 details 祖先置 `open`，再交给 main.js 滚动定位；滚动高亮落入闭合目录组时经 MutationObserver 自动展开并标记 `has-active`；hash 直达在原生自动展开失效时兜底。
+3. 新增 `source/css/toc-toggle-group.css`：折叠项箭头、悬挂缩进与激活态；`[open]` 双向 `!important` 约束覆盖主题非展开模式 `.toc-child{display:none}` 与移动端 `display:block !important`。
+
+**相关文件**：`scripts/toc-toggle-group.js`、`source/js/toc-toggle-group.js`、`source/css/toc-toggle-group.css`
+
+**可回滚性**：可安全回滚。删除两个 pug 条件加载行并移除三个新文件即恢复内置目录行为，无数据迁移；目录分组只影响渲染输出，不改文章源文件。
+
+**验证**：`node --check`、`git diff --check` 通过；`npm run clean && npm run build` 两次成功（各 2,370 个文件），构建后无扫描器改写差异。生成态断言：rustTips 目录分组标题“一些看起来很“正确”的解答”、组内编号 2.1.1–2.1.6、标签平衡、`.toc-link` 总数与文章标题数一致；全部含 hideToggle 文章逐篇解析，仅 rustTips 块内含标题；无 hideToggle 文章目录逐字不变；首页/about 不加载新资源。Headless Chrome CDP 21 项桌面/移动/hash/回归断言全过；目录视觉截图复核通过。真实移动设备触摸、Safari/Firefox 与 PJAX 开启状态待人工回归。
+
+**关联文档**：[../04-operations/operation-log.md#52](../04-operations/operation-log.md#52--2026-08-06--文章目录-hidetoggle-折叠分组与点击展开联动)；脚本规则见 [../03-api-practices/README.md](../03-api-practices/README.md) 自定义脚本第 6 节
+
+**远程约束**：仅本地实施；未提交、未推送、未部署。
 
 ## 升级主题时的检查清单
 

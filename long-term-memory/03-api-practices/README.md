@@ -145,6 +145,26 @@
 
 ---
 
+### 6. toc-toggle-group.js
+
+**作用**：覆盖 Hexo 内置 `toc` 助手，把 hideToggle（`<details class="toggle">`）块内标题在文章目录中归入可折叠分组（原生 details），分组名取 `summary.toggle-button` 文字；无 hideToggle 的页面输出与内置助手逐字一致，解析失败回退内置助手。
+
+**触发时机**：模板调用 `toc(page.content, ...)` 时（`card_post_toc.pug`、`config_site.pug`）。
+
+**配套运行时**：
+
+- `source/js/toc-toggle-group.js`（`additional-js.pug` 仅文章页）：点击目录链接时在捕获阶段先展开目标标题所在的闭合折叠块，再交给 main.js 滚动定位；滚动高亮落入闭合目录组时自动展开并标记 `has-active`；hash 直达在原生自动展开失效时兜底。
+- `source/css/toc-toggle-group.css`（`head.pug` 仅文章页）：折叠项箭头、长标题悬挂缩进与激活态；`[open]` 状态用 `!important` 双向约束，覆盖主题非展开模式 `.toc-child{display:none}` 与移动端 `display:block !important`。
+
+**使用规则**：
+
+- 分组 summary 不得使用 `.toc-link`：main.js 滚动高亮按“文章标题序号 == `.toc-link` 序号”索引，分组只占层级不占链接位。
+- 闭合 hideToggle 会把内容移出可滚动高度，块内标题无法通过页面滚动激活目录高亮；点击目录组链接展开内容块是主要路径。
+- 修改 hideToggle 标签输出结构（`themes/butterfly/scripts/tag/hide.js`）时，必须同步核对本脚本的 `details.toggle` / `summary.toggle-button` 选择器。
+- 操作记录见 [operation-log #52](../04-operations/operation-log.md#52--2026-08-06--文章目录-hidetoggle-折叠分组与点击展开联动) 和 [主题修改 #18](../06-theme-modifications/README.md)。
+
+---
+
 ## 主题配置关键项
 
 ### 注入系统（inject）
@@ -178,13 +198,14 @@
 
 **head.pug** 额外加载（非 inject）：
 
-- 所有页面：主题主 CSS、同步 Font Awesome、`/css/entrance-popup.css`、`/css/lazy-loading.css`、`/css/lazy-loading-stable.css`、`/js/header-universe.js`（顶部封面星空脚本）
-- 文章页面：`/css/typewriter-effect.css`、`/css/vscode-breadcrumb-toc.css`
-- `lazy-image-refresh.css`、`lazy-video-refresh.css` 已删除，不再加载。
+- 所有页面：主题主 CSS、同步 Font Awesome、`/css/announcement-history.css`、`/css/entrance-popup.css`
+- 文章页面：`/css/typewriter-effect.css`、`/css/lazy-loading-optimized.css`、`/css/vscode-breadcrumb-toc.css`、`/css/toc-toggle-group.css`
+- 其他条件：`/css/yesterday-gallery.css`（仅 `/swiper/`）、`/js/header-universe.js`（仅首页 defer）
+- `lazy-loading.css`、`lazy-loading-stable.css`、`lazy-image-refresh.css`、`lazy-video-refresh.css` 均已停止从 head 加载。
 
 **additional-js.pug** 额外加载（非 inject）：
-- 首页：`/js/waterfall.js`（移动端当前存在 100ms 轮询和调试监听，见审计 P0）
-- 文章页面：`/js/typewriter-effect.js`、`/js/vscode-breadcrumb-toc.js`
+- 首页：`#universe` Canvas、`/js/universe-optimized.js`（defer）、`/js/waterfall.js`
+- 文章页面：`/js/typewriter-effect.js`、`/js/vscode-breadcrumb-toc.js`、`/js/toc-toggle-group.js`
 - 所有页面：`/js/entrance-popup-config.js`、`/js/entrance-popup.js`
 - network/topimg 监控及旧 lazy-loading/refresh 系列均已删除，不再加载。
 

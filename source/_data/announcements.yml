@@ -9,6 +9,21 @@
 # 正文只使用结构化字段，不要嵌入 HTML：
 # lead -> image -> title -> items -> paragraphs -> closing
 
+- id: 2026-08-06-101356-toc-toggle-group
+  published_at: '2026-08-06T10:13:56+08:00'
+  lead: 文章目录学会了折叠！
+  image:
+    src: /imgs/gifs/1.webp
+    alt: 挥手奔跑的卡通人物
+    width: 560
+    height: 315
+  title: 今日更新：
+  items:
+    - 文章目录新增折叠分组，hideToggle 折叠块内的标题会收纳进一个以块标题命名的可折叠目录项，长文目录更清爽。
+    - 点击折叠组内的目录链接会自动展开对应的折叠内容块并滚动到位，不再出现“跳转了却看不到内容”的情况。
+    - 阅读滚动到折叠区域时，目录中的折叠组会自动展开并高亮当前小节；折叠箭头也已对齐文字中线。
+  closing: 愿长文的每一段内容，都能在你需要时恰好展开。✨
+
 - id: 2026-07-21-161843-starfield-readability
   published_at: '2026-07-21T16:18:43+08:00'
   lead: 首页星空与文章阅读可读性再次升级！

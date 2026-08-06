@@ -554,4 +554,65 @@ value.field;            // 访问具体值的字段
 
 虽然我确实很像用上面的这套AI生成的讲解解决战斗，但是我还是认为学新东西还是需要自己去写才有用的，所以我先把它折叠了。
 
-对于这个问题
+对于这个问题其实单独从概念层面是很难通过简单的和面向对象语言去进行类比来讲清楚的，因为rust并非传统意义上的面向对象语言，它并不存在Class和Interface这种概念，它更贴近C语言，是使用结构体去实现的类似效果。所以我决定向底层原理去挖。
+
+#### struct和impl关键字索引出的::含义
+
+在`rust`中`struct`和`impl`的组合可以用来实现Class类似的效果。
+
+```rust
+struct User {
+    name: String,
+}
+
+impl User {
+    // 类似 static 函数：没有 self
+    fn new(name: String) -> Self {
+        Self { name }
+    }
+
+    // 实例方法：有 &self
+    fn hello(&self) {
+        println!("Hello, {}", self.name);
+    }
+}
+
+let user = User::new(String::from("Alice")); // 类似 User.staticFunction()
+user.hello();                                // 类似 user.hello()
+```
+
+`struct`用于定义数据结构，`impl`用于定义该数据结构的方法。在上面的例子中，`User`是一个数据结构，它有一个`name`字段。`impl`块中定义了两个方法：`new`和`hello`。`new`方法用于创建一个新的`User`实例，`hello`方法用于打印出`User`的`name`字段。
+
+这里我们就初见端倪了，对于`new`函数我们并不依赖于任何一个实例对象中的数据，仅仅依赖于传递的参数，这种不与任何实例对象绑定的函数就被称为{% label 关联函数 red %}，对应的我们还有关联常量、关联枚举量、关联结构体等。这些都是随调随用不需要关联任何实例的。
+
+{% note success flat %}
+我们对于这种在编译期间可以直接确定地址，可直接调用无需依赖任何运行时产生的实例对象中动态数据的“静态项（Item）”，进行调用时只是沿着固定的路径去进行寻找，去获取到该项在内存中的位置的项，就使用::去进行寻址调用。
+
+由此可以得出`::`的定义：其全称是 路径分隔符（path separator），它唯一的作用是在 Rust 的「模块 / 项命名空间」中做层级导航，所有解析工作100% 在编译期完成，运行时没有任何额外开销。
+{% endnote %}
+
+```rust
+use num::complex::Complex;
+
+ fn main() {
+   let a = Complex { re: 2.1, im: -1.2 };
+   let b = Complex::new(11.1, 22.2);
+   let result = a + b;
+
+   println!("{} + {}i", result.re, result.im)
+ }
+```
+
+现在我们再回头看这段在圣经中举例的代码。
+
+```rust
+use num::complex::Complex;
+```
+
+这相当于是其他语言的import，引入了`num`库中的`complex`模块，然后我们就可以直接使用`Complex`这个类型了。这都是固定不变的结构体位置，所以我们直接通过`::`去进行寻址即可。
+
+```rust
+let a = Complex { re: 2.1, im: -1.2 };
+```
+
+这里并没有使用任何函数，而是通过`Complex`结构体的字面量语法，直接给它的`re`和`im`字段赋值，从而创建出一个实部为`2.1`、虚部为`-1.2`的复数实例，并将它绑定到变量`a`上。所以这里不需要`::`去寻找任何关联项，只需要按照`Complex`规定的数据结构去填入数据即可。

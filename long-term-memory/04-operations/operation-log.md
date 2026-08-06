@@ -1545,3 +1545,45 @@
 **既有异常**：归档和代表文章控制台仍有 `butterfly_swiper_injector_config` 对缺失容器调用 `insertAdjacentHTML` 的旧错误；它在此前 Liquid 验证中已记录，与 Bend/Liquid 资源无关，本次未扩大范围修复。
 
 ---
+
+### #52 — 2026-08-06 — 文章目录 hideToggle 折叠分组与点击展开联动
+
+**操作人**：Kimi Code
+
+**涉及文件**：
+
+- `scripts/toc-toggle-group.js` — 新增；覆盖 Hexo 内置 `toc` 助手，把 hideToggle（`<details class="toggle">`）块内标题在目录中归入可折叠分组，分组名取 `summary.toggle-button` 文字；解析失败回退内置助手
+- `source/js/toc-toggle-group.js` — 新增；document 捕获阶段先于 main.js 展开目标标题所在的闭合折叠块，MutationObserver 联动滚动高亮自动展开目录组，hash 直达兜底
+- `source/css/toc-toggle-group.css` — 新增；折叠项箭头、长标题悬挂缩进与激活态样式；`[open]` 双向 `!important` 约束，覆盖主题非展开模式 `.toc-child{display:none}` 与移动端 `display:block !important`
+- `themes/butterfly/layout/includes/head.pug` — 文章页条件加载新 CSS
+- `themes/butterfly/layout/includes/additional-js.pug` — 文章页条件加载新 JS
+
+**操作详情**：
+
+用户反馈 `{% hideToggle %}` 折叠块内的标题照常出现在文章目录中，点击跳转后内容处于折叠状态不可见。要求目录中增加可折叠目录项，以 hideToggle 标题文字命名，收纳块内标题。
+
+实现要点（代码事实）：
+
+1. 目录生成：项目级 `scripts/` 晚于核心插件加载，`hexo.extend.helper.register('toc', ...)` 覆盖内置助手；用 htmlparser2（hexo-util 同款依赖）解析 `page.content`，复刻 tocObj 的 id/text/unnumbered 提取与内置编号计数器；同一 details 块内标题在文档序上连续，折叠为 `<details class="toc-toggle">` 分组。分组 summary 不使用 `.toc-link`，保持 main.js “文章标题序号 == `.toc-link` 序号”的滚动高亮索引；编号、层级、class 与内置输出一致，无 hideToggle 的页面输出逐字不变。
+2. 交互：点击目录链接时捕获阶段监听器同步把目标标题的所有闭合 details 祖先置 `open`，main.js 随后读取的滚动位置已包含展开布局；滚动高亮落入闭合目录组时由 MutationObserver 自动展开并标记 `has-active`；hash 直达在现代浏览器由原生 fragment 导航自动展开 details 覆盖，脚本仅在块仍闭合时兜底展开并定位。
+3. 验证中确认的既有行为：现代 Chrome 闭合 details 以 content-visibility 隐藏内容，保留布局盒但移出可滚动高度，因此闭合块内标题无法通过页面滚动激活目录高亮，滚动联动只在块展开后生效；主题目录点击落点 90px 与高亮阈值 80px 存在既有偏差，点击后高亮暂落前一条标题、轻微滚动后归位，与本次改动无关。
+
+**验证结果**：
+
+- [x] 两个新 JS `node --check` 通过；改动文件 `git diff --check` 通过
+- [x] `npm run clean && npm run build` 两次成功（各 2,370 个文件）；构建后 `git status` 无扫描器改写差异
+- [x] 生成态断言：rustTips 目录含 1 个分组、标题为“一些看起来很“正确”的解答”、组内编号 2.1.1–2.1.6、HTML 标签平衡、`.toc-link` 总数 9 与文章 h1–h6 数一致；逐篇解析全部含 hideToggle 文章的生成 HTML，仅 rustTips 块内含标题（其余块内无标题，正确地不产生分组）；无 hideToggle 文章目录与改动前逐字一致；首页与 about 页不加载新资源；生成 CSS/JS 与源文件逐字一致
+- [x] Headless Chrome CDP 21 项交互断言全过（桌面 1440、移动 375、hash 直达、无 hideToggle 文章回归）：默认双闭合、summary 开合、点击组内链接展开内容块并滚动到位、滚动高亮自动展开目录组、`has-active` 标记
+- [x] 目录视觉截图复核：箭头随展开旋转、长标题悬挂缩进、白字/绿色激活与既有目录配色一致
+- [ ] 真实移动设备触摸、Safari/Firefox 原生 details 行为差异、PJAX 开启后的重初始化待人工回归
+
+**遗留问题**：
+
+- 闭合 hideToggle 块内标题无法通过页面滚动激活目录高亮（浏览器对闭合 details 的既有行为），主要阅读路径为点击目录组链接展开内容块。
+- 仅本地实施；未提交、未推送、未部署。
+
+**对齐修正（2026-08-06）**：用户复核指出折叠箭头相对文字偏高。原实现按假定行高用 `calc(8px + 0.72em - 5px)` 绝对定位锚定首行，与实际行高不符；已改为 `inline-block + vertical-align: middle` 的内联基线对齐（不再依赖行高猜测），`padding-left: 14px` + `text-indent: -14px` 保留折行悬挂缩进。clean build 通过（2,370 个文件），DPR 2 截图确认闭合/展开两态箭头与文字中线对齐、折行缩进正确。
+
+**公告发布（2026-08-06）**：同日已在 `source/_data/announcements.yml` 顶部追加第 22 期公告（复用 `/imgs/gifs/1.webp`，未替换 GIF）；构建期校验通过（`已校验 22 期公告`），首页、文章页、归档页生成态断言通过（当前公告为第 22 期、上一期已折叠为历史 details、时间 `2026-08-06T10:13:56+08:00` 正确显示）。
+
+---

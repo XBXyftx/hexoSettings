@@ -46,6 +46,10 @@ div
   if globalPageType === 'post'
     script(src=url_for('/js/vscode-breadcrumb-toc.js'))
 
+  // 目录 hideToggle 折叠项联动 - 只在文章页面加载
+  if globalPageType === 'post'
+    script(src=url_for('/js/toc-toggle-group.js'))
+
   .js-pjax
     if needLoadCountJs
       != partial("includes/third-party/card-post-count/index", {}, { cache: true })

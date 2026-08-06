@@ -195,6 +195,7 @@ swiper/
 | `lazy-loading-stable.css` | 历史防 CLS 样式文件 | 当前不加载；内在尺寸由 HTML `width`/`height` 属性保留 |
 | `lazy-loading.css` | 历史基础占位样式文件 | 当前不加载；不得恢复全文高代价 placeholder 动画 |
 | `vscode-breadcrumb-toc.css` | VS Code 面包屑导航样式 | head.pug（仅文章页） |
+| `toc-toggle-group.css` | 文章目录 hideToggle 折叠项样式 | head.pug（仅文章页） |
 
 ### themes/butterfly/source/css/ 中的自定义样式
 
@@ -225,6 +226,7 @@ swiper/
 | `birthday-gift.js` | 生日页面交互逻辑 | ~30KB |
 | `typed.umd.js` | Typed.js 打字机库 | ~10KB |
 | `vscode-breadcrumb-toc.js` | VS Code 面包屑导航 | ~8KB |
+| `toc-toggle-group.js` | 目录 hideToggle 折叠项联动（点击展开内容块、滚动联动、hash 兜底） | ~4KB |
 | `katex/` | KaTeX 0.16.19 完整库（含 auto-render） | ~303KB |
 
 ### themes/butterfly/source/js/ 中的自定义脚本
@@ -346,6 +348,7 @@ Hexo 生成流程
 ├── typewriter-effect.js ──→ 打字机效果（依赖 GLOBAL_CONFIG_SITE.typewriter）
 ├── waterfall.js ──→ 瀑布流布局（仅首页）
 ├── vscode-breadcrumb-toc.js ──→ 面包屑导航（仅文章页）
+├── toc-toggle-group.js ──→ 目录 hideToggle 折叠项联动（仅文章页）
 ├── coffer.js ──→ 隐私文章密码验证
 ├── entrance-popup.js ──→ 入场弹窗
 ├── rightmenu.js ──→ 自定义右键菜单

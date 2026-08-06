@@ -1,8 +1,8 @@
 # 长期记忆索引 — XBXyftx Hexo 博客项目
 
 > **AI 必读**：每次进入新会话，第一步必须阅读本文件。严禁跳过索引直接操作代码。
-> **当前日期**：2026-07-30
-> **项目状态**：活跃维护中；远程备份基点为 `7c77314`。2026-07-29/30 的首页 Liquid 与非文章页 Bend 均因最终视觉验收未通过而完整回退，当前运行时不包含这两个效果；仅长期记忆保留尝试方案与验证证据，未提交、推送或部署。
+> **当前日期**：2026-08-06
+> **项目状态**：活跃维护中；远程备份基点为 `7c77314`。2026-07-29/30 的首页 Liquid 与非文章页 Bend 均因最终视觉验收未通过而完整回退，当前运行时不包含这两个效果；仅长期记忆保留尝试方案与验证证据，未提交、推送或部署。2026-08-06 文章目录 hideToggle 折叠分组已本地实施并通过本地构建与 Headless 验证，未提交、推送或部署。
 
 ---
 
@@ -105,6 +105,7 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 - [Bend 页面边缘折叠尝试（已回退）](03-api-practices/bend-effect.md) — 兼容性调查、CSS 3D 替代方案、验证证据与视觉未采纳结论
 - [图片懒加载系统](03-api-practices/lazy-loading-system.md) — 多套懒加载方案协同、IntersectionObserver、PJAX 重初始化
 - [侧栏公告历史时间轴](03-api-practices/announcement-history.md) — `source/_data/announcements.yml` 编写入口、Git 历史恢复、构建校验、Pug/CSS/JS 交互与升级说明
+- [目录 hideToggle 折叠分组](03-api-practices/README.md) — `scripts/toc-toggle-group.js` 覆盖内置 toc 助手，hideToggle 块内标题归入目录折叠项并联动展开内容块；配套 JS/CSS 仅文章页加载
 - [性能优化策略](03-api-practices/performance-optimization.md) — FPS 节流、visibility 暂停、移动端降级、异步 CSS
 
 ### 自定义页面
