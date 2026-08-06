@@ -653,3 +653,39 @@ User::hello(&user);
 ```
 
 也就是说，点语法会自动把点号左边的实例作为`self`参数传入方法中。只不过实际情况还会涉及自动借用、自动解引用以及方法查找等过程，所以这只是为了方便理解的一种近似写法。
+
+### 表达式
+
+![4](rustTips/4.webp)
+
+哇哦哇哦这种“表达式”确实是没见过这么写的，还是在这里截图标记一下吧防止忘了。
+
+### 函数返回值
+
+```rust
+fn plus_or_minus(x:i32) -> i32 {
+    if x > 5 {
+        return x - 5
+    }
+
+    x + 5
+}
+
+fn main() {
+    let x = plus_or_minus(5);
+
+    println!("The value of x is: {}", x);
+}
+```
+
+用表达式或者return进行返回，有意思。那如果同时存在多个表达式呢？
+
+![5](rustTips/5.webp)
+
+![6](rustTips/6.webp)
+
+原来是会直接报错，那看来还是得注意一下的。
+
+![7](rustTips/7.webp)
+
+双return的话倒也没事。那要这样看其实统一去写return也没什么问题。
