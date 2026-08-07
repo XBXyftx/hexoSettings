@@ -689,3 +689,544 @@ fn main() {
 ![7](rustTips/7.webp)
 
 双return的话倒也没事。那要这样看其实统一去写return也没什么问题。
+
+{% note primary flat %}
+当然这两者的区别我也再次询问了AI，
+
+简单来说，`return`是主动的，可以在函数执行到一半的时候直接结束函数并返回结果；而表达式返回则是等函数执行到最后，将最后一个表达式的值作为返回值。
+
+```rust
+fn plus_or_minus(x: i32) -> i32 {
+    if x > 5 {
+        return x - 5; // 提前结束函数
+    }
+
+    x + 5 // 执行到最后，自然返回
+}
+```
+
+所以在上面的代码中其实是两条不同的路线：如果`x > 5`，就通过`return`直接返回`x - 5`，后面的代码不会再执行；如果`x <= 5`，就会继续执行到最后，通过表达式返回`x + 5`。
+
+至于底层的区别，其实没有想象中的那么大。编译器最后都会把计算出来的结果放到函数的返回位置，然后结束函数。也就是说这两种写法通常不会带来什么性能差异，真正的区别主要在于控制流和代码风格上。一般来说，正常执行到最后的结果使用表达式返回，中途需要提前结束时使用`return`，这也是rust中更常见的写法。
+{% endnote %}
+
+### 单元类型
+
+![8](rustTips/8.webp)
+
+单元类型`()`对我也不相信一个括号居然是一个只有一种可能值的类型。
+
+不过这里需要把“类型”和“值”分开来看。`()`是单元类型，而这个类型唯一的值也叫`()`。它有点像一个没有任何字段的结构体：因为里面没有需要区分的数据，所以它永远只有这一种状态。
+
+```rust
+let a: () = ();
+```
+
+这句话其实就是声明了一个`()`类型的变量`a`，并把它唯一可能的值赋给它。它不是“什么都没有”，而是“有一个值，只不过这个值不携带任何信息”。
+
+这也是Rust语言设计中一个很有意思的地方。Rust尽可能希望所有东西都拥有明确的类型，包括那些看起来“没有返回值”的函数。在其他语言中，函数没有返回值时可能使用`void`表示；但`void`更多只是一个特殊的返回类型，而Rust中的`()`是真实存在的类型和真实存在的值，因此它可以正常地参与类型推导、泛型和模式匹配。
+
+```rust
+fn say_hello() {
+    println!("hello");
+}
+
+fn say_hello_again() -> () {
+    println!("hello again");
+}
+```
+
+上面两个函数本质上都返回`()`。第一个函数只是省略了返回类型，编译器会自动推导出它的返回类型就是单元类型。因为`println!`后面有分号，所以这条语句执行完之后，整个函数最后得到的就是`()`。
+
+```rust
+let result = {
+    println!("hello");
+};
+
+// result的类型就是()
+```
+
+这里的分号就很关键了。Rust中一个代码块本身也是一个表达式，最后一个表达式决定代码块的值；而加上分号之后，前面的表达式就变成了一条语句，它的计算结果会被丢弃，语句整体得到`()`。所以我们平时写的赋值、打印、修改变量等操作，即使没有返回什么有用的数据，也可以统一地拥有一个返回值：`()`。
+
+从语言设计的角度来看，单元类型解决的是“没有有意义的返回值，但语法上又需要一个值”的问题。比如`if`的两个分支必须拥有兼容的类型：
+
+```rust
+let result = if true {
+    println!("执行了");
+} else {
+    println!("没有执行");
+};
+```
+
+两个分支最后都返回`()`，所以整个`if`表达式的类型也是`()`。如果Rust没有单元类型，就需要额外设计一套“无返回值语句”和“有返回值表达式”的特殊规则，很多语法组合都会变得不统一。
+
+它在泛型代码中也非常常见，例如：
+
+```rust
+fn save() -> Result<(), String> {
+    // 保存成功后没有需要返回的数据
+    Ok(())
+}
+```
+
+这里的`Result<(), String>`表示：失败时返回一个`String`错误，成功时返回一个`()`。也就是“成功这件事本身有意义，但成功之后没有额外的数据需要交给调用者”。`Ok(())`看起来有两个括号，其实外层的`Ok`是`Result`的枚举变体，里面的`()`才是单元类型唯一的值。
+
+再从底层来看，`()`还是一种零大小类型（Zero-Sized Type，简称ZST）：
+
+```rust
+use std::mem::size_of;
+
+println!("{}", size_of::<()>()); // 0
+```
+
+因为单元类型没有字段，也不需要保存任何数据，所以它在内存中不需要占用空间。编译器在处理它时，通常不需要真的为这个值分配一块内存，也不需要通过寄存器传递一个具体的数据。函数返回`()`时，底层主要关注的是控制流能不能正常回到调用者，而不是把某个数据返回回去。
+
+但“零大小”并不代表“没有类型信息”。编译器仍然会利用`()`检查函数返回值、分支类型和泛型参数是否正确。它只是没有运行时数据，不代表在编译期间没有作用。
+
+最后还要注意，单元类型`()`和永不返回类型`!`并不是一回事：`()`表示函数正常结束了，只是没有返回有用的数据；`!`表示这条控制流永远不会正常结束，例如一直循环或者直接`panic`。一个是“正常返回一个空值”，另一个是“根本不会返回”。
+
+### 永不返回的发散函数`!`
+
+传统的无返回值和用不返回还真不是一码事，如果一个函数返回`()`，说明它还是正常执行完了，只不过没有给调用者带回来什么有用的数据；而返回`!`则代表这个函数从逻辑上就不会正常结束，也就不可能真的把一个值交还给调用者。
+
+```rust
+fn never_return() -> ! {
+    loop {
+        println!("还在运行");
+    }
+}
+
+fn crash() -> ! {
+    panic!("程序崩溃了");
+}
+```
+
+`never_return`会一直陷在循环里，`crash`则会直接触发`panic`。它们都不会执行到函数末尾，所以也就没有所谓的“最后一个表达式作为返回值”这一说了。除了死循环和`panic`之外，像直接退出进程的函数，也可以拥有`!`返回类型。
+
+这个`!`在Rust里被称为永不返回类型（Never Type），也可以叫发散类型。这里的“发散”并不是说它返回了一个特殊的值，而是说这条控制流会从当前路径上消失，永远不会回到调用它的位置。
+
+```rust
+let number: i32 = if true {
+    10
+} else {
+    panic!("这里不会产生数字");
+};
+```
+
+上面这个`if`表达式的两个分支看起来一个返回了`i32`，另一个返回了`!`，但编译器并不会认为它们类型不一致。因为`panic!`根本不会真正返回一个值，所以它可以被转换成任意需要的类型。换句话说，只要某一条分支永远不会继续执行，它就不会影响其他分支最终的类型。
+
+从语言设计的角度来说，`!`其实非常像类型系统里的“底部类型”。它没有任何可能的值，因为只要程序真的拿到了一个值，就说明这条路径已经返回了，那它就不应该再属于`!`类型了。也正是因为它不可能产生值，所以它可以适配`i32`、`String`甚至其他任意类型。
+
+从底层来看，`!`和`()`都不需要保存什么数据，但原因完全不同：`()`是有一个唯一值，只是这个值大小为零；`!`则是连一个值都不存在，因为控制流根本不会走到返回的位置。编译器看到`!`之后，通常可以把后续代码判断为不可达，并据此进行控制流分析和优化。
+
+所以这两个类型可以简单地这样区分：
+
+```text
+()：我正常执行完了，只是没有需要返回的数据
+!：我根本不会执行完，也不会回到调用者那里
+```
+
+这样再回头看前面的函数返回值，`()`是“正常结束但没有信息”，`!`是“没有结束这件事”。虽然它们看起来都不像传统意义上的数据类型，但在Rust的类型系统里却都有非常明确的作用。
+
+那在真实项目中，永不返回到底有什么用呢？其实它并不是说整个项目永远不能结束，而是说某一条特定的代码路径不会再回到调用它的地方。
+
+比如一个服务器启动之后，通常会一直等待并处理请求：
+
+```rust
+fn run_server() -> ! {
+    loop {
+        // 等待请求
+        // 处理请求
+    }
+}
+```
+
+`run_server`的职责就是接管当前线程，不断运行服务循环。既然它从设计上就不会返回，那么直接把返回类型写成`!`，就能把这个意图明确地告诉编译器和阅读代码的人。
+
+再比如程序启动时读取配置，如果配置文件不存在，程序已经没有继续运行的必要了：
+
+```rust
+fn load_config() -> String {
+    match std::fs::read_to_string("config.toml") {
+        Ok(config) => config,
+        Err(error) => panic!("读取配置失败：{}", error),
+    }
+}
+```
+
+这里`Ok`分支返回的是`String`，`Err`分支调用了`panic!`。虽然两个分支看起来返回的东西完全不一样，但代码依然可以通过编译，因为`panic!`的返回类型是`!`，它不会真的产生一个值，可以适配这里需要的`String`类型。程序要么拿到配置继续运行，要么直接终止，不存在“读取失败后还返回一个奇怪的配置”这种情况。
+
+命令行程序中也经常会遇到类似场景：
+
+```rust
+fn exit_with_error(message: &str) -> ! {
+    eprintln!("错误：{}", message);
+    std::process::exit(1);
+}
+```
+
+这个函数先打印错误信息，然后退出整个进程，因此它不可能回到调用者那里。调用时就可以直接把它放到需要返回其他类型的位置：
+
+```rust
+let port: u16 = match std::env::var("PORT") {
+    Ok(value) => value.parse().unwrap_or_else(|_| exit_with_error("端口号格式错误")),
+    Err(_) => exit_with_error("没有配置PORT环境变量"),
+};
+```
+
+`exit_with_error`虽然没有返回`u16`，但它也不需要返回`u16`，因为执行到这里程序就已经结束了。`!`把这个事实表达给了类型系统，所以它不会破坏`match`表达式整体的类型。
+
+还有一种常见场景是“理论上不可能走到这里”的代码：
+
+```rust
+fn get_first(values: &[i32]) -> i32 {
+    match values.first() {
+        Some(value) => *value,
+        None => panic!("数组不应该为空"),
+    }
+}
+```
+
+如果业务逻辑已经保证数组一定不为空，那么`None`分支就是一个不应该发生的异常分支。使用`panic!`或者`unreachable!`，可以把这个分支标记成永不返回，同时让正常分支继续返回`i32`。
+
+所以真实项目里使用`!`的核心价值并不是节省内存，也不是让程序运行得更快，而是准确表达控制流：发生致命错误时直接结束，服务主循环永远运行，或者某个分支按业务规则根本不可能到达。编译器知道这条路径不会回来之后，就可以放心地进行类型推导，也可以把后续代码识别为不可达。
+
+### 内存安全 之 所有权
+
+#### 堆栈
+
+![9](rustTips/9.webp)
+
+![10](rustTips/10.webp)
+
+((哇哦哇哦数据结构还在追杀我)还好我学过)
+
+![11](rustTips/11.webp)
+
+读到这我又在思考一个问题，为什么总是在说堆栈？明明还有其他很多数据结构啊为什么感觉底层只有这两种一样？
+
+查了一下才发现这里其实是我把两个层面的概念混在了一起。数组、链表、树、图、哈希表这些是我们为了组织和操作数据设计出来的{% label 数据结构 red %}，而这里所说的堆（Heap）和栈（Stack）主要是在讨论程序运行时的数据{% label 存放在哪里以及如何管理 red %}。它们虽然都叫“堆”和“栈”，但并不是在和数组、链表这些数据结构抢同一个位置。
+
+比如一棵树完全可以存放在堆上，一个数组既可以整体放在栈上，也可以被放在堆上；而一个`Vec`通常会把长度、容量和指针这些管理信息放在栈上，再把真正可以动态扩展的元素放到堆上。所以“它是什么数据结构”和“它被放在什么内存区域”其实是两个完全不同的问题。
+
+```rust
+let numbers = [1, 2, 3, 4];
+let dynamic_numbers = vec![1, 2, 3, 4];
+```
+
+`numbers`是一个长度在编译期间就已经确定的数组，通常可以直接跟随当前函数的栈帧存放；`dynamic_numbers`这个`Vec`变量本身通常只保存指针、长度和容量，真正的四个数字则被存放在堆中。
+
+```text
+栈上的 dynamic_numbers
+┌────────────┐
+│ 指针 ──────┼───────────┐
+│ 长度：4    │           │
+│ 容量：4    │           ▼
+└────────────┘      堆上的 [1, 2, 3, 4]
+```
+
+那为什么程序运行时总是在强调堆和栈呢？因为大部分普通的局部数据，最终都可以归纳到两种非常常见的生命周期：一种跟随着函数调用产生，函数退出后就可以整体消失；另一种大小或者存活时间在编译期间无法完全确定，需要在运行时更加自由地申请和释放。前一种需求正好适合栈，后一种需求正好适合堆。
+
+#### 为什么函数调用天然适合栈
+
+函数调用本身就具有一种非常标准的“后进先出”结构：`main`调用了`a`，`a`又调用了`b`，那么一定是`b`先执行完并返回，然后才轮到`a`返回，最后才回到`main`。
+
+```text
+main开始
+  └─ 调用a
+       └─ 调用b
+            └─ b返回
+       └─ a返回
+main继续执行
+```
+
+这和数据结构中的栈简直严丝合缝。因此每调用一次函数，程序就会在调用栈上建立一个栈帧（Stack Frame），用来保存这个函数需要的局部变量、部分参数、返回地址以及必要的寄存器状态。函数返回时，再把它对应的整个栈帧一起弹出。
+
+它最大的优势就是快。CPU通常只需要维护一个指向栈顶的栈指针寄存器，创建栈帧时把栈指针移动一段距离，函数结束时再移动回来即可。它不需要在一大片内存中寻找空位，也不需要单独记录每一个局部变量应该在什么时候释放。
+
+```text
+进入函数：移动栈指针，划出一块栈帧
+退出函数：恢复栈指针，整块栈帧直接失效
+```
+
+同时栈上的数据一般会比较集中，刚刚访问的数据大概率马上还会再次访问，这种连续和局部的内存访问方式对CPU缓存非常友好。所以栈不仅分配和回收简单，实际访问速度通常也很好。
+
+当然它的限制也正是来源于此。栈上的数据需要适应函数调用这种严格的后进先出关系，而且编译器通常需要提前知道栈帧大概要占用多少空间。如果一个数据的大小运行时才知道，或者函数结束后它还需要继续存在，就不适合单纯地跟随当前栈帧一起消失。
+
+#### 为什么还需要堆
+
+假如用户输入了一段字符串，我们事先根本不知道他会输入几个字；又或者创建了一份数据，它需要跨越多个函数继续被使用，甚至要一直活到程序很后面。这时严格跟随函数进出而创建和销毁的栈就不够灵活了，于是就需要堆。
+
+堆可以理解为进程拥有的一大片可动态管理的内存区域。程序可以在运行时申请一块指定大小的空间，并通过指针找到它；等确定不再需要时，再把这块空间交还给内存分配器。
+
+```rust
+let name = String::from("XBXyftx");
+```
+
+这里的`String`本身通常还是由当前函数在栈上保存，它里面记录着指针、长度和容量；真正的字符串内容则存放在堆上。这样字符串需要变长时，就可以重新申请更大的堆空间，而不需要要求编译器提前猜出它最后会有多长。
+
+堆的优势就是灵活：数据可以是动态大小，也可以拥有比创建它的函数更长的生命周期。但代价也很明显，分配器需要寻找合适的空闲区域、记录哪些内存正在使用，还要处理释放和重复利用，因而通常比单纯移动栈指针复杂。堆上的数据也可能分散在不同位置，对CPU缓存没有连续的栈数据那么友好。
+
+这也终于能和Rust的所有权联系起来了。栈帧退出时可以整块回收，管理起来相对简单；但堆上的内存不能仅凭“某个函数结束了”就直接判断是否还能使用。如果忘记释放就会内存泄漏，提前释放会产生悬垂指针，释放两次则可能直接破坏内存。因此Rust用所有权、借用和生命周期在编译期间回答一个关键问题：这块数据现在归谁负责，它还能被谁使用，又应该在什么时候释放。
+
+不过所有权并不只作用于堆数据，栈上的值同样拥有所有权。只是像`String`、`Vec`这种持有堆内存的类型，在移动所有权时通常只是把栈上的指针、长度和容量等管理信息移动给新变量，并不会把堆里的所有内容重新复制一遍。最后的所有者离开作用域时，Rust才会调用`drop`释放它所管理的堆内存。
+
+#### 操作系统在其中做了什么
+
+再往底层挖的话，进程看到的通常并不是物理内存条的真实地址，而是操作系统为它建立的一套{% label 虚拟地址空间 red %}。程序使用虚拟地址访问内存，CPU中的内存管理单元（MMU）再根据操作系统维护的页表，把虚拟地址翻译到实际的物理内存页。
+
+一个进程的虚拟地址空间也并不只有堆和栈，通常还会包括：
+
+```text
+┌──────────────────────────────┐
+│ 栈：函数调用、局部变量       │
+├──────────────────────────────┤
+│ 内存映射区：共享库、映射文件 │
+├──────────────────────────────┤
+│ 堆：动态申请的数据           │
+├──────────────────────────────┤
+│ 静态数据区：全局/静态变量    │
+├──────────────────────────────┤
+│ 代码区：编译后的机器指令     │
+└──────────────────────────────┘
+```
+
+另外CPU内部还有寄存器和多级缓存，它们甚至比主内存更靠近执行单元。所以底层当然不只有堆和栈，只是学习变量、函数和所有权时，堆与栈正好是最直接相关的两块区域，教材才会反复强调它们。
+
+线程启动时，操作系统或运行时通常会为它预留一段栈的虚拟地址空间，并设置保护页。栈持续增长到越过边界时，就可能触发栈溢出。每个线程通常拥有自己的调用栈，因此不同线程能够同时保持各自的函数调用状态。
+
+堆则通常由进程中的内存分配器负责日常管理。像Rust的`Box`、`String`和`Vec`需要动态内存时，会先向分配器申请；分配器手中的空间不够时，才会再通过操作系统提供的机制申请更多虚拟内存页。释放时也不一定立刻把物理内存归还给操作系统，分配器可能先把它留着，等待下一次分配继续复用。
+
+所以从CPU到操作系统再到Rust，大致可以这样串起来：
+
+```text
+CPU用栈指针高效维护函数调用
+        ↓
+编译器安排栈帧并生成申请堆内存的代码
+        ↓
+内存分配器管理进程堆中的空闲块
+        ↓
+操作系统通过虚拟内存和页表管理进程可用的内存页
+        ↓
+MMU最终把虚拟地址映射到物理内存
+```
+
+那看来我之前产生“底层只有堆和栈”的感觉，实际上只是因为当前正在学习函数调用和所有权，这两个概念恰好会频繁地跨越栈与堆。其他数据结构并没有消失，它们只是建立在这些内存区域之上；堆和栈回答数据放在哪里、活多久、怎么回收，数组、链表和树回答数据之间按照什么关系组织以及如何访问。两个层面的概念终于对上了。
+
+#### 深浅拷贝
+
+```rust
+let s1 = String::from("hello");
+let s2 = s1;
+
+println!("{}, world!", s1);
+
+error[E0382]: borrow of moved value: `s1`
+ --> src/main.rs:5:28
+  |
+2 |     let s1 = String::from("hello");
+  |         -- move occurs because `s1` has type `String`, which does not implement the `Copy` trait
+3 |     let s2 = s1;
+  |              -- value moved here
+4 |
+5 |     println!("{}, world!", s1);
+  |                            ^^ value borrowed here after move
+  |
+  = note: this error originates in the macro `$crate::format_args_nl` which comes from the expansion of the macro `println` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: consider cloning the value if the performance cost is acceptable
+  |
+3 |     let s2 = s1.clone();
+  |                ++++++++
+
+For more information about this error, try `rustc --explain E0382`.
+```
+
+![12](rustTips/12.webp)
+
+{% note success flat %}
+
+1. Rust 中每一个值都被一个变量所拥有，该变量被称为值的所有者
+2. 一个值同时只能被一个变量所拥有，或者说一个值只能拥有一个所有者
+3. 当所有者（变量）离开作用域范围时，这个值将被丢弃(drop)
+
+{% endnote %}
+
+但是在下面这段代码中又有些不一样
+
+```rust
+fn main() {
+    let x: &str = "hello, world";
+    let y = x;
+    println!("{},{}",x,y);
+}
+```
+
+这里之所以和前面的`String`不一样，是因为`x`的类型并不是`String`，而是一个字符串切片引用`&str`。换句话说，`x`并不真正拥有`"hello, world"`这段字符串，它只是保存了这段字符串所在的地址以及字符串的长度。
+
+而这里的`"hello, world"`又是一个字符串字面量，它在程序编译时就已经被写进了静态只读数据区域，会一直存活到整个程序结束，所以它实际上拥有一个`'static`生命周期。
+
+```text
+x: &str
+┌──────────────┐
+│ 字符串地址     │──────→ 静态区中的 "hello, world"
+│ 字符串长度     │
+└──────────────┘
+```
+
+接下来执行`let y = x;`时，看起来像是把`x`赋值给了`y`，但这里并没有像`String`一样发生所有权转移。因为`&str`本质上只是一个引用，而且共享引用实现了`Copy`，所以Rust会直接把`x`中保存的地址和长度复制一份交给`y`。
+
+```text
+x ──┐
+    ├──→ 静态区中的 "hello, world"
+y ──┘
+```
+
+所以此时`x`和`y`各自拥有一份独立的引用，只不过这两个引用都指向了同一段字符串。也正是因为复制的只是引用而不是真正的字符串内容，所以`x`并不会失效，后面的`println!`自然也就可以同时使用`x`和`y`。
+
+这其实也并没有违反“一个值只能拥有一个所有者”的规则，因为`x`和`y`拥有的是两份不同的引用值，它们谁都不拥有背后真正的字符串。简单点来说就是：
+
+```text
+String：我拥有这段堆内存，赋值时通常会移动所有权
+&str：我只是引用这段字符串，复制我并不会复制或转移字符串本身
+```
+
+原来Rust限制的是同一个值的所有权，并不是不允许多个不可变引用同时观察同一个值。这样看来，`let y = x;`到底是移动还是复制，还是得看`x`具体是什么类型，不能只看赋值语句长得一不一样。
+
+#### 所有权对函数参数以及返回值的影响
+
+这块我简单看了一下，我的编程经验告诉我这块如果是手写或是能力不太行的AI写，很容易就会出错。
+
+我还是先搬运一下圣经中讲解的案例。
+
+```rust
+fn main() {
+    let s = String::from("hello");  // s 进入作用域
+
+    takes_ownership(s);             // s 的值移动到函数里 ...
+                                    // ... 所以到这里不再有效
+
+    let x = 5;                      // x 进入作用域
+
+    makes_copy(x);                  // x 应该移动函数里，
+                                    // 但 i32 是 Copy 的，所以在后面可继续使用 x
+
+} // 这里, x 先移出了作用域，然后是 s。但因为 s 的值已被移走，
+  // 所以不会有特殊操作
+
+fn takes_ownership(some_string: String) { // some_string 进入作用域
+    println!("{}", some_string);
+} // 这里，some_string 移出作用域并调用 `drop` 方法。占用的内存被释放
+
+fn makes_copy(some_integer: i32) { // some_integer 进入作用域
+    println!("{}", some_integer);
+} // 这里，some_integer 移出作用域。不会有特殊操作
+```
+
+```rust
+fn main() {
+    let s1 = gives_ownership();         // gives_ownership 将返回值
+                                        // 移给 s1
+
+    let s2 = String::from("hello");     // s2 进入作用域
+
+    let s3 = takes_and_gives_back(s2);  // s2 被移动到
+                                        // takes_and_gives_back 中,
+                                        // 它也将返回值移给 s3
+} // 这里, s3 移出作用域并被丢弃。s2 也移出作用域，但已被移走，
+  // 所以什么也不会发生。s1 移出作用域并被丢弃
+
+fn gives_ownership() -> String {             // gives_ownership 将返回值移动给
+                                             // 调用它的函数
+
+    let some_string = String::from("hello"); // some_string 进入作用域.
+
+    some_string                              // 返回 some_string 并移出给调用的函数
+}
+
+// takes_and_gives_back 将传入字符串并返回该值
+fn takes_and_gives_back(a_string: String) -> String { // a_string 进入作用域
+
+    a_string  // 返回 a_string 并移出给调用的函数
+}
+```
+
+这两段原文的讲解我认为并不够细所以我们还是来展开看一下。
+
+先看第一段，这里其实同时展示了两种完全不同的传参方式：`String`发生的是所有权转移，而`i32`发生的则是按值复制。虽然在代码中它们都只是向函数的括号里传入了一个变量，但底层发生的事情并不一样。
+
+<style>
+.rs-own-lab{--rust:#ce422b;--rust-dark:#8f2d1d;--ink:#251c18;--muted:#6f625b;--paper:#fffaf4;--panel:#fff;--line:#dfcfc3;--heap:#273043;--ok:#2f855a;--dead:#8c8c8c;position:relative;margin:1.6rem 0 2rem;padding:1.2rem;border:2px solid var(--rust);border-radius:8px;background:linear-gradient(145deg,#fffaf4,#f7eee5);box-shadow:0 14px 35px rgba(91,49,31,.12);color:var(--ink)}
+.rs-own-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1rem;padding-bottom:.8rem;border-bottom:1px dashed rgba(206,66,43,.45)}
+.rs-own-kicker{font-family:"SFMono-Regular",Consolas,monospace;font-size:.68rem;letter-spacing:.15em;color:var(--rust);text-transform:uppercase}
+.rs-own-title{margin:.18rem 0 0;font-size:1.1rem;font-weight:800;color:var(--ink)}
+.rs-own-rule{flex:none;padding:.28rem .55rem;border:1px solid var(--rust);border-radius:999px;font-family:"SFMono-Regular",Consolas,monospace;font-size:.68rem;color:var(--rust)}
+.rs-own-stages{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.65rem;align-items:stretch}
+.rs-own-stage{position:relative;min-width:0;padding:.78rem;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.rs-own-stage:not(:last-child)::after{content:"→";position:absolute;z-index:2;top:50%;right:-.55rem;transform:translate(50%,-50%);width:1.25rem;height:1.25rem;border-radius:50%;background:var(--rust);color:#fff;text-align:center;font-size:.78rem;line-height:1.25rem;font-weight:800}
+.rs-own-no{display:block;margin-bottom:.5rem;font-family:"SFMono-Regular",Consolas,monospace;font-size:.63rem;color:var(--muted)}
+.rs-own-code{display:block;margin-bottom:.5rem;font-family:"SFMono-Regular",Consolas,monospace;font-size:.72rem;line-height:1.5;color:var(--ink);overflow-wrap:anywhere}
+.rs-own-stack{display:grid;gap:.35rem;padding:.5rem;border:1px solid #ead9ce;border-radius:8px;background:#fff9f4}
+.rs-own-var{display:flex;align-items:center;justify-content:space-between;gap:.35rem;padding:.35rem .42rem;border-radius:6px;background:#f5e5da;font-family:"SFMono-Regular",Consolas,monospace;font-size:.68rem}
+.rs-own-var.owner{outline:2px solid var(--rust);background:#fff0e7}
+.rs-own-var.dead{color:var(--dead);background:#efefef;text-decoration:line-through;outline:1px dashed var(--dead)}
+.rs-own-var.copy{outline:2px solid #3973b7;background:#eaf3ff}
+.rs-own-badge{flex:none;padding:.12rem .32rem;border-radius:999px;background:var(--rust);color:#fff;font-size:.56rem;text-decoration:none}
+.rs-own-var.dead .rs-own-badge{background:var(--dead)}
+.rs-own-var.copy .rs-own-badge{background:#3973b7}
+.rs-own-heap{margin-top:.45rem;padding:.45rem;border-radius:7px;background:var(--heap);color:#fff;font-family:"SFMono-Regular",Consolas,monospace;font-size:.65rem;line-height:1.45}
+.rs-own-heap b{color:#ffb39f}
+.rs-own-heap.freed{background:#e7f5ec;color:#215b3d;outline:1px solid #8fc5a6}
+.rs-own-heap.freed b{color:var(--ok)}
+.rs-own-caption{margin:.55rem 0 0;font-size:.72rem;line-height:1.55;color:var(--muted)}
+.rs-own-copylane{display:grid;grid-template-columns:1fr auto 1fr;gap:.65rem;align-items:center;margin-top:.8rem;padding:.8rem;border:1px dashed #7aa6d6;border-radius:8px;background:#f3f8ff}
+.rs-own-copyarrow{text-align:center;font-family:"SFMono-Regular",Consolas,monospace;font-size:.68rem;color:#3973b7}
+.rs-own-copyicon{display:inline-block;margin-left:.2rem;font-weight:900}
+.rs-own-copytext{margin:0;font-size:.73rem;line-height:1.55;color:#4d647d}
+.rs-own-split{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.rs-own-lane{padding:.82rem;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.rs-own-lane-title{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.65rem;font-size:.82rem;font-weight:800}
+.rs-own-lane-title span{padding:.16rem .38rem;border-radius:999px;background:#f7ded3;color:var(--rust);font-family:"SFMono-Regular",Consolas,monospace;font-size:.6rem}
+.rs-own-chain{display:flex;align-items:stretch;gap:.34rem}
+.rs-own-node{flex:1;min-width:0;padding:.55rem .42rem;border:1px solid #ead9ce;border-radius:8px;background:#fff9f4;text-align:center}
+.rs-own-node strong{display:block;font-family:"SFMono-Regular",Consolas,monospace;font-size:.69rem;color:var(--ink);overflow-wrap:anywhere}
+.rs-own-node small{display:block;margin-top:.3rem;font-size:.6rem;line-height:1.4;color:var(--muted)}
+.rs-own-node.owner{border:2px solid var(--rust);background:#fff0e7}
+.rs-own-node.dead{border-style:dashed;border-color:var(--dead);background:#efefef}
+.rs-own-node.dead strong{color:var(--dead);text-decoration:line-through}
+.rs-own-arrow{align-self:center;flex:none;color:var(--rust);font-weight:900}
+.rs-own-heapline{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-top:.65rem;padding:.55rem .65rem;border-radius:8px;background:var(--heap);color:#fff;font-size:.68rem}
+.rs-own-heapline code{color:#ffb39f;background:transparent;padding:0}
+.rs-own-ending{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem;margin-top:.8rem}
+.rs-own-enditem{padding:.55rem;border-radius:9px;background:#edf7f1;border:1px solid #a5cfb5;font-size:.68rem;line-height:1.5;color:#245c3c}
+.rs-own-enditem strong{display:block;color:var(--ok)}
+[data-theme='dark'] .rs-own-lab{--ink:#f7e9df;--muted:#bfaea4;--paper:#201a17;--panel:#29211d;--line:#5c473c;background:linear-gradient(145deg,#211a17,#2d211c);box-shadow:0 14px 35px rgba(0,0,0,.3)}
+[data-theme='dark'] .rs-own-stack,[data-theme='dark'] .rs-own-node{background:#201a17;border-color:#5c473c}
+[data-theme='dark'] .rs-own-var{background:#463027}
+[data-theme='dark'] .rs-own-var.owner,[data-theme='dark'] .rs-own-node.owner{background:#4d281e}
+[data-theme='dark'] .rs-own-var.dead,[data-theme='dark'] .rs-own-node.dead{background:#363636}
+[data-theme='dark'] .rs-own-var.copy{background:#1e3653}
+[data-theme='dark'] .rs-own-copylane{background:#1c2b3b;border-color:#547da8}
+[data-theme='dark'] .rs-own-copytext{color:#b9d0e8}
+[data-theme='dark'] .rs-own-ending{color:#d3ecdd}
+[data-theme='dark'] .rs-own-enditem{background:#1d3828;border-color:#47785a;color:#cce5d5}
+@media(max-width:900px){.rs-own-stages{grid-template-columns:1fr 1fr}.rs-own-stage:nth-child(2)::after{content:"↓";top:auto;right:50%;bottom:-.58rem;transform:translate(50%,50%)}.rs-own-split{grid-template-columns:1fr}}
+@media(max-width:600px){.rs-own-lab{padding:.85rem}.rs-own-head{display:block}.rs-own-rule{display:inline-block;margin-top:.55rem}.rs-own-stages{grid-template-columns:1fr}.rs-own-stage:not(:last-child)::after{content:"↓";top:auto;right:50%;bottom:-.58rem;transform:translate(50%,50%)}.rs-own-copylane{grid-template-columns:1fr}.rs-own-copyicon{transform:rotate(90deg)}.rs-own-chain{flex-direction:column}.rs-own-arrow{transform:rotate(90deg);text-align:center}.rs-own-ending{grid-template-columns:1fr}}
+</style>
+
+<div class="rs-own-lab" id="ownership-parameter-flow"><div class="rs-own-head"><div><div class="rs-own-kicker">Example 01 · function parameter</div><div class="rs-own-title">把 <code>String</code> 传入函数：转移的是管理权，堆数据并没有复制</div></div><div class="rs-own-rule">String → MOVE</div></div><div class="rs-own-stages"><section class="rs-own-stage"><span class="rs-own-no">01 / 创建</span><code class="rs-own-code">let s = String::from("hello");</code><div class="rs-own-stack"><div class="rs-own-var owner"><span>s = ptr / len / cap</span><span class="rs-own-badge">OWNER</span></div></div><div class="rs-own-heap"><b>HEAP · H1</b><br>内容："hello"</div><p class="rs-own-caption">此时 <code>s</code> 是 H1 的唯一所有者，负责保证这块堆内存最终被释放。</p></section><section class="rs-own-stage"><span class="rs-own-no">02 / 传参</span><code class="rs-own-code">takes_ownership(s);</code><div class="rs-own-stack"><div class="rs-own-var dead"><span>s</span><span class="rs-own-badge">INVALID</span></div><div class="rs-own-var owner"><span>some_string = ptr / len / cap</span><span class="rs-own-badge">OWNER</span></div></div><div class="rs-own-heap"><b>HEAP · H1</b><br>仍然是同一个 "hello"</div><p class="rs-own-caption">指针、长度和容量被移动给形参，H1 没搬家也没复制；原来的 <code>s</code> 被编译器判定为失效。</p></section><section class="rs-own-stage"><span class="rs-own-no">03 / 函数内</span><code class="rs-own-code">println!("{}", some_string);</code><div class="rs-own-stack"><div class="rs-own-var owner"><span>some_string</span><span class="rs-own-badge">OWNER</span></div></div><div class="rs-own-heap"><b>HEAP · H1</b><br>通过所有者读取 "hello"</div><p class="rs-own-caption">函数内部可以正常使用 <code>some_string</code>，因为管理权已经完整地转移到了它手里。</p></section><section class="rs-own-stage"><span class="rs-own-no">04 / 离开作用域</span><code class="rs-own-code">} // some_string drop</code><div class="rs-own-stack"><div class="rs-own-var dead"><span>some_string</span><span class="rs-own-badge">END</span></div></div><div class="rs-own-heap freed"><b>HEAP · H1 已释放</b><br>只释放一次，不会轮到 s 再释放</div><p class="rs-own-caption">形参离开作用域，Rust调用 <code>drop</code>。回到 <code>main</code> 后，<code>s</code>依旧不可用。</p></section></div><div class="rs-own-copylane"><div><div class="rs-own-var copy"><span>x = 5</span><span class="rs-own-badge">COPY</span></div><p class="rs-own-copytext"><code>i32</code>数据固定且很小，值直接存放在变量中。</p></div><div class="rs-own-copyarrow"><span>复制比特位</span><span class="rs-own-copyicon">→</span></div><div><div class="rs-own-var copy"><span>some_integer = 5</span><span class="rs-own-badge">COPY</span></div><p class="rs-own-copytext">函数拿到一份独立的<code>5</code>，原来的<code>x</code>仍然有效；这里没有堆内存需要转移或释放。</p></div></div></div>
+
+这样看第一段就很清楚了。`takes_ownership(s)`不是把堆上的`"hello"`完整复制进函数，而是把`String`中用于管理堆内存的指针、长度和容量交给了`some_string`。为了避免`main`中的`s`和函数里的`some_string`最后都去释放同一个地址，Rust在移动发生之后就直接让`s`失效，只留下一个合法的所有者。
+
+`makes_copy(x)`则完全不是这套流程。`i32`实现了`Copy`，传参时会直接复制一份数值`5`给`some_integer`，所以函数内外各有一份互不干扰的`5`。函数结束时`some_integer`消失，`main`中的`x`依旧可以继续使用。
+
+再来看第二段，它展示的不是“所有权被函数吃掉”，而是所有权可以顺着返回值继续流动。函数的边界并不会阻止所有权转移，只要把值返回出去，管理权就能交给调用者。
+
+<div class="rs-own-lab" id="ownership-return-flow"><div class="rs-own-head"><div><div class="rs-own-kicker">Example 02 · return value</div><div class="rs-own-title">函数返回 <code>String</code>：所有者可以换名字，堆内存继续存活</div></div><div class="rs-own-rule">RETURN → MOVE</div></div><div class="rs-own-split"><section class="rs-own-lane"><div class="rs-own-lane-title">路线 A：函数创建，再交给调用者 <span>gives_ownership</span></div><div class="rs-own-chain"><div class="rs-own-node owner"><strong>some_string</strong><small>函数内创建<br>H2 当前所有者</small></div><div class="rs-own-arrow">→</div><div class="rs-own-node dead"><strong>函数栈帧</strong><small>返回后销毁<br>但不释放 H2</small></div><div class="rs-own-arrow">→</div><div class="rs-own-node owner"><strong>s1</strong><small>接收返回值<br>成为新所有者</small></div></div><div class="rs-own-heapline"><span>同一块堆内存</span><code>H2 · "hello"</code></div><p class="rs-own-caption"><code>some_string</code>作为末尾表达式被返回时，它不会在函数结束处执行<code>drop</code>，因为所有权已经移动给了<code>s1</code>。</p></section><section class="rs-own-lane"><div class="rs-own-lane-title">路线 B：传进去，再原样交回来 <span>takes_and_gives_back</span></div><div class="rs-own-chain"><div class="rs-own-node dead"><strong>s2</strong><small>传参后失效<br>不再拥有 H3</small></div><div class="rs-own-arrow">→</div><div class="rs-own-node owner"><strong>a_string</strong><small>函数形参<br>临时拥有 H3</small></div><div class="rs-own-arrow">→</div><div class="rs-own-node owner"><strong>s3</strong><small>接收返回值<br>最终拥有 H3</small></div></div><div class="rs-own-heapline"><span>同一块堆内存</span><code>H3 · "hello"</code></div><p class="rs-own-caption">H3的所有权经历<code>s2 → a_string → s3</code>两次移动，字符串内容并没有因此复制两次。</p></section></div><div class="rs-own-ending"><div class="rs-own-enditem"><strong>main结束：drop(s3)</strong>释放H3，执行一次。</div><div class="rs-own-enditem"><strong>然后检查s2</strong>它早已失效，不执行<code>drop</code>。</div><div class="rs-own-enditem"><strong>main结束：drop(s1)</strong>释放H2，执行一次。</div></div></div>
+
+第一条路线中，`some_string`虽然是`gives_ownership`函数里的局部变量，但它在函数结束前被作为返回值移动了出去。因此函数栈帧消失时，`some_string`这个变量名确实不存在了，可它管理的堆内存并没有被释放，而是继续由接住返回值的`s1`负责。
+
+第二条路线就更像一次所有权接力。`s2`先把所有权交给形参`a_string`，所以`s2`立即失效；随后`a_string`又通过返回值把所有权交给`s3`，因此它也不会在函数结束时释放那块堆内存。等到`main`结束，最终所有者`s3`才会负责释放它。
+
+这里需要注意，图中说的“移动”是在解释Rust的语义规则，并不等于机器执行时一定要把指针、长度和容量这三个机器字来回复制很多次。编译器知道返回值最终要落到哪里后，可能直接在调用者准备好的返回位置中构造结果，或者通过寄存器传递并进行优化。但无论最终机器代码怎么优化，Rust在类型系统中保证的事实始终不变：任意时刻只有一个变量负责那块堆内存，旧的绑定在移动之后不能继续使用，最终也只会有一个所有者执行`drop`。
+
+那这样看来，函数参数和返回值都只是所有权流转的入口。真正需要盯住的不是变量叫什么，也不是跨过了几个函数，而是每执行完一行代码之后，{% label 当前到底是谁拥有那块资源 red %}。只要这个问题能够回答出来，什么时候变量会失效、什么时候堆内存会释放，也就都能顺着推出来了。
