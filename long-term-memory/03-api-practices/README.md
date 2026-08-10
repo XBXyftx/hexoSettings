@@ -165,6 +165,16 @@
 
 ---
 
+## 浏览器验证工具
+
+| 工具 | 适用场景 | 文档 |
+| --- | --- | --- |
+| ego-browser（用户级 skill） | localhost 预览或线上页面的真实浏览器 DOM/视觉验证；已登录站点的文档查证 | [ego-browser-verification.md](ego-browser-verification.md) |
+
+需要浏览器级证据（视觉验收、运行时 DOM 状态、外链可用性探测）时优先使用；流程、已验证的坑和 footer 徽章成功案例见文档。
+
+---
+
 ## 主题配置关键项
 
 ### 注入系统（inject）

@@ -297,7 +297,7 @@ footer:
   owner:
     enable: true
     since: 2023
-  custom_text: <a href="https://beian.miit.gov.cn/#/Integrated/index"><span>备案号：京ICP备2025126467号</span></a>
+  custom_text: <a href="https://beian.miit.gov.cn/#/Integrated/index"><span>备案号：京ICP备2025126467号</span></a><div><a href="https://app.netlify.com/projects/xbxyftx/deploys"><img src="https://api.netlify.com/api/v1/badges/1d0c27d0-06e5-46e8-b9ce-5069e6b4b414/deploy-status" alt="Netlify Status"></a> <a href="https://github.com/XBXyftx/XBXyftx.github.io/actions/workflows/pages/pages-build-deployment" style="margin-left:8px"><img src="https://github.com/XBXyftx/XBXyftx.github.io/actions/workflows/pages/pages-build-deployment/badge.svg" alt="GitHub Pages Status"></a></div>
   copyright: true
 
 # --------------------------------------

@@ -19,6 +19,7 @@ Task routing:
 - Theme changes: also read and update `long-term-memory/06-theme-modifications/`.
 - Bugs and known issues: `long-term-memory/07-known-issues/` and the relevant operation evidence.
 - Memory maintenance: `long-term-memory/document-authoring-rules.md`.
+- Browser-level verification (visual checks, runtime DOM state, external-link probes on localhost preview or live pages): use the `ego-browser` skill, and first read `long-term-memory/03-api-practices/ego-browser-verification.md` for the verified workflow and known pitfalls.
 
 Sub-agents are optional read-only context tools. Do not start a default bundle; choose the smallest role justified by a concrete uncertainty, evidence type, workspace risk, or impact surface.
 
@@ -359,3 +360,4 @@ The blog deploys to two destinations simultaneously:
 - Custom scripts in `/scripts` are auto-loaded by Hexo during build
 - The typewriter feature requires both JS and CSS modifications
 - Validate changes with the least destructive applicable check; `npm run dev`/`npm run opt` include WebP conversion and require explicit authorization. Never deploy without explicit authorization.
+- When a change needs browser-level evidence, use the `ego-browser` skill (`ego-browser nodejs` heredocs) instead of stopping at build checks or marking visuals as unverified; the standard local-preview verification flow, screenshot procedure, and pitfalls are documented in `long-term-memory/03-api-practices/ego-browser-verification.md`.

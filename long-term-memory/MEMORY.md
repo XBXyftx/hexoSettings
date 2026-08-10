@@ -106,6 +106,7 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 - [图片懒加载系统](03-api-practices/lazy-loading-system.md) — 多套懒加载方案协同、IntersectionObserver、PJAX 重初始化
 - [侧栏公告历史时间轴](03-api-practices/announcement-history.md) — `source/_data/announcements.yml` 编写入口、Git 历史恢复、构建校验、Pug/CSS/JS 交互与升级说明
 - [目录 hideToggle 折叠分组](03-api-practices/README.md) — `scripts/toc-toggle-group.js` 覆盖内置 toc 助手，hideToggle 块内标题归入目录折叠项并联动展开内容块；配套 JS/CSS 仅文章页加载
+- [ego-browser 浏览器验证](03-api-practices/ego-browser-verification.md) — localhost 预览的真实浏览器验证默认流程：任务空间复用、lazy 图片加载等待、CDP 截图裁剪复核；含 footer 部署徽章成功案例
 - [性能优化策略](03-api-practices/performance-optimization.md) — FPS 节流、visibility 暂停、移动端降级、异步 CSS
 
 ### 自定义页面
