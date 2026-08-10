@@ -1,5 +1,10 @@
 /* 瀑布流首页样式 - 优化版 */
-$waterfallEnable = hexo-config('cover.index_enable')
+/* 2026-08-10：卡片换装 Windows XP 平面窗口风格（与首页轮播 swiper-xp.css 同一设计语言）。
+   - 删除原封面信息区的激光/涟漪浮层（::before/::after 水纹、.waterfall-ripple 系列与六套玻璃配色）。
+   - 悬浮动效重新设计为「窗口激活」语义：桌面 hover / 键盘 focus-within 点亮标题栏；
+     触屏粗指针下窗口常激活，点按给出下沉反馈；reduced-motion 瞬时切换无过渡。
+   - 同日按用户反馈改为深色版：标题栏蓝色保持不变，窗口内容区为深色阅读配色。
+   - 瀑布流布局逻辑（列数/坐标）仍由 waterfall.js 负责，本文件只管视觉。 */
 
 #recent-posts.waterfall-masonry
   // 轮播图样式重置
@@ -7,7 +12,7 @@ $waterfallEnable = hexo-config('cover.index_enable')
     width: 100% !important
     max-width: none !important
     margin-bottom: 20px !important
-    
+
   // 瀑布流容器
   .waterfall-container
     position: relative !important
@@ -16,16 +21,10 @@ $waterfallEnable = hexo-config('cover.index_enable')
     min-height: 400px
     overflow: visible !important
     box-sizing: border-box
-    
-    // 瀑布流项目基础样式
+    counter-reset: xp-window 0
+
+    // 瀑布流项目基础样式（只重置定位，视觉全部在 .post-card-wrapper 上）
     .waterfall-item
-      --glass-angle: 152deg
-      --glass-a: rgba(2, 8, 17, 0.6)
-      --glass-b: rgba(4, 49, 68, 0.52)
-      --glass-c: rgba(8, 104, 111, 0.46)
-      --glass-glow-a: rgba(57, 215, 214, 0.16)
-      --glass-glow-b: rgba(95, 155, 255, 0.1)
-      --card-accent: rgba(72, 232, 226, 0.78)
       // 移除所有可能冲突的定位样式，让JS完全控制
       position: static // 初始状态为静态，JS会改为绝对定位
       display: block !important
@@ -38,288 +37,180 @@ $waterfallEnable = hexo-config('cover.index_enable')
       float: none !important
       clear: none !important
       background: transparent !important
+      counter-increment: xp-window
 
-      &:nth-child(6n + 2)
-        --glass-angle: 118deg
-        --glass-a: rgba(3, 10, 32, 0.61)
-        --glass-b: rgba(13, 49, 126, 0.5)
-        --glass-c: rgba(49, 37, 135, 0.44)
-        --glass-glow-a: rgba(72, 151, 255, 0.18)
-        --glass-glow-b: rgba(128, 111, 255, 0.12)
-        --card-accent: rgba(103, 169, 255, 0.8)
-
-      &:nth-child(6n + 3)
-        --glass-angle: 164deg
-        --glass-a: rgba(24, 3, 15, 0.62)
-        --glass-b: rgba(105, 16, 54, 0.52)
-        --glass-c: rgba(91, 36, 91, 0.45)
-        --glass-glow-a: rgba(255, 80, 126, 0.17)
-        --glass-glow-b: rgba(218, 94, 184, 0.12)
-        --card-accent: rgba(255, 112, 157, 0.8)
-
-      &:nth-child(6n + 4)
-        --glass-angle: 104deg
-        --glass-a: rgba(20, 7, 4, 0.63)
-        --glass-b: rgba(111, 38, 22, 0.52)
-        --glass-c: rgba(148, 66, 34, 0.44)
-        --glass-glow-a: rgba(255, 130, 67, 0.16)
-        --glass-glow-b: rgba(239, 73, 70, 0.11)
-        --card-accent: rgba(255, 145, 82, 0.8)
-
-      &:nth-child(6n + 5)
-        --glass-angle: 138deg
-        --glass-a: rgba(16, 4, 31, 0.63)
-        --glass-b: rgba(64, 26, 123, 0.52)
-        --glass-c: rgba(131, 35, 119, 0.45)
-        --glass-glow-a: rgba(158, 102, 255, 0.17)
-        --glass-glow-b: rgba(255, 91, 192, 0.11)
-        --card-accent: rgba(190, 123, 255, 0.8)
-
-      &:nth-child(6n)
-        --glass-angle: 172deg
-        --glass-a: rgba(2, 18, 18, 0.62)
-        --glass-b: rgba(7, 80, 75, 0.52)
-        --glass-c: rgba(13, 83, 124, 0.45)
-        --glass-glow-a: rgba(57, 225, 175, 0.16)
-        --glass-glow-b: rgba(61, 169, 255, 0.12)
-        --card-accent: rgba(78, 231, 187, 0.8)
-      
-      // 卡片包装器样式
+      // ===== XP 窗口卡片（深色内容区） =====
       .post-card-wrapper
-        background: rgba(3, 5, 12, 0.16)
-        border-radius: 20px
-        overflow: hidden
-        border: 1px solid rgba(171, 194, 226, 0.34)
-        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.08)
-        transition: transform 0.45s ease, border-color 0.35s ease, box-shadow 0.45s ease, background-color 0.35s ease
-        height: auto
+        position: relative
         display: flex
         flex-direction: column
         box-sizing: border-box
-        
-        &:hover
-          transform: translateY(-8px) scale(1.02)
-          box-shadow: 0 20px 42px rgba(0, 0, 0, 0.42), 0 0 25px var(--card-accent)
-          border-color: var(--card-accent)
-          background: rgba(3, 5, 12, 0.24)
-          
-        // 封面图片
+        height: auto
+        padding-top: 30px // 顶部让位窗口标题栏
+        background: #1e2431 // 深色内容区
+        border: 3px solid #7f9db9 // 非激活：灰蓝窗口边框
+        border-radius: 10px 10px 4px 4px
+        box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.4) // 平面硬阴影
+        overflow: hidden
+        transition: border-color 0.2s ease, box-shadow 0.2s ease
+
+        // 窗口标题栏（非激活灰蓝，含四色徽标与窗口名）
+        &::before
+          content: 'article_' counter(xp-window, decimal-leading-zero) '.exe'
+          position: absolute
+          top: 0
+          left: 0
+          right: 0
+          height: 30px
+          z-index: 5
+          padding-left: 36px
+          background-color: #97a9cb // XP 非激活标题栏
+          background-image: linear-gradient(#f65314, #f65314), linear-gradient(#7cbb00, #7cbb00), linear-gradient(#00a1f1, #00a1f1), linear-gradient(#ffbb00, #ffbb00)
+          background-size: 7px 7px, 7px 7px, 7px 7px, 7px 7px
+          background-position: 13px 8px, 21px 8px, 13px 16px, 21px 16px
+          background-repeat: no-repeat
+          color: #fff
+          font-size: 12px
+          font-weight: 700
+          line-height: 30px
+          letter-spacing: 1px
+          text-align: left
+          white-space: nowrap
+          overflow: hidden
+          pointer-events: none
+          transition: background-color 0.2s ease
+
+        // 标题栏装饰按钮组（最小化/最大化/关闭，多层 background 纯 CSS 绘制）
+        &::after
+          content: ''
+          position: absolute
+          top: 4px
+          right: 6px
+          width: 64px
+          height: 22px
+          z-index: 6
+          pointer-events: none
+          opacity: 0.55 // 非激活时淡化
+          background-image: linear-gradient(45deg, transparent 44%, #fff 44%, #fff 56%, transparent 56%), linear-gradient(-45deg, transparent 44%, #fff 44%, #fff 56%, transparent 56%), linear-gradient(#fff, #fff), linear-gradient(#3a76f0, #3a76f0), linear-gradient(#fff, #fff), linear-gradient(#3a76f0, #3a76f0), linear-gradient(#3a76f0, #3a76f0), linear-gradient(#d75027, #d75027), linear-gradient(#16418f, #16418f), linear-gradient(#16418f, #16418f), linear-gradient(#8f2f12, #8f2f12)
+          background-repeat: no-repeat
+          background-size: 10px 10px, 10px 10px, 10px 10px, 6px 6px, 8px 3px, 18px 18px, 18px 18px, 18px 18px, 20px 20px, 20px 20px, 20px 20px
+          background-position: 49px 6px, 49px 6px, 27px 6px, 29px 8px, 6px 13px, 1px 2px, 23px 2px, 45px 2px, 0 1px, 22px 1px, 44px 1px
+          transition: opacity 0.2s ease
+
+        // 键盘/触摸聚焦窗口同样激活（无障碍与触屏点选反馈）
+        &:focus-within
+          border-color: #0058e6
+          box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.45)
+
+          &::before
+            background-color: #0058e6
+
+          &::after
+            opacity: 1
+
+        // 封面：深色衬底 + 灰蓝控件边框，直角图片
         .post_cover
-          width: 100%
+          order: 0
+          margin: 4px 4px 0
+          padding: 4px
+          background: #141922
+          border: 1px solid #5d7a9e
+          box-sizing: border-box
           overflow: hidden
           position: relative
-          order: 0
-          
+
           a
             display: block
             width: 100%
-            
+
           img
             width: 100%
             height: auto
             display: block
             object-fit: contain
-            transition: transform 0.3s ease
-            
-          &:hover img
-            transform: scale(1.05)
-            
-        // 文章信息
+            border-radius: 0
+            transition: filter 0.2s ease
+
+        // 文章信息：深色窗口内容区
         .recent-post-info
-          --laser-x: 50%
-          --laser-y: 22%
-          padding: 20px
           flex: 1
           display: flex
           flex-direction: column
-          position: relative
-          isolation: isolate
-          overflow: hidden
-          // 半透明玻璃直接透出全屏星空；文字本身不再铺设局部深色底层。
-          background: radial-gradient(circle at 12% 4%, var(--glass-glow-a), transparent 46%), radial-gradient(circle at 92% 96%, var(--glass-glow-b), transparent 52%), linear-gradient(var(--glass-angle), var(--glass-a), var(--glass-b) 54%, var(--glass-c))
-          backdrop-filter: blur(4px) saturate(1.18) brightness(0.78)
-          -webkit-backdrop-filter: blur(4px) saturate(1.18) brightness(0.78)
-          border-top: 1px solid rgba(255, 255, 255, 0.07)
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -20px 34px rgba(1, 3, 10, 0.12)
-
-          &::before, &::after
-            content: ''
-            position: absolute
-            inset: 0
-            z-index: 0
-            pointer-events: none
-            opacity: 0
-            transition: opacity 0.32s ease
-
-          &::before
-            background: radial-gradient(circle at var(--laser-x) var(--laser-y), rgba(177, 255, 255, 0.3) 0, rgba(43, 222, 230, 0.16) 11%, transparent 34%)
-            mix-blend-mode: screen
-            filter: blur(2px)
-
-          &::after
-            background: linear-gradient(118deg, transparent 18%, rgba(121, 246, 244, 0.08) 38%, transparent 53%, rgba(255, 137, 174, 0.08) 72%, transparent 88%)
-            mix-blend-mode: screen
-            filter: saturate(1.12)
-
-          > :not(.waterfall-ripple-layer)
-            position: relative
-            z-index: 2
-
-          .waterfall-ripple-layer
-            position: absolute
-            inset: 0
-            z-index: 1
-            overflow: hidden
-            pointer-events: none
-
-          .waterfall-ripple
-            --ripple-primary-strong: rgba(70, 246, 238, 0.64)
-            --ripple-primary-soft: rgba(80, 225, 208, 0.22)
-            --ripple-secondary: rgba(114, 255, 170, 0.32)
-            --ripple-shadow: rgba(70, 246, 238, 0.22)
-            position: absolute
-            left: var(--ripple-x)
-            top: var(--ripple-y)
-            width: 54px
-            height: 28px
-            border-radius: 50%
-            opacity: 0
-            pointer-events: none
-            will-change: transform, opacity
-            transform: translate(-50%, -50%) rotate(var(--ripple-rotation)) scaleX(var(--ripple-stretch)) scale(0.28)
-            background: radial-gradient(ellipse at center, rgba(248, 255, 252, 0.16) 0%, var(--ripple-primary-soft) 16%, rgba(80, 235, 210, 0.1) 34%, rgba(230, 255, 244, 0.08) 48%, transparent 74%)
-            filter: blur(2.8px) drop-shadow(0 0 8px var(--ripple-shadow))
-            mix-blend-mode: screen
-            animation: waterfallRippleExpand var(--ripple-duration) cubic-bezier(0.12, 0.54, 0.24, 1) forwards
-
-            &::before, &::after
-              content: ''
-              position: absolute
-              border-radius: inherit
-              pointer-events: none
-
-            &::before
-              inset: 7%
-              background: radial-gradient(ellipse at center, transparent 10%, rgba(248, 255, 252, 0.1) 22%, var(--ripple-primary-strong) 38%, var(--ripple-primary-soft) 51%, rgba(105, 255, 170, 0.08) 61%, transparent 76%)
-              filter: blur(3.6px)
-              opacity: 0.82
-
-            &::after
-              inset: -15%
-              background: radial-gradient(ellipse at center, transparent 22%, var(--ripple-secondary) 43%, var(--ripple-primary-soft) 57%, transparent 78%)
-              filter: blur(5.4px)
-              opacity: 0.58
-
-            &--tone-1
-              --ripple-primary-strong: rgba(105, 255, 166, 0.62)
-              --ripple-primary-soft: rgba(91, 232, 150, 0.22)
-              --ripple-secondary: rgba(245, 255, 252, 0.34)
-              --ripple-shadow: rgba(105, 255, 166, 0.22)
-
-            &--tone-2
-              --ripple-primary-strong: rgba(245, 255, 252, 0.68)
-              --ripple-primary-soft: rgba(120, 255, 245, 0.2)
-              --ripple-secondary: rgba(93, 242, 148, 0.32)
-              --ripple-shadow: rgba(245, 255, 252, 0.18)
+          padding: 14px 16px 16px
+          background: transparent
 
           .article-title
-            margin-bottom: 12px
-            
+            margin-bottom: 10px
+
             a
-              color: #f4fbff
+              color: #9ecbff // 亮蓝白标题（深色阅读）
               font-size: 16px
-              font-weight: 600
+              font-weight: 700
               line-height: 1.4
-              text-shadow: 0 1px 1px rgba(0, 0, 0, 0.58)
               text-decoration: none
               display: -webkit-box
               -webkit-line-clamp: 2
               -webkit-box-orient: vertical
               overflow: hidden
-              transition: color 0.3s ease
-              
+              transition: color 0.2s ease
+
               &:hover
-                color: var(--theme-color)
-                
+                color: #cfe4ff
+                text-decoration: underline
+
+          .article-meta-wrap
+            margin-bottom: 8px
+
           .article-meta
             display: flex
             flex-wrap: wrap
+            align-items: center
             gap: 8px
-            margin-bottom: 10px
+            margin-bottom: 8px
             font-size: 12px
-            color: rgba(236, 248, 255, 0.88)
-            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.52)
-            
-            .article-meta__info
-              display: flex
-              align-items: center
-              gap: 4px
-              
-              i
-                font-size: 11px
-                
-            .tags
-              display: flex !important
-              flex-wrap: wrap !important
-              gap: 15px !important
-              margin-top: 8px !important
-              margin-bottom: 8px !important
-              
-              .article-meta__tags
-                background: transparent !important
-                color: rgba(242, 252, 255, 0.94) !important
-                padding: 6px 12px !important
-                border-radius: 12px !important
-                font-size: 12px !important
-                text-decoration: none !important
-                transition: all 0.3s ease !important
-                border: 1px solid rgba(188, 241, 255, 0.22) !important
-                backdrop-filter: none !important
-                -webkit-backdrop-filter: none !important
-                text-shadow: 0 1px 1px rgba(0, 0, 0, 0.52)
-                display: inline-block !important
-                margin: 2px !important
-                
-                &:hover
-                  background: rgba(10, 55, 74, 0.72) !important
-                  color: #fff !important
-                  transform: translateY(-1px) !important
-                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important
-          
+            color: #8a94a6
+
+            i
+              font-size: 11px
+              color: #4d94ff
+
+          // 标签：深色 XP 平面按钮（.tags 与 .article-meta 平级，不可嵌套进 .article-meta）
+          .tags
+            display: flex !important
+            flex-wrap: wrap !important
+            gap: 8px !important
+            margin: 2px 0 8px !important
+
+            .article-meta__tags
+              display: inline-block !important
+              background: #262e3d !important
+              color: #c3cad7 !important
+              padding: 3px 10px !important
+              border: 1px solid #5d7a9e !important
+              border-radius: 2px !important
+              font-size: 12px !important
+              text-decoration: none !important
+              margin: 2px !important
+              backdrop-filter: none !important
+              -webkit-backdrop-filter: none !important
+              transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease !important
+
+              &:hover
+                background: #0058e6 !important
+                border-color: #0058e6 !important
+                color: #fff !important
+
           .content
-            color: rgba(238, 249, 255, 0.94)
+            color: #c3cad7
             font-size: 13px
-            line-height: 1.5
-            opacity: 1
-            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.58)
+            line-height: 1.6
             display: -webkit-box
             -webkit-line-clamp: 3
             -webkit-box-orient: vertical
             overflow: hidden
             margin-top: auto
 
-      &.is-laser-active .recent-post-info
-        &::before
-          opacity: 0.28
-
-        &::after
-          opacity: 0.16
-
-@keyframes waterfallRippleExpand
-  0%
-    opacity: 0
-    transform: translate(-50%, -50%) rotate(var(--ripple-rotation)) scaleX(var(--ripple-stretch)) scale(0.28)
-  16%
-    opacity: 0.74
-  42%
-    opacity: 0.42
-  68%
-    opacity: 0.16
-  100%
-    opacity: 0
-    transform: translate(-50%, -50%) rotate(var(--ripple-rotation)) scaleX(var(--ripple-stretch)) scale(var(--ripple-scale))
-
-// 响应式布局 - 移除宽度设置，让JS完全控制
+// 响应式：宽度由 JS 控制，这里只微调信息区内边距与标题字号
 @media (min-width: 1400px)
   #recent-posts.waterfall-masonry .waterfall-container .waterfall-item
     // JS会设置宽度，这里不需要CSS干预
@@ -327,77 +218,91 @@ $waterfallEnable = hexo-config('cover.index_enable')
 @media (max-width: 768px)
   #recent-posts.waterfall-masonry .waterfall-container .waterfall-item
     // JS会设置宽度，这里不需要CSS干预
-    
+
     .post-card-wrapper
       .recent-post-info
-        padding: 15px
-        
+        padding: 12px 14px 14px
+
         .article-title a
           font-size: 15px
 
 @media (max-width: 600px)
   #recent-posts.waterfall-masonry .waterfall-container .waterfall-item
     // JS会设置宽度，这里不需要CSS干预
-    
+
     .post-card-wrapper
       .recent-post-info
-        padding: 12px
-        
+        padding: 10px 12px 12px
+
         .article-title a
           font-size: 14px
 
+// 桌面细指针：悬浮 = 窗口激活（标题栏点亮、边框变蓝、硬阴影加深、封面微提亮）
+@media (hover: hover) and (pointer: fine)
+  #recent-posts.waterfall-masonry .waterfall-container .waterfall-item .post-card-wrapper:hover
+    border-color: #0058e6
+    box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.45)
+
+    &::before
+      background-color: #0058e6
+
+    &::after
+      opacity: 1
+
+    .post_cover img
+      filter: brightness(1.06)
+      transform: none // 压掉 styles.css 遗留的封面 scale(1.05)
+
+// 触屏/粗指针：窗口保持激活态（整屏灰窗不可取），点按给「按下」反馈
 @media (hover: none), (pointer: coarse)
-  #recent-posts.waterfall-masonry .waterfall-container .waterfall-item
-    .post-card-wrapper
-      &:hover
-        transform: none
-        background: rgba(3, 5, 12, 0.16)
-        border-color: rgba(171, 194, 226, 0.34)
-        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.08)
+  #recent-posts.waterfall-masonry .waterfall-container .waterfall-item .post-card-wrapper
+    border-color: #0058e6
 
-      .post_cover:hover img
-        transform: none
+    &::before
+      background-color: #0058e6
 
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: reduce)
-  #recent-posts.waterfall-masonry .waterfall-container .waterfall-item:hover
-    .post-card-wrapper .recent-post-info
-      --laser-x: 50%
-      --laser-y: 24%
+    &::after
+      opacity: 1
+
+    &:active
+      box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4)
 
       &::before
-        opacity: 0.42
+        background-color: #003da8
 
-      &::after
-        opacity: 0.22
+      .post_cover img
+        filter: brightness(0.94)
 
+    .post_cover:hover img
+      transform: none // 触屏不放大封面
+
+// 减少动态：颜色/阴影状态保留，过渡全部瞬时完成
 @media (prefers-reduced-motion: reduce)
   #recent-posts.waterfall-masonry .waterfall-container .waterfall-item .post-card-wrapper
     transition: none
 
-    &:hover
-      transform: none
-
-    .post_cover:hover img
-      transform: none
-
-    .post_cover img, .recent-post-info::before, .recent-post-info::after
+    &::before, &::after
       transition: none
 
-    .waterfall-ripple
-      display: none
+    .post_cover img
+      transition: none
+
+    .recent-post-info
+      .article-title a, .tags .article-meta__tags
+        transition: none !important
 
 // 确保侧边栏不受影响
 .layout
   display: flex
-  
+
   #recent-posts.waterfall-masonry
     flex: 1
-    
+
   .aside-content
     flex-shrink: 0
     width: var(--aside-content-width, 300px)
     margin-left: 20px
-    
+
     +maxWidth1024()
       display: none
 
@@ -410,25 +315,25 @@ $waterfallEnable = hexo-config('cover.index_enable')
     clear: both
     position: relative !important
     z-index: 10
-    
+
     .pagination
       display: flex !important
       justify-content: center !important
       align-items: center !important
       gap: 10px
-      
+
       .page-number, .extend
         display: inline-block !important
         visibility: visible !important
         opacity: 1 !important
-        
+
       .current
         background: var(--theme-color) !important
         color: #fff !important
-        
+
       .extend
         color: var(--font-color) !important
-        
+
         &:hover
           color: var(--theme-color) !important
 
@@ -438,4 +343,4 @@ $waterfallEnable = hexo-config('cover.index_enable')
     .waterfall-item
       // 让JS完全控制定位，移除所有CSS定位干扰
       &.positioned
-        // 只保留必要的显示样式，位置由JS控制 
+        // 只保留必要的显示样式，位置由JS控制

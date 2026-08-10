@@ -1614,23 +1614,61 @@
 改动要点（代码事实）：
 
 1. **资源本地化**：4 个 swiper 资源从 elemecdn 迁移到 `source/css/`、`source/js/`，消除 CDN 单点故障（cdn-strategy.md L6.2 认可的恢复策略）；插件注入方式（`media="print" onload` 异步 CSS、defer JS）不变。
-2. **XP 窗口平面风格**（`swiper-xp.css`，不依赖主题 CSS 变量、不随 dark 模式变化）：纯平 `#0058e6` 标题栏（`::before` 绘制，含四色 Windows 徽标四层 linear-gradient 与「精选文章.exe」标题文字，`pointer-events: none`）；`::after` 以 11 层多重 background 绘制装饰性最小化/最大化/关闭按钮组；米白 `#f5f3ea` 内容区 + 3px 蓝边框 + 4px 硬阴影；图片直角 + 白衬底 + `#7f9db9` 控件边框；日期为蓝色小标签，标题 `#003399` 单行截断，描述两行截断；「详情」按钮平面化、悬浮变蓝；分页器改为底部 XP 状态栏（`#ece9d8` + `#aca899` 分隔线），bullet 为小方块、激活态为蓝色长条；保留原 stagger 入场动画并补 `prefers-reduced-motion` 关闭；移动端（≤768px）slide 纵向堆叠、图片全宽 150px 高、文字居中。
+2. **XP 窗口平面风格**（`swiper-xp.css`，不依赖主题 CSS 变量、不随 dark 模式变化）：纯平 `#0058e6` 标题栏（`::before` 绘制，含四色 Windows 徽标四层 linear-gradient 与「精选文章.exe」标题文字，`pointer-events: none`）；`::after` 以 11 层多重 background 绘制装饰性最小化/最大化/关闭按钮组；深色 `#1e2431` 内容区（初版为米白 `#f5f3ea`，同日按用户反馈深色化，见文末修正段）+ 3px 蓝边框 + 4px 硬阴影；图片直角 + 深色衬底 `#141922` + 灰蓝控件边框 `#5d7a9e`；日期为蓝色小标签，标题亮蓝白 `#9ecbff` 单行截断，描述 `#c3cad7` 两行截断；「详情」按钮深色平面化、悬浮变蓝；分页器改为底部深色状态栏（`#171d28` + `#394152` 分隔线），bullet 为深色小方块、激活态为蓝色长条；保留原 stagger 入场动画并补 `prefers-reduced-motion` 关闭；移动端（≤768px）slide 纵向堆叠、图片全宽 150px 高、文字居中。
 3. **styles.css 修复**：`#recent-posts.waterfall-masonry .blog-slider` 删除 `overflow: visible !important`、`border-radius`、两条 `padding-top !important`（保留 margin/z-index 布局职责并留注释警示）；渐变组合选择器中移除 `#swiper_container`（aside/archive/page 染色不变）。
 
 **验证结果**：
 
 - [x] `npm run clean && npm run build` 成功（2,386 个文件）；构建后 `git status` 无扫描器改写差异；`git diff --check` 通过
 - [x] 生成态断言：`public/index.html` 的 4 个 swiper 资源引用全部为本地路径；`public/css/styles.css` 不再含作用于 `.blog-slider` 的 `overflow: visible`（剩余 3 处均属瀑布流容器既有设计）；`#swiper_container` 渐变染色选择器已移除（仅剩历史注释块）
-- [x] ego-browser 桌面（2544px）实测：容器 `overflow: hidden`、0 张 slide 溢出、crossFade 后仅 1 张 slide 可见、分页器在容器内底部状态栏、标题栏 `::before` 内容/蓝底生效；文字 computed style 正确（标题 `#003399`、描述 `#3f3f3f`、opacity 均为 1，早前截图偏淡为入场动画中间态）
+- [x] ego-browser 桌面（2544px）实测：容器 `overflow: hidden`、0 张 slide 溢出、crossFade 后仅 1 张 slide 可见、分页器在容器内底部状态栏、标题栏 `::before` 内容/蓝底生效；文字 computed style 正确（早前米白版截图验证标题/描述色值与 opacity，深色化后复测标题 `#9ecbff`、描述 `#c3cad7`、内容区 `#1e2431`、状态栏 `#171d28`）
 - [x] ego-browser 移动断点（375×812 DPR 2）实测：slide `flex-direction: column`、图片 311×150 全宽、0 张 slide 溢出、分页器在容器内、页面无横向滚动
 - [x] 分页器点击切换实测通过（active bullet 索引与 slide 标题同步变化）；autoplay 在多次截图间确认运行
 - [x] 桌面/移动截图复核：标题栏徽标文字、三按钮、米白内容区、状态栏分页、硬阴影均符合设计
 - [ ] 真实移动设备触摸滑动、Safari/Firefox、PJAX 开启状态待人工回归；elemecdn 其余依赖（tag_plugins、envelope）未动
 
+**深色化修正（2026-08-10）**：同日用户复核要求窗口内部改为深色模式、顶部蓝色标题栏不变。已将内容区由米白 `#f5f3ea` 改为 `#1e2431`，图片衬底、详情按钮、分页状态栏与 bullet 同步深色化，标题改亮蓝白 `#9ecbff`、描述改 `#c3cad7`；标题栏、窗口蓝边框与硬阴影保持不变。clean build（2,386 个文件）与 ego-browser 桌面/移动断点复测通过。
+
 **遗留问题**：
 
 - swiper 资源本地化后不再随插件 CDN 更新（原 `@1.0.12` 锁版本，行为等价；Swiper 4.1.6 版本较旧是既有事实）。
 - 原 swiperstyle.css 的全局 `* { box-sizing: border-box }` 随 CDN 样式一并下线；新 XP 样式内部已显式声明 box-sizing，主题其余部分未观察到依赖该全局规则的异常（桌面/移动截图复核通过）。
+- 仅本地实施；未提交、未推送、未部署。
+
+---
+
+### #54 — 2026-08-10 — 首页瀑布流卡片换装 XP 窗口风格并移除激光涟漪浮层（仅本地实施）
+
+**操作人**：Kimi Code
+
+**涉及文件**：
+
+- `themes/butterfly/source/css/_page/waterfall-homepage.styl` — 重写卡片视觉部分；布局重置、响应式宽度、侧边栏与分页规则保留
+- `themes/butterfly/source/js/waterfall.js` — 删除激光/涟漪全部代码（约 250 行），瀑布流布局控制器逐字保留
+
+**操作详情**：
+
+用户要求把首页轮播（#53）的 XP 窗口平面风格推广到瀑布流每张卡片：不改布局逻辑、保留标题/封面/标签等元素、删除封面信息区的鼠标浮层效果（#12 激光、#13 轨迹涟漪、#15 星空透窗玻璃）、重新设计悬浮动效并合理设计触屏响应。同日复核后将窗口内部定为深色模式、蓝色标题栏不变。
+
+改动要点（代码事实）：
+
+1. **XP 窗口卡片**：`.post-card-wrapper` 深色 `#1e2431` 内容区（初版米白，同日按用户反馈深色化）+ 3px 灰蓝 `#7f9db9` 边框 + `10px 10px 4px 4px` 圆角 + `3px 3px 0` 平面硬阴影；`::before` 绘制标题栏（非激活灰蓝 `#97a9cb`、四色徽标、`content: 'article_' counter(xp-window, decimal-leading-zero) '.exe'` 用 CSS 计数器给每个窗口编号）、`::after` 以 11 层多重 background 绘制装饰按钮组（与轮播同一组图层）；封面直角 + 深色衬底 `#141922` + 灰蓝控件边框；标题亮蓝白 `#9ecbff`、摘要 `#c3cad7`、日期灰蓝 `#8a94a6` + 亮蓝图标；标签改为深色 XP 平面按钮（`#262e3d` 底 + `#5d7a9e` 边），悬浮蓝底白字。
+2. **悬浮动效重新设计为「窗口激活」语义**（纯 CSS，零 JS 监听器）：桌面细指针 hover 时标题栏点亮为 `#0058e6`、边框变蓝、按钮组 opacity 0.55→1、硬阴影加深为 `5px 5px 0`、封面 `brightness(1.06)`，不再有旧版的浮起位移与封面放大；`:focus-within` 全局同样激活（键盘无障碍 + 触屏点选反馈）；触屏/粗指针媒体查询下全部窗口常激活，`:active` 点按给下沉反馈（阴影压至 `1px 1px 0`、标题栏 `#003da8`、封面 `brightness(0.94)`）；`prefers-reduced-motion` 关闭全部过渡。
+3. **JS 净化**：waterfall.js 删除 `prepareRippleLayers`、`observeLaserPreferences`、`syncLaserTracking`、`handleLaserEnter/Move/Leave`、`queueRipple`、`scheduleLaserPaint/paintLaserEffect/spawnRipple/resetLaserEffect` 及相关字段、`REDUCED_MOTION_QUERY` 与 destroy 内的涟漪清理；布局逻辑（列数计算、绝对定位、ResizeObserver、媒体查询、图片 settle、PJAX 接线）逐字保留。
+4. **选择器勘误**：旧 styl 把 `.tags` 嵌套在 `.article-meta` 内，而自定义 `indexPostUI.pug` 的生成结构中 `.tags` 与 `.article-meta` 平级（同为 `.article-meta-wrap` 子级），旧标签规则从未命中（实际生效的是 `styles.css:973` 的通用半透明胶囊规则）；新样式按真实 DOM 书写并以更高优先级 + `!important` 覆盖该通用规则。styles.css 遗留的桌面封面 `:hover scale(1.05)`（约 1021 行）由激活规则中的 `transform: none` 压制。
+
+**验证结果**：
+
+- [x] `node --check` waterfall.js、Stylus 独立编译、`npm run clean && npm run build`（2,386 个文件）、`git diff --check` 全部通过；构建后无扫描器改写差异
+- [x] 生成态断言：`public/css/index.css` 含 XP 窗口规则与 `counter(xp-window)`，`waterfall-ripple`/`is-laser-active`/`--glass-*` 在 CSS 与 JS 产物中均为 0
+- [x] ego-browser 桌面（2544px）实测：卡片深色 `#1e2431`、标题栏非激活灰蓝与窗口编号徽标生效、涟漪层 DOM 不存在、瀑布流 absolute+transform 定位正常；hover 第二张卡片实测标题栏点亮 `#0058e6`、边框变蓝、按钮组 opacity 1、阴影 `5px 5px 0`、封面 `brightness(1.06)` 且 `transform: none`，相邻卡片保持非激活（截图复核激活/非激活对比）
+- [x] ego-browser 移动断点（375×812 DPR 2 + 触摸仿真）实测：`pointer: coarse`/`hover: none` 命中时全部卡片常激活蓝标题栏、单列布局、页面无横向滚动、深色配色与标签按钮截图复核通过
+- [ ] 触屏 `:active` 按压反馈因 CDP 合成触摸事件无法触发 `:active` 伪类而未获运行时证据（CSS 规则已静态存在），与真实设备触摸手感、Safari/Firefox、PJAX 开启状态一并不待人工回归
+
+**遗留问题**：
+
+- `Emulation.setTouchEmulationEnabled` 模拟环境中，dispatchTouchEvent 后 `pointer: coarse` 媒体特性会回退为桌面值（仿真怪癖，真实设备硬件能力恒定，不影响线上）；ego-browser 触屏媒体验证需在 reload 后立即读取、不可先发触摸事件。
+- `styles.css` 中 `.article-meta .tags ...` 系列选择器（约 827/833/943/956/964/1041/1047 行）因同样的平级结构问题从未命中，属无害死规则，本次未顺手清理。
 - 仅本地实施；未提交、未推送、未部署。
 
 ---

@@ -214,6 +214,8 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 | `layout/index.pug` | 添加类名 | 低 | 升级后重新添加 masonry 类 |
 | `layout/includes/head/config_site.pug` | 添加字段 | 中 | 升级后重新暴露 typewriter 字段 |
 | `source/js/main.js` | 移动端增强逻辑与目录媒体重锚定 | 中 | 升级后保留用户输入取消、RAF 合帧、ResizeObserver 和有限时限；不得恢复依赖已删除 `lazyLoadPreload` 的一次性定位 |
+| `source/js/waterfall.js` | 首页瀑布流纯布局控制器（2026-08-10 起已移除激光/涟漪） | 中 | 升级后保留纯布局职责与 PJAX 接线；悬浮动效由 styl 的「窗口激活」媒体查询负责，勿合并回 pointer 委托/RAF 坐标代码 |
+| `source/css/_page/waterfall-homepage.styl` | 瀑布流卡片视觉（2026-08-10 起为 XP 窗口深色版） | 中 | 升级后保留布局重置段、XP 窗口视觉段与三条媒体查询（hover 激活 / 粗指针常激活+按压 / reduced-motion）；勿恢复六套玻璃配色与星空透窗 |
 
 ---
 
@@ -366,7 +368,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 ---
 
-### #12 — 2026-07-20 — 首页瀑布流卡片激光水纹悬浮效果
+### #12 — 2026-07-20 — 首页瀑布流卡片激光水纹悬浮效果（**已被 #20 取代**，激光层与样式已随 XP 窗口换装删除）
 
 **修改文件**：
 
@@ -402,7 +404,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 ---
 
-### #13 — 2026-07-20 — 将固定跟随纹理重构为轨迹扩散涟漪
+### #13 — 2026-07-20 — 将固定跟随纹理重构为轨迹扩散涟漪（**已被 #20 取代**，涟漪 JS/CSS 已全部删除）
 
 **修改文件**：
 
@@ -451,7 +453,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 **远程约束**：仅本地实施；未提交、未推送、未部署。
 
-### #15 — 2026-07-21 — 拉开瀑布流默认配色并加入固定星点
+### #15 — 2026-07-21 — 拉开瀑布流默认配色并加入固定星点（**已被 #20 取代**，六套玻璃配色与星空透窗已随 XP 窗口换装删除）
 
 **修改文件**：`themes/butterfly/source/css/_page/waterfall-homepage.styl`
 
@@ -584,13 +586,39 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 1. `styles.css`：`#recent-posts.waterfall-masonry .blog-slider` 删除 `overflow: visible !important`、`border-radius: 10px` 与两处 `padding-top !important`（桌面/移动各一），保留 margin/z-index/position 布局职责；渐变组合选择器移除 `#swiper_container`（aside/archive/page 不受影响）。
 2. `_config.butterfly.yml` swiper 节 4 个资源由 `npm.elemecdn.com@1.0.12` 改为本地 `/css/swiper-lib.min.css`、`/js/swiper-lib.min.js`、`/css/swiper-xp.css`、`/js/swiper-init.js`。
-3. 新增 `swiper-xp.css` 作为插件 `custom_css` 完全替代原 swiperstyle.css：XP 窗口平面风格（纯平蓝标题栏 + 四色徽标 + 装饰按钮组 + 米白内容区 + 状态栏分页 + 硬阴影），显式色彩不随 dark 变量，移动端纵向堆叠，reduced-motion 关闭入场动画；容器 `overflow: hidden` 恢复裁剪。
+3. 新增 `swiper-xp.css` 作为插件 `custom_css` 完全替代原 swiperstyle.css：XP 窗口平面风格（纯平蓝标题栏 + 四色徽标 + 装饰按钮组 + 深色 `#1e2431` 内容区 + 深色状态栏分页 + 硬阴影；初版为米白内容区，同日按用户反馈深色化），显式色彩不随 dark 变量，移动端纵向堆叠，reduced-motion 关闭入场动画；容器 `overflow: hidden` 恢复裁剪。
 
 **相关文件**：`node_modules/hexo-butterfly-swiper/lib/`（本地化来源，Swiper 4.1.6）、`scripts/` 无改动；详细操作与验证证据见 [operation-log #53](../04-operations/operation-log.md#53--2026-08-10--首页轮播修复布局偏移并换装-windows-xp-平面窗口风格仅本地实施)。
 
 **可回滚性**：可安全回滚。恢复 `_config.butterfly.yml` 4 个 CDN URL 并还原 `styles.css` 三处差异即可回到旧 CDN + 渐变样式；新增 4 个本地文件删除不影响其他功能。注意回滚 `overflow: visible` 会重新引入 slide 溢出可见的已知故障。
 
 **验证**：clean build 成功（2,386 个文件）；生成态资源引用全部本地化；ego-browser 桌面 2544px 与移动 375px 断点实测 0 张 slide 溢出、单张可见、分页状态栏与 XP 窗口视觉符合设计、分页点击切换正常。真实设备触摸与其他浏览器待人工回归。
+
+**远程约束**：仅本地实施；未提交、未推送、未部署。
+
+---
+
+### #20 — 2026-08-10 — 瀑布流卡片换装 XP 窗口风格并移除激光涟漪浮层
+
+**修改文件**：
+
+- `themes/butterfly/source/css/_page/waterfall-homepage.styl`（卡片视觉重写）
+- `themes/butterfly/source/js/waterfall.js`（删除约 250 行激光/涟漪代码，布局控制器逐字保留）
+
+**修改原因**：用户要求将 #19 轮播的 XP 窗口平面风格推广到瀑布流卡片，不动布局逻辑、保留标题/封面/标签元素、删除封面信息区鼠标浮层（#12 激光、#13 涟漪、#15 星空透窗随之全部移除）、重新设计悬浮与触屏响应；同日复核后窗口内部定为深色模式、蓝色标题栏不变。
+
+**修改内容**：
+
+1. 卡片改为 XP 窗口：深色 `#1e2431` 内容区、3px 灰蓝边框、`3px 3px 0` 硬阴影；`::before` 标题栏（非激活 `#97a9cb`，四色徽标 + `counter(xp-window)` 窗口编号 `article_NN.exe`）、`::after` 11 层 background 装饰按钮组；封面深色衬底直角；标题 `#9ecbff`、摘要 `#c3cad7`、标签深色 XP 平面按钮。
+2. 悬浮动效重新设计为纯 CSS「窗口激活」：桌面 hover / `:focus-within` 点亮标题栏、边框变蓝、按钮组显现、阴影加深、封面 `brightness(1.06)`；触屏粗指针常激活、`:active` 下沉按压；reduced-motion 关闭过渡。
+3. waterfall.js 净化为纯布局控制器：删除涟漪层创建、激光坐标 RAF 与全部 pointer 委托监听；列数计算、ResizeObserver、媒体查询、图片 settle、PJAX 接线不变。
+4. 选择器勘误：`.tags` 与 `.article-meta` 在生成结构中平级，旧嵌套规则从未命中；新样式按真实 DOM 书写并覆盖 `styles.css:973` 通用标签规则；桌面封面遗留 `:hover scale(1.05)` 由激活规则 `transform: none` 压制。
+
+**相关文件**：`source/css/swiper-xp.css`（同一设计语言的轮播窗口）；完整证据见 [operation-log #54](../04-operations/operation-log.md#54--2026-08-10--首页瀑布流卡片换装-xp-窗口风格并移除激光涟漪浮层仅本地实施)。
+
+**可回滚性**：可安全回滚两文件至本次修改前版本；回滚后恢复星空透窗卡片与 JS 涟漪浮层。升级主题时需保留：布局重置段、XP 窗口视觉段、三条媒体查询（hover 激活 / 粗指针常激活+按压 / reduced-motion）与纯布局版 waterfall.js，不要再把 #12/#13 的激光涟漪代码合并回来。
+
+**验证**：clean build 2,386 个文件；生成态无 `waterfall-ripple`/`is-laser-active`/`--glass-*` 残留；ego-browser 桌面 hover 激活、移动断点（触摸仿真）常激活、单列布局与无横向滚动均实测通过，截图复核激活/非激活对比与深色可读性。触屏 `:active` 因 CDP 合成事件限制未获运行时证据，真实设备待人工回归。
 
 **远程约束**：仅本地实施；未提交、未推送、未部署。
 
