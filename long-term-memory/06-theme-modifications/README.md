@@ -624,6 +624,31 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 ---
 
+### #21 — 2026-08-10 — 轮播间歇性空白修复：JS 初始化门控与静态降级
+
+**修改文件**：
+
+- `source/css/swiper-xp.css`
+- `source/js/swiper-init.js`
+
+**修改原因**：线上轮播间歇性出现窗口空白（标题栏/状态栏在、内容区全空）。ego-browser 线上 3G 节流复现确认：Swiper JS 晚到或加载失败时无 `swiper-slide-active` 类，而内容/图片的 `opacity: 0` 隐藏规则依赖该类解锁，导致空窗期空白、JS 彻底失败时永久空白。
+
+**修改内容**：
+
+1. `swiper-xp.css`：内容 stagger 与图片透明度隐藏规则改为仅在 `.swiper-ready` 类存在时生效；新增 `:not(.swiper-ready)` 降级规则（非首张 slide `opacity: 0 !important`、首张 `opacity: 1 !important; width: 100% !important`），JS 未初始化期间静态展示第一张精选。
+2. `swiper-init.js`：Swiper 全局缺失检测、`[swiper]` 初始化日志、初始化成功后添加 `swiper-ready` 门控类、2 秒自检自愈（active 缺失或全部 slide 不可见时 `update() + slideTo(0,0)` 并 `console.warn` 现场）。
+3. 注意：Swiper 4.1.6 初始化后**不修改容器类名**（无 `swiper-container-initialized`），门控必须由 init.js 显式加类——首版用该类名导致降级规则恒真、压制 fade 切换，已修正。
+
+**相关文件**：完整排障证据见 [operation-log #55](../04-operations/operation-log.md#55--2026-08-10--首页轮播间歇性空白排障与初始化门控加固已部署)。
+
+**可回滚性**：可安全回滚两文件；回滚后慢网/JS 失败场景恢复为空白窗口（#53 前的旧行为是内容裸排溢出，两者均为已知的旧故障模式）。
+
+**验证**：本地正常路径（`swiper-ready` 门控、autoplay 切换、单张可见）与 JS 阻断路径（静态展示第一张、无横向滚动）均经 ego 实测通过；线上复验同过，`[swiper]` 日志已在生产 console 可见。
+
+**远程约束**：经用户明确授权执行 `npm run pub`，双目标（GitHub Pages + 私有服务器）均已部署至 `49aabfbcc`；源码工作区未提交、未推送。
+
+---
+
 ## 升级主题时的检查清单
 
 当 Butterfly 主题发布新版本时，按以下步骤操作：

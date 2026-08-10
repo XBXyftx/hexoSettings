@@ -1672,3 +1672,42 @@
 - 仅本地实施；未提交、未推送、未部署。
 
 ---
+
+### #55 — 2026-08-10 — 首页轮播间歇性空白排障与初始化门控加固（已部署）
+
+**操作人**：Kimi Code
+
+**涉及文件**：
+
+- `source/css/swiper-xp.css` — 内容/图片透明度门控改为 `.swiper-ready` 驱动；新增未初始化降级规则
+- `source/js/swiper-init.js` — 加固：Swiper 库缺失检测、初始化日志、2 秒自检自愈、`swiper-ready` 门控类
+
+**操作详情**：
+
+用户反馈线上 xbxyftx.top 轮播「有时候」失败：XP 窗口框架（标题栏/状态栏）渲染但内容区全空。ego-browser 线上取证（任务空间继承用户浏览器扩展环境）：
+
+1. 基线与 8 轮 reload、90 秒长运行（18 次采样）、hover 静止场景全部正常，仅 1 次采样到过渡中间态（contentOpacity 0，autoplay 探针初期误读 `paused` 属性，已修正为 `running`）。
+2. **3G 节流（300ms/400kbps）下复现关键变体**：`bullets: 0`、`hasActive: false`、5 张 slide 保持模板内联 `opacity: 1`、无 loop 克隆——即 **Swiper JS 尚未初始化/初始化失败** 的 DOM 状态。慢网或 JS 加载失败时，`swiper-xp.css` 原先把非 active 内容与图片设为 `opacity: 0`，而 `swiper-slide-active` 类只能由 JS 添加——JS 未到即窗口全空，JS 彻底失败则永久空白。XP 标题栏与状态栏是纯 CSS 绘制照常显示，与用户截图吻合。
+3. 排障中确认：PJAX 禁用（`pjax.enable: false`）、资源已全部本地化（无 CDN 变量）、Swiper 4.1.6 初始化后**不修改容器类名**（只挂 `swiper` 实例属性）——这导致首版门控选择器 `:not(.swiper-container-initialized)` 恒真，`:first-child` 恒可见规则压制了 Swiper 的 fade inline opacity（轮播架空但内容仍可读）。已改为 init.js 初始化成功后显式添加 `swiper-ready` 类作门控。
+
+修复内容（代码事实）：
+
+1. `swiper-xp.css`：内容 stagger 与图片透明度的「隐藏」规则仅在 `.swiper-ready` 存在时生效；新增 `:not(.swiper-ready)` 降级规则——非首张 slide `opacity: 0 !important`（覆盖模板内联值）、首张 `opacity: 1 !important; width: 100% !important`（覆盖内联 750px 防窄屏溢出）。JS 晚到/失败时窗口静态展示第一张精选，JS 到达后无缝接管。
+2. `swiper-init.js`：IIFE 包装；`Swiper` 全局缺失时打警告并退出（CSS 降级兜底）；初始化成功打 `[swiper]` 日志并添加 `swiper-ready` 类；2 秒后自检 active 缺失或全部 slide 不可见时 `swiper.update() + slideTo(0, 0)` 自愈并 `console.warn` 记录现场；hover 暂停/恢复自动播放逻辑不变。
+
+**验证结果**：
+
+- [x] `node --check`、`npm run clean && npm run build`（2,386 个文件）通过
+- [x] ego 本地正常路径：`swiper-ready` 类生效、autoplay 实测切换（activeIndex 2→3）、任意时刻仅 1 张 slide 可见
+- [x] ego 本地 JS 阻断路径（`Network.setBlockedURLs` 拦截两个 swiper JS）：窗口静态展示第一张，图片/标题/描述/按钮齐全，无横向滚动，截图复核不空白
+- [x] 已按用户授权执行 `npm run pub` 部署（webp 无新增图片可转换），双目标（GitHub Pages + 私有服务器）均至 `49aabfbcc`
+- [x] 线上复验通过：正常路径 `swiper-ready` 门控生效、autoplay 切换、单张可见；JS 阻断路径静态展示第一张；`[swiper] 初始化完成` 日志已在生产 console 可见
+- [ ] 真实用户环境长期观察待后续；「bullets 已渲染但内容空白」是否仍有第二种触发路径（如 Swiper 4.1.6 fade 状态机在高速连续切换下错乱、mousewheel 滚轮劫持）未获直接证据，自愈逻辑与日志为后续观察兜底
+
+**遗留问题**：
+
+- `mousewheel: true` 保留原交互（滚轮经过轮播会切 slide 并劫持页面滚动），如需移除改一行配置即可。
+- `styles.css` 中 `.article-meta .tags` 系列死规则仍未清理（无害）。
+- 本次部署经用户明确授权；源码未提交、未推送（public 产物由 hexo-deployer-git 推到部署分支）。
+
+---
