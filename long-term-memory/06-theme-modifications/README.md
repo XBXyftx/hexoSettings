@@ -565,6 +565,37 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 **远程约束**：仅本地实施；未提交、未推送、未部署。
 
+---
+
+### #19 — 2026-08-10 — 轮播布局偏移根因修复与 swiper 资源本地化（XP 平面窗口换装）
+
+**修改文件**：
+
+- `themes/butterfly/source/css/styles.css`
+- `_config.butterfly.yml`（swiper 节）
+- `source/css/swiper-xp.css`（新增）
+- `source/css/swiper-lib.min.css`（新增，插件 lib 原样复制）
+- `source/js/swiper-lib.min.js`（新增，插件 lib 原样复制）
+- `source/js/swiper-init.js`（新增，插件 lib 复制 + `fadeEffect.crossFade: true`）
+
+**修改原因**：用户反馈首页轮播内容溢出到容器右侧外部且不满意原渐变样式。运行时取证确认 `styles.css` 瀑布流规则中的 `overflow: visible !important` 覆盖了 Swiper 容器必需的裁剪（#6 瀑布流重写时引入），叠加 swiper 资源全走 elemecdn CDN 的加载时序风险与 fade 未开 crossFade 的叠印问题。
+
+**修改内容**：
+
+1. `styles.css`：`#recent-posts.waterfall-masonry .blog-slider` 删除 `overflow: visible !important`、`border-radius: 10px` 与两处 `padding-top !important`（桌面/移动各一），保留 margin/z-index/position 布局职责；渐变组合选择器移除 `#swiper_container`（aside/archive/page 不受影响）。
+2. `_config.butterfly.yml` swiper 节 4 个资源由 `npm.elemecdn.com@1.0.12` 改为本地 `/css/swiper-lib.min.css`、`/js/swiper-lib.min.js`、`/css/swiper-xp.css`、`/js/swiper-init.js`。
+3. 新增 `swiper-xp.css` 作为插件 `custom_css` 完全替代原 swiperstyle.css：XP 窗口平面风格（纯平蓝标题栏 + 四色徽标 + 装饰按钮组 + 米白内容区 + 状态栏分页 + 硬阴影），显式色彩不随 dark 变量，移动端纵向堆叠，reduced-motion 关闭入场动画；容器 `overflow: hidden` 恢复裁剪。
+
+**相关文件**：`node_modules/hexo-butterfly-swiper/lib/`（本地化来源，Swiper 4.1.6）、`scripts/` 无改动；详细操作与验证证据见 [operation-log #53](../04-operations/operation-log.md#53--2026-08-10--首页轮播修复布局偏移并换装-windows-xp-平面窗口风格仅本地实施)。
+
+**可回滚性**：可安全回滚。恢复 `_config.butterfly.yml` 4 个 CDN URL 并还原 `styles.css` 三处差异即可回到旧 CDN + 渐变样式；新增 4 个本地文件删除不影响其他功能。注意回滚 `overflow: visible` 会重新引入 slide 溢出可见的已知故障。
+
+**验证**：clean build 成功（2,386 个文件）；生成态资源引用全部本地化；ego-browser 桌面 2544px 与移动 375px 断点实测 0 张 slide 溢出、单张可见、分页状态栏与 XP 窗口视觉符合设计、分页点击切换正常。真实设备触摸与其他浏览器待人工回归。
+
+**远程约束**：仅本地实施；未提交、未推送、未部署。
+
+---
+
 ## 升级主题时的检查清单
 
 当 Butterfly 主题发布新版本时，按以下步骤操作：

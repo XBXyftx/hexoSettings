@@ -15,7 +15,7 @@ type: project
 
 - 项目使用 **7 个 CDN 来源**，按角色分层：
   - **cdnjs.cloudflare.com** — 主力（fancybox、fontawesome、instantpage、lazyload、medium_zoom、snackbar、waline、jquery）
-  - **npm.elemecdn.com** — Butterfly 插件生态（tag_plugins、swiper、envelope_comment、gitcalendar）
+  - **npm.elemecdn.com** — Butterfly 插件生态（tag_plugins、envelope_comment、gitcalendar；**swiper 已于 2026-08-10 本地化迁出**）
   - **cdn1.tianli0.top** — 自定义镜像（algolia、meting、prismjs、translate）
   - **lib.baomitu.com** — 国内加速（pjax、sharejs）
   - **at.alicdn.com** — 图标字体（iconfont）
@@ -79,9 +79,10 @@ Cloudflare 全球 CDN，稳定性最高。项目用它承载了所有从 bytecdn
 | **tag_plugins.issues** | `hexo-butterfly-tag-plugins-plus@latest/lib/assets/issues.js` |
 | **tag_plugins.carousel** | `hexo-butterfly-tag-plugins-plus@latest/lib/assets/carousel-touch.js` |
 | **tag_plugins.tag_plugins_css** | `hexo-butterfly-tag-plugins-plus@latest/lib/tag_plugins.css` |
-| **swiper** (4 个文件) | `hexo-butterfly-swiper/lib/swiper.min.css` + `.js` + `swiperstyle.css` + `swiper_init.js` |
 | **envelope_comment** (4 张图) | `hexo-butterfly-envelope/lib/violet.jpg` + `line.png` + `before.png` + `after.png` |
 | **gitcalendar** (2 个文件) | `hexo-filter-gitcalendar/lib/gitcalendar.css` + `.js`（当前已注释禁用） |
+
+> **swiper 已迁出（2026-08-10）**：轮播的 4 个资源（`swiper.min.css/.js`、`swiperstyle.css`、`swiper_init.js`）原走 elemecdn，因 CDN 时序风险叠加布局偏移故障，已全部本地化为 `/css/swiper-lib.min.css`、`/js/swiper-lib.min.js`、`/css/swiper-xp.css`（替代 swiperstyle.css）、`/js/swiper-init.js`，来源为 `node_modules/hexo-butterfly-swiper/lib/`（Swiper 4.1.6）。详见 [operation-log #53](../04-operations/operation-log.md#53--2026-08-10--首页轮播修复布局偏移并换装-windows-xp-平面窗口风格仅本地实施)。
 
 > ⚠️ `@latest` 标签意味着每次构建可能拉取不同版本。如果插件作者发布了 breaking change，博客会在下一次 `hexo generate` 时静默受影响。
 
@@ -263,7 +264,7 @@ CDN.option.typed: /js/typed.umd.js
 | CDN 故障 | 影响范围 | 严重程度 |
 |---|---|---|
 | **cdnjs.cloudflare.com 挂了** | Font Awesome 图标全站消失、fancybox 灯箱失效、medium_zoom 失效、instantpage 预加载失效、snackbar 通知失效、waline 评论失效 | 🔴 高 |
-| **npm.elemecdn.com 挂了** | tag_plugins 样式/图标/动画失效、swiper 首页轮播白屏、envelope 信笺图片全 broken、gitcalendar 失效 | 🔴 高 |
+| **npm.elemecdn.com 挂了** | tag_plugins 样式/图标/动画失效、envelope 信笺图片全 broken、gitcalendar 失效（swiper 已本地化，不再受影响） | 🔴 高 |
 | **cdn1.tianli0.top 挂了** | 搜索（algolia）失效、音乐播放器（meting）失效、代码高亮（prismjs）退化、翻译功能失效 | 🟡 中 |
 | **lib.baomitu.com 挂了** | PJAX 无刷新切页失效（退化为整页刷新）、分享按钮消失 | 🟡 中 |
 | **at.alicdn.com 挂了** | tag_plugins 内图标字体变成方块 | 🟢 低 |
@@ -273,7 +274,7 @@ CDN.option.typed: /js/typed.umd.js
 
 ```text
 cdnjs 故障 → 切换 third_party_provider 为 unpkg 或 jsdelivr
-elemecdn 故障 → 将 hexo-butterfly-* 插件资源本地化到 source/js/
+elemecdn 故障 → 将 hexo-butterfly-* 插件资源本地化到 source/js/（swiper 已于 2026-08-10 完成）
 tianli0 故障 → prismjs 切到 cdnjs，algolia/meting 切官方 CDN
 baomitu 故障 → pjax/sharejs 切 cdnjs
 ```
@@ -339,7 +340,7 @@ baomitu 故障 → pjax/sharejs 切 cdnjs
 | CDN 配置 | `_config.butterfly.yml` 的 `CDN` 节（1093-1216 行） |
 | inject 注入入口 | `_config.butterfly.yml` 的 `inject` 节（1066-1092 行） |
 | tag_plugins CDN | `_config.butterfly.yml` 的 `CDN.option.tag_plugins.CDN` |
-| swiper CDN | `_config.butterfly.yml` 的 `swiper` 节 |
+| swiper 资源（已本地化） | `source/css/swiper-lib.min.css`、`source/css/swiper-xp.css`、`source/js/swiper-lib.min.js`、`source/js/swiper-init.js`；配置入口 `_config.butterfly.yml` 的 `swiper` 节 |
 | envelope CDN | `_config.butterfly.yml` 的 `envelope_comment` 节 |
 | jQuery 本地 | `source/js/jquery-3.6.0.min.js` |
 | KaTeX 本地 | `source/js/katex/` |
@@ -360,7 +361,7 @@ cdn-strategy
   ├── CDN.option.medium_zoom ──► 文章内图片点击放大
   ├── CDN.option.fancybox ──► 旧版灯箱（可能与 medium_zoom 功能重叠）
   ├── tag_plugins.elemecdn ──► 标签插件样式/动画/图标
-  ├── swiper.elemecdn ──► 首页轮播图
+  ├── swiper 本地资源 ──► 首页轮播图（2026-08-10 由 elemecdn 迁出，XP 平面窗口样式）
   ├── envelope.elemecdn ──► 留言板信封动画
   └── katex/twikoo/typed 本地 ──► 文章公式/评论/首页打字
 ```
@@ -372,5 +373,5 @@ cdn-strategy
 - **为什么 bytecdntp 大面积 404**：字节跳动 CDN（bytecdntp.com）可能关闭了公共访问或更改了域名结构。项目中 11 个引用中有 10 个迁移到了 cdnjs，1 个（algolia_search）残留至今。
 - **为什么迁移到 cdnjs 而不是 jsdelivr**：cdnjs 由 Cloudflare 托管，全球节点覆盖最好；jsdelivr 在国内访问偶有 DNS 污染问题。且 cdnjs 的 URL 结构更稳定（`/ajax/libs/{pkg}/{ver}/{file}`）。
 - **为什么 pjax 特殊对待走 baomitu**：PJAX 是页面切换的核心路径，每个链接点击都触发。baomitu（360）在国内的延迟远低于 cdnjs，直接决定页面切换的响应速度。
-- **为什么 elemecdn 没被替换**：Butterfly 插件生态（tag_plugins、swiper、envelope）的作者 Akilar 将所有资源统一发布到 elemecdn。替换需要逐项下载并本地化，且`@latest`标签意味着版本会更新，本地化后会失去自动更新能力。
+- **为什么 elemecdn 没被替换**：Butterfly 插件生态（tag_plugins、swiper、envelope）的作者 Akilar 将所有资源统一发布到 elemecdn。替换需要逐项下载并本地化，且`@latest`标签意味着版本会更新，本地化后会失去自动更新能力。**2026-08-10 更新**：swiper 的 4 个资源已完成本地化（含 XP 平面窗口样式重写，替代 swiperstyle.css），elemecdn 现存依赖仅剩 tag_plugins、envelope 与已禁用的 gitcalendar。
 - **为什么 Font Awesome 出现了两次**：inject.head 中有一份（6.5.1，给全站用，异步加载），CDN.option 中也有一份（给 Butterfly 组件用）。这是历史遗留——inject 那一份是项目主动加的，CDN.option 那一份是主题自带的。两者版本曾经不同（6.5.1 vs 6.0.0），bytecdntp 迁移时统一到了 6.5.1。

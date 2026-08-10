@@ -1272,10 +1272,12 @@ swiper:
     name: recent-posts
     index: 0
   default_descr: 再怎么看我也不知道怎么描述它的啦！快点进来瞧瞧！
-  swiper_css: https://npm.elemecdn.com/hexo-butterfly-swiper@1.0.12/lib/swiper.min.css #swiper css依赖 # 锁版本 @1.0.12 (2026-05-04 Q8)
-  swiper_js: https://npm.elemecdn.com/hexo-butterfly-swiper@1.0.12/lib/swiper.min.js #swiper js依赖 # 锁版本 @1.0.12 (2026-05-04 Q8)
-  custom_css: https://npm.elemecdn.com/hexo-butterfly-swiper@1.0.12/lib/swiperstyle.css # 适配主题样式补丁 # 锁版本 @1.0.12 (2026-05-04 Q8)
-  custom_js: https://npm.elemecdn.com/hexo-butterfly-swiper@1.0.12/lib/swiper_init.js # swiper初始化方法 # 锁版本 @1.0.12 (2026-05-04 Q8)
+  # 2026-08-10：swiper 资源全部本地化（原 npm.elemecdn.com @1.0.12 锁版本），
+  # 消除 CDN 单点故障导致的轮播裸奔/布局偏移；custom_css 替换为 XP 窗口平面风格。
+  swiper_css: /css/swiper-lib.min.css # swiper css依赖（本地，Swiper 4.1.6）
+  swiper_js: /js/swiper-lib.min.js # swiper js依赖（本地，Swiper 4.1.6）
+  custom_css: /css/swiper-xp.css # Windows XP 窗口平面风格（替代原 swiperstyle.css）
+  custom_js: /js/swiper-init.js # swiper初始化方法（本地，含 fade crossFade 防叠印）
 # math:
 #   engine: 'mathjax' # 使用MathJax引擎来渲染公式
 #   mathjax:

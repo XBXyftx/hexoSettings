@@ -1587,3 +1587,50 @@
 **公告发布（2026-08-06）**：同日已在 `source/_data/announcements.yml` 顶部追加第 22 期公告（复用 `/imgs/gifs/1.webp`，未替换 GIF）；构建期校验通过（`已校验 22 期公告`），首页、文章页、归档页生成态断言通过（当前公告为第 22 期、上一期已折叠为历史 details、时间 `2026-08-06T10:13:56+08:00` 正确显示）。
 
 ---
+
+### #53 — 2026-08-10 — 首页轮播修复布局偏移并换装 Windows XP 平面窗口风格（仅本地实施）
+
+**操作人**：Kimi Code
+
+**涉及文件**：
+
+- `source/css/swiper-xp.css` — 新增；XP 窗口平面风格轮播样式，作为插件 `custom_css` 完全替代原 CDN `swiperstyle.css`
+- `source/css/swiper-lib.min.css` — 新增；Swiper 4.1.6 核心样式，从 `node_modules/hexo-butterfly-swiper/lib/` 原样复制
+- `source/js/swiper-lib.min.js` — 新增；Swiper 4.1.6 核心脚本，同上原样复制
+- `source/js/swiper-init.js` — 新增；初始化脚本同上复制，追加 `fadeEffect.crossFade: true`（非激活 slide 强制透明，防叠印）
+- `_config.butterfly.yml` — `swiper` 节 4 个资源 URL 由 `npm.elemecdn.com` CDN 改为本地路径
+- `themes/butterfly/source/css/styles.css` — 修复布局偏移根因（见下）
+
+**操作详情**：
+
+用户反馈首页轮播（hexo-butterfly-swiper）内容错误显示到容器右侧外部，且不喜欢原有蓝紫渐变样式，要求重新设计为平面设计风格、适配移动端响应式、带 Windows XP 窗口复古感，并用 ego-browser 验证。
+
+根因链（已验证，ego-browser 运行时取证）：
+
+1. `styles.css` 的 `#recent-posts.waterfall-masonry .blog-slider` 规则含 `overflow: visible !important`（2026-07-10 瀑布流重写时引入），覆盖了 Swiper 容器必需的 `overflow: hidden`，slide 溢出不再被裁剪；
+2. swiper 核心 CSS/JS 与样式补丁全部走 `npm.elemecdn.com` CDN 异步/defer 加载，CDN 晚到或失败时 slide 以插件模板硬编码的 `width: 750px` 裸排，溢出部分直接可见；
+3. 初始化脚本 fade 效果未开 `crossFade`，实测多张 slide 同时 `opacity: 1` 互相叠印。
+
+改动要点（代码事实）：
+
+1. **资源本地化**：4 个 swiper 资源从 elemecdn 迁移到 `source/css/`、`source/js/`，消除 CDN 单点故障（cdn-strategy.md L6.2 认可的恢复策略）；插件注入方式（`media="print" onload` 异步 CSS、defer JS）不变。
+2. **XP 窗口平面风格**（`swiper-xp.css`，不依赖主题 CSS 变量、不随 dark 模式变化）：纯平 `#0058e6` 标题栏（`::before` 绘制，含四色 Windows 徽标四层 linear-gradient 与「精选文章.exe」标题文字，`pointer-events: none`）；`::after` 以 11 层多重 background 绘制装饰性最小化/最大化/关闭按钮组；米白 `#f5f3ea` 内容区 + 3px 蓝边框 + 4px 硬阴影；图片直角 + 白衬底 + `#7f9db9` 控件边框；日期为蓝色小标签，标题 `#003399` 单行截断，描述两行截断；「详情」按钮平面化、悬浮变蓝；分页器改为底部 XP 状态栏（`#ece9d8` + `#aca899` 分隔线），bullet 为小方块、激活态为蓝色长条；保留原 stagger 入场动画并补 `prefers-reduced-motion` 关闭；移动端（≤768px）slide 纵向堆叠、图片全宽 150px 高、文字居中。
+3. **styles.css 修复**：`#recent-posts.waterfall-masonry .blog-slider` 删除 `overflow: visible !important`、`border-radius`、两条 `padding-top !important`（保留 margin/z-index 布局职责并留注释警示）；渐变组合选择器中移除 `#swiper_container`（aside/archive/page 染色不变）。
+
+**验证结果**：
+
+- [x] `npm run clean && npm run build` 成功（2,386 个文件）；构建后 `git status` 无扫描器改写差异；`git diff --check` 通过
+- [x] 生成态断言：`public/index.html` 的 4 个 swiper 资源引用全部为本地路径；`public/css/styles.css` 不再含作用于 `.blog-slider` 的 `overflow: visible`（剩余 3 处均属瀑布流容器既有设计）；`#swiper_container` 渐变染色选择器已移除（仅剩历史注释块）
+- [x] ego-browser 桌面（2544px）实测：容器 `overflow: hidden`、0 张 slide 溢出、crossFade 后仅 1 张 slide 可见、分页器在容器内底部状态栏、标题栏 `::before` 内容/蓝底生效；文字 computed style 正确（标题 `#003399`、描述 `#3f3f3f`、opacity 均为 1，早前截图偏淡为入场动画中间态）
+- [x] ego-browser 移动断点（375×812 DPR 2）实测：slide `flex-direction: column`、图片 311×150 全宽、0 张 slide 溢出、分页器在容器内、页面无横向滚动
+- [x] 分页器点击切换实测通过（active bullet 索引与 slide 标题同步变化）；autoplay 在多次截图间确认运行
+- [x] 桌面/移动截图复核：标题栏徽标文字、三按钮、米白内容区、状态栏分页、硬阴影均符合设计
+- [ ] 真实移动设备触摸滑动、Safari/Firefox、PJAX 开启状态待人工回归；elemecdn 其余依赖（tag_plugins、envelope）未动
+
+**遗留问题**：
+
+- swiper 资源本地化后不再随插件 CDN 更新（原 `@1.0.12` 锁版本，行为等价；Swiper 4.1.6 版本较旧是既有事实）。
+- 原 swiperstyle.css 的全局 `* { box-sizing: border-box }` 随 CDN 样式一并下线；新 XP 样式内部已显式声明 box-sizing，主题其余部分未观察到依赖该全局规则的异常（桌面/移动截图复核通过）。
+- 仅本地实施；未提交、未推送、未部署。
+
+---
