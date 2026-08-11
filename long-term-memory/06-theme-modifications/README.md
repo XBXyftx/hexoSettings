@@ -667,6 +667,7 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 2. styles.css 渐变组合选择器收窄为 `.card-widget.card-info`（作者卡/访问卡保留渐变蒙版+背景图）；#14 夜空规则与 #12 flat note 修复整段移除，由 XP 深色窗口接管；目录激活项绿色改 XP 蓝。
 3. note/hideToggle/btn/tabs/timeline 标签插件深色 XP 化；内联浅底 td/th 无字色单元格强制深字（仅 td/th，避免误伤 #0d1117 深底代码容器 div）。
 4. 非激活标题栏加深为 `#46587a`（白字 7.15:1、绿徽标 3.05:1）。
+5. （2026-08-11 追加）文章页打字机摘要块（AI 总结）XP 窗口化：header 改标题栏 + `.exe` 后缀、内容区深色、扫光层禁用；见 xp-theme.css 第七节。
 
 **相关文件**：`source/css/swiper-xp.css`（同一色板）；详细证据见 [operation-log #56](../04-operations/operation-log.md#56--2026-08-10--xp-窗口语言全站推广侧边栏文章页标签插件仅本地实施)。
 
