@@ -1759,4 +1759,6 @@
 
 **About 页 XP 化（2026-08-11）**：应用户要求将 about 页内联样式（`source/about/index.html` 的 `<style>` 段）全面改造为 XP 语言，与全站一致：hero 名字去渐变改纯白、技能胶囊与工具标签改 XP 平面小按钮、头像光环由灰阶 conic 改 XP 蓝白段（旋转动画与 reduced-motion 短路保留）；`.card` 改 `#262e3d` 深面板 + `#5d7a9e` 边 + 直角 + 硬阴影，hover 激活蓝框（去浮起位移与渐变层）；走马灯保留 3D 景深与 `lazy-loading-about.js` 逻辑，图片改直角 XP 相框（`#141922` 衬底 + 控件边框），active 图片 `#0058e6` 蓝框强调；统计/亮点/项目条目/联系区社交按钮同步平面深色化。ego 桌面与移动 375px 验证通过（卡片 307px、无横向滚动、走马灯图片正常加载）。
 
+**公告时间轴圆点裁切修复（2026-08-11）**：用户反馈公告卡时间轴圆点左缘被裁切。根因：`.announcement-timeline` 仅声明 `overflow-y: auto`，按 CSS 规范 `overflow-x` 计算值随之变为 auto，而圆点（`left: -20px`、含边框宽 16px）左缘恰好落在容器内边缘 x=0，`box-shadow` 光晕外扩 3–4px（is-current 4px + 12px 辉光）被裁。修复（`announcement-history.css`）：桌面 padding-left 20→24px、移动端 18→22px，圆点 `left` 不变（左缘余量 4px）；时间轴线 `left: 5px→11px` 与圆点中心（x=12）对齐。ego 实测圆点中心与线中心均为 x=1752.8、圆点左缘余量 4px，当前/历史圆点截图光晕完整；移动端断点媒体查询命中确认。
+
 ---
