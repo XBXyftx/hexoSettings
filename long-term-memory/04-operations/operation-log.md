@@ -1706,7 +1706,7 @@
 
 **遗留问题**：
 
-- `mousewheel: true` 保留原交互（滚轮经过轮播会切 slide 并劫持页面滚动），如需移除改一行配置即可。
+- `mousewheel: true` 经用户确认保留（滚轮切换是期望交互；滚轮经过轮播会切 slide 并暂时接管页面滚动，属既定行为）。
 - `styles.css` 中 `.article-meta .tags` 系列死规则仍未清理（无害）。
 - 本次部署经用户明确授权；源码未提交、未推送（public 产物由 hexo-deployer-git 推到部署分支）。
 
