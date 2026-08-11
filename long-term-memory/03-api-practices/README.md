@@ -190,7 +190,8 @@
 6. `/css/rightmenu.css` — 右键菜单样式（异步加载）
 7. `/css/twikoo.css` — 评论样式（异步加载）
 8. `/css/readmode-enhanced.css` — 阅读模式增强（异步加载）
-9. Font Awesome 6.5.1 CDN（**主题 `head.pug` 也同步加载一次，当前重复**）
+9. `/css/xp-theme.css` — XP 主题公共层（异步加载，2026-08-10 起；侧边栏/文章页/标签插件 XP 窗口样式）
+10. Font Awesome 6.5.1 CDN（**主题 `head.pug` 也同步加载一次，当前重复**）
 
 > `lazy-loading-optimized.css` 的 inject 行已删除，当前不应再把它列为注入资源。
 

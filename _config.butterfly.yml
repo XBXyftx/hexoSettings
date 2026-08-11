@@ -1078,6 +1078,8 @@ inject:
     - <link rel="stylesheet" href="/css/twikoo.css" media="print" onload="this.media='all'">
     # 已移除: lazy-loading-optimized.css（文件不存在，会导致404）
     - <link rel="stylesheet" href="/css/readmode-enhanced.css" media="print" onload="this.media='all'">
+    # XP 主题公共层（2026-08-10）：侧边栏/文章页/标签插件的 XP 窗口样式
+    - <link rel="stylesheet" href="/css/xp-theme.css" media="print" onload="this.media='all'">
     # 4. 字体优化（Font Awesome）
     - <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
 

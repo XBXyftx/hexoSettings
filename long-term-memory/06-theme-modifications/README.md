@@ -649,6 +649,35 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 
 ---
 
+### #22 — 2026-08-10 — XP 窗口语言全站推广（侧边栏/文章页/标签插件）
+
+**修改文件**：
+
+- `source/css/xp-theme.css`（新增，inject.head 注册）
+- `themes/butterfly/source/css/styles.css`（渐变选择器收窄、夜空规则与 flat note 修复移除、目录激活色改蓝）
+- `themes/butterfly/source/css/_page/waterfall-homepage.styl`（非激活标题栏加深为 `#46587a`）
+- `source/css/toc-toggle-group.css`（折叠组激活态同步 XP 蓝）
+- `_config.butterfly.yml`（inject.head 新增 `/css/xp-theme.css`）
+
+**修改原因**：用户要求将 XP 窗口风格推广到侧边栏卡片与文章内容区，保留作者卡渐变蒙版与背景图；非激活标题栏 `#97a9cb` 上绿色徽标与白色文字对比度不足（实测 1.01:1 / 2.37:1）。
+
+**修改内容**：
+
+1. xp-theme.css 提供 XP 公共色板与共享窗口框架（标题栏 + 四色徽标 + 装饰按钮组），覆盖侧边栏非 info 卡片与 `#post`/`#archive`/`#page` 主体；各卡片标题按类名定义（公告.exe 等，目录卡用排除法兜底）。
+2. styles.css 渐变组合选择器收窄为 `.card-widget.card-info`（作者卡/访问卡保留渐变蒙版+背景图）；#14 夜空规则与 #12 flat note 修复整段移除，由 XP 深色窗口接管；目录激活项绿色改 XP 蓝。
+3. note/hideToggle/btn/tabs/timeline 标签插件深色 XP 化；内联浅底 td/th 无字色单元格强制深字（仅 td/th，避免误伤 #0d1117 深底代码容器 div）。
+4. 非激活标题栏加深为 `#46587a`（白字 7.15:1、绿徽标 3.05:1）。
+
+**相关文件**：`source/css/swiper-xp.css`（同一色板）；详细证据见 [operation-log #56](../04-operations/operation-log.md#56--2026-08-10--xp-窗口语言全站推广侧边栏文章页标签插件仅本地实施)。
+
+**可回滚性**：删除 xp-theme.css 与 inject 注册行、还原 styles.css/styl/toc-toggle-group.css 差异即可回滚；回滚后恢复夜空渐变文章页与绿色目录激活态。升级主题时需保留：xp-theme.css 全量、渐变选择器的 card-info 收窄、非激活标题栏 `#46587a`。
+
+**验证**：clean build 2,387 个文件；ego 双断点覆盖首页/文章页/归档/标签/友链/分类/about；19 篇内嵌 HTML 文章对比度巡检全过；作者卡保留确认。真实设备与更多文章细节待人工回归。
+
+**远程约束**：仅本地实施；未提交、未推送、未部署（用户明确要求仅本地调试）。
+
+---
+
 ## 升级主题时的检查清单
 
 当 Butterfly 主题发布新版本时，按以下步骤操作：

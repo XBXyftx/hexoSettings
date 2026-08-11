@@ -1711,3 +1711,46 @@
 - 本次部署经用户明确授权；源码未提交、未推送（public 产物由 hexo-deployer-git 推到部署分支）。
 
 ---
+
+### #56 — 2026-08-10 — XP 窗口语言全站推广：侧边栏/文章页/标签插件（仅本地实施）
+
+**操作人**：Kimi Code
+
+**涉及文件**：
+
+- `source/css/xp-theme.css` — 新增；XP 公共色板（`:root` 变量）+ 窗口框架 + 侧边栏/文章页/标签插件适配
+- `_config.butterfly.yml` — inject.head 注册 `/css/xp-theme.css`（异步 print onload，与现有自定义 CSS 同模式）
+- `themes/butterfly/source/css/styles.css` — 渐变组合选择器收窄为 `.card-widget.card-info`（作者卡/访问卡保留渐变蒙版+背景图）；删除 #14 夜空规则与 #12 flat note 修复（由 xp-theme.css 接管）；目录激活项绿色 `#00ff88` → XP 蓝
+- `themes/butterfly/source/css/_page/waterfall-homepage.styl` — 非激活标题栏 `#97a9cb` → `#46587a`（白字对比度 2.37→7.15:1，绿徽标 1.01→3.05:1，修复截图反馈）
+- `source/css/toc-toggle-group.css` — 折叠组激活态同步为 XP 蓝（原绿色）
+
+**操作详情**：
+
+用户要求将 XP 窗口风格全面推广：侧边栏（归档/标签/目录等）XP 化但保留作者卡的渐变蒙版与背景图；文章页渐变背景换为统一深色 XP 窗口；Butterfly 标签插件设计对应样式；修复非激活标题栏上绿徽标与白字看不清的问题；文章内嵌 HTML 看不清的一并修正。仅本地调试，不推远程。
+
+实现要点（代码事实）：
+
+1. **XP 公共层**（xp-theme.css）：色板变量（`--xp-bg: #1e2431` 等 14 个）；共享窗口框架（3px 蓝边框、硬阴影、标题栏伪元素 + 四色徽标 + 11 层 background 按钮组）覆盖 `#aside-content .card-widget:not(.card-info)`、`#content-inner > #post/#archive/#page`；各窗口标题文字按类名分别定义（公告.exe/最新文章.exe/标签.exe/归档.exe/站点信息.exe/目录.exe/post.exe/archive.exe/page.exe；目录卡为裸 `.card-widget`，用排除法兜底）。
+2. **作者卡/访问卡保留**：两张 `.card-info` 卡完全不动；styles.css 渐变组合选择器收窄为 `.card-widget.card-info`，其背景图 `::before` 规则（loadImg.webp）原样保留。
+3. **文章页**：#post 夜空渐变与配套文字规则整段移除（含 #12 的 flat note 深字修复），XP 深色窗口 + 统一文字色板接管；阅读模式（read-mode）不受影响。文章头/版权卡/分页/相关推荐同步适配。
+4. **标签插件**：note（六色类型左边框 + 深底浅字，flat/modern/simple 通用）、hideToggle（分组框 + summary 按钮）、btn（XP 平面按钮）、tabs（平面选项卡）、timeline（深色）、label（输出为 `mark.hl-label`，保持主题原生半透明彩底未改）。
+5. **目录激活色**：styles.css 的 `.toc-link.active` 与 toc-toggle-group.css 折叠组激活态由绿色 `#00ff88` 统一为 `rgba(0, 88, 230, 0.45)` 底白字。
+6. **内嵌 HTML 适配**：内联浅底（`#fff`/`#fff9c4` 等）且无内联字色的 `td/th` 强制深字 `#1a1a1a`。曾误伤 `#0d1117` 深底代码容器 div（dataCollectionFinalReview），已将规则收窄为仅 td/th——高性能计算复习的 47 处浅底均为 td，覆盖完整。
+
+**验证结果**：
+
+- [x] `npm run clean && npm run build` 成功（2,387 个文件）；`git diff --check` 通过；构建后无扫描器改写差异
+- [x] ego 首页：7 张侧边栏卡中 5 张 XP 化（公告/最新文章/标签/归档/站点信息），两张 `.card-info` 保留渐变蒙版与背景图，截图复核
+- [x] ego 文章页（BlogSetup，含全部六类标签）：post.exe 窗口、note 六色深底浅字（simple/flat tab 均验证）、tabs、btn、hideToggle 分组框、目录卡"目录.exe"滚动高亮正常
+- [x] 目录激活色改蓝后截图复核；非激活标题栏 `#46587a` 徽标/白字可读（对比度计算 7.15:1/3.05:1）
+- [x] 内嵌 HTML 巡检：19 篇含内联 HTML 文章全部通过浅底浅字/深底深字对比度检查（初版 1 篇误伤已修复后全过）；高性能计算复习 71 个有文字浅底单元格全部强制深字
+- [x] 标签页/友链页/分类页/about 页（#page）、归档页（#archive）XP 窗口与无横向滚动验证；移动端 375 文章页（postW 345）、首页（轮播+瀑布流常激活）截图复核
+- [ ] 真实移动设备触摸、Safari/Firefox、Twikoo 评论区与更多文章的视觉细节待人工回归；未提交、未推送、未部署（用户明确要求仅本地调试）
+
+**遗留问题**：
+
+- 标签云随机彩色文字在深色底上对比度与旧版一致（既有行为），未提亮。
+- 评论系统（Twikoo）容器未做 XP 化（内容来自第三方 iframe 化组件，仅容器背景适配了 #page/#post 深色）。
+- 仅本地实施；线上仍为 #55 部署的版本，本次改动尚未部署。
+
+---
