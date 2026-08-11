@@ -1757,4 +1757,6 @@
 
 **AI 总结块适配（2026-08-11）**：应用户要求将文章页打字机摘要块（`.post-typewriter-container`，「AI总结」）一并 XP 化，样式追加在 `xp-theme.css` 第七节：header 改造为 XP 标题栏（机器人图标保留，标题经 `::after` 补 `.exe` 后缀，右侧同款装饰按钮组），内容区深色化、大引号与打字光标改 XP 亮蓝 `#4d94ff`，原 45deg shimmer 扫光层禁用；选择器带 `#post` 前缀胜过 `[data-theme="dark"]` 旧规则，打字机 JS 与光标动画逻辑未动。ego 桌面/移动（375px）验证通过，双层窗口（post.exe ⊃ AI总结.exe）嵌套视觉正常、无横向滚动。
 
+**About 页 XP 化（2026-08-11）**：应用户要求将 about 页内联样式（`source/about/index.html` 的 `<style>` 段）全面改造为 XP 语言，与全站一致：hero 名字去渐变改纯白、技能胶囊与工具标签改 XP 平面小按钮、头像光环由灰阶 conic 改 XP 蓝白段（旋转动画与 reduced-motion 短路保留）；`.card` 改 `#262e3d` 深面板 + `#5d7a9e` 边 + 直角 + 硬阴影，hover 激活蓝框（去浮起位移与渐变层）；走马灯保留 3D 景深与 `lazy-loading-about.js` 逻辑，图片改直角 XP 相框（`#141922` 衬底 + 控件边框），active 图片 `#0058e6` 蓝框强调；统计/亮点/项目条目/联系区社交按钮同步平面深色化。ego 桌面与移动 375px 验证通过（卡片 307px、无横向滚动、走马灯图片正常加载）。
+
 ---

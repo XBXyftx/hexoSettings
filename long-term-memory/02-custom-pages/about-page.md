@@ -8,6 +8,7 @@ type: project
 
 > **何时阅读**：修改个人介绍内容、3D 轮播不动、卡片图片不显示、新增 card-row 时。
 > **关联文档**：[lazy-loading-system.md](../03-api-practices/lazy-loading-system.md)（lazy-loading-about.js 详解）· [cdn-strategy.md](../03-api-practices/cdn-strategy.md)（Font Awesome 图标依赖）
+> **当前状态（2026-08-11）**：页面内联样式已全面 XP 化（深蓝灰面板 `#262e3d`、直角相框、蓝白旋转光环、硬阴影），与全站 XP 窗口语言一致；走马灯 3D 景深与 JS 逻辑不变，active 图片以 `#0058e6` 蓝框强调。色板与 `source/css/xp-theme.css` 对齐。
 
 ---
 
@@ -46,12 +47,12 @@ type: project
 ```css
 .avatar-ring {
   border-radius: 50%;
-  background: conic-gradient(/* 12 段灰阶 */) border-box;
+  background: conic-gradient(/* XP 蓝白 12 段 */) border-box;
   animation: rotate 4s linear infinite;
 }
 ```
 
-conic-gradient 从 0deg 到 360deg 的 12 段灰阶（`#0f0f0f → #333333` 循环），border-box 裁剪，配合 `rotate` keyframes 持续旋转。**4s 循环，永久播放，无暂停机制**。
+conic-gradient 从 0deg 到 360deg 的 12 段（2026-08-11 起为 `#0058e6 / #ffffff / #4d94ff / #97b8f0` 循环的 XP 蓝白段；此前为 `#0f0f0f → #333333` 灰阶），border-box 裁剪，配合 `rotate` keyframes 持续旋转。**4s 循环，永久播放，无暂停机制**（reduced-motion 短路保留）。头像边框为 `4px solid #5d7a9e`。
 
 ---
 
