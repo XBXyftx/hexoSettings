@@ -1761,4 +1761,12 @@
 
 **公告时间轴圆点裁切修复（2026-08-11）**：用户反馈公告卡时间轴圆点左缘被裁切。根因：`.announcement-timeline` 仅声明 `overflow-y: auto`，按 CSS 规范 `overflow-x` 计算值随之变为 auto，而圆点（`left: -20px`、含边框宽 16px）左缘恰好落在容器内边缘 x=0，`box-shadow` 光晕外扩 3–4px（is-current 4px + 12px 辉光）被裁。修复（`announcement-history.css`）：桌面 padding-left 20→24px、移动端 18→22px，圆点 `left` 不变（左缘余量 4px）；时间轴线 `left: 5px→11px` 与圆点中心（x=12）对齐。ego 实测圆点中心与线中心均为 x=1752.8、圆点左缘余量 4px，当前/历史圆点截图光晕完整；移动端断点媒体查询命中确认。
 
+**作者卡/访问卡 XP 外框与访客 API 排查（2026-08-11）**：用户要求两张保留的 `.card-info` 卡「只加 XP 窗口边框、不加背景色」。实现（xp-theme.css 第八节）：3px 蓝边框 + 硬阴影 + `::after` 单元素标题栏（标题文字 + 四色徽标 4 层 + 按钮组 11 层，因元素为全宽条按钮组改用 right 关键字定位），背景图 `::before` 与渐变蒙版完全不动；作者卡 `author.exe`、访问卡 `visitor.exe`。首轮验证发现按钮组红色关闭面错位到最小化位置（right 定位与颜色顺序映射反了），已修正图层顺序并复验通过。访客卡「获取失败」排查结论：本机浏览器扩展拦截四个 IP 查询域名（页面上下文 fetch 1–6ms 秒拒），curl 对照 api.ip.sb（带浏览器 UA）与 ipinfo.io 均 200 且 `ACAO:*` 可用、ipapi.co 被 CF 要求人机验证、freegeoip.app 已 301 迁移——真实访客首选 ip.sb 可正常工作，用户本机属扩展拦截的个别环境。脚本加固：`fetch` 增加 8 秒超时、ipapi.co 移至链尾（`card_visitor_info.pug`）。
+
+**Footer GitHub 徽章链接修正（2026-08-11）**：用户反馈 GitHub Pages 徽章点击跳到 workflow 构建记录页，期望跳到站点域名。已将 `_config.butterfly.yml` `footer.custom_text` 中该徽章的 `href` 由 `.../actions/workflows/pages/pages-build-deployment` 改为 `https://xbxyftx.github.io/`（badge 图片不变，仍显示构建状态）；Netlify 徽章链接保持 Deploys 页不变。生成态断言与 ego 运行时 DOM 复验通过（两徽章均正常加载）。
+
+**Footer 三域名徽章并列（2026-08-11，最终形态）**：用户进一步明确期待为三个部署域名并列展示、均跳站点域名。最终方案：Netlify 状态徽章 → `https://xbxyftx.netlify.app/`（curl 确认 200 且为博客首页）、GitHub Pages 状态徽章 → `https://xbxyftx.github.io/`、新增 shields.io 静态徽章「华为云 | xbxyftx.top」→ `https://xbxyftx.top/`（私有服务器无状态 API，静态徽章保持视觉统一，中文 label 已 URL 编码）。ego 复验三徽章同行并列（同 y 坐标）、全部加载成功、链接正确；截图复核视觉整齐。
+
+**友情链接页卡片重设计（2026-08-11）**：用户反馈友链卡片丑（主题默认 hover 灰块 scale 展开 + 头像向左缩没造成错位）。xp-theme.css 第九节重设计：XP 平面小卡（`#262e3d` 底 + `#5d7a9e` 边 + 直角 + `3px 3px 0` 硬阴影），头像改 XP 相框（`#141922` 深衬底 + 控件边框 + 直角）；悬浮为「窗口激活」语义——边框与相框变蓝 `#0058e6`、卡面微亮 `#2b3445`、阴影加深至 `5px 5px 0`、名称 `#9ecbff→#cfe4ff` 加下划线，头像保持 60×60 不再缩没，灰块层 `::before` 禁用；触屏 `:active` 按压下沉（阴影压至 `1px 1px 0`）；float 布局与 1024/600 响应式断点保持主题原样。ego 桌面 hover 实测激活态全部命中、常态/激活对比截图复核，移动 375px 单列整齐、无横向滚动。
+
 ---

@@ -23,11 +23,13 @@ if theme.aside.card_visitor_info.enable
       // 访问者信息获取
       (function() {
         // IP地址获取API列表（按优先级排序）
+        // 2026-08-11 排查：ipapi.co 对当前出口被 Cloudflare 要求人机验证（cf-mitigated: challenge），
+        // 移到链尾；freegeoip.app 已 301 迁移，保留在 ipapi.co 前作兜底。
         const ipApis = [
           'https://api.ip.sb/geoip',
-          'https://ipapi.co/json/',
+          'https://ipinfo.io/json',
           'https://freegeoip.app/json/',
-          'https://ipinfo.io/json'
+          'https://ipapi.co/json/'
         ];
         
         let currentApiIndex = 0;
@@ -41,7 +43,8 @@ if theme.aside.card_visitor_info.enable
           
           const currentApi = ipApis[currentApiIndex];
           
-          fetch(currentApi)
+          // 8 秒超时：防止 API 挂起导致永远停留在“获取中”而无法降级到下一个
+          fetch(currentApi, AbortSignal.timeout ? { signal: AbortSignal.timeout(8000) } : {})
             .then(response => {
               if (!response.ok) throw new Error(`HTTP ${response.status}`);
               return response.json();

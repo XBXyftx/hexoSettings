@@ -38,10 +38,11 @@
 
 **需求**：在博客 footer 放 Netlify 与 GitHub Pages（`xbxyftx.github.io`）两个部署状态徽章，并排显示。
 
-**改动**（配置级，未改主题文件）：`_config.butterfly.yml` 的 `footer.custom_text` 在备案号后追加一个 `<div>`，内含两个徽章链接：
+**改动**（配置级，未改主题文件）：`_config.butterfly.yml` 的 `footer.custom_text` 在备案号后追加一个 `<div>`，内含三个并列徽章链接（2026-08-11 用户确认的最终形态——**三个部署域名并列，全部跳站点域名而非构建页**）：
 
-- Netlify：`api.netlify.com/api/v1/badges/<site-id>/deploy-status`，链接到 Netlify Deploys 页。
-- GitHub：Actions workflow status badge，`github.com/XBXyftx/XBXyftx.github.io/actions/workflows/pages/pages-build-deployment/badge.svg`，链接到该工作流运行记录页。GitHub Pages 自动构建对应 `pages/pages-build-deployment` 工作流。
+- Netlify：`api.netlify.com/api/v1/badges/<site-id>/deploy-status` 状态图，链接 `https://xbxyftx.netlify.app/`（已 curl 确认 200 且为博客首页）。
+- GitHub：Actions workflow status badge（`pages-build-deployment`，GitHub Pages 自动构建对应工作流），链接 `https://xbxyftx.github.io/`。
+- 华为云：shields.io 静态徽章 `img.shields.io/badge/华为云-xbxyftx.top-blue`（中文 label 需 URL 编码），链接 `https://xbxyftx.top/`；私有服务器无构建状态 API，故用静态徽章保持视觉统一。
 
 **查证结论（GitHub 官方文档，已验证）**：workflow badge URL 格式为 `https://github.com/OWNER/REPO/actions/workflows/WORKFLOW-FILE/badge.svg`；**私有仓库的徽章对外不可访问**——当前仓库公开，可用；若转私有徽章会失效。
 

@@ -668,6 +668,8 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 3. note/hideToggle/btn/tabs/timeline 标签插件深色 XP 化；内联浅底 td/th 无字色单元格强制深字（仅 td/th，避免误伤 #0d1117 深底代码容器 div）。
 4. 非激活标题栏加深为 `#46587a`（白字 7.15:1、绿徽标 3.05:1）。
 5. （2026-08-11 追加）文章页打字机摘要块（AI 总结）XP 窗口化：header 改标题栏 + `.exe` 后缀、内容区深色、扫光层禁用；见 xp-theme.css 第七节。
+6. （2026-08-11 追加）作者卡/访问信息卡（`.card-widget.card-info`）追加 XP 外框：3px 蓝边框 + 硬阴影 + `::after` 标题栏（author.exe / visitor.exe，徽标与按钮组 15 层 background、按钮组改 right 关键字定位），渐变蒙版与背景图完全保留（用户指定）；见 xp-theme.css 第八节。同日在 `card_visitor_info.pug` 加固访客 IP 获取链：fetch 增加 8 秒超时（防挂起永远停在「获取中」），有被 Cloudflare 人机验证的 ipapi.co 移至链尾；排查确认用户本机「获取失败」为浏览器扩展拦截四个 IP 查询域名所致（浏览器内 1–6ms 秒拒、curl 对照 ip.sb/ipinfo.io 均 200 且带 `ACAO:*`），普通访客不受影响。
+7. （2026-08-11 追加）友情链接页卡片重设计（xp-theme.css 第九节）：覆盖主题 `flink.styl` 的 hover 灰块展开与头像缩没动画（用户反馈丑）；友链改为 XP 平面小卡（`#262e3d` + `#5d7a9e` 边 + 直角 + 硬阴影），头像改 XP 相框（`#141922` 衬底 + 直角）且 hover 不再缩没；悬浮为「窗口激活」语义（边框变蓝、阴影加深、卡面微亮 `#2b3445`、名称提亮加下划线、相框变蓝），触屏 `:active` 按压下沉；float 布局与响应式断点保持主题原样。
 
 **相关文件**：`source/css/swiper-xp.css`（同一色板）；详细证据见 [operation-log #56](../04-operations/operation-log.md#56--2026-08-10--xp-窗口语言全站推广侧边栏文章页标签插件仅本地实施)。
 
