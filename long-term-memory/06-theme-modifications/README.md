@@ -216,6 +216,10 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 | `source/js/main.js` | 移动端增强逻辑与目录媒体重锚定 | 中 | 升级后保留用户输入取消、RAF 合帧、ResizeObserver 和有限时限；不得恢复依赖已删除 `lazyLoadPreload` 的一次性定位 |
 | `source/js/waterfall.js` | 首页瀑布流纯布局控制器（2026-08-10 起已移除激光/涟漪） | 中 | 升级后保留纯布局职责与 PJAX 接线；悬浮动效由 styl 的「窗口激活」媒体查询负责，勿合并回 pointer 委托/RAF 坐标代码 |
 | `source/css/_page/waterfall-homepage.styl` | 瀑布流卡片视觉（2026-08-10 起为 XP 窗口深色版） | 中 | 升级后保留布局重置段、XP 窗口视觉段与三条媒体查询（hover 激活 / 粗指针常激活+按压 / reduced-motion）；勿恢复六套玻璃配色与星空透窗 |
+| `layout/includes/loading/index.pug` | 新增 `when 'xpmail'` 分发分支（#23） | 低 | 升级后重新添加该分支 |
+| `source/css/_layout/loading.styl` | 新增 xpmail 条件 import（#23） | 低 | 升级后重新添加 else-if 分支 |
+| `layout/includes/loading/load_style/xpmail.pug` | 新增文件：XP 飞信封加载动画 DOM + 生命周期脚本（#23） | 低 | 主题升级不会自带此文件，需从记录重建 |
+| `source/css/_load_style/xpmail.styl` | 新增文件：xpmail 全部样式（#23） | 低 | 主题升级不会自带此文件，需从记录重建 |
 
 ---
 
@@ -678,6 +682,34 @@ Butterfly 主题是第三方开源项目，理论上可以通过 `npm update` �
 **验证**：clean build 2,387 个文件；ego 双断点覆盖首页/文章页/归档/标签/友链/分类/about；19 篇内嵌 HTML 文章对比度巡检全过；作者卡保留确认。真实设备与更多文章细节待人工回归。
 
 **远程约束**：仅本地实施；未提交、未推送、未部署（用户明确要求仅本地调试）。
+
+---
+
+### #23 — 2026-08-14 — 开屏加载动画新增 xpmail 风格（XP 双电脑飞信封）
+
+**修改文件**：
+
+- `themes/butterfly/layout/includes/loading/load_style/xpmail.pug`（新增）
+- `themes/butterfly/source/css/_load_style/xpmail.styl`（新增）
+- `themes/butterfly/layout/includes/loading/index.pug`（新增 `when 'xpmail'` 分支）
+- `themes/butterfly/source/css/_layout/loading.styl`（新增 xpmail 条件 import）
+- `_config.butterfly.yml`（`preloader.load_style: spincat → xpmail`）
+
+**修改原因**：spincat 旋转小猫与全站 XP 窗口语言不符；用户要求 Windows 经典「两台电脑飞信封」加载动画并适配移动端。
+
+**修改内容**：
+
+1. xpmail.pug：XP 窗口 DOM（标题栏 `loading.exe` + 双 CRT 电脑 + 信封轨道 + 双信封 + 进度条 + 加载文字），JS 生命周期与 spincat 逐字一致（DOMContentLoaded 退场、幂等 endLoading、PJAX 钩子）。
+2. xpmail.styl：纯 CSS 零外部资源；信封 `left 0%→100%` 沿轨道飞 + transform 抛物线/摇摆；收发屏脉冲与信封 1.6s 周期同步；XP 绿色分段 marquee 进度条；以 `.xp-window` font-size 为缩放基准（16/12.5/11px 三档），内部全 em 等比缩放；`prefers-reduced-motion` 全部静态降级。
+3. 两个分发文件各加一行分支；spincat 文件与分支原样保留。
+
+**相关文件**：`source/css/xp-theme.css`（XP 色板与窗口语言来源）；完整证据见 [operation-log #57](../04-operations/operation-log.md#57--2026-08-14--开屏加载动画换装-xp双电脑飞信封xpmail仅本地实施)。
+
+**可回滚性**：可安全回滚。`_config.butterfly.yml` 的 `load_style` 改回 `spincat` 即恢复小猫动画；删除两个新文件与两行分支可彻底移除 xpmail，无数据迁移。
+
+**验证**：clean build 2,387 个文件；生成态 DOM/CSS 断言通过；ego 桌面 2544px 与移动 375px 双断点、真实加载路径、开门退场、reduced-motion 静态降级、慢网首屏均实测通过。真实设备与 Safari/Firefox 待人工回归。
+
+**远程约束**：仅本地实施；未提交、未推送、未部署。
 
 ---
 

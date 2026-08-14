@@ -1770,3 +1770,45 @@
 **友情链接页卡片重设计（2026-08-11）**：用户反馈友链卡片丑（主题默认 hover 灰块 scale 展开 + 头像向左缩没造成错位）。xp-theme.css 第九节重设计：XP 平面小卡（`#262e3d` 底 + `#5d7a9e` 边 + 直角 + `3px 3px 0` 硬阴影），头像改 XP 相框（`#141922` 深衬底 + 控件边框 + 直角）；悬浮为「窗口激活」语义——边框与相框变蓝 `#0058e6`、卡面微亮 `#2b3445`、阴影加深至 `5px 5px 0`、名称 `#9ecbff→#cfe4ff` 加下划线，头像保持 60×60 不再缩没，灰块层 `::before` 禁用；触屏 `:active` 按压下沉（阴影压至 `1px 1px 0`）；float 布局与 1024/600 响应式断点保持主题原样。ego 桌面 hover 实测激活态全部命中、常态/激活对比截图复核，移动 375px 单列整齐、无横向滚动。
 
 ---
+
+### #57 — 2026-08-14 — 开屏加载动画换装 XP「双电脑飞信封」（xpmail，仅本地实施）
+
+**操作人**：Kimi Code
+
+**涉及文件**：
+
+- `themes/butterfly/layout/includes/loading/load_style/xpmail.pug` — 新增；XP 窗口 DOM 结构 + 复用 spincat 已验证的 JS 生命周期（逐字一致）
+- `themes/butterfly/source/css/_load_style/xpmail.styl` — 新增；全部视觉样式（纯 CSS 绘制，零外部资源）
+- `themes/butterfly/layout/includes/loading/index.pug` — 新增 `when 'xpmail'` 分支（spincat 等既有分支不动）
+- `themes/butterfly/source/css/_layout/loading.styl` — 新增 xpmail 条件 import
+- `_config.butterfly.yml` — `preloader.load_style: spincat → xpmail`
+
+**操作详情**：
+
+用户反馈开屏加载动画（spincat 旋转小猫）与全站 XP 主题不符，要求换成 Windows 经典「两台电脑之间飞信封」加载动画并适配移动端，使用 ego-browser 自测调优后交付可上线版本。
+
+实现要点（代码事实）：
+
+1. **视觉构成**：XP 桌面蓝渐变左右门（保留既有开门退场语义）+ 中央 XP 窗口（标题栏 `loading.exe` + 四色徽标 + 三按钮组，与 xp-theme.css 同一设计语言）+ 深色内容区内两台纯 CSS CRT 电脑（米色外壳、蓝色屏幕、扫描线、斜向反光、电源灯）+ 信封沿抛物线从左屏飞向右屏（双信封相隔半周期形成连续流）+ 收发屏幕脉冲闪烁与信封周期（1.6s）同步 + XP 绿色分段 marquee 进度条 + 「正在加载，请稍候」跳动省略号。
+2. **技术方案**：信封 X 轴用 `left 0%→100%` 沿轨道容器飞行（轨道 `left/right` 锚定两台电脑屏幕中心，响应式自适配），Y 轴抛物线与旋转摇摆由 transform keyframes 负责；整个场景以 `.xp-window` 的 `font-size` 为缩放基准（桌面 16px / ≤480px 12.5px / ≤360px 11px），内部尺寸全部用 em 等比缩放。
+3. **生命周期契约**：JS 与 spincat 逐字一致（DOMContentLoaded 后下一帧退场、幂等 endLoading、800ms 后 display:none、PJAX 钩子保留）；`#loading-box`、`.loading-left-bg/.loading-right-bg`、`.loaded` 类名契约不变。
+4. **无障碍**：`prefers-reduced-motion` 下所有循环动画停止——信封静态居中于轨道、第二信封隐藏、进度条静态、屏幕闪烁与省略号停止。
+5. **spincat 保留**：spincat 的 pug/styl 文件与分发分支原样未动，切回只需把 `load_style` 改回 `spincat`；原 spincat 依赖的外链图（images.weserv.nl）随切换不再加载。
+
+**验证结果**：
+
+- [x] `npm run clean && npm run build` 成功（2,387 个文件）；生成态断言：首页/归档/about 均含 xpmail DOM，`index.css` 含全部 keyframes 与媒体查询
+- [x] ego 桌面 2544px：窗口居中、信封飞行两帧位置变化、进度条 marquee 移动，截图复核（窗口入场动画 scale(.92) 期间测量会得到 368px 表观宽度，属预期非缺陷）
+- [x] ego 移动 375px（DPR 2）：`font-size: 12.5px` 媒体查询命中、窗口等比缩小居中、轨道锚点与两屏中心像素级对齐（95/280）、无横向溢出
+- [x] 真实加载路径：DOMContentLoaded 后自动加 `.loaded` → `display:none`、body 滚动锁释放
+- [x] 退场动画：开门中间帧截图复核（门滑开、场景先淡出，与 spincat 退场时序一致）
+- [x] reduced-motion：信封/进度条/屏幕闪烁/省略号动画全部静止，静态降级渲染正常
+- [x] 慢网（400ms 延迟 / 400kbps）真实首屏：`readyState: loading` 期间动画可见，加载完成后正常退出
+- [ ] 真实移动设备触摸观感、Safari/Firefox 待人工回归；未提交、未推送、未部署
+
+**遗留问题**：
+
+- 信封 X 轴与进度条使用 `left` 属性动画（layout 级），仅加载期间运行 1–2 秒且动画元素极少（2 信封 + 1 进度条），开销可接受；若未来要常驻展示需改 transform 方案。
+- 窗口入场动画（xpWindowIn）仅在元素首次渲染时播放一次；PJAX 重新显示时不重放（PJAX 当前禁用，属可接受行为）。
+
+---

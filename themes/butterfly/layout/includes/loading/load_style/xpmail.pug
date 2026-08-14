@@ -1,0 +1,74 @@
+#loading-box
+  .loading-left-bg
+  .loading-right-bg
+  .xp-mail-scene(aria-hidden='true')
+    .xp-window
+      .xp-window-titlebar loading.exe
+      .xp-window-body
+        .xp-stage
+          .xp-pc.xp-pc-left
+            .xp-pc-monitor
+              .xp-pc-screen
+            .xp-pc-neck
+            .xp-pc-base
+          .xp-mail-track
+            .xp-envelope
+            .xp-envelope.xp-envelope-late
+          .xp-pc.xp-pc-right
+            .xp-pc-monitor
+              .xp-pc-screen
+            .xp-pc-neck
+            .xp-pc-base
+        .xp-progress
+          .xp-progress-bar
+        .xp-loading-text
+          | 正在加载，请稍候
+          span.xp-dot .
+          span.xp-dot .
+          span.xp-dot .
+
+script.
+  (()=>{
+    const $loadingBox = document.getElementById('loading-box')
+    const $body = document.body
+    let hideTimer = null
+    let isLoading = false
+
+    const preloader = {
+      endLoading: () => {
+        if (!isLoading) return
+
+        isLoading = false
+        $body.style.overflow = ''
+        $loadingBox.classList.add('loaded')
+        clearTimeout(hideTimer)
+        hideTimer = setTimeout(() => {
+          $loadingBox.style.display = 'none'
+        }, 800)
+      },
+      initLoading: () => {
+        clearTimeout(hideTimer)
+        isLoading = true
+        $loadingBox.style.display = 'flex'
+        $loadingBox.classList.remove('loaded')
+        $body.style.overflow = 'hidden'
+      }
+    }
+
+    const completeInitialLoading = () => {
+      window.requestAnimationFrame(preloader.endLoading)
+    }
+
+    preloader.initLoading()
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', completeInitialLoading, { once: true })
+    } else {
+      completeInitialLoading()
+    }
+
+    if (!{theme.pjax && theme.pjax.enable}) {
+      btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+      btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+    }
+  })()

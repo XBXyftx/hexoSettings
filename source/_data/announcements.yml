@@ -13,10 +13,10 @@
   published_at: '2026-08-11T11:09:41+08:00'
   lead: 全站换装 Windows XP 复古窗口！
   image:
-    src: /imgs/gifs/1.webp
-    alt: 挥手奔跑的卡通人物
-    width: 560
-    height: 315
+    src: /imgs/gifs/2.webp
+    alt: 芋圆杰哥
+    width: 426
+    height: 240
   title: 今日更新：
   items:
     - 首页轮播与瀑布流卡片换上 XP 平面窗口：纯蓝标题栏、四色徽标、装饰按钮与硬阴影；鼠标悬浮卡片时窗口会像被“激活”一样点亮，触屏下则常亮、点按有下沉反馈。

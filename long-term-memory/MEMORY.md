@@ -1,8 +1,8 @@
 # 长期记忆索引 — XBXyftx Hexo 博客项目
 
 > **AI 必读**：每次进入新会话，第一步必须阅读本文件。严禁跳过索引直接操作代码。
-> **当前日期**：2026-08-10
-> **项目状态**：活跃维护中；远程备份基点为 `7c77314`。2026-07-29/30 的首页 Liquid 与非文章页 Bend 均因最终视觉验收未通过而完整回退，当前运行时不包含这两个效果；仅长期记忆保留尝试方案与验证证据，未提交、推送或部署。2026-08-06 文章目录 hideToggle 折叠分组已本地实施并通过本地构建与 Headless 验证，未提交、推送或部署。2026-08-10 首页轮播修复 `overflow: visible` 覆盖导致的布局偏移，swiper 4 个资源由 elemecdn 本地化并换装 Windows XP 平面窗口样式（`source/css/swiper-xp.css`）；同日瀑布流卡片换装同款 XP 窗口（`waterfall-homepage.styl` 重写、`waterfall.js` 净化为纯布局控制器，激光/涟漪浮层全部移除），悬浮动效改为纯 CSS「窗口激活」语义；窗口内容区按用户反馈定为深色、蓝色标题栏不变。同日晚些时候排查线上轮播间歇性空白，确认为 JS 未初始化空窗期故障，已为 `swiper-xp.css`/`swiper-init.js` 添加 `swiper-ready` 门控、静态降级与自检日志（#21/#55），并经用户授权 `npm run pub` 部署双目标至 `49aabfbcc`；源码工作区未提交、未推送。随后 XP 语言全站推广（#22/#56）：新增 `source/css/xp-theme.css` 公共层，侧边栏非 info 卡片与 `#post`/`#archive`/`#page` 主体全部 XP 窗口化，作者卡/访问卡保留渐变蒙版与背景图，note/hideToggle/btn/tabs/timeline 标签插件深色适配，非激活标题栏加深为 `#46587a`，目录激活色统一为 XP 蓝；该批次仅本地实施并通过 ego 双断点与 19 篇内嵌 HTML 文章巡检，未提交、未推送、未部署。
+> **当前日期**：2026-08-14
+> **项目状态**：活跃维护中；远程备份基点为 `7c77314`。2026-07-29/30 的首页 Liquid 与非文章页 Bend 均因最终视觉验收未通过而完整回退，当前运行时不包含这两个效果；仅长期记忆保留尝试方案与验证证据，未提交、推送或部署。2026-08-06 文章目录 hideToggle 折叠分组已本地实施并通过本地构建与 Headless 验证，未提交、推送或部署。2026-08-10 首页轮播修复 `overflow: visible` 覆盖导致的布局偏移，swiper 4 个资源由 elemecdn 本地化并换装 Windows XP 平面窗口样式（`source/css/swiper-xp.css`）；同日瀑布流卡片换装同款 XP 窗口（`waterfall-homepage.styl` 重写、`waterfall.js` 净化为纯布局控制器，激光/涟漪浮层全部移除），悬浮动效改为纯 CSS「窗口激活」语义；窗口内容区按用户反馈定为深色、蓝色标题栏不变。同日晚些时候排查线上轮播间歇性空白，确认为 JS 未初始化空窗期故障，已为 `swiper-xp.css`/`swiper-init.js` 添加 `swiper-ready` 门控、静态降级与自检日志（#21/#55），并经用户授权 `npm run pub` 部署双目标至 `49aabfbcc`；源码工作区未提交、未推送。随后 XP 语言全站推广（#22/#56）：新增 `source/css/xp-theme.css` 公共层，侧边栏非 info 卡片与 `#post`/`#archive`/`#page` 主体全部 XP 窗口化，作者卡/访问卡保留渐变蒙版与背景图，note/hideToggle/btn/tabs/timeline 标签插件深色适配，非激活标题栏加深为 `#46587a`，目录激活色统一为 XP 蓝；该批次仅本地实施并通过 ego 双断点与 19 篇内嵌 HTML 文章巡检，未提交、未推送、未部署。2026-08-14 开屏加载动画新增 xpmail 风格（XP 双电脑飞信封，纯 CSS 零外链），`load_style` 由 spincat 切至 xpmail，spincat 文件与分支原样保留可一词切回；仅本地实施并通过 ego 双断点、真实加载路径、开门退场、reduced-motion 与慢网首屏验证，未提交、未推送、未部署。
 
 ---
 
@@ -87,6 +87,7 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 - [2026-07-11 P1 分层星空动效实验与回退](04-operations/2026-07-11-starfield-p1/README.md) — 基线 `049f08d` 已推送；实验源码、三断点本地 Headless A/B 和 SHA-256 快照已归档，视觉验收未通过，实际运行时已恢复基线双层星空。
 - [2026-07-11 P2 失效请求修复](04-operations/2026-07-11-invalid-request-p2/README.md) — 基线 `8863b70` 已推送；本地缺失资源、Mermaid 404、旧 fallback/默认页头图和可确认路径均已本地修复；8 张外部正文图及 1 个不确定头像仍单列遗留。
 - [2026-07-12 DOM 就绪预加载器与首页星空收敛](04-operations/operation-log.md#32) — `spincat` 不再等待 `window.load`；原有双层星空仅首页加载，非首页无 Canvas/RAF，且未重启未采纳的单控制器实验。
+- [2026-08-14 开屏加载动画换装 xpmail](04-operations/operation-log.md#57--2026-08-14--开屏加载动画换装-xp双电脑飞信封xpmail仅本地实施) — 新增 XP「双电脑飞信封」加载风格，`load_style` 由 spincat 切至 xpmail；spincat 文件与分支原样保留；ego 双断点、真实加载路径、开门退场、reduced-motion 与慢网首屏通过，仅本地实施。
 - [2026-07-29 首页封面桌面 Liquid 尝试与回退](04-operations/operation-log.md#50--2026-07-29--首页封面桌面-liquid-叠层尝试已回退) — 曾实现桌面细指针 WebGL2 流体叠层并完成多断点验证；最终视觉未通过，代码、样式与入口已全部回退，仅保留文档。
 - [2026-07-30 非文章页 Bend 尝试与回退](04-operations/operation-log.md#51--2026-07-30--非文章页-bend-兼容折叠与持久化开关尝试已回退) — 曾实现非文章页 CSS 3D 兼容折叠和持久化开关；最终视觉未通过，所有运行时与页面接入已回退，仅保留文档。
 - [2026-07-11 文章懒加载与目录锚点稳定性治理](04-operations/2026-07-11-article-layout-stability/README.md) — 远程备份 `bb93da8` 已推送，实施后严禁远程写入；文章仅近视口动态占位、目录晚到媒体重锚定、生成态尺寸审计与桌面/移动延迟图片验证均已记录。

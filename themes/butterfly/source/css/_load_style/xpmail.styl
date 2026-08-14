@@ -1,0 +1,411 @@
+// ==================================================
+// xpmail 开屏加载动画
+// Windows 经典「双电脑飞信封」+ XP 窗口语言
+// 纯 CSS 绘制，零外部资源；em 弹性缩放适配移动端
+// 生命周期契约与 spincat 一致：.loaded 触发左右开门退场
+// ==================================================
+
+#loading-box
+  position fixed
+  z-index 1000
+  width 100vw
+  height 100vh
+  overflow hidden
+  text-align center
+  display flex
+  flex-direction column
+  min-height 100%
+  margin 0
+  line-height 1.4
+
+  // 左右门：XP 桌面蓝
+  .loading-left-bg
+  .loading-right-bg
+    position fixed
+    z-index 999
+    width 50%
+    height 100%
+    top 0
+    background linear-gradient(180deg, #4a7fbf 0%, #3a6ea5 55%, #2b5a8c 100%)
+    transition all 1.0s ease-out
+
+  .loading-left-bg
+    left 0
+    box-shadow inset -2px 0 0 rgba(255, 255, 255, .16)
+
+  .loading-right-bg
+    right 0
+    box-shadow inset 2px 0 0 rgba(255, 255, 255, .16)
+
+  &.loaded
+    .loading-left-bg
+      transform translate(-100%, 0)
+
+    .loading-right-bg
+      transform translate(100%, 0)
+
+    .xp-mail-scene
+      opacity 0
+      transition opacity .5s ease-out
+
+  // 场景层
+  .xp-mail-scene
+    position fixed
+    z-index 1000
+    top 0
+    left 0
+    right 0
+    bottom 0
+    display flex
+    justify-content center
+    align-items center
+    padding 0 4vw
+    box-sizing border-box
+    opacity 1
+    transition opacity .5s ease-out
+
+  // XP 窗口：font-size 即缩放基准，媒体查询整体等比缩小
+  .xp-window
+    font-size 16px
+    width 25em
+    max-width 100%
+    background #1e2431
+    border 3px solid #0058e6
+    border-radius 10px 10px 4px 4px
+    box-shadow 6px 6px 0 rgba(0, 0, 0, .35)
+    overflow hidden
+    box-sizing border-box
+    animation xpWindowIn .35s ease-out both
+
+  // 标题栏：XP 蓝 + 四色徽标 + 装饰按钮组
+  .xp-window-titlebar
+    position relative
+    height 1.875em
+    padding-left 2.25em
+    background-color #0058e6
+    background-image: linear-gradient(#f65314, #f65314),
+      linear-gradient(#7cbb00, #7cbb00),
+      linear-gradient(#00a1f1, #00a1f1),
+      linear-gradient(#ffbb00, #ffbb00)
+    background-size: .4375em .4375em, .4375em .4375em, .4375em .4375em, .4375em .4375em
+    background-position: .8125em .5em, 1.3125em .5em, .8125em 1em, 1.3125em 1em
+    background-repeat: no-repeat
+    color #fff
+    font-size .75em
+    font-weight 700
+    line-height 1.875em
+    letter-spacing 1px
+    text-align left
+    white-space nowrap
+    overflow hidden
+
+    &::after
+      content ''
+      position absolute
+      top .25em
+      right .375em
+      width 4em
+      height 1.375em
+      pointer-events none
+      background-image: linear-gradient(45deg, transparent 44%, #fff 44%, #fff 56%, transparent 56%),
+        linear-gradient(-45deg, transparent 44%, #fff 44%, #fff 56%, transparent 56%),
+        linear-gradient(#fff, #fff),
+        linear-gradient(#3a76f0, #3a76f0),
+        linear-gradient(#fff, #fff),
+        linear-gradient(#3a76f0, #3a76f0),
+        linear-gradient(#3a76f0, #3a76f0),
+        linear-gradient(#d75027, #d75027),
+        linear-gradient(#16418f, #16418f),
+        linear-gradient(#16418f, #16418f),
+        linear-gradient(#8f2f12, #8f2f12)
+      background-repeat: no-repeat
+      background-size: .625em .625em, .625em .625em,
+        .625em .625em, .375em .375em,
+        .5em .1875em,
+        1.125em 1.125em, 1.125em 1.125em, 1.125em 1.125em,
+        1.25em 1.25em, 1.25em 1.25em, 1.25em 1.25em
+      background-position: 3.0625em .375em, 3.0625em .375em,
+        1.6875em .375em, 1.8125em .5em,
+        .375em .8125em,
+        .0625em .125em, 1.4375em .125em, 2.8125em .125em,
+        0 .0625em, 1.375em .0625em, 2.75em .0625em
+
+  .xp-window-body
+    padding 1.2em 1.25em 1.1em
+
+  // 舞台：两台电脑分居两端，信封轨道绝对定位于两屏心之间
+  .xp-stage
+    position relative
+    display flex
+    justify-content space-between
+    padding 0 .75em
+    height 4.75em
+    box-sizing border-box
+
+  // CRT 电脑
+  .xp-pc
+    width 4.5em
+    display flex
+    flex-direction column
+    align-items center
+
+  .xp-pc-monitor
+    position relative
+    width 4.5em
+    height 3.9em
+    padding .3em
+    background #ece9d8
+    border 2px solid #aca899
+    border-radius .3em
+    box-shadow inset 0 0 0 1px #f5f3e8, 2px 2px 0 rgba(0, 0, 0, .25)
+    box-sizing border-box
+
+    // 电源灯
+    &::before
+      content ''
+      position absolute
+      bottom .12em
+      left 50%
+      margin-left -.1em
+      width .2em
+      height .2em
+      border-radius 50%
+      background #3fc23f
+      box-shadow 0 0 .25em #3fc23f
+
+  .xp-pc-screen
+    position relative
+    width 100%
+    height 100%
+    background-color #0a246a
+    border-radius .15em
+    box-shadow inset 0 0 .5em rgba(0, 0, 0, .6)
+    overflow hidden
+
+    // CRT 扫描线
+    &::before
+      content ''
+      position absolute
+      top 0
+      left 0
+      right 0
+      bottom 0
+      background repeating-linear-gradient(0deg, rgba(255, 255, 255, .045) 0, rgba(255, 255, 255, .045) 1px, transparent 1px, transparent 3px)
+
+    // CRT 斜向反光
+    &::after
+      content ''
+      position absolute
+      top 0
+      left 0
+      right 0
+      bottom 0
+      background linear-gradient(115deg, rgba(255, 255, 255, .16) 0%, rgba(255, 255, 255, .04) 28%, transparent 45%)
+
+  .xp-pc-left .xp-pc-screen
+    animation xpScreenSend 1.6s linear infinite
+
+  .xp-pc-right .xp-pc-screen
+    animation xpScreenRecv 1.6s linear infinite
+
+  .xp-pc-neck
+    width 1.1em
+    height .45em
+    background #d8d4c2
+    border 2px solid #aca899
+    border-top none
+    box-sizing border-box
+
+  .xp-pc-base
+    width 2.7em
+    height .4em
+    background #ece9d8
+    border 2px solid #aca899
+    border-radius .35em .35em .2em .2em
+    box-shadow 2px 2px 0 rgba(0, 0, 0, .25)
+    box-sizing border-box
+
+  // 信封轨道：left/right 锚定两台电脑的屏幕中心
+  .xp-mail-track
+    position absolute
+    top 1.8em
+    left 3em
+    right 3em
+    height 0
+
+  // 信封：left 0%→100% 沿轨道飞行，transform 只负责抛物线与摇摆
+  .xp-envelope
+    position absolute
+    top 0
+    left 0%
+    width 1.75em
+    height 1.25em
+    margin-left -.875em
+    margin-top -.625em
+    background-color #fff
+    background-image: linear-gradient(to bottom right, transparent 49.4%, #9db3c9 49.4%, #9db3c9 50.6%, transparent 50.6%),
+      linear-gradient(to bottom left, transparent 49.4%, #9db3c9 49.4%, #9db3c9 50.6%, transparent 50.6%)
+    background-size: 51% 62%, 51% 62%
+    background-position: left top, right top
+    background-repeat: no-repeat
+    border 1px solid #7f9db9
+    border-radius 2px
+    box-shadow 1px 1px 0 rgba(0, 0, 0, .3)
+    box-sizing border-box
+    animation xpMailFly 1.6s linear infinite
+
+  .xp-envelope-late
+    animation-delay -.8s
+
+  // XP 绿色分段进度条（marquee）
+  .xp-progress
+    position relative
+    height .875em
+    margin-top 1em
+    background #141922
+    border 1px solid #7f9db9
+    border-radius 2px
+    box-shadow inset 1px 1px 2px rgba(0, 0, 0, .5)
+    overflow hidden
+
+  .xp-progress-bar
+    position absolute
+    top 1px
+    bottom 1px
+    left -32%
+    width 32%
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, .5) 0%, rgba(255, 255, 255, .05) 40%, rgba(0, 0, 0, .22) 100%),
+      repeating-linear-gradient(90deg, #46e046 0, #37b837 .5em, transparent .5em, transparent .625em)
+    animation xpProgress 1.8s linear infinite
+
+  // 加载文字与跳动省略号
+  .xp-loading-text
+    margin-top .8em
+    color #dbe4f0
+    font-size .8125em
+    letter-spacing 1px
+
+  .xp-dot
+    display inline-block
+    animation xpDot 1.4s ease-in-out infinite
+
+    &:nth-of-type(2)
+      animation-delay .2s
+
+    &:nth-of-type(3)
+      animation-delay .4s
+
+// 移动端等比缩放
+@media (max-width: 480px)
+  #loading-box .xp-window
+    font-size 12.5px
+
+@media (max-width: 360px)
+  #loading-box .xp-window
+    font-size 11px
+
+// reduced-motion：停止一切循环动画，静态呈现
+@media (prefers-reduced-motion: reduce)
+  #loading-box
+    .xp-window
+      animation none
+
+    .xp-envelope
+      animation none
+      left 50%
+      opacity 1
+      transform none
+
+    .xp-envelope-late
+      display none
+
+    .xp-pc-left .xp-pc-screen
+    .xp-pc-right .xp-pc-screen
+      animation none
+
+    .xp-progress-bar
+      animation none
+      left 34%
+
+    .xp-dot
+      animation none
+
+@keyframes xpWindowIn {
+  from {
+    opacity: 0;
+    transform: scale(.92) translateY(1em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes xpMailFly {
+  0% {
+    left: 0%;
+    transform: translateY(0) rotate(-8deg);
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  25% {
+    transform: translateY(-1.5em) rotate(6deg);
+  }
+  50% {
+    transform: translateY(-2em) rotate(-5deg);
+  }
+  75% {
+    transform: translateY(-1.1em) rotate(7deg);
+  }
+  94% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    transform: translateY(0) rotate(-4deg);
+    opacity: 0;
+  }
+}
+
+@keyframes xpScreenSend {
+  0%, 100% {
+    background-color: #0a246a;
+  }
+  6% {
+    background-color: #2f6fe4;
+  }
+  16% {
+    background-color: #0a246a;
+  }
+}
+
+@keyframes xpScreenRecv {
+  0%, 84%, 100% {
+    background-color: #0a246a;
+  }
+  92% {
+    background-color: #2f6fe4;
+  }
+}
+
+@keyframes xpProgress {
+  from {
+    left: -32%;
+  }
+  to {
+    left: 100%;
+  }
+}
+
+@keyframes xpDot {
+  0%, 60%, 100% {
+    opacity: .25;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-.15em);
+  }
+}
