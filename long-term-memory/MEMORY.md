@@ -97,6 +97,7 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 - [WebP 图片转换工作流](03-api-practices/webp-conversion.md) — 首次配置环境 / 跑 webp 报错 / 新增图片前必读
 
 ### 内容渲染
+- [2026-09-18 开源之夏卡片 XP 化与推文补充](04-operations/operation-log.md#58--2026-09-18--开源之夏文章两个项目卡片-xp-窗口化仅本地实施) — 两张仓库卡复用 XP 公共色板，前置公众号报道与获奖专题卡；构建及 ego 桌面/移动验证通过，已获授权发布双目标至 `bf70b93d0`，本地预览已关闭。
 - [Markdown 内嵌 HTML 渲染规范](03-api-practices/markdown-html-embedding.md) — 文章中插入 HTML 卡片/按钮/复杂布局前必读；排查源码块、异常空白、kramed HTML 截断
 
 ### 运行时模块

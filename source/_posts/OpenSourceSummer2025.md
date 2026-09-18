@@ -20,7 +20,39 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 ---
 
 
-<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(102, 126, 234, 0.4)'; this.style.background='linear-gradient(135deg, #7c4dff 0%, #8e24aa 100%)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.3)'; this.style.background='linear-gradient(135deg, #667eea 0%, #764ba2 100%)'">
+<div class="xp-project-card xp-project-card--wechat">
+  <div>
+    <div>
+      <i class="fab fa-weixin xp-project-card__icon" aria-hidden="true"></i>
+      <div>00后开发者与开源鸿蒙的“双向奔赴”：因为热爱，所以前行</div>
+    </div>
+    <p>OpenAtom OpenHarmony 公众号的专题报道，记录了我从校源行结缘开源鸿蒙，到参与开源之夏、完成 NowInOpenHarmony 的历程，也介绍了开发中的加载优化、博客复盘，以及应用的资讯聚合与离线体验。</p>
+    <div>
+      <span>微信公众号</span>
+      <span>项目专题</span>
+      <span>开发者故事</span>
+    </div>
+    <a href="https://mp.weixin.qq.com/s/O4VIz2-txXHqcwW0Q-qgZA" target="_blank" rel="noopener noreferrer"><i class="fab fa-weixin" aria-hidden="true"></i>阅读公众号原文</a>
+  </div>
+</div>
+
+<div class="xp-project-card xp-project-card--chaspark">
+  <div>
+    <div>
+      <i class="fas fa-trophy xp-project-card__icon" aria-hidden="true"></i>
+      <div>开源之夏2025获奖学生展播：薛博璇荣获“最快进步奖”</div>
+    </div>
+    <p>黄大年茶思屋刊载的获奖学生专题，收录了评委对 NowInOpenHarmony 项目的成果评价和我的获奖感言。从动态网站数据采集到客户端数据管理，回顾这次全栈实践中的技术成长，也感谢导师、社团与开源社区一路以来的支持。</p>
+    <div>
+      <span>黄大年茶思屋</span>
+      <span>最快进步奖</span>
+      <span>获奖感言</span>
+    </div>
+    <a href="https://www.chaspark.com/#/hotspots/1226251692920639488" target="_blank" rel="noopener noreferrer"><i class="fas fa-external-link-alt" aria-hidden="true"></i>阅读获奖专题</a>
+  </div>
+</div>
+
+<div class="xp-project-card xp-project-card--now">
   <div style="position: relative; z-index: 2;">
     <div style="display: flex; align-items: center; margin-bottom: 16px;">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="white" style="margin-right: 12px;">
@@ -30,12 +62,12 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
     </div>
     <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">🚀 基于OpenHarmony的资讯聚合应用 - 开源之夏2025项目</p>
     <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
-      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">OpenHarmony</span>
-      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">ArkTS</span>
-      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">Python</span>
-      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">FastAPI</span>
+      <span>OpenHarmony</span>
+      <span>ArkTS</span>
+      <span>Python</span>
+      <span>FastAPI</span>
     </div>
-    <a href="https://github.com/ifLabVibe/NowInOpenHarmony" target="_blank" style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 10px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); font-weight: 500; transition: all 0.2s ease;" onclick="event.stopPropagation()" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 2px 8px rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+    <a href="https://github.com/ifLabVibe/NowInOpenHarmony" target="_blank" rel="noopener noreferrer">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="white" style="margin-right: 8px;">
         <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
       </svg>
@@ -44,7 +76,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
   </div>
 </div>
 
-<div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(40, 167, 69, 0.4)'; this.style.background='linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(40, 167, 69, 0.3)'; this.style.background='linear-gradient(135deg, #28a745 0%, #20c997 100%)'">
+<div class="xp-project-card xp-project-card--sig">
   <div style="position: relative; z-index: 2;">
     <div style="display: flex; align-items: center; margin-bottom: 16px;">
       <svg width="24" height="24" viewBox="0 0 1056 1024" style="margin-right: 12px;" fill="none">
@@ -54,11 +86,11 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
     </div>
     <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">🎉 项目已被收录至OpenHarmony SIG集成测试仓库</p>
     <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
-      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">✅ 官方收录</span>
-      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">🔬 集成测试</span>
-      <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-size: 12px; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='scale(1.05)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='scale(1)'">OpenHarmony SIG</span>
+      <span>✅ 官方收录</span>
+      <span>🔬 集成测试</span>
+      <span>OpenHarmony SIG</span>
     </div>
-    <a href="https://gitcode.com/openharmony-sig/ostest_integration_test" target="_blank" style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.2); color: white; text-decoration: none; padding: 10px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); font-weight: 500; transition: all 0.2s ease;" onclick="event.stopPropagation()" onmouseover="this.style.background='rgba(255,255,255,0.35)'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 2px 8px rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'; this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+    <a href="https://gitcode.com/openharmony-sig/ostest_integration_test" target="_blank" rel="noopener noreferrer">
       <svg width="16" height="16" viewBox="0 0 1056 1024" style="margin-right: 8px;" fill="none">
         <path d="M479.663158 988.429474c-90.004211-10.24-187.553684-48.505263-247.376842-96.471579-33.953684-26.947368-90.004211-88.387368-111.023158-120.724211-64.134737-99.166316-90.004211-222.046316-70.602105-333.608421 18.863158-107.250526 63.056842-191.326316 141.20421-267.856842 135.814737-133.12 353.010526-175.157895 527.090526-101.861053 57.128421 24.252632 112.101053 58.206316 134.736843 82.997895 44.193684 49.044211 28.025263 128.808421-31.258948 158.450526-25.330526 12.395789-72.218947 12.934737-90.543158 1.077895s-35.031579-44.193684-39.343158-77.069473c-2.155789-15.629474-4.850526-28.564211-5.389473-28.564211-1.077895 0-14.551579 7.545263-29.642106 16.168421-49.583158 29.103158-64.134737 33.414737-140.126315 38.265263-39.882105 2.155789-84.075789 5.928421-97.549474 8.084211-24.791579 3.233684-54.972632-1.077895-102.938947-16.168421l-25.330527-8.084211 1.077895 52.277895c0.538947 50.661053 0 53.355789-21.557895 98.088421-28.025263 58.206316-38.265263 93.237895-42.576842 144.976842-10.24 124.496842 57.667368 217.195789 186.47579 253.844211 83.536842 23.713684 221.507368 18.863158 296.421052-10.778948 71.68-28.564211 134.736842-94.854737 134.736842-142.282105 0-19.402105-24.791579-44.193684-51.738947-50.661053-11.317895-3.233684-54.433684-7.006316-95.393684-8.623158-86.770526-3.772632-147.132632-11.856842-163.84-22.635789s-25.330526-40.96-17.785263-63.59579c7.545263-23.713684 19.402105-33.953684 54.433684-46.888421 23.713684-9.162105 40.96-10.778947 109.945263-10.778947 146.593684 0 215.578947 18.324211 269.473684 72.218947 61.978947 62.517895 68.446316 157.372632 16.168421 241.448421-77.069474 123.418947-168.151579 194.021053-291.570526 225.818948-41.498947 11.317895-151.444211 18.324211-196.176842 12.934737z" fill="#D62240"/>
       </svg>
