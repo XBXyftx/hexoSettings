@@ -6,6 +6,10 @@
 
 **2026-09-18 公共层补充**：`source/css/xp-theme.css` 为开源之夏文章开头两个仓库卡增加隔离的 XP 窗口样式，随后前置公众号报道与获奖专题两张同款卡片，没有修改 `themes/butterfly/` 文件。窗口样式的焦点与 reduced-motion、四张卡片的桌面/移动布局已验证；同日获授权双目标部署至 `bf70b93d0`。详见 [操作日志 #58](../04-operations/operation-log.md#58--2026-09-18--开源之夏文章两个项目卡片-xp-窗口化仅本地实施)。
 
+**2026-09-22 公共层补充**：`source/css/xp-theme.css` 为 `BlogSetup` 文章四张博客展示卡复用隔离的 XP 项目卡片样式，没有修改 `themes/butterfly/` 文件。桌面、390px 移动端与截图验证通过；仅本地实施。详见 [操作日志 #59](../04-operations/operation-log.md#59--2026-09-22--blogsetup-文章友链卡片-xp-窗口化仅本地实施)。
+
+**2026-09-22 公共层补充**：`source/css/xp-theme.css` 将 `BlogSetup` 文章的技能树和 HTML 技巧提示改为 XP 窗口，代码块继续使用 Butterfly 现有样式，没有修改 `themes/butterfly/` 文件。clean build、ego 桌面/390px 移动端与截图验证通过；仅本地实施。详见 [操作日志 #60](../04-operations/operation-log.md#60--2026-09-22--blogsetup-文章自定义-html-组件-xp-化仅本地实施)。
+
 主题修改前必须阅读 [`../agent.md`](../agent.md) 和 [`../rules.md`](../rules.md)。每次记录都要说明当前验证边界；未经过浏览器或人工确认的视觉判断标记为待确认。
 
 ---

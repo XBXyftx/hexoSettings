@@ -39,10 +39,10 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 ## 博客是什么
 
-<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);" onclick="window.open('https://blog.zhheo.com/', '_blank')" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(102, 126, 234, 0.4)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.3)'">
+<div class="xp-project-card xp-project-card--zhheo">
 <div style="position: relative; z-index: 2;">
 <div style="display: flex; align-items: center; margin-bottom: 16px;">
-<span style="font-size: 24px; margin-right: 12px;">🌟</span>
+<i class="fas fa-star xp-project-card__icon" aria-hidden="true"></i>
 <div style="margin: 0; font-size: 20px; font-weight: 600; color: #87CEEB;">张洪Heo - blog.zhheo.com</div>
 </div>
 <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">专注设计与科技生活分享，涵盖产品设计、UI/UX、软件开发等领域，拥有自研AI搜索和丰富交互功能的现代化博客。</p>
@@ -58,10 +58,10 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 </div>
 </div>
 
-<div style="background: linear-gradient(135deg, #11998e 0%, #00d4aa 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);" onclick="window.open('https://www.liushen.fun/', '_blank')" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(17, 153, 142, 0.4)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(17, 153, 142, 0.3)'">
+<div class="xp-project-card xp-project-card--liushen">
 <div style="position: relative; z-index: 2;">
 <div style="display: flex; align-items: center; margin-bottom: 16px;">
-<span style="font-size: 24px; margin-right: 12px;">🚀</span>
+<i class="fas fa-rocket xp-project-card__icon" aria-hidden="true"></i>
 <div style="margin: 0; font-size: 20px; font-weight: 600; color: #87CEEB;">清羽飞扬 - www.liushen.fun</div>
 </div>
 <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">前端开发学生的技术成长记录，分享开源项目、深度学习经验，以及自建的多个实用工具，技术驱动的开放博客。</p>
@@ -77,10 +77,10 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 </div>
 </div>
 
-<div style="background: linear-gradient(135deg, #000000 0%, #4a154b 25%, #1a1f71 75%, #00ffff 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);" onclick="window.open('https://whlcj.github.io/', '_blank')" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(0, 255, 255, 0.4)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(0, 255, 255, 0.3)'">
+<div class="xp-project-card xp-project-card--whlcj">
 <div style="position: relative; z-index: 2;">
 <div style="display: flex; align-items: center; margin-bottom: 16px;">
-<span style="font-size: 24px; margin-right: 12px;">💻</span>
+<i class="fas fa-laptop-code xp-project-card__icon" aria-hidden="true"></i>
 <div style="margin: 0; font-size: 20px; font-weight: 600; color: #87CEEB;">李昌骏 - whlcj.github.io</div>
 </div>
 <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">创客空间23级社长，曾在字节跳动工作一年，现就职于腾讯。专业iOS开发者的技术博客，深入分享移动端开发经验和职场成长历程。</p>
@@ -98,10 +98,10 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 
 博客是一个展示你自己的平台，是一个记录你生活的地方，是组建独属于你的小天地的港湾。与此同时，博客也是一个展示捏技术力的地方，是一个让陌生人对你刮目相看的展示平台。像是下面这种博客就是经过了深度魔改，集成了独属于自己的喜好与巧思的博客。
 
-<div style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%); border-radius: 12px; padding: 20px; margin: 20px 0; color: white; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 154, 158, 0.3);" onclick="window.open('https://akilar.top/', '_blank')" onmouseover="this.style.transform='translateY(-5px) scale(1.02)'; this.style.boxShadow='0 8px 25px rgba(255, 154, 158, 0.4)'" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 4px 15px rgba(255, 154, 158, 0.3)'">
+<div class="xp-project-card xp-project-card--akilar">
 <div style="position: relative; z-index: 2;">
 <div style="display: flex; align-items: center; margin-bottom: 16px;">
-<span style="font-size: 24px; margin-right: 12px;">🌸</span>
+<i class="fas fa-seedling xp-project-card__icon" aria-hidden="true"></i>
 <div style="margin: 0; font-size: 20px; font-weight: 600; color: #87CEEB;">Akilar - akilar.top</div>
 </div>
 <p style="margin: 0 0 16px 0; opacity: 0.9; font-size: 14px;">专注于Hexo博客深度魔改的技术博客，分享主题美化、插件开发、性能优化等前端技术，是Hexo爱好者的学习宝典和魔改指南。</p>
@@ -774,46 +774,46 @@ hexo会自动帮你生成一个新的md文件，你只需要打开这个文件�
   除了使用主题提供的外挂标签，我们还可以直接编写HTML代码来实现更加个性化的效果。以下是一个技能进度条的例子：
 
   ```html
-  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 15px; margin: 20px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
-    <div style="color: white; margin-bottom: 15px; text-align: center; font-size: 18px; font-weight: 600;">🚀 我的技能树</div>
+  <div class="xp-skill-tree">
+    <div class="xp-skill-tree__title"><i class="fas fa-rocket" aria-hidden="true"></i> 我的技能树</div>
     
-    <div style="margin-bottom: 15px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-        <span style="color: white; font-weight: bold;">💻 前端开发</span>
-        <span style="color: #ffd700; font-size: 14px;">85%</span>
+    <div class="xp-skill-tree__item">
+      <div class="xp-skill-tree__label">
+        <span><i class="fas fa-laptop-code" aria-hidden="true"></i> 前端开发</span>
+        <span class="xp-skill-tree__percent">85%</span>
       </div>
-      <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
-        <div style="background: linear-gradient(90deg, #ffd700, #ffed4e); height: 100%; width: 85%; transition: width 0.3s ease;"></div>
-      </div>
-    </div>
-
-    <div style="margin-bottom: 15px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-        <span style="color: white; font-weight: bold;">🎨 UI设计</span>
-        <span style="color: #4ecdc4; font-size: 14px;">70%</span>
-      </div>
-      <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
-        <div style="background: linear-gradient(90deg, #4ecdc4, #44a08d); height: 100%; width: 70%; transition: width 0.3s ease;"></div>
+      <div class="xp-skill-tree__track">
+        <div class="xp-skill-tree__bar xp-skill-tree__bar--front" style="--skill-level: 85%;"></div>
       </div>
     </div>
 
-    <div style="margin-bottom: 15px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-        <span style="color: white; font-weight: bold;">⚙️ 后端开发</span>
-        <span style="color: #ff6b6b; font-size: 14px;">60%</span>
+    <div class="xp-skill-tree__item">
+      <div class="xp-skill-tree__label">
+        <span><i class="fas fa-palette" aria-hidden="true"></i> UI设计</span>
+        <span class="xp-skill-tree__percent">70%</span>
       </div>
-      <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
-        <div style="background: linear-gradient(90deg, #ff6b6b, #ee5a52); height: 100%; width: 60%; transition: width 0.3s ease;"></div>
+      <div class="xp-skill-tree__track">
+        <div class="xp-skill-tree__bar xp-skill-tree__bar--design" style="--skill-level: 70%;"></div>
       </div>
     </div>
 
-    <div style="margin-bottom: 0;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-        <span style="color: white; font-weight: bold;">📱 移动开发</span>
-        <span style="color: #a8e6cf; font-size: 14px;">45%</span>
+    <div class="xp-skill-tree__item">
+      <div class="xp-skill-tree__label">
+        <span><i class="fas fa-cog" aria-hidden="true"></i> 后端开发</span>
+        <span class="xp-skill-tree__percent">60%</span>
       </div>
-      <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
-        <div style="background: linear-gradient(90deg, #a8e6cf, #88d8a3); height: 100%; width: 45%; transition: width 0.3s ease;"></div>
+      <div class="xp-skill-tree__track">
+        <div class="xp-skill-tree__bar xp-skill-tree__bar--back" style="--skill-level: 60%;"></div>
+      </div>
+    </div>
+
+    <div class="xp-skill-tree__item xp-skill-tree__item--last">
+      <div class="xp-skill-tree__label">
+        <span><i class="fas fa-mobile-alt" aria-hidden="true"></i> 移动开发</span>
+        <span class="xp-skill-tree__percent">45%</span>
+      </div>
+      <div class="xp-skill-tree__track">
+        <div class="xp-skill-tree__bar xp-skill-tree__bar--mobile" style="--skill-level: 45%;"></div>
       </div>
     </div>
   </div>
@@ -821,58 +821,60 @@ hexo会自动帮你生成一个新的md文件，你只需要打开这个文件�
 
   效果展示：
 
-  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 15px; margin: 20px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
-    <div style="color: white; margin-bottom: 15px; text-align: center; font-size: 18px; font-weight: 600;">🚀 我的技能树</div>
+  <div class="xp-skill-tree">
+    <div class="xp-skill-tree__title"><i class="fas fa-rocket" aria-hidden="true"></i> 我的技能树</div>
     
-    <div style="margin-bottom: 15px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-        <span style="color: white; font-weight: bold;">💻 前端开发</span>
-        <span style="color: #ffd700; font-size: 14px;">85%</span>
+    <div class="xp-skill-tree__item">
+      <div class="xp-skill-tree__label">
+        <span><i class="fas fa-laptop-code" aria-hidden="true"></i> 前端开发</span>
+        <span class="xp-skill-tree__percent">85%</span>
       </div>
-      <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
-        <div style="background: linear-gradient(90deg, #ffd700, #ffed4e); height: 100%; width: 85%; transition: width 0.3s ease;"></div>
-      </div>
-    </div>
-
-    <div style="margin-bottom: 15px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-        <span style="color: white; font-weight: bold;">🎨 UI设计</span>
-        <span style="color: #4ecdc4; font-size: 14px;">70%</span>
-      </div>
-      <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
-        <div style="background: linear-gradient(90deg, #4ecdc4, #44a08d); height: 100%; width: 70%; transition: width 0.3s ease;"></div>
+      <div class="xp-skill-tree__track">
+        <div class="xp-skill-tree__bar xp-skill-tree__bar--front" style="--skill-level: 85%;"></div>
       </div>
     </div>
 
-    <div style="margin-bottom: 15px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-        <span style="color: white; font-weight: bold;">⚙️ 后端开发</span>
-        <span style="color: #ff6b6b; font-size: 14px;">60%</span>
+    <div class="xp-skill-tree__item">
+      <div class="xp-skill-tree__label">
+        <span><i class="fas fa-palette" aria-hidden="true"></i> UI设计</span>
+        <span class="xp-skill-tree__percent">70%</span>
       </div>
-      <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
-        <div style="background: linear-gradient(90deg, #ff6b6b, #ee5a52); height: 100%; width: 60%; transition: width 0.3s ease;"></div>
+      <div class="xp-skill-tree__track">
+        <div class="xp-skill-tree__bar xp-skill-tree__bar--design" style="--skill-level: 70%;"></div>
       </div>
     </div>
 
-    <div style="margin-bottom: 0;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-        <span style="color: white; font-weight: bold;">📱 移动开发</span>
-        <span style="color: #a8e6cf; font-size: 14px;">45%</span>
+    <div class="xp-skill-tree__item">
+      <div class="xp-skill-tree__label">
+        <span><i class="fas fa-cog" aria-hidden="true"></i> 后端开发</span>
+        <span class="xp-skill-tree__percent">60%</span>
       </div>
-      <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
-        <div style="background: linear-gradient(90deg, #a8e6cf, #88d8a3); height: 100%; width: 45%; transition: width 0.3s ease;"></div>
+      <div class="xp-skill-tree__track">
+        <div class="xp-skill-tree__bar xp-skill-tree__bar--back" style="--skill-level: 60%;"></div>
+      </div>
+    </div>
+
+    <div class="xp-skill-tree__item xp-skill-tree__item--last">
+      <div class="xp-skill-tree__label">
+        <span><i class="fas fa-mobile-alt" aria-hidden="true"></i> 移动开发</span>
+        <span class="xp-skill-tree__percent">45%</span>
+      </div>
+      <div class="xp-skill-tree__track">
+        <div class="xp-skill-tree__bar xp-skill-tree__bar--mobile" style="--skill-level: 45%;"></div>
       </div>
     </div>
   </div>
 
-  {% note success flat %}
-  💡 **HTML技巧小贴士**：
-  - 使用`linear-gradient`创建渐变背景
-  - 利用`flexbox`布局实现响应式设计
-  - 添加`transition`属性实现平滑动画效果
-  - 使用`rgba`颜色实现半透明效果
-  - 合理运用`box-shadow`增加立体感
-  {% endnote %}
+  <div class="xp-skill-tip">
+    <div class="xp-skill-tip__title"><i class="fas fa-lightbulb" aria-hidden="true"></i> HTML技巧小贴士</div>
+    <ul>
+      <li>使用<code>linear-gradient</code>创建渐变背景</li>
+      <li>利用<code>flexbox</code>布局实现响应式设计</li>
+      <li>添加<code>transition</code>属性实现平滑动画效果</li>
+      <li>使用<code>rgba</code>颜色实现半透明效果</li>
+      <li>合理运用<code>box-shadow</code>增加立体感</li>
+    </ul>
+  </div>
 
   这样的自定义组件可以让你的博客更加个性化和专业。你可以根据自己的需求修改颜色、内容和样式，创造出独一无二的视觉效果！
 

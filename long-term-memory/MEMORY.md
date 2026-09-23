@@ -98,6 +98,8 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 
 ### 内容渲染
 - [2026-09-18 开源之夏卡片 XP 化与推文补充](04-operations/operation-log.md#58--2026-09-18--开源之夏文章两个项目卡片-xp-窗口化仅本地实施) — 两张仓库卡复用 XP 公共色板，前置公众号报道与获奖专题卡；构建及 ego 桌面/移动验证通过，已获授权发布双目标至 `bf70b93d0`，本地预览已关闭。
+- [2026-09-22 BlogSetup 友链卡片 XP 化](04-operations/operation-log.md#59--2026-09-22--blogsetup-文章友链卡片-xp-窗口化仅本地实施) — 四张博客展示卡复用 XP 项目卡片样式；clean build、ego 桌面/390px 移动端与截图验证通过，仅本地实施。
+- [2026-09-22 BlogSetup 自定义 HTML 组件 XP 化](04-operations/operation-log.md#60--2026-09-22--blogsetup-文章自定义-html-组件-xp-化仅本地实施) — 技能树与技巧提示复用 XP 窗口语言，代码块保留现有主题样式；clean build 与 ego 桌面/390px 验证通过，仅本地实施。
 - [Markdown 内嵌 HTML 渲染规范](03-api-practices/markdown-html-embedding.md) — 文章中插入 HTML 卡片/按钮/复杂布局前必读；排查源码块、异常空白、kramed HTML 截断
 
 ### 运行时模块
