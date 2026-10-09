@@ -9,6 +9,21 @@
 # 正文只使用结构化字段，不要嵌入 HTML：
 # lead -> image -> title -> items -> paragraphs -> closing
 
+- id: 2026-10-09-145547-rss-subscription-guide
+  published_at: '2026-10-09T14:55:47+08:00'
+  lead: 小站新增 RSS 订阅，更新不再错过！
+  image:
+    src: /imgs/gifs/rss-subscription.webp
+    alt: 抱膝坐着的可爱角色动图
+    width: 1000
+    height: 1000
+  title: 把小站放进你的阅读器：
+  items:
+    - 点击电脑端作者卡或手机端首页的橙色 RSS 图标，将订阅地址添加到你常用的阅读器。
+    - 订阅源提供最近 30 篇公开文章的标题、摘要与原文链接，完整内容仍在小站阅读。
+    - 每次发布都会自动更新订阅文件；阅读器按自己的频率获取更新，旧文修改是否再次提醒由阅读器决定。
+  closing: 感谢每一次阅读，也期待在你的订阅列表里再见！
+
 - id: 2026-10-09-141640-rss-subscription
   published_at: '2026-10-09T14:16:40+08:00'
   lead: RSS 订阅已上线！

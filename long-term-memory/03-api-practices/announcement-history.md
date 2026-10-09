@@ -1,5 +1,7 @@
 # 侧栏公告历史时间轴
 
+> **2026-10-09 最新部署**：第 25 期 RSS 订阅说明置顶，使用用户提供的 IMG_4172.gif 的无损动画 WebP 副本 `/imgs/gifs/rss-subscription.webp`（1000×1000、27 帧、每帧 100ms、透明、循环播放，966638 字节）。原 GIF 保留。已获授权双部署至 `6d3972a64`，ego 验证主站/GitHub Pages 新公告与图片加载正常、线上 27 帧动画成立，图片 SHA-256 与本地一致；本批源码未提交、未推送。
+
 > **2026-10-09 补充**：第 24 期“RSS 订阅已上线！”已完成公告/RSS 隔离实测。后续按用户要求移除验证标记，正式公告保留，清理版双部署为 `190c74d4a`；完整结果见 [RSS 实施记录](../05-reference/rss-subscription-design/implementation.md)。下文原历史状态保留。
 
 > **当前状态（2026-08-11）**：公告历史时间轴已在本地实现并通过构建；顶部新增第 23 期全站 XP 复古窗口公告，继续复用现有 `/imgs/gifs/1.webp`，不替换公告 GIF。公告数据已随源码提交；部署状态见 MEMORY.md。同日修复时间轴圆点光晕左缘被裁切的问题：`.announcement-timeline` 的 `overflow-y: auto` 会使 `overflow-x` 计算值变为 auto，圆点（`left: -20px`，含 border 宽 16px）左缘原本正好贴在容器内边缘，`box-shadow` 光晕外扩 3–4px 被裁。现桌面 padding-left 20→24px、移动端 18→22px（圆点 `left` 不变，左缘余量 4px），时间轴线 `left: 5px→11px` 与圆点中心（x=12）重新对齐。

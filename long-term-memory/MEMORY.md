@@ -1,5 +1,7 @@
 # 长期记忆索引 — XBXyftx Hexo 博客项目
 
+> **2026-10-09 公告最新部署**：第 25 期 RSS 订阅说明与用户动图已获授权双部署至 `6d3972a64a807cfc1b9e96729a9aa80f1ef201c8`。主站/GitHub Pages 均显示 14:55 新公告，图片 200、1000×1000、27 帧动画且与本地哈希一致；原 GIF 保留。本批源码未提交/推送，[公告入口](03-api-practices/announcement-history.md)记录验证信息。
+
 > **2026-10-09 最新交接**：RSS 测试内容已清除，正式公告保留；双部署 `190c74d4a5be8355850f0a9ae496e793be306dab` 通过主站/GitHub Pages 清理验收。源码实现 `7ff811edf295bf0b73a967f5f50825257f343531` 已提交并推送 origin/master、远程核对一致；原冻结限制解除，实施前备份 fd010fd 保留在历史中。[实施状态与授权边界](05-reference/rss-subscription-design/implementation.md)优先于下方历史状态摘要。
 
 > **AI 必读**：每次进入新会话，第一步必须阅读本文件。严禁跳过索引直接操作代码。
