@@ -1,6 +1,6 @@
 # 长期记忆索引 — XBXyftx Hexo 博客项目
 
-> **2026-10-09 最新交接**：RSS 已完成两轮线上实测，测试句及公告验证标记已清除，正式 RSS 公告保留；当前双部署为 `190c74d4a5be8355850f0a9ae496e793be306dab`，主站/GitHub Pages 清理验收通过。用户已授权正式 commit/push，源码远程冻结限制解除，实施前备份 `fd010fd` 保留在历史中。[实施状态与授权边界](05-reference/rss-subscription-design/implementation.md)优先于下方历史状态摘要。
+> **2026-10-09 最新交接**：RSS 测试内容已清除，正式公告保留；双部署 `190c74d4a5be8355850f0a9ae496e793be306dab` 通过主站/GitHub Pages 清理验收。源码实现 `7ff811edf295bf0b73a967f5f50825257f343531` 已提交并推送 origin/master、远程核对一致；原冻结限制解除，实施前备份 fd010fd 保留在历史中。[实施状态与授权边界](05-reference/rss-subscription-design/implementation.md)优先于下方历史状态摘要。
 
 > **AI 必读**：每次进入新会话，第一步必须阅读本文件。严禁跳过索引直接操作代码。
 > **当前日期**：2026-08-14
@@ -84,7 +84,7 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 
 ### 部署与构建
 
-- [2026-10-09 RSS 自动订阅接入方案](05-reference/rss-subscription-design/README.md) — **清理后双部署 190c74d4a**；正文/公告隔离实测通过，临时标记已清除，正式公告保留；获授权提交并推送源码，历史备份 fd010fd 保留。
+- [2026-10-09 RSS 自动订阅接入方案](05-reference/rss-subscription-design/README.md) — **源码 7ff811e 已推送，双部署 190c74d4a 已验收**；正文/公告隔离实测通过，临时标记已清除，正式公告保留，历史备份 fd010fd 保留。
 - [2026-07-10 渲染性能与长期记忆事实审计](05-performance-audit/2026-07-10-render-performance-audit/README.md) — **当前性能基线**；P0–P3 清单、证据、保持视觉与功能的优化路径，排查风扇高转必读
 - [2026-07-10 首页瀑布流 P0 重写](04-operations/2026-07-10-waterfall-rewrite/README.md) — **已完成并推送**：实现 `9988ac4`、优化前基线 `69772c8`；[本地 Chrome A/B 三断点量化结果已归档](04-operations/2026-07-10-waterfall-rewrite/BROWSER-PERFORMANCE-MEASUREMENTS.md)，目标设备有头浏览器回归待补测
 - [2026-07-11 P1 分层星空动效实验与回退](04-operations/2026-07-11-starfield-p1/README.md) — 基线 `049f08d` 已推送；实验源码、三断点本地 Headless A/B 和 SHA-256 快照已归档，视觉验收未通过，实际运行时已恢复基线双层星空。

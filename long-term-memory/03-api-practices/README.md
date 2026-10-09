@@ -167,7 +167,7 @@
 
 ## RSS 订阅
 
-- [RSS 自动订阅接入方案与实施](../05-reference/rss-subscription-design/README.md) — 固定 feed4 与公开文章薄适配，随 build/pub 生成双格式并 postbuild 校验；正文/公告隔离实测通过，测试标记已清理并双部署至 190c74d4a，获授权正式提交推送。见实施记录第 8、9 节。
+- [RSS 自动订阅接入方案与实施](../05-reference/rss-subscription-design/README.md) — 固定 feed4 与公开文章薄适配，随 build/pub 生成双格式并 postbuild 校验；正文/公告隔离实测通过，测试标记已清理，双部署 190c74d4a 已验收，源码 7ff811e 已推送。见实施记录第 8、9 节。
 
 ## 浏览器验证工具
 
