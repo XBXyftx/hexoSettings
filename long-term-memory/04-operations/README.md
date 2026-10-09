@@ -8,6 +8,7 @@
 
 ## 近期性能优化记录
 
+- [2026-10-09 RSS 实施与上线](../05-reference/rss-subscription-design/implementation.md) — 分轮实测通过后，临时标记已清除并双部署至 190c74d4a；主站/GitHub Pages 验收通过，用户已授权源码 commit/push，历史备份 fd010fd 保留。
 - [2026-09-18 开源之夏卡片 XP 化与推文补充](operation-log.md#58--2026-09-18--开源之夏文章两个项目卡片-xp-窗口化仅本地实施) — 两张仓库卡使用 XP 窗口，前置两张同款推文卡；构建与 ego 双断点验证通过，同日获授权双目标部署至 `bf70b93d0`。
 - [2026-09-22 BlogSetup 友链卡片 XP 化](operation-log.md#59--2026-09-22--blogsetup-文章友链卡片-xp-窗口化仅本地实施) — 四张博客展示卡使用 XP 窗口；构建、ego 桌面/移动端和截图验证通过，仅本地实施。
 - [2026-09-22 BlogSetup 自定义 HTML 组件 XP 化](operation-log.md#60--2026-09-22--blogsetup-文章自定义-html-组件-xp-化仅本地实施) — 技能树与技巧提示使用 XP 窗口，代码块保留现有主题样式；clean build 与 ego 桌面/移动端验证通过，仅本地实施。

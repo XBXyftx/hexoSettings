@@ -12,7 +12,7 @@
 | [`custom-features-catalog.md`](custom-features-catalog.md) | 所有自定义功能的完整清单与当前加载边界 |
 | [`../05-performance-audit/2026-07-10-render-performance-audit/README.md`](../05-performance-audit/2026-07-10-render-performance-audit/README.md) | 当前渲染性能基线、按 P0–P3 排序的问题和验收方案 |
 | [`birthday-gift-page-design.md`](birthday-gift-page-design.md) | 生日礼物特限页面历史设计归档（当前实现见 `02-custom-pages/birthday-gift-timeline.md`） |
-| [`rss-subscription-design/README.md`](rss-subscription-design/README.md) | 2026-10-09 RSS 自动订阅方案：Hexo 7.3.0 / Butterfly 5.3.2 兼容性、公开文章边界与 pub 校验；仅设计，未实施 |
+| [`rss-subscription-design/README.md`](rss-subscription-design/README.md) | RSS 设计、实现与线上验证：测试标记已清理，双部署 190c74d4a 已验收；获授权正式交付，实施前历史备份 fd010fd 保留 |
 
 ---
 

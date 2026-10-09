@@ -165,9 +165,9 @@
 
 ---
 
-## 待实施设计
+## RSS 订阅
 
-- [RSS 自动订阅接入方案](../05-reference/rss-subscription-design/README.md) — 2026-10-09 代码与版本调查；保留 Hexo 7.3.0 / Butterfly 5.3.2，拟采用固定 feed4 与公开文章薄适配，随 pub 生成并校验。当前仅文档，未安装、未实施、未部署。
+- [RSS 自动订阅接入方案与实施](../05-reference/rss-subscription-design/README.md) — 固定 feed4 与公开文章薄适配，随 build/pub 生成双格式并 postbuild 校验；正文/公告隔离实测通过，测试标记已清理并双部署至 190c74d4a，获授权正式提交推送。见实施记录第 8、9 节。
 
 ## 浏览器验证工具
 

@@ -1906,3 +1906,65 @@
 - [x] 技能进度条仍显示 85%、70%、60%、45%
 
 **状态**：已实施，仅本地源码修改；未提交、未推送、未部署。真实移动设备、Safari/Firefox 仍待人工回归。
+
+---
+
+### #61 — 2026-10-09 — 备份当前状态后本地实施 RSS 自动订阅
+
+**操作人**：Codex
+
+**授权与备份**：用户要求先 commit/push 当前状态作为回滚基点，再本地尝试。`fd010fd4bdf7f74b86d3af017638fe4d84c66aa2` 已推送 origin/master 并以 ls-remote 核对；后续未提交、未推送、未部署，远程保持该基点。
+
+**涉及范围**：package/lock、根 Hexo 与主题配置，新增 `scripts/rss-feed.js`、`tools/lib/rss-feed-policy.js`、`tools/check-feed.js`、`test/rss-feed.test.js`。主题源码、文章、私密系统和图片脚本不变。
+
+**代码事实**：保留 Hexo 7.3.0 / Butterfly 5.3.2，关闭 feed4 默认入口，由公开文章白名单生成最近 30 篇 Atom/RSS 摘要；补 RSS GUID、修正作者字段、固定标签顺序，postbuild 失败阻断标准 pub。
+
+**已验证**：14 组测试；真实 clean build 生成 2400 文件并检查 32 页声明；最终两次 clean build 的 XML 哈希一致；ego 桌面与 390px 移动图标/点击/XML 解析通过；原有依赖节点与用户文章不变。
+
+**待确认**：实际阅读器 UI、其他浏览器/真实移动设备、上线与缓存均未验证。原依赖树 npm audit 仍有 73 项告警，新增节点本次未命中，未执行 audit fix。
+
+**状态与证据入口**：[RSS 本地实施记录](../05-reference/rss-subscription-design/implementation.md)。当前仅本地试验，继续保持远程备份不变。
+
+---
+
+### #62 — 2026-10-09 — RSS 首次双部署与线上验收
+
+**操作人**：Codex
+
+**用户授权**：本地验证后要求“现在上线试试实际线上效果”。只部署站点产物，源码远程备份 `fd010fd` 保持不变。
+
+**执行**：14 组 RSS 测试通过；依次 clean、build（2400 文件，postbuild 检查 30 条/32 页）、deploy。没有执行 webp/opt/pub，无源码 commit/push。
+
+**部署事实**：GitHub Pages 和私有服务器两个站点仓库 main 均从 `80ddb2c03` 更新到 `10f99bb27311276ef5f1108f14866bcb807941d1`，分别以 ls-remote 核对。
+
+**线上验证**：ego-browser 访问主站和 GitHub Pages，atom.xml/rss.xml 全部 200、XML MIME 正确、各 30 条、SHA-256 与本地产物一致；首页/归档/代表文章的自动发现声明通过。主站桌面作者卡与 390px 移动首页图标正常，点击实际打开 Atom，未见新增横向溢出。
+
+**验证边界**：GitHub Actions 状态 API 为 403，任务结论未获取，但 GitHub Pages 实际新文件已验证可用；实际阅读器提醒、其他设备/浏览器和未来缓存刷新仍待观察。
+
+**状态**：已上线，源码改动未提交/推送，源码备份不变。完整证据见 [RSS 实施记录第 7 节](../05-reference/rss-subscription-design/implementation.md#7-2026-10-09-首次上线)。
+
+---
+
+### #63 — 2026-10-09 — 文章正文与公告修改的 RSS 线上分轮实测
+
+**用户授权**：一篇文章末尾加测试句并推送查看 rss.xml；再修改公告推送查看 RSS，优先使用指定 ego-browser。
+
+**改动**：`source/_posts/ToBistuMaker.md` 末尾仅追加一行 `RSS-ARTICLE-20261009` 测试句；第一轮验证后才向 `source/_data/announcements.yml` 顶部追加“RSS 订阅已上线！”公告和 `RSS-ANNOUNCEMENT-20261009` 标记，不修改其他文章、RSS 代码或原 front matter。
+
+**部署**：两轮分别 clean/build/deploy 至 `06bbfd088ab2aa5d4ed21118cff951bb0877e931`、`f425e8f478719b3b3cae8838567ecd9b9095ea9c`，各自两目标远程 SHA 一致。源码备份 fd010fd 不变，无源码 commit/push，无 WebP 转换。
+
+**已验证**：ego-browser 对主站/GitHub Pages 读取 XML 并对比基线；第一轮 RSS lastBuildDate 从北京时间 09:57:21 变为 14:12:40，30 个 item 内容完全不变，Atom 仅目标 entry.updated 变化；第二轮公告实际显示但两种 feed 逐字不变。仅一个文章文件变动，其他 60 篇内容/mtime 保持原样。
+
+**解释与留存**：摘要模式不输出新增正文测试句，也不保证阅读器对旧文再次提醒；公告不是文章，不进入 feed。两个测试标记保留在线上及源文件待用户核对，未自动清理再发布。完整指纹与边界见 [实施记录第 8 节](../05-reference/rss-subscription-design/implementation.md#8-正文与公告分轮线上实测)。
+
+---
+
+### #64 — 2026-10-09 — 清理 RSS 测试内容并正式交付
+
+**用户授权**：清除临时内容、部署后 commit/push，并更新长期记忆。源码 origin/master 的试验期冻结限制解除，原 fd010fd 备份保留为历史提交。
+
+**清理范围**：删除 `ToBistuMaker.md` 末尾测试句和公告 closing 验证标记，保留正式 RSS 上线公告；文章原文核对一致，仅补文件末尾换行。不改 RSS 逻辑、主题或图片。
+
+**部署与验证**：14 组测试通过，clean build 生成 2400 文件，postbuild 检查 30 条/32 页通过；两个站点 main 均更新为 `190c74d4a5be8355850f0a9ae496e793be306dab`。ego-browser 验证主站/GitHub Pages 的首页、文章和双 feed 均 200，临时标记消失、正式公告保留，feed 与本地逐字一致。
+
+**源码交付范围**：RSS 生成器、策略与磁盘校验、14 组测试、固定依赖、根配置、正式公告和完整长期记忆。无 public、部署缓存、临时日志/截图。提交推送完成后在 RSS 实施记录补充准确提交号与远程核对结果。

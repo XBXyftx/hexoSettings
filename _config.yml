@@ -105,6 +105,27 @@ ignore:
 ## Themes: https://hexo.io/themes/
 theme: butterfly
 
+# RSS 由本地受控入口生成，禁止插件默认入口绕过公开文章筛选。
+feed:
+  enable: false
+  type:
+    - atom
+    - rss2
+  path:
+    - atom.xml
+    - rss.xml
+  limit: 30
+  content: false
+  content_limit: 240
+  order_by: '-date source'
+  icon: /img/logo.webp
+  autodiscovery: false
+
+rss_subscription:
+  enable: true
+  public_source_prefix: _posts/
+  exclude_future: true
+
 # 🔧 性能优化：WebP 自动转换配置
 # 需要安装：npm install hexo-filter-webp --save
 webp:

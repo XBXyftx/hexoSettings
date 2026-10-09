@@ -68,6 +68,7 @@ social:
   fab fa-github: https://github.com/XBXyftx || Github || '#c3ffff'
   fas fa-envelope: mailto:shuaixbx02@outlook.com || Email || '#4a7dbe'
   fa-brands fa-weixin: /img/wechat.webp || WeChat || '#7bb342'
+  fas fa-rss: /atom.xml || RSS订阅 || '#f28c28'
 
 # --------------------------------------
 # Image Settings
@@ -1082,6 +1083,8 @@ inject:
     - <link rel="stylesheet" href="/css/xp-theme.css" media="print" onload="this.media='all'">
     # 4. 字体优化（Font Awesome）
     - <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+    - <link rel="alternate" type="application/atom+xml" title="XBXyftx - Atom" href="/atom.xml">
+    - <link rel="alternate" type="application/rss+xml" title="XBXyftx - RSS" href="/rss.xml">
 
   bottom:
     # 核心逻辑脚本（全部 defer）

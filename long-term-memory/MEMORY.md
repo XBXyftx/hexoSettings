@@ -1,5 +1,7 @@
 # 长期记忆索引 — XBXyftx Hexo 博客项目
 
+> **2026-10-09 最新交接**：RSS 已完成两轮线上实测，测试句及公告验证标记已清除，正式 RSS 公告保留；当前双部署为 `190c74d4a5be8355850f0a9ae496e793be306dab`，主站/GitHub Pages 清理验收通过。用户已授权正式 commit/push，源码远程冻结限制解除，实施前备份 `fd010fd` 保留在历史中。[实施状态与授权边界](05-reference/rss-subscription-design/implementation.md)优先于下方历史状态摘要。
+
 > **AI 必读**：每次进入新会话，第一步必须阅读本文件。严禁跳过索引直接操作代码。
 > **当前日期**：2026-08-14
 > **项目状态**：活跃维护中；远程备份基点为 `7c77314`。2026-07-29/30 的首页 Liquid 与非文章页 Bend 均因最终视觉验收未通过而完整回退，当前运行时不包含这两个效果；仅长期记忆保留尝试方案与验证证据，未提交、推送或部署。2026-08-06 文章目录 hideToggle 折叠分组已本地实施并通过本地构建与 Headless 验证，未提交、推送或部署。2026-08-10 首页轮播修复 `overflow: visible` 覆盖导致的布局偏移，swiper 4 个资源由 elemecdn 本地化并换装 Windows XP 平面窗口样式（`source/css/swiper-xp.css`）；同日瀑布流卡片换装同款 XP 窗口（`waterfall-homepage.styl` 重写、`waterfall.js` 净化为纯布局控制器，激光/涟漪浮层全部移除），悬浮动效改为纯 CSS「窗口激活」语义；窗口内容区按用户反馈定为深色、蓝色标题栏不变。同日晚些时候排查线上轮播间歇性空白，确认为 JS 未初始化空窗期故障，已为 `swiper-xp.css`/`swiper-init.js` 添加 `swiper-ready` 门控、静态降级与自检日志（#21/#55），并经用户授权 `npm run pub` 部署双目标至 `49aabfbcc`；源码工作区未提交、未推送。随后 XP 语言全站推广（#22/#56）：新增 `source/css/xp-theme.css` 公共层，侧边栏非 info 卡片与 `#post`/`#archive`/`#page` 主体全部 XP 窗口化，作者卡/访问卡保留渐变蒙版与背景图，note/hideToggle/btn/tabs/timeline 标签插件深色适配，非激活标题栏加深为 `#46587a`，目录激活色统一为 XP 蓝；该批次仅本地实施并通过 ego 双断点与 19 篇内嵌 HTML 文章巡检，未提交、未推送、未部署。2026-08-14 开屏加载动画新增 xpmail 风格（XP 双电脑飞信封，纯 CSS 零外链），`load_style` 由 spincat 切至 xpmail，spincat 文件与分支原样保留可一词切回；仅本地实施并通过 ego 双断点、真实加载路径、开门退场、reduced-motion 与慢网首屏验证，未提交、未推送、未部署。
@@ -82,7 +84,7 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 
 ### 部署与构建
 
-- [2026-10-09 RSS 自动订阅接入方案](05-reference/rss-subscription-design/README.md) — **仅调查与设计，未实施**；用户确认仅收录公开文章，保留 Hexo 7.3.0 / Butterfly 5.3.2，记录 feed 3/4 差异、公开白名单、pub 校验和验收计划。
+- [2026-10-09 RSS 自动订阅接入方案](05-reference/rss-subscription-design/README.md) — **清理后双部署 190c74d4a**；正文/公告隔离实测通过，临时标记已清除，正式公告保留；获授权提交并推送源码，历史备份 fd010fd 保留。
 - [2026-07-10 渲染性能与长期记忆事实审计](05-performance-audit/2026-07-10-render-performance-audit/README.md) — **当前性能基线**；P0–P3 清单、证据、保持视觉与功能的优化路径，排查风扇高转必读
 - [2026-07-10 首页瀑布流 P0 重写](04-operations/2026-07-10-waterfall-rewrite/README.md) — **已完成并推送**：实现 `9988ac4`、优化前基线 `69772c8`；[本地 Chrome A/B 三断点量化结果已归档](04-operations/2026-07-10-waterfall-rewrite/BROWSER-PERFORMANCE-MEASUREMENTS.md)，目标设备有头浏览器回归待补测
 - [2026-07-11 P1 分层星空动效实验与回退](04-operations/2026-07-11-starfield-p1/README.md) — 基线 `049f08d` 已推送；实验源码、三断点本地 Headless A/B 和 SHA-256 快照已归档，视觉验收未通过，实际运行时已恢复基线双层星空。
