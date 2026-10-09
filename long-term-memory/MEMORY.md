@@ -82,6 +82,7 @@ npm run webp         # 批量转换图片为webp并更新markdown引用（依赖
 
 ### 部署与构建
 
+- [2026-10-09 RSS 自动订阅接入方案](05-reference/rss-subscription-design/README.md) — **仅调查与设计，未实施**；用户确认仅收录公开文章，保留 Hexo 7.3.0 / Butterfly 5.3.2，记录 feed 3/4 差异、公开白名单、pub 校验和验收计划。
 - [2026-07-10 渲染性能与长期记忆事实审计](05-performance-audit/2026-07-10-render-performance-audit/README.md) — **当前性能基线**；P0–P3 清单、证据、保持视觉与功能的优化路径，排查风扇高转必读
 - [2026-07-10 首页瀑布流 P0 重写](04-operations/2026-07-10-waterfall-rewrite/README.md) — **已完成并推送**：实现 `9988ac4`、优化前基线 `69772c8`；[本地 Chrome A/B 三断点量化结果已归档](04-operations/2026-07-10-waterfall-rewrite/BROWSER-PERFORMANCE-MEASUREMENTS.md)，目标设备有头浏览器回归待补测
 - [2026-07-11 P1 分层星空动效实验与回退](04-operations/2026-07-11-starfield-p1/README.md) — 基线 `049f08d` 已推送；实验源码、三断点本地 Headless A/B 和 SHA-256 快照已归档，视觉验收未通过，实际运行时已恢复基线双层星空。
