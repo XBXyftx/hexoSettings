@@ -8,6 +8,7 @@
 
 ## 近期性能优化记录
 
+- [2026-10-10 RSS 稳定更新时间](../05-reference/rss-subscription-design/stable-update-time.md) — Git 基线与哈希台账代替 feed mtime；25 组测试、重复构建、本地浏览器验证通过，仅本地未提交/推送/部署。
 - [2026-10-09 RSS 新公告与用户动图](../03-api-practices/announcement-history.md) — 第 25 期说明置顶，27 帧透明无损 WebP；已双部署至 6d3972a64，线上两站点公告、图片与动画验证通过，本批源码未提交/推送。
 - [2026-10-09 RSS 实施与上线](../05-reference/rss-subscription-design/implementation.md) — 分轮实测通过，临时标记已清除，双部署 190c74d4a 通过线上验收；源码 7ff811e 已提交推送，历史备份 fd010fd 保留。
 - [2026-09-18 开源之夏卡片 XP 化与推文补充](operation-log.md#58--2026-09-18--开源之夏文章两个项目卡片-xp-窗口化仅本地实施) — 两张仓库卡使用 XP 窗口，前置两张同款推文卡；构建与 ego 双断点验证通过，同日获授权双目标部署至 `bf70b93d0`。

@@ -8,7 +8,7 @@
     "build": "hexo generate",
     "postbuild": "npm run check:feed",
     "check:feed": "node ./tools/check-feed.js",
-    "test:feed": "node --test test/rss-feed.test.js",
+    "test:feed": "node --test test/rss-feed.test.js test/rss-update-state.test.js",
     "clean": "hexo clean",
     "deploy": "hexo deploy",
     "server": "hexo server",

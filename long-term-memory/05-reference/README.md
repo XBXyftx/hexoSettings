@@ -13,6 +13,7 @@
 | [`../05-performance-audit/2026-07-10-render-performance-audit/README.md`](../05-performance-audit/2026-07-10-render-performance-audit/README.md) | 当前渲染性能基线、按 P0–P3 排序的问题和验收方案 |
 | [`birthday-gift-page-design.md`](birthday-gift-page-design.md) | 生日礼物特限页面历史设计归档（当前实现见 `02-custom-pages/birthday-gift-timeline.md`） |
 | [`rss-subscription-design/README.md`](rss-subscription-design/README.md) | RSS 设计、实现与线上验证：源码 7ff811e 已推送，测试标记已清理，双部署 190c74d4a 已验收；历史备份 fd010fd 保留 |
+| [`rss-subscription-design/stable-update-time.md`](rss-subscription-design/stable-update-time.md) | 2026-10-10 Git 基线与持久化哈希修复更新时间，仅本地；25 组测试、重复构建、浏览器通过 |
 
 ---
 

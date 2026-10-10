@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
+const { openUpdateState } = require('./rss-update-state');
 const { XMLParser, XMLBuilder, XMLValidator } = require('fast-xml-parser');
 const { parseDocument, DomUtils } = require('htmlparser2');
 const { encodeURL, escapeHTML, full_url_for } = require('hexo-util');
@@ -74,6 +75,8 @@ function validateConfig(config) {
   const feed = config.feed;
   ensure(policy.public_source_prefix === '_posts/' && policy.exclude_future === true,
     '公开文章目录和未来文章排除策略不能关闭');
+  ensure(typeof policy.state_path === 'string' && /^\.[a-z0-9-]+\.json$/u.test(policy.state_path),
+    'rss_subscription.state_path 必须是项目根目录的隐藏 JSON 文件');
   ensure(JSON.stringify(feed.type) === '["atom","rss2"]', 'feed.type 必须按 atom、rss2 排列');
   ensure(Array.isArray(feed.path) && feed.path.length === 2, '必须配置两个订阅路径');
   feed.path.forEach(p => {
@@ -113,7 +116,7 @@ function timestamp(value, label) {
   return parsed;
 }
 
-function projectPosts(query, config, now = Date.now()) {
+function projectPosts(query, config, now, updateState) {
   const selected = [];
   let excluded = 0;
   let fallbacks = 0;
@@ -131,7 +134,7 @@ function projectPosts(query, config, now = Date.now()) {
     }
     const published = timestamp(post.date, `${source} 发布日期`);
     if (published > now) { excluded++; continue; }
-    const updated = Math.max(published, post.updated == null ? published : timestamp(post.updated, `${source} 更新时间`));
+    const updated = updateState.resolve(post, source, published);
     ensure(updated <= now + CLOCK_TOLERANCE, `${source} 更新时间超前，请检查时钟`);
     const permalink = articleURL(post.permalink, config);
     ensure(permalink === articleURL(full_url_for.call({ config }, post.path), config),
@@ -298,7 +301,8 @@ function generateFeeds(context, locals, now = Date.now()) {
   const [major, minor] = process.versions.node.split('.').map(Number);
   ensure(major > 20 || (major === 20 && minor >= 19), '订阅生成需要 Node >=20.19.0');
   config.feed.path.forEach(p => ensure(!fs.existsSync(path.join(context.source_dir, p)), 'source 存在同名订阅文件'));
-  const projection = projectPosts(locals.posts, config, now);
+  const updateState = openUpdateState(context, now);
+  const projection = projectPosts(locals.posts, config, now, updateState);
   const posts = new locals.posts.constructor(projection.posts);
   const generator = require('hexo-generator-feed/lib/generator');
   const feedConfig = { ...config, title: cleanText(config.title), author: cleanText(config.author),
@@ -309,6 +313,8 @@ function generateFeeds(context, locals, now = Date.now()) {
     return { path: result.path, data: serializeFeed(result.data, type, projection.posts, config) };
   });
   verifyPair(routes, config, projection.posts, now);
+  updateState.save();
+  context.log?.info(`[RSS] 内容更新时间：复用 ${updateState.counts.reused} 篇，Git 基线 ${updateState.counts.git} 篇，变更/新文 ${updateState.counts.observed} 篇`);
   return { ...projection, routes };
 }
 

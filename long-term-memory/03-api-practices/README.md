@@ -167,6 +167,8 @@
 
 ## RSS 订阅
 
+- [稳定内容更新时间](../05-reference/rss-subscription-design/stable-update-time.md) — 2026-10-10 本地修正；不再以 mtime 作为 feed 更新时间，根 `.rss-feed-state.json` 需随文章提交同步。25 组测试和两次 clean build 通过，未提交/推送/部署。
+
 - [RSS 自动订阅接入方案与实施](../05-reference/rss-subscription-design/README.md) — 固定 feed4 与公开文章薄适配，随 build/pub 生成双格式并 postbuild 校验；正文/公告隔离实测通过，测试标记已清理，双部署 190c74d4a 已验收，源码 7ff811e 已推送。见实施记录第 8、9 节。
 
 ## 浏览器验证工具

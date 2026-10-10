@@ -13,6 +13,8 @@ const policy = require('../tools/lib/rss-feed-policy');
 const { checkFeed } = require('../tools/check-feed');
 
 const NOW = Date.parse('2026-10-09T00:00:00Z');
+const temporaryDirectories = [];
+test.after(() => temporaryDirectories.forEach(dir => fs.rmSync(dir, { recursive: true, force: true })));
 function config() {
   return {
     url: 'https://example.invalid', title: 'Test', author: 'Author', language: 'zh-CN',
@@ -22,7 +24,9 @@ function config() {
       enable: false, type: ['atom', 'rss2'], path: ['atom.xml', 'rss.xml'], limit: 30,
       content: false, content_limit: 240, order_by: '-date source', autodiscovery: false, icon: '/img/logo.webp'
     },
-    rss_subscription: { enable: true, public_source_prefix: '_posts/', exclude_future: true }
+    rss_subscription: {
+      enable: true, public_source_prefix: '_posts/', exclude_future: true, state_path: '.rss-feed-test-state.json'
+    }
   };
 }
 function article(slug = 'public', fields = {}) {
@@ -30,11 +34,18 @@ function article(slug = 'public', fields = {}) {
     date: new Date('2026-09-01T00:00:00Z'), updated: new Date('2026-09-02T00:00:00Z'), published: true, ...fields };
 }
 async function fixture(posts = [article()], mutate = () => {}) {
-  const h = new Hexo(process.cwd(), { silent: true });
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'hexo-feed-model-'));
+  temporaryDirectories.push(base);
+  const h = new Hexo(base, { silent: true });
   Object.assign(h.config, config());
   mutate(h.config);
   h.extend.filter.register('post_permalink', require('../node_modules/hexo/dist/plugins/filter/post_permalink'));
-  await h.model('Post').insert(posts);
+  await h.model('Post').insert(posts.map(post => ({
+    ...post,
+    raw: post.raw || `---\n${yaml.dump({
+      title: post.title, description: post.description, date: post.date, updated: post.updated
+    })}---\n${post.content || 'Test body'}`
+  })));
   h.locals.invalidate();
   const locals = h.locals.toObject();
   return { h, locals, generate: () => policy.generateFeeds(h, locals, NOW) };

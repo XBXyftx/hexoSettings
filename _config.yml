@@ -125,6 +125,7 @@ rss_subscription:
   enable: true
   public_source_prefix: _posts/
   exclude_future: true
+  state_path: .rss-feed-state.json
 
 # 🔧 性能优化：WebP 自动转换配置
 # 需要安装：npm install hexo-filter-webp --save

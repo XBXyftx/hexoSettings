@@ -1994,3 +1994,17 @@
 **已验证**：ego-browser 主站与 GitHub Pages 均显示 14:55:47 新公告；动图 HTTP 200、image/webp、966638 字节、naturalWidth/Height 1000。主站线上 ImageDecoder 识别 27 帧且第 0/10 帧像素不同。两站点图片 SHA-256 均为 `bbb2308af61590bd49a2abd79d30477dc7f83f81b3d9f3b0d6422f5b0cda668f`，与本地一致，截图确认图片显示。
 
 **状态**：已上线，本批源码未提交/推送；用户原 GIF 未修改。之前看到 14:16 无图公告是尚未部署新版，并非已确认的 Chrome 兼容性问题。
+
+---
+
+### #67 — 2026-10-10 — RSS 更新时间改为 Git 基线与内容哈希（仅本地）
+
+**授权**：用户同意历史 Git 基线、持久化哈希和保留 ID/发布日期，询问是否需要改插件。仅项目适配层实施，不修改 node_modules。
+
+**改动**：新增 `tools/lib/rss-update-state.js` 与根 `.rss-feed-state.json`，接入 rss-feed-policy，新增时间策略测试并将现有夹具隔离至临时目录。配置增加 state_path。全站 updated_option、主题、文章内容和依赖锁不变。
+
+**验证**：25 组测试通过，真实 Git/中文路径/mtime/CRLF/跨目录/浅克隆/损坏台账/失败不写入/公开范围覆盖。两次 clean build 均为 2401 文件，第二次 61 篇全复用且 Atom 不变；与旧产物比较仅更新时间变化，ID/发布日期/顺序/摘要不变。本地浏览器双 feed 200、30 条，台账路径 404。
+
+**基线结果**：60 篇从 Git 恢复时间，1 篇为工作期间用户正在编辑的 ToBistuMaker，按首次观察时间记录；未改写或还原该用户改动。示例 rustTips 恢复 2026-08-09、Agents杂谈恢复 2026-07-12，Git 时间是内容提交近似，非精确编辑时间。
+
+**交接**：未提交、未推送、未部署。台账不是可丢缓存，必须随源码同步；保存点为 feed 校验通过，不保证整个构建或部署成功。完整边界见 [稳定内容更新时间](../05-reference/rss-subscription-design/stable-update-time.md)。
