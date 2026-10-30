@@ -1,5 +1,5 @@
 ---
-title: 我推翻了侧边聊天的第一个版本：dsh 实时侧边对话从 fork 到实时摘要
+title: 实时上下文：给 DeepSeek Harness 做一个不会过时的侧边对话
 date: 2026-10-30 11:40:00
 tags:
   - AI
@@ -9,8 +9,8 @@ tags:
   - 插件开发
 categories:
   - 技术向
-description: 第一版把主会话历史 fork 进隐藏子会话，方向错了。这篇记录 dsh-live-side-chat 0.4.1 的推翻与重做：空会话 + 实时摘要投影、只读三层、隐藏与真销毁、模型胶囊、0.4.0 的改名，以及仍然存在的限制。
-typewriter: 第一版我把它做成了 fork，第二版才想明白：侧边对话要的不是历史，而是"现在"。
+description: 侧边对话真正的难点不是共享历史，而是共享现在：本文记录 dsh-live-side-chat 用会话投影给侧边对话注入实时上下文的设计，以及第一版 fork 为什么走不通。
+typewriter: 不打断主会话，也能知道它此刻在干什么。
 cover: /imgs/ArticleTopImgs/DshSideChatTopImg.webp
 post_copyright:
   copyright_author: XBXyftx
@@ -27,7 +27,7 @@ post_copyright:
 
 我第一版做错了。这篇文章主要讲它错在哪、怎么改的，以及改对之后还剩下哪些不体面但真实的限制。
 
-## 一、第一版：我把它做成了 fork
+## 一、先讲一个错误答案：把主会话历史 fork 进去
 
 0.1.0 的思路是"给子会话喂上下文"：取主会话最近一个已完成的轮次，用 `buildForkSeed` 复制成种子，创建一个隐藏的只读子会话。打开侧边对话，立刻能看到主会话的历史，然后基于这些历史提问。
 
