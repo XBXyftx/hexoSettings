@@ -1,6 +1,7 @@
 ---
 title: 渐进式披露长期记忆文档模板
 date: 2026-06-30 17:30:06
+updated: 2026-11-13 16:00:00
 tags:
   - AI
   - 技术向
@@ -12,7 +13,7 @@ tags:
 top: 20
 cover: /imgs/ArticleTopImgs/LongTermTopImg.webp
 swiper_index: 2
-description: 一套面向AI编程的长期记忆与 Agent 工作流模板——从上下文压缩、渐进式索引到按需 sub agent 编排，详解文档职责、证据协议、路由矩阵和多客户端同步方法
+description: 一套面向AI编程的长期记忆与 Agent 工作流模板——从上下文压缩、渐进式索引到按需 sub agent 编排，详解双层记忆结构、证据协议、路由矩阵、Opt-In 真机验证与 SQLite FTS5 本地检索索引
 typewriter: 🧠 大模型的能力不在于它能不能"捞起针"，而在于它能不能在浩瀚的上下文中快速"找到针"。本文从上下文压缩、注意力分散和模型幻觉等工程痛点出发，结合仓库最新的 Agent 工作流实践，介绍一套可迁移的长期记忆文档体系。除了 MEMORY.md、规则文件、AI交接区、需求与Bug归档、API规范和操作日志，本文还会拆解 Agent 生命周期、证据标签、sub agent 按需路由、统一输出协议以及多客户端同步。目标不是让每个任务都启动一组 Agent，而是让主 Agent 在证据足够时直接工作，在确有不确定性时调用最小的辅助角色。
 post_copyright:
 copyright_author: XBXyftx
@@ -218,7 +219,7 @@ copyright_info: 此文章版权归XBXyftx所有，如有转载，请註明来自
 }
 </style>
 
-<div class="memory-repo-card"><div class="memory-repo-card-inner"><div class="memory-repo-card-header"><div><div class="memory-repo-badge">🧠 Long-Term Memory · Template</div><h3 class="memory-repo-title">Memory Methodology Template</h3><p class="memory-repo-desc">一套面向 AI 编程的长期记忆文档脚手架，用渐进式索引把项目规则、需求、Bug、API 实践、架构热点和交接状态拆成可检索的小块，让模型少靠脑补，多靠证据。</p></div><div class="memory-repo-mark">⌁</div></div><div class="memory-repo-grid"><div class="memory-repo-metric"><strong>1 个</strong><span>全局入口 MEMORY.md</span></div><div class="memory-repo-metric"><strong>8 类</strong><span>分区索引目录</span></div><div class="memory-repo-metric"><strong>REQ / BUG</strong><span>唯一入口归档</span></div><div class="memory-repo-metric"><strong>Evidence</strong><span>证据驱动结论</span></div></div><div class="memory-repo-flow"><code>根索引</code><span>→</span><code>分区 README</code><span>→</span><code>条目入口</code><span>→</span><code>子文档证据</code></div><div class="memory-repo-tags"><span>上下文工程</span><span>AI Handover</span><span>渐进式索引</span><span>最小变更</span><span>证据优先</span></div><div class="memory-repo-actions"><a class="memory-repo-button" href="https://github.com/XBXyftx/memory-methodology-template" target="_blank" rel="noopener noreferrer">查看 GitHub 仓库 ↗</a><span class="memory-repo-note">适合用于新项目初始化、AI 接力、上下文压缩恢复和长期工程知识沉淀。</span></div></div></div>
+<div class="memory-repo-card"><div class="memory-repo-card-inner"><div class="memory-repo-card-header"><div><div class="memory-repo-badge">🧠 Long-Term Memory · Template</div><h3 class="memory-repo-title">Memory Methodology Template</h3><p class="memory-repo-desc">一套面向 AI 编程的长期记忆文档脚手架——共享层沉淀跨项目方法论，项目层各自维护事实，用渐进式索引和可重建的本地检索索引把规则、需求、Bug、API 实践与交接状态拆成可定位的小块，让模型少靠脑补，多靠证据。</p></div><div class="memory-repo-mark">⌁</div></div><div class="memory-repo-grid"><div class="memory-repo-metric"><strong>2 层</strong><span>共享层 + 项目层</span></div><div class="memory-repo-metric"><strong>20 条</strong><span>可执行工作区规则</span></div><div class="memory-repo-metric"><strong>REQ / BUG</strong><span>唯一入口归档</span></div><div class="memory-repo-metric"><strong>FTS5</strong><span>可重建检索缓存</span></div></div><div class="memory-repo-flow"><code>工作区枢纽</code><span>→</span><code>项目 MEMORY</code><span>→</span><code>分区 README</code><span>→</span><code>条目证据</code></div><div class="memory-repo-tags"><span>上下文工程</span><span>AI Handover</span><span>渐进式索引</span><span>检索即缓存</span><span>证据优先</span></div><div class="memory-repo-actions"><a class="memory-repo-button" href="https://github.com/XBXyftx/memory-methodology-template" target="_blank" rel="noopener noreferrer">查看 GitHub 仓库 ↗</a><span class="memory-repo-note">适合用于新项目初始化、AI 接力、上下文压缩恢复和长期工程知识沉淀。</span></div></div></div>
 
 {% note success flat %}
 如果你正在用 AI 编程却总被上下文压缩后乱写、模型遗忘关键约束、多人/多模型接力断层所困扰，这套模板或许能帮你的 AI 从一个"随缘编码的工具"升级为一个"有案可查的工程师"。
@@ -261,7 +262,7 @@ OpenAI在早期对长提示词的研究中就曾发现：当单个文档中的�
 这是一切的基石。模板的设计哲学可以浓缩为一句话：
 
 ```txt
-根索引 → 分区README → 条目入口 → 子文档证据
+工作区枢纽 → 项目MEMORY → 分区README → 条目入口 → 子文档证据
 每一层保持精简，细节向下沉淀。
 ```
 
@@ -317,96 +318,83 @@ Agent 工作协议、路由矩阵和专项提示词各自只承担一类职责�
 
 当多个 AI 客户端同时使用这套模板时，每个 Agent 保留一个主提示词源，再生成或适配客户端文件。这样可以避免不同客户端长期手工维护完整副本，导致规则、权限和工具语义逐渐分叉。
 
+### 第八原则：共享层与项目层分离
+
+当模板只服务一个项目时，所有文档平铺在一起问题不大。但一旦多个项目共享同一份记忆库，"这个项目的 Bug 结论被套到另一个项目上"就会变成真实的风险。最新版本把整个结构拆成两层：
+
+- **共享层**：根部的 `rules.md`、`agent-workflow.md`、`document-authoring-rules.md` 和 `shared/` 目录。只放项目无关的方法论——Bug修复方法论、规模化检索采用指南、真机验证工作流、官方文档查找流程。一个文档要进入共享层，它的规则和例子都必须与具体项目无关。
+- **项目层**：`projects/<project-name>/` 下每个项目一个目录，各自维护自己的 `MEMORY.md`（项目导航与当前状态）、`AI-handover.md` 和编号分区目录。
+
+两条硬性规则：共享文档永远不复制进项目层，在项目里复用共享方法时要把例子里的路径和标识符换成该项目自己的；一个项目的事实（源码契约、Bug 结论、commit 记录）绝不套用到另一个项目上，归属不明就先问。
+
+### 第九原则：检索索引是缓存，不是事实来源
+
+这是最新版本写入 `rules.md` 第 20 条的边界。当记忆库规模超过千份文档时，模板配套了一个基于 SQLite FTS5 的本地检索索引，但它的定位被刻意压得很低：
+
+- 索引只负责**定位入口**，返回的是带路径、行区间和源文件 hash 的"候选引用"；
+- 任何结论都必须回读原文并核对 hash 之后才能采信，引用失效会直接报错，而不是拿旧行号冒充当前引用；
+- Markdown + Git 是唯一事实来源，索引是可随时删除重建的缓存——删掉缓存目录，一切回退到 `rg` 加目录路由，别无其他变化。
+
 ## 目录结构总览
 
 模板的完整目录结构如下：
 
 ```txt
 portable-long-term-memory/
-├── MEMORY.md                          # 全局导航索引
-├── rules.md                           # 项目开发规则
-├── document-authoring-rules.md        # 文档编写与维护规则
-├── AI-handover.md                     # AI会话交接快照
+├── MEMORY.md                          # 工作区枢纽：项目地图 + 启动阅读顺序 + 共享层路由
+├── rules.md                           # 工作区规则（所有项目共用，20条）
 ├── agent-workflow.md                  # 主 Agent 与 sub agent 共用协议
 ├── subagent-routing.md                # 按需 sub agent 路由矩阵
-├── 00-index/                          # 顶层导航锚点
-│   └── README.md
-├── 01-onboarding/                     # AI新会话启动上下文
+├── document-authoring-rules.md        # 文档编写与维护规则（含分层放置与检索索引政策）
+├── shared/                            # 共享层：跨项目方法论
 │   ├── README.md
-│   └── onboarding-prompt.md
-├── 02-requirements/                   # 需求与分析
+│   ├── analysis-001-memory-index-and-retrieval.md        # 规模化检索采用指南（阈值/方案/实测）
+│   ├── analysis-004-devecocli-docs-api-lookup.md         # 官方文档只读查找流程
+│   ├── lessons-003-bugfix-feature-methodology.md         # Bug修复与功能开发方法论
+│   ├── lessons-004-agent-workflow-optimization.md        # Agent 按需编排优化摘要
+│   └── lessons-005-opt-in-device-validation-workflow.md  # Opt-In 真机验证工作流
+├── tools/
 │   ├── README.md
-│   ├── REQ-0000/README.md
-│   ├── REQ-0001/
-│   │   ├── README.md
-│   │   ├── 分析报告.md
-│   │   └── 实施记录.md
-│   └── V1/README.md
-├── 03-api-practices/                  # API使用规范
-│   ├── README.md
-│   ├── api-practices.md
-│   └── feedback_callback_types.md
-├── 04-operations/                     # 操作记录
-│   ├── README.md
-│   └── operation-log.md
-├── 05-reference/                      # 项目参考文档
-│   ├── README.md
-│   ├── project-overview.md
-│   ├── analysis-001-architecture-flow-audit.md
-│   ├── analysis-002-current-architecture-hotspots.md
-│   ├── analysis-003-harmony-skills-lookup-guide.md
-│   ├── analysis-004-devecocli-docs-api-lookup.md
-│   ├── analysis-005-devecocli-docs-investigation-process.md
-│   ├── lessons-001-network-recovery.md
-│   ├── lessons-002-exception-isolation.md
-│   ├── lessons-003-bugfix-feature-methodology.md
-│   └── lessons-004-agent-workflow-optimization.md
-├── 06-code-review-fixes/              # CR整改记录
-│   ├── README.md
-│   ├── CR-001-sample-fix.md
-│   ├── CR-002-sample-fix.md
-│   └── CR-003-sample-fix.md
-└── 07-bug-reports/                    # Bug报告与修复
-    ├── README.md
-    ├── BUG-0001.md
-    ├── BUG-0001/
-    │   ├── analysis.md
-    │   ├── fix-plan.md
-    │   └── log01.md
-    ├── BUG-0002.md
-    └── BUG-0002/
-        ├── analysis.md
-        ├── fix-plan.md
-        └── log01.md
+│   └── memory_index/                  # SQLite FTS5 本地检索索引（只读工具 + 20个单元测试）
+└── projects/                          # 项目层：一个真实项目一个目录
+    ├── README.md                      # 项目层约定
+    ├── project-a/                     # 完整脚手架示例（复制即用）
+    │   ├── MEMORY.md                  # 项目级导航与当前状态
+    │   ├── AI-handover.md             # 项目级交接快照
+    │   ├── 00-index/                  # 顶层导航锚点
+    │   ├── 01-onboarding/             # AI新会话启动上下文
+    │   ├── 02-requirements/           # 需求与分析（含拆分工作流与 scoped 规则模板）
+    │   ├── 03-api-practices/          # API使用规范
+    │   ├── 04-operations/             # 操作记录
+    │   ├── 05-reference/              # 项目参考文档
+    │   ├── 06-code-review-fixes/      # CR整改记录
+    │   └── 07-bug-reports/            # Bug报告与修复
+    └── project-b/                     # 最小项目层示例：枢纽入口 + 交接快照 + 按需目录
 ```
 
 接下来我逐个目录讲解它的设计目标、使用方法和预期效果。
 
 ## 各目录详解
 
-### MEMORY.md：全局导航总入口
+### MEMORY.md：从全局入口到工作区枢纽
 
-`MEMORY.md` 是整个长期记忆体系的唯一入口。AI 在任何新会话、任何上下文压缩恢复后，第一件事就是读这个文件。
+`MEMORY.md` 是整个长期记忆体系的第一入口。AI 在任何新会话、任何上下文压缩恢复后，第一件事就是读这个文件。双层结构改造后，它的角色发生了一个重要变化——从"单项目的总目录"升级为"工作区枢纽"，只保留三类内容：
 
-它的内容分为几个关键模块：
+1. **项目地图**：一张表列出工作区里的每个项目——名称、别名、代码位置、记忆入口。外加一条识别规则：任务提到别名或标识符时，先映射到项目；绝不把一个项目的源码事实、契约、Bug 结论或 commit 记录套到另一个项目上，归属不明就先问。
 
-1. **Must Read 清单**：列出 AI 在开始任何工作前必须阅读的核心文档，包括项目规则、文档编写规则、AI 交接文档、项目概览、架构热点、Bug修复方法论和技能查找指引。最新版本还把共享 Agent 工作协议、按需路由矩阵和优化摘要纳入入口。
+2. **启动阅读顺序**：本文件（识别目标项目）→ `rules.md`（工作区规则）→ 目标项目的 `MEMORY.md`（当前事实与进行中的工作）→ 再沿渐进式索引下钻，只打开当前任务需要的部分。已采用检索索引时，先用索引定位历史条目入口，回读原文后再采信；索引失效则回退 `rg` 加目录路由。
 
-2. **Read by Task 路由表**：根据当前任务类型（新会话交接、需求开发、Bug 修复、API 查询、参考资料），告诉 AI 应该从哪里开始阅读。这个表中的每一个链接都指向唯一入口，AI 不需要猜测 "我该去哪个目录找"。
+3. **共享层与目录地图**：指向根部规则文件、`agent-workflow.md`、`document-authoring-rules.md`、`shared/` 方法论层和 `tools/` 工具层的一句话路由。
 
-3. **目录地图**：所有分区目录和它们的一句话简介，供 AI 快速扫描。
+原来那些"Must Read 清单、Read by Task 路由表、当前工作快照"并没有消失——它们整体下沉到了每个项目自己的 `projects/<项目名>/MEMORY.md` 里。项目级入口同样列必读文档、按任务类型的路由表和分区目录地图，只是它导航的是本项目的事实，不再混杂其他项目。
 
-4. **当前状态模板**：项目名、版本、技术栈等基本元信息占位。
-
-5. **核心原则**：复用优先、最小变更、外部数据零信任、证据优先、不存敏感信息，以及只有在具体问题信号存在时才启动 sub agent。
-
-这个文件的设计目标是：**AI 读完 MEMORY.md 之后，应该知道当前项目是什么、规则在哪里、遇到问题该去哪里找、以及需要遵循什么基本原则**。全程不需要自己猜。
+这个文件的设计目标是：**AI 读完根 `MEMORY.md` 之后，应该知道当前任务属于哪个项目、共享规则在哪里、该项目自己的入口在哪里；读完项目 `MEMORY.md` 之后，应该知道当前项目是什么、进行中的工作有哪些、遇到问题该去哪里找**。全程不需要自己猜。
 
 ### rules.md：项目的宪法
 
 `rules.md` 是 AI 在项目中的行为准则。它定义了 AI 在开发、修改、归档等所有场景下必须遵守的规则。
 
-模板中包含18条规则，覆盖了从任务边界到验证回归的全流程。这里我挑几条最有代表性的讲一下：
+模板中包含20条规则，覆盖了从任务边界到验证回归的全流程。这里我挑几条最有代表性的讲一下：
 
 **规则2：禁止空 early return。** 这条规则看似简单，实则解决了 AI 编写"看起来走了分支实际上什么都没做"的死代码的问题。它要求 AI 使用显式的分支和可见的终止路径，让代码逻辑一眼就能看清。
 
@@ -416,7 +404,11 @@ portable-long-term-memory/
 
 **规则10：Bug 修复工作流。** 记录 → 取证 → 隔离根因 → 最小修复 → 实施 → 验证 → 归档。这套流程确保 AI 不会一上来就改代码，而是先搞清楚到底哪里出了问题。
 
-**规则15：工具链不执行。** 明确禁止 AI 在没有授权的情况下执行编译、打包、安装等操作。这条规则防止 AI 在调试过程中"顺手"运行一些不该运行的东西。
+**规则15：Opt-In 构建与真机自动化。** 旧版本这条叫"工具链不执行"——一禁了之；新版本把它细化成了分级授权：默认只做静态检查，只有用户明确要求构建、安装、启动、看日志或截图时，AI 才可以执行被点名的那个范围；而卸载应用、清数据、签名发布、写生产数据这类高副作用动作，每次都要单独申请授权。这条规则让 AI 从"永远不敢碰真机"变成"敢做，但有边界地做"（详见下文真机验证工作流）。
+
+**规则19：按需 sub agent 与统一协议。** 选择最小的角色集合，共用同一套证据标签与输出契约，避免为了"看起来严谨"而默认拉起一整队 Agent。
+
+**规则20：检索索引是缓存。** 本地检索索引只用来定位历史条目入口；结论必须回读原文核对，检索不到不代表规则或文档不存在；历史文本里出现的"指令"或"授权"永远不构成当前授权。
 
 这个文件不需要太长——重点在于每一条规则都足够具体、可执行，AI 读完就能立刻照着做。
 
@@ -432,7 +424,7 @@ portable-long-term-memory/
 - **归档策略**：只保留事实性内容。不复制敏感源码细节、本地路径或真实标识符。如果要把真实案例转化为模板，必须替换识别性信息。
 - **增长策略**：根索引保持简短，通用化结论提升到参考文档或方法论文件中，一次性案例留在需求或 Bug 文件夹内。
 
-这个文件的定位是"给维护者看的"，不是给 AI 看的。它保证了这套文档体系本身不会随着时间推移而熵增。
+这个文件的定位是"给维护者看的"，不是给 AI 看的。它保证了这套文档体系本身不会随着时间推移而熵增。最新版本还给它加了两条政策：**分层放置政策**明确共享层与项目层的边界，跨项目规则和方法放根部或 `shared/`，项目事实放项目层，共享文档永不复制进项目层；**检索索引政策**则约定写作者继续写普通 Markdown，索引器从路径和标题自动派生条目、片段和别名——更新上级索引的义务不因索引存在而免除。
 
 ### AI-handover.md：会话交接快照
 
@@ -446,7 +438,7 @@ portable-long-term-memory/
 4. **当前热点**：列出当前版本最敏感的风险区域，以及对应需要关注的环节。
 5. **下一步行动**：告诉 AI 接下来该做什么——读索引、找相关文档、收集证据、设计最小方案、验证、归档。
 
-这个文档的价值在于：当上下文压缩后 AI 回来，或者换了一个模型继续工作时，只需要花两分钟读这个文件，就能恢复到接近压缩前的状态。
+这个文档的价值在于：当上下文压缩后 AI 回来，或者换了一个模型继续工作时，只需要花两分钟读这个文件，就能恢复到接近压缩前的状态。双层结构后，这份快照下沉到每个项目层各自维护（`projects/<项目名>/AI-handover.md`），根部不再保留全局交接文件——跨项目的"交接"由根 `MEMORY.md` 的项目地图承担。
 
 ### 00-index：顶层导航锚点
 
@@ -454,7 +446,7 @@ portable-long-term-memory/
 
 为什么需要它？因为在某些工具链或 Agent 中，AI 可能不知道从哪里开始。`00-index/README.md` 提供了最简单的路由表：去读 `MEMORY.md`、去读 `rules.md`、去查需求、去查 Bug。
 
-它的规则是：不存业务代码、不存私密信息，只做导航。
+它的规则是：不存业务代码、不存私密信息，只做导航。双层结构后，它跟随项目层移动到 `projects/<项目名>/00-index/`，职责不变。
 
 ### agent-workflow.md：主 Agent 与 sub agent 的共用协议
 
@@ -463,7 +455,7 @@ portable-long-term-memory/
 协议把一次任务拆成五个阶段：
 
 1. **分类**：明确任务类型、目标、范围、现有证据、写入范围和结束条件。
-2. **渐进式读取**：先读启动指令、全局索引和项目规则，再按任务进入需求、Bug、API、审查或参考入口；文档编写规则只在文档发生实质变化时读取。
+2. **渐进式读取**：先读启动指令、全局索引和项目规则，再按任务进入需求、Bug、API、审查或参考入口；文档编写规则只在文档发生实质变化时读取。已采用检索索引时，优先用它定位历史条目入口，命中结果仍是候选引用——回读原文后再采信；索引失效则回退 `rg` 加目录路由，不阻塞任务。
 3. **按需编排**：选择最小角色集合，并行执行独立角色；问题已回答就停止。
 4. **合并证据**：给结论标注来源性质，避免把建议、静态分析或提交记录包装成更强的事实。
 5. **执行与收尾**：按最小变更修改，检查 diff、链接、索引和保护差异，区分实际执行的静态检查与人工/设备验证。
@@ -531,6 +523,12 @@ portable-long-term-memory/
 
 这个目录的设计目标是：**一个需求的所有信息——从原始描述到分析到实施到验证——全部归拢在同一个目录下，通过 README 的一层路由即可定位到任何细节**。
 
+最新版本还给这个目录补了一套**需求拆分与局部规则工作流**（`requirement-decomposition-and-local-rules-workflow.md`），解决两个老问题：一个大型版本文档怎么拆成可追溯的需求条目，以及一个版本或需求内部的稳定重复流程要不要单独立规矩。
+
+拆分判断很朴素：只有当一个条目拥有独立的用户目标、入口点、数据契约或验收结果，能独立调查、实施、验证或交付，或者留在版本 README 里会掩盖范围、归属、状态或未决依赖时，才给它单独开目录。改个措辞、补一张截图这种小事，并入既有条目即可。
+
+局部规则则遵循"**用最窄的适用规则，不复制上级政策**"的层级：工作区规则 → 分区工作流 → 版本级 `rule-*.md` → 需求级 `rule-*.md` / `workflow-*.md`。更窄的规则只能为它声明的范围补充细节，不得悄悄削弱上级定义的授权、安全、证据和验证边界。配套的 `templates/scoped-rule-template.md` 提供了模板——先由工作流确认确有"稳定、重复、目标单一、有停止条件"的流程值得沉淀，再把填好的规则文件放进归属它的版本或需求目录，并在入口处索引。
+
 ### 03-api-practices：API 使用规范与技术约束
 
 这个目录沉淀的是"写代码时不能踩的坑"。
@@ -566,11 +564,65 @@ portable-long-term-memory/
 | `analysis-001-architecture-flow-audit.md` | 针对某条架构链路的聚焦分析 |
 | `analysis-002-current-architecture-hotspots.md` | 当前版本的风险热点地图 |
 | `analysis-003-harmony-skills-lookup-guide.md` | 领域技能查找指引——什么场景该加载哪个 skill |
-| `analysis-004~005` | DevEco CLI 文档/API 查找与调查过程 |
-| `lessons-001~003` | 可复用的经验教训——网络恢复、异常隔离、Bug修复方法论 |
-| `lessons-004-agent-workflow-optimization.md` | Agent 按需编排、证据协议、多客户端同步和迁移检查清单 |
+| `analysis-005` / `report-001` | DevEco CLI 文档调查过程与专项调查报告 |
+| `lessons-001~002` | 项目内可复用的经验教训——网络恢复、异常隔离 |
 
-这个目录的设计哲学是：**一次分析，永久复用**。每当你和 AI 花了大量时间排查清楚一个架构问题或总结出一个方法论，就把它沉淀到这里，以后遇到类似问题直接链接。
+注意 `lessons-003`（Bug修复方法论）、`lessons-004`（Agent 工作流优化）、`lessons-005`（真机验证）和 `analysis-004`（官方文档查找）已经迁出到共享层 `shared/`——它们脱敏后的规则和例子已经项目无关。留下来的都是还带着本项目具体路径、编号或工具语境的分析。
+
+这个目录的设计哲学依然是：**一次分析，永久复用**。每当你和 AI 花了大量时间排查清楚一个架构问题或总结出一个方法论，就把它沉淀下来，以后遇到类似问题直接链接——只是现在要先判断它属于项目层还是共享层。
+
+### shared/：跨项目方法论层
+
+双层结构新增的共享层，收录"规则和例子都与具体项目无关"的方法论文档：
+
+| 文档 | 回答的问题 |
+| --- | --- |
+| `analysis-001-memory-index-and-retrieval.md` | 记忆库规模到什么程度该上本地检索索引、怎么上、效果如何 |
+| `lessons-003-bugfix-feature-methodology.md` | Bug修复与功能开发的证据链、根因隔离、最小变更与验证格式 |
+| `lessons-004-agent-workflow-optimization.md` | Agent 按需编排、证据协议、多客户端同步与迁移检查清单 |
+| `lessons-005-opt-in-device-validation-workflow.md` | 真机构建、部署、日志、UI 操作与截图验证的授权边界 |
+| `analysis-004-devecocli-docs-api-lookup.md` | 框架/厂商官方文档的只读查找流程与记录要求 |
+
+进入共享层有一条硬门槛：一个文档只有在规则和例子都项目无关时才能迁入；例子引用了某个项目的目录、编号或工具路径，就必须先泛化，否则留在那个项目的 `05-reference/` 里。共享文档被 `rules.md` 或项目索引引用时还必须保持文件名稳定——重命名意味着要同步更新每一个上级索引。
+
+### Opt-In 真机验证工作流
+
+8 月的更新补上了一块此前的空白：AI 到底能不能碰真机。旧规则 15"工具链不执行"是一刀切的禁止，结果是 AI 永远只能交付"静态检查通过"，最后的验证矩阵全部压给人。新工作流（`shared/lessons-005-opt-in-device-validation-workflow.md`）把它细化成一个分级授权模型：
+
+- **默认**：实现、修复、检查、验证类请求不授予任何工具链或设备控制权限，AI 只做静态检查并准备人工验证矩阵。
+- **限定范围自动化**：用户明确要求构建、安装、启动、看日志、截图或操作应用时，AI 只执行被点名的范围——发现并选定测试设备、调试构建与同包覆盖安装、按应用/关键词/严重级/时间窗过滤日志、限定范围的点击滑动返回和截图核对。授权不延续到后续任务、其他应用、其他账号或无关测试矩阵。
+- **高副作用单独授权**：卸载应用、清应用数据、改永久权限或账号状态、发帖点赞关注收藏分享删除购买、写生产数据、签名上传发布、处理真实凭据——每一项具体动作都要单独申请，且永不把"卸载"当作安装或签名问题的默认应对。
+
+工作流还划了一条 AI 与人的分工线：AI 负责可重复的构建部署、窄日志、布局检查、确定性交互和截图取证；人负责复杂导航、信任弹窗、登录验证、主观体验和大范围回归。双方都只汇报实际执行过的场景——**一次构建成功，不等于整个应用或版本通过了**。
+
+### tools/memory_index：规模化的本地检索
+
+当记忆库还小的时候，渐进式索引加 `rg` 就是全部检索手段。但规模上去之后，纯文本检索的四个痛点开始真实计费：按编号找入口要翻好几层目录；英文工具对连续中文子串基本无效；每个会话都在重复读同一批入口文档；同编号多入口被静默合并。最新版本配套了一个脱敏泛化后的检索工具 `tools/memory_index/`——基于 SQLite FTS5 的只读索引加命令行：
+
+```bash
+python3 tools/memory_index/cli.py build                                  # 全量或增量构建
+python3 tools/memory_index/cli.py search "BUG-0001" --project project-a  # 按编号查入口
+python3 tools/memory_index/cli.py search "<中文关键词>" --format json    # 中文子串检索
+python3 tools/memory_index/cli.py verify-source <path> <line_start> <line_end> <hash>  # 引用回读核对
+```
+
+它的架构原则先行于任何表结构：Markdown + Git 是唯一事实来源；索引器只读原文，hash 是唯一变更依据（mtime 和 size 只作提示、不作判断，它们会骗人）；不做常驻服务、不做文件监听，查询前懒刷新；歧义不裁决——同编号多入口全部返回，绝不静默合并。检索上走词表（unicode61）加 trigram 双通道融合排序（RRF 加权），后者专门解决"从中文句子中间截三个字来查"这个普通分词的命门；一到两字的中文短词则显式回退限定范围的扫描，不静默漏结果。
+
+该不该上这套东西？配套的采用指南（`shared/analysis-001-memory-index-and-retrieval.md`）给出了规模分层：
+
+| 总量 | 建议方案 |
+| --- | --- |
+| < ~100 份 / < 1 MiB | 只用渐进式索引 + `rg`，定位任意入口 ≤ 3 步 |
+| ~100–1,000 份 / 1–10 MiB | 渐进式索引 + 文档健康检查（链接/锚点/启动路由门禁）+ `rg` |
+| ≥ ~1,000 份，或升级信号出现两条以上 | 引入 SQLite FTS5 本地索引 |
+
+一次真实落地的实测数字（语料为通用方法论文档库）：1,483 份文档 / 16.6 MiB 全量初建 5.4 秒，得到 16,251 个片段；无变更增量刷新约 0.2 秒；混合查询 P95 约 300 毫秒；中文两字/三字/整句片段均可达；跨项目误混 0；引用回读一致率 100%。代价也有：索引体积约 230 MiB（trigram 正文副本是主要开销），以及初建加 50 条人工金标查询集加单元测试的数人日前期投入。回退成本则被刻意压到最低——删掉缓存目录，一切回到 `rg` 加目录路由，原文与 Git 历史零影响。
+
+### projects/：项目层
+
+项目层一个真实项目一个目录。`project-a` 是完整脚手架示例：自己的 `MEMORY.md`、`AI-handover.md`，加上原来的八个编号分区（`00-index` 到 `07-bug-reports`）——前文详解的那些目录现在都住在这一层。`project-b` 则示范了多项目记忆的最小形态：一个枢纽入口、一份交接快照、任务目录按需创建，不用一上来就复制整套脚手架。
+
+新增项目只有三步：创建 `projects/<项目名>/` 并从 `project-a` 复制所需目录、清空示例内容；在根 `MEMORY.md` 的项目地图里登记别名、代码位置和记忆入口；如果项目有自己的编号约定，把它们加进检索工具的实体抽取配置。
 
 ### 06-code-review-fixes：CR 整改记录
 
@@ -609,17 +661,20 @@ Bug 的状态流转遵循明确的定义：
 
 ### 阶段一：首次接入
 
-1. 将模板复制到项目工作区
-2. 用项目实际信息替换所有 `<placeholder>`
-3. 在 `AI-handover.md` 中填写当前项目快照
-4. 在 `project-overview.md` 中记录项目架构和主要入口点
-5. 在 `operation-log.md` 记录初始化操作
-6. 如果要接入多个 AI 客户端，为每个 sub agent 确定一个主提示词源，并先在隔离目录执行迁移 dry-run
+1. 将模板复制到工作区，把 `projects/project-a/` 复制为你的 `projects/<项目名>/` 并清空示例内容
+2. 在根 `MEMORY.md` 的项目地图中登记项目：别名、代码位置、记忆入口
+3. 用项目实际信息替换所有 `<placeholder>`
+4. 在项目层的 `AI-handover.md` 中填写当前项目快照
+5. 在 `project-overview.md` 中记录项目架构和主要入口点
+6. 在 `operation-log.md` 记录初始化操作
+7. 复用共享层方法论时，把例子里的路径换成该项目自己的；不要把共享文档复制进项目层
+8. 文档规模尚小时不要急着引入检索索引——出现升级信号再按采用指南落地（见上文检索一节）
+9. 如果要接入多个 AI 客户端，为每个 sub agent 确定一个主提示词源，并先在隔离目录执行迁移 dry-run
 
 ### 阶段二：需求开发
 
 1. 先分类任务：明确目标、范围、证据、写入范围和结束条件
-2. 在 `02-requirements/` 下创建 `REQ-XXXX/` 目录
+2. 按拆分工作流判断是否值得独立条目，然后在项目层 `02-requirements/` 下创建 `REQ-XXXX/` 目录；版本或需求内确有稳定重复流程时，再落一个被入口索引的局部规则文件
 3. 在 `README.md` 中记录需求原始描述和范围
 4. 只有存在历史不确定性、链路不清、跨模块影响或验证复杂度时，才按路由矩阵选择最小 sub agent 集合
 5. 进行分析，将结论写入 `分析报告.md`，并区分代码事实、历史结论、推断和待确认项
@@ -643,10 +698,11 @@ Bug 的状态流转遵循明确的定义：
 ### 阶段四：上下文压缩恢复
 
 1. AI 检测到上下文压缩后，第一时间返回长期记忆目录
-2. 重读 `MEMORY.md` → `AI-handover.md`
+2. 重读根 `MEMORY.md`（识别目标项目）→ `rules.md` → 目标项目的 `MEMORY.md` → 项目 `AI-handover.md`
 3. 根据当前任务类型，重读对应的分区 README
 4. 只有任务确实涉及 Agent 编排或工作流维护时，才继续读取 `agent-workflow.md` 和 `subagent-routing.md`
-5. 确认当前代码状态、保护差异和证据标签后再继续工作
+5. 已采用检索索引时，可先用它定位相关历史条目，但结论仍以回读原文为准
+6. 确认当前代码状态、保护差异和证据标签后再继续工作
 
 > 这套流程的核心思想就一句：把大模型当成一个每次睡醒都会失忆的同事。你需要给它留一张工位上的便签，告诉它项目是什么、资料在哪、昨天做到哪了、今天要干什么。
 
@@ -664,13 +720,15 @@ Bug 的状态流转遵循明确的定义：
 
 **让 AI 自己脑补项目 API。** AI 在缺少上下文时会自动调用它训练数据中的"经验"，而这个经验很可能跟你的项目完全不沾边。对于鸿蒙这种小众技术栈，一定要在规则文件中明确约束"只允许使用项目中已经出现过的 API"。
 
+**文档量不大就急着上检索索引。** 规模化检索指南明确写了反指标：低于约 1,000 份文档时，渐进式索引加 `rg` 已经够快，而建库的前期投入和持续一致性维护是实打实的成本。索引会多出一个需要与文档演进保持同步的派生物——升级信号出现两条以上再动手不迟。
+
 **只记录成功方案，不记录失败尝试。** 有时候，"这个方案行不通以及为什么行不通"比"最终用了什么方案"更有价值。失败的尝试记录能防止 AI 在下一次遇到类似问题时重复走弯路。
 
 **把 sub agent 当成固定流水线。** 新版本已经明确：sub agent 是可选的只读上下文工具，不是每个任务都必须经过的阶段。简单、明确、单文件的修改由主 Agent 直接完成；只有具体问题信号出现时，才启动最小角色集合。
 
 **把不同客户端的提示词复制后手工维护。** 多份完整副本迟早会产生语义差异。正确做法是维护一个主提示词源，在隔离目录中 dry-run，生成客户端适配文件，再检查名称、描述、开发者指令、工具语义和权限差异。
 
-**把历史记录或提交信息当成当前事实。** 历史结论需要和当前源码核对，commit 只能说明变更发生，不能说明行为已经验证。只有明确的测试、人工操作、设备运行或外部系统结果，才能标记为 `已验证`。
+**把历史记录或提交信息当成当前事实。** 历史结论需要和当前源码核对，commit 只能说明变更发生，不能说明行为已经验证。只有明确的测试、人工操作、设备运行或外部系统结果，才能标记为 `已验证`。检索索引的命中同理——它们只是候选引用，回读原文核对 hash 之后才能采信；检索不到也不代表规则或文档不存在，直接查目录。
 
 ## 最后总结
 
@@ -680,7 +738,7 @@ Bug 的状态流转遵循明确的定义：
 
 如果说普通的提示词是在"临时指挥"AI，那么长期记忆就是在给一个会失忆的同事搭建工位；Agent 工作协议则是这间工位的工作纪律。资料放在哪里、遇到问题先读什么、什么时候找同事帮忙、什么证据可以下结论、做完事情记录到哪里——这些看似琐碎的规则，才是让 AI 能够长期、稳定、高质量地参与工程开发的基础。
 
-这套模板我已经开源到了 GitHub：[memory-methodology-template](https://github.com/XBXyftx/memory-methodology-template)。截至 2026 年 7 月 19 日，本地仓库最新 commit 为 `f5fb0c2e7a5592d8de819413b643b3ac60f0beaa`，提交标题是“添加 Agent 工作流优化内容摘要和相关链接”。它新增了 `05-reference/lessons-004-agent-workflow-optimization.md`，并同步更新 `MEMORY.md` 和 `05-reference/README.md`；前一个 commit `de5df514e3179e9452f2f87af1bf180ad186956b` 则引入了 `agent-workflow.md` 和 `subagent-routing.md`，把按需 Agent 机制接入 README、规则和 onboarding。这里的 commit 信息属于**代码/文档事实**，只能证明这些文件变更已经提交，不能替代测试或人工验证结果。
+这套模板我已经开源到了 GitHub：[memory-methodology-template](https://github.com/XBXyftx/memory-methodology-template)。截至 2026 年 11 月 13 日，本地仓库最新 commit 为 `c31d6d9c7d9711e0b011c92e377c42f66fea6f29`，提交标题是"docs: two-layer memory structure, retrieval index tool, and scale-adoption guide"。它把仓库重构成共享层加项目层的双层结构，根 `MEMORY.md` 升级为工作区枢纽，并新增了 `shared/analysis-001-memory-index-and-retrieval.md` 规模化检索采用指南和 `tools/memory_index/` 本地检索索引工具。它前面是 `2426c1c879fe73fb8ac19873e5ceff6ff1faaa1a`（新增需求拆分与局部规则工作流、Opt-In 真机验证工作流，并把规则 15 从"工具链不执行"细化为分级授权）；再往前，`f5fb0c2e7a5592d8de819413b643b3ac60f0beaa` 添加了 Agent 工作流优化摘要，`de5df514e3179e9452f2f87af1bf180ad186956b` 引入了 `agent-workflow.md` 和 `subagent-routing.md`。这里的 commit 信息属于**代码/文档事实**，只能证明这些文件变更已经提交，不能替代测试或人工验证结果。
 
 它是一个起点，不是一个终点。你可以根据自己的项目结构、技术栈和团队习惯进行调整。唯一不变的核心原则是：
 

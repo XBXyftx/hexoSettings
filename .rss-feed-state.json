@@ -102,10 +102,9 @@
       "source_commit": "d10f7308da52ce2742fb90ede96e9189ada1696b"
     },
     "_posts/Long-termMemoryTemplate.md": {
-      "content_hash": "b5a4984608760a159712bd20ceff83a210423d634342d38114077be7b063fcec",
-      "updated": "2026-07-19T08:06:39.000Z",
-      "basis": "git",
-      "source_commit": "44813eb1a0e26e9572e1f35de1d5fb2cdb676988"
+      "content_hash": "f89081e180e112c5afe78c1fde1d974fa982268e9e89a4be785381af77a47a4e",
+      "updated": "2026-11-13T08:00:00.000Z",
+      "basis": "explicit"
     },
     "_posts/MachineCollectionFinalReview.md": {
       "content_hash": "f9d48c5e8206bc044073ed3c3b909714cd014a57bdbdc6f24e52a50242bb956f",
